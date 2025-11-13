@@ -511,7 +511,7 @@ type Format = "plain" | "markdown" | "json";
             
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
               <button className="md-btn" onClick={() => setPresetSelectorOpen(true)} style={{ flex: 1 }}>
-                Select Preset
+                Preset Menu
               </button>
               <button className="md-btn" onClick={() => {
                 const sel = presets.find(p => (p.id ?? p.name) === selectedPresetKey);
@@ -930,7 +930,7 @@ type Format = "plain" | "markdown" | "json";
         <div className="modal-backdrop-blur" />
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <div className="modal-title">Select Preset</div>
+            <div className="modal-title">Preset Menu</div>
             <button className="md-btn" onClick={() => setPresetSelectorOpen(false)} style={{ padding: '6px 10px' }}>Close</button>
           </div>
           <div className="modal-body">
