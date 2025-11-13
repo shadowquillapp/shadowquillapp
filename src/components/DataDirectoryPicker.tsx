@@ -109,7 +109,7 @@ export const DataDirectoryModal: React.FC = () => {
             </div>
             
             <p className="data-location-description">
-              This directory stores your local JSON data and vector index (for RAG, chats, presets, feedback). You can relocate it at any time. Existing data is <strong>not automatically migrated</strong>—manually move the folder if you want to retain prior content.
+              This directory stores your local data as JSON files. You can relocate it at any time. Existing data is <strong>not automatically migrated</strong>—manually move the folder if you want to retain prior content.
             </p>
             
             {error && <div className="data-location-error">{error}</div>}
