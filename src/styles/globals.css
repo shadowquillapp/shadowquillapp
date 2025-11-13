@@ -314,48 +314,6 @@ h3, h4, h5, h6 { line-height: 28px; }
 .modal-body { overflow: auto; padding: 16px; }
 .modal-title { font-weight: 600; color: var(--color-on-surface); }
 
-/* RAG Interface Styling */
-.rag-container { max-width: 1200px; margin: 0 auto; color: var(--color-on-surface); }
-.rag-header { margin-bottom: 24px; }
-.rag-title { font-size: 20px; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; color: var(--color-on-surface); }
-.rag-subtitle { font-size: 14px; color: var(--color-on-surface-variant); }
-
-/* Tab Navigation */
-.rag-tabs { display: flex; gap: 4px; margin-bottom: 24px; background: var(--color-surface); padding: 4px; border-radius: 12px; border: 1px solid var(--color-outline); }
-.rag-tab { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 8px; font-size: 14px; transition: all 120ms ease; cursor: pointer; border: none; background: transparent; }
-.rag-tab--active { background: var(--color-primary); color: var(--color-on-primary); }
-.rag-tab--inactive { color: var(--color-on-surface-variant); }
-.rag-tab--inactive:hover { background: var(--color-outline); color: var(--color-on-surface); }
-
-/* Content Cards */
-.rag-stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-.rag-stat-card { background: var(--color-surface); border: 1px solid var(--color-outline); padding: 16px; border-radius: 12px; }
-.rag-stat-value { font-size: 24px; font-weight: 700; color: var(--color-primary); }
-.rag-stat-label { font-size: 12px; color: var(--color-on-surface-variant); margin-top: 4px; }
-
-.rag-info-card { background: var(--color-surface); border: 1px solid var(--color-primary); border-left: 4px solid var(--color-primary); padding: 16px; border-radius: 12px; margin-bottom: 16px; }
-.rag-section-card { background: var(--color-surface); border: 1px solid var(--color-outline); padding: 16px; border-radius: 12px; margin-bottom: 16px; }
-.rag-section-title { font-size: 14px; font-weight: 600; color: var(--color-on-surface); margin-bottom: 8px; }
-.rag-section-text { font-size: 14px; color: var(--color-on-surface-variant); line-height: 1.5; }
-
-/* Message Cards */
-.rag-message-card { background: var(--color-surface); border: 1px solid var(--color-outline); padding: 16px; border-radius: 12px; margin-bottom: 12px; }
-.rag-message-card--liked { border-left: 4px solid #10b981; }
-.rag-message-card--disliked { border-left: 4px solid #ef4444; }
-.rag-message-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.rag-message-role { font-size: 12px; font-weight: 600; text-transform: uppercase; }
-.rag-message-role--liked { color: #10b981; }
-.rag-message-role--disliked { color: #ef4444; }
-.rag-message-date { font-size: 12px; color: var(--color-on-surface-variant); }
-.rag-message-content { font-size: 14px; color: var(--color-on-surface); line-height: 1.5; margin-bottom: 8px; }
-.rag-message-meta { font-size: 12px; color: var(--color-on-surface-variant); }
-
-/* Empty States */
-.rag-empty { text-align: center; padding: 32px 16px; color: var(--color-on-surface-variant); }
-.rag-empty-icon { width: 32px; height: 32px; margin: 0 auto 8px; opacity: 0.5; }
-.rag-empty-title { font-size: 14px; margin-bottom: 4px; }
-.rag-empty-subtitle { font-size: 12px; }
-
 /* Data Location Interface */
 .data-location-container { color: var(--color-on-surface); }
 .data-location-section { margin-bottom: 24px; }

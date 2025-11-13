@@ -410,7 +410,6 @@ export class BusinessValidators {
       chatId: z.string().min(1),
       role: z.enum(['user', 'assistant', 'system']),
       content: z.string().min(1).max(10000),
-      userFeedback: z.enum(['like', 'dislike']).optional(),
       createdAt: z.date().optional(),
     });
 

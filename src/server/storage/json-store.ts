@@ -13,7 +13,7 @@ export interface DataStore<T> {
 export class JSONStore<T> {
   private filePath: string;
   private cache: DataStore<T> | null = null;
-  private readonly version = '2.0.0'; // Updated version for improved locking
+  private readonly version = '2.0'; // Updated version for improved locking
   private lockPath: string;
   private lockHeld: boolean = false;
   private operationQueue: Array<() => Promise<void>> = [];

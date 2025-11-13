@@ -5,7 +5,6 @@ import { Icon } from "@/components/Icon";
 import { createPortal } from 'react-dom';
 import { api } from "@/trpc/react";
 import { CustomSelect } from "@/components/CustomSelect";
-import RagInfoViewer from "@/components/RagInfoViewer";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 
 type Mode = "build" | "enhance";
@@ -107,7 +106,6 @@ const Avatar: React.FC<{ name?: string | null | undefined; email?: string | null
 const UserMenu: React.FC<{ user?: UserInfo | undefined; openAccount?: (() => void) | undefined; currentModel: string | null; onModelChange: (model: string) => void }> = ({ user, openAccount, currentModel, onModelChange }) => {
   const [open, setOpen] = useState(false);
   const [sysOpen, setSysOpen] = useState(false);
-  const [ragInfoOpen, setRagInfoOpen] = useState(false);
   const sysBtnRef = useRef<HTMLButtonElement | null>(null);
   const sysTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const [submenuPos, setSubmenuPos] = useState<{top:number; left:number} | null>(null);
@@ -232,12 +230,6 @@ const UserMenu: React.FC<{ user?: UserInfo | undefined; openAccount?: (() => voi
                   className="menu-item"
                   role="menuitem"
                 >Model Configuration</button>
-                <button
-                  type="button"
-                  onClick={() => { setRagInfoOpen(true); setOpen(false); setSysOpen(false); }}
-                  className="menu-item"
-                  role="menuitem"
-                >RAG Learning Data</button>
               </div>, document.body)
             }
           </div>
@@ -254,28 +246,6 @@ const UserMenu: React.FC<{ user?: UserInfo | undefined; openAccount?: (() => voi
             <ThemeSwitcher />
           </div>
         </div>
-      )}
-      {/* GemmaConnectionModal portal removed */}
-      {ragInfoOpen && typeof document !== 'undefined' && createPortal(
-        <div className="fixed inset-0 modal-backdrop-blur flex items-center justify-center z-[9999] p-4">
-          <div className="bg-surface-a10 rounded-lg max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col border border-surface-300/50">
-            <div className="flex items-center justify-between p-4 border-b border-surface-300">
-              <h2 className="text-lg font-semibold text-light">RAG Learning Data</h2>
-              <button
-                type="button"
-                onClick={() => setRagInfoOpen(false)}
-                className="text-surface-300 hover:text-light transition-colors"
-                aria-label="Close RAG info"
-              >
-                <Icon name="close" className="h-5 w-5" />
-              </button>
-            </div>
-            <div className="overflow-y-auto flex-1">
-              <RagInfoViewer />
-            </div>
-          </div>
-        </div>,
-        document.body
       )}
     </div>
   );

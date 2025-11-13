@@ -165,12 +165,12 @@ ipcMain.handle('promptcrafter:isDbConfigured', () => {
 ipcMain.handle('promptcrafter:getDbInfo', () => {
   try {
     if (!dataDirPath) return { ok: false, error: 'Data directory not configured' };
-    // Compute aggregate size of JSON/vector files for approximation
+    // Compute aggregate size of JSON files for approximation
     let sizeBytes = 0;
     try {
       const entries = fs.readdirSync(dataDirPath);
       for (const f of entries) {
-        if (/\.json$/i.test(f) || /-vectors\.json$/i.test(f)) {
+        if (/\.json$/i.test(f)) {
           const full = path.join(dataDirPath, f);
             try { const st = fs.statSync(full); if (st.isFile()) sizeBytes += st.size; } catch(_) {}
         }

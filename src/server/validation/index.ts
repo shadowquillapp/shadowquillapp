@@ -89,7 +89,6 @@ export const ChatMessageSchema = z.object({
   id: z.string().optional(),
   role: z.enum(['user', 'assistant', 'system']),
   content: z.string().min(1).max(10000),
-  userFeedback: z.enum(['like', 'dislike']).optional(),
 });
 
 export const ChatSchema = z.object({
@@ -147,16 +146,6 @@ export const SearchSchema = z.object({
   query: z.string().min(1).max(1000),
   filters: z.record(z.any()).optional(),
   pagination: PaginationSchema.optional(),
-});
-
-// Vector search validation
-export const VectorSearchSchema = z.object({
-  query: z.string().min(1).max(1000),
-  limit: z.number().int().min(1).max(50).default(5),
-  filters: z.object({
-    userFeedback: z.enum(['like', 'dislike']).optional(),
-    metadata: z.record(z.any()).optional(),
-  }).optional(),
 });
 
 // Sanitization and security
@@ -257,7 +246,6 @@ export const Schemas = {
   ModelConfig: ModelConfigSchema,
   Pagination: PaginationSchema,
   Search: SearchSchema,
-  VectorSearch: VectorSearchSchema,
   SanitizedString: SanitizedStringSchema,
   RateLimit: RateLimitSchema,
   Environment: EnvironmentSchema,

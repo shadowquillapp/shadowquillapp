@@ -3,14 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { api } from "@/trpc/react";
 import { CustomSelect } from "@/components/CustomSelect";
-import MessageFeedback from "@/components/MessageFeedback";
-import RagInfoViewer from "@/components/RagInfoViewer";
 import { Icon } from "@/components/Icon";
 import { isElectronRuntime } from '@/lib/runtime';
 import Titlebar from "@/components/Titlebar";
 
 type MessageRole = "user" | "assistant";
-interface MessageItem { id: string; role: MessageRole; content: string; userFeedback?: 'like' | 'dislike' | undefined; }
+interface MessageItem { id: string; role: MessageRole; content: string; }
 type UserInfo = { name?: string | null; image?: string | null; email?: string | null };
 
 export default function ChatClient(_props: { user?: UserInfo }) {
@@ -30,7 +28,6 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const [presetEditorOpen, setPresetEditorOpen] = useState(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [showAllChatsOpen, setShowAllChatsOpen] = useState(false);
-  const [ragInfoOpen, setRagInfoOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'default' | 'warm' | 'light'>('default');
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
@@ -381,7 +378,7 @@ type Format = "plain" | "markdown" | "json";
     try {
       if (!chatList) void utils.chat.list.invalidate();
       const data = await utils.chat.get.fetch({ chatId: id, limit: 50 });
-      const loaded: MessageItem[] = (data.messages ?? []).map((m: any) => ({ id: m.id, role: m.role, content: m.content, userFeedback: m.userFeedback }));
+      const loaded: MessageItem[] = (data.messages ?? []).map((m: any) => ({ id: m.id, role: m.role, content: m.content }));
       setMessages(loaded);
     } catch (e) {
       setError('Failed to load chat');
@@ -649,20 +646,6 @@ type Format = "plain" | "markdown" | "json";
                     <div className="bubble-container">
                       <div className={`bubble ${m.role === 'user' ? 'bubble--user' : 'bubble--assistant'}`}>
                         {renderMessageContent(m.content, m.id)}
-
-                      {m.role === 'assistant' && m.content !== 'Response aborted' && (
-                        <div style={{ marginTop: 8, paddingTop: 8, borderTop: '1px solid var(--color-outline)' }}>
-                            <MessageFeedback
-                              messageId={m.id}
-                              initialFeedback={m.userFeedback ?? null}
-                              onChange={(fb) => {
-                              setMessages((prev) => prev.map((msg) => 
-                                msg.id === m.id ? (fb ? { ...msg, userFeedback: fb } : { ...msg, userFeedback: undefined }) : msg
-                              ));
-                              }}
-                            />
-                          </div>
-                        )}
                       </div>
                       
                       {/* Copy button outside bubble */}
@@ -836,7 +819,6 @@ type Format = "plain" | "markdown" | "json";
           <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-db-location')); } catch {}; setSettingsMenuOpen(false); }}>Data Location</button>
           <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-system-prompts')); } catch {}; setSettingsMenuOpen(false); }}>System Prompts</button>
           {/* Model Configuration removed - selection handled via model dropdown */}
-          <button className="menu-item" onClick={() => { setRagInfoOpen(true); setSettingsMenuOpen(false); }}>RAG Learning Data</button>
         </div>
       </div>
     )}
@@ -941,21 +923,6 @@ type Format = "plain" | "markdown" | "json";
       </div>
     )}
 
-    {/* RAG Info Modal */}
-    {ragInfoOpen && (
-      <div className="modal-container" aria-modal="true" role="dialog" onClick={() => setRagInfoOpen(false)}>
-        <div className="modal-backdrop-blur" />
-        <div className="modal-content modal-content--large" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <div className="modal-title">RAG Learning Data</div>
-            <button className="md-btn" onClick={() => setRagInfoOpen(false)} style={{ padding: '6px 10px' }}>Close</button>
-          </div>
-          <div className="modal-body">
-            <RagInfoViewer />
-          </div>
-        </div>
-      </div>
-    )}
 
     {/* Preset Selector Modal */}
     {presetSelectorOpen && (
