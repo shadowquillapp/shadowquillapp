@@ -269,7 +269,8 @@ function createWindow() {
     height: 900,
     minWidth: 600,
     minHeight: 800,
-    ...(process.platform === 'darwin' ? { frame: false } : {}),
+    // Use a frameless window on macOS and Windows so only our custom titlebar is visible.
+    ...(process.platform === 'darwin' || process.platform === 'win32' ? { frame: false } : {}),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,

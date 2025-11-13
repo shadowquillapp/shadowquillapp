@@ -670,33 +670,8 @@ type Format = "plain" | "markdown" | "json";
                         type="button"
                         title="Stop generating"
                         onClick={stopGenerating}
-                        style={{ 
-                          marginLeft: 12, 
-                          width: '28px',
-                          height: '28px',
-                          borderRadius: '50%', 
-                          border: '1px solid #dc2626', 
-                          background: 'rgba(220, 38, 38, 0.1)', 
-                          color: '#dc2626',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          cursor: 'pointer',
-                          transition: 'all 150ms ease',
-                          boxShadow: '0 2px 4px rgba(220, 38, 38, 0.2)'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.currentTarget.style.background = '#dc2626';
-                          e.currentTarget.style.color = '#ffffff';
-                          e.currentTarget.style.transform = 'scale(1.05)';
-                          e.currentTarget.style.boxShadow = '0 4px 8px rgba(220, 38, 38, 0.3)';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.currentTarget.style.background = 'rgba(220, 38, 38, 0.1)';
-                          e.currentTarget.style.color = '#dc2626';
-                          e.currentTarget.style.transform = 'scale(1)';
-                          e.currentTarget.style.boxShadow = '0 2px 4px rgba(220, 38, 38, 0.2)';
-                        }}
+                        className="md-icon-btn"
+                        style={{ marginLeft: 12 }}
                       >
                         <Icon name="stop" />
                       </button>
