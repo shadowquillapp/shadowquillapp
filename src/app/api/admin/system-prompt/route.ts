@@ -13,12 +13,11 @@ export async function GET() {
   if (!session?.user || !isAdmin()) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-  const build = (await readSystemPromptForMode("build")) ?? env.GOOGLE_SYSTEM_PROMPT_BUILD ?? "";
-  const enhance = (await readSystemPromptForMode("enhance")) ?? env.GOOGLE_SYSTEM_PROMPT_ENHANCE ?? "";
-  return NextResponse.json({ build, enhance });
+  const prompt = (await readSystemPromptForMode("build")) ?? env.GOOGLE_SYSTEM_PROMPT_BUILD ?? env.GOOGLE_SYSTEM_PROMPT ?? "";
+  return NextResponse.json({ prompt });
 }
 
-const BodySchema = z.object({ build: z.string().optional(), enhance: z.string().optional() });
+const BodySchema = z.object({ prompt: z.string().optional() });
 
 export async function PUT(req: Request) {
   const session = await auth();
@@ -31,14 +30,11 @@ export async function PUT(req: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid body" }, { status: 400 });
   }
-  if (!parsed.build && !parsed.enhance) {
+  if (!parsed.prompt) {
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 });
   }
-  if (parsed.build !== undefined) {
-  await writeSystemPromptForMode("build", parsed.build);
-  }
-  if (parsed.enhance !== undefined) {
-  await writeSystemPromptForMode("enhance", parsed.enhance);
+  if (parsed.prompt !== undefined) {
+    await writeSystemPromptForMode("build", parsed.prompt);
   }
   return NextResponse.json({ ok: true });
 }

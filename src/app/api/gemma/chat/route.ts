@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/server/auth";
-import { callGemma, checkGemmaHealth, type PromptMode, type TaskType } from "@/server/gemma";
+import { callGemma, checkGemmaHealth, type TaskType } from "@/server/gemma";
 
 /**
  * SIMPLIFIED GEMMA 3B 1B API ENDPOINT
@@ -12,7 +12,6 @@ import { callGemma, checkGemmaHealth, type PromptMode, type TaskType } from "@/s
 
 const BodySchema = z.object({
   input: z.string().min(1, "Input is required"),
-  mode: z.enum(["build", "enhance"]).default("build"),
   taskType: z.enum(["general", "coding", "image", "research", "writing", "marketing"]).default("general"),
   options: z.object({
     tone: z.enum(["neutral", "friendly", "formal", "technical", "persuasive"]).optional(),
@@ -54,7 +53,6 @@ export async function POST(req: Request) {
   try {
     const output = await callGemma({
       input: parsed.input,
-      mode: parsed.mode as PromptMode,
       taskType: parsed.taskType as TaskType,
       ...(parsed.options && { options: parsed.options }),
     });

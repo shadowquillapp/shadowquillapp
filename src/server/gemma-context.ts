@@ -11,7 +11,7 @@ import { env } from '@/env';
  * - Essential constraints only
  */
 
-export type PromptMode = "build" | "enhance";
+export type PromptMode = "build";
 export type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
 
 export interface GenerationOptions {
@@ -30,7 +30,6 @@ export interface GenerationOptions {
 
 export interface BuildPromptInput {
   input: string;
-  mode: PromptMode;
   taskType: TaskType;
   options?: GenerationOptions;
 }
@@ -38,7 +37,7 @@ export interface BuildPromptInput {
 /**
  * Core contextualization function - builds minimal, focused context for Gemma 3B 1B
  */
-export async function buildGemmaContext({ input, mode, taskType, options }: BuildPromptInput): Promise<string> {
+export async function buildGemmaContext({ input, taskType, options }: BuildPromptInput): Promise<string> {
   // Input validation - reject empty/trivial inputs
   const cleanInput = input.trim();
   if (!cleanInput || cleanInput.length < 3) {
@@ -46,7 +45,7 @@ export async function buildGemmaContext({ input, mode, taskType, options }: Buil
   }
 
   // Basic instruction based on mode
-  const modeInstruction = getModeInstruction(mode);
+  const modeInstruction = getModeInstruction();
   
   // Task-specific guidance (only essential rules)
   const taskGuidance = getTaskGuidance(taskType);
@@ -73,15 +72,8 @@ export async function buildGemmaContext({ input, mode, taskType, options }: Buil
 /**
  * Mode-specific instructions - keep concise for Gemma 3B 1B
  */
-function getModeInstruction(mode: PromptMode): string {
-  switch (mode) {
-    case 'build':
-      return "Create a complete prompt from the input description.";
-    case 'enhance':
-      return "Improve the given prompt while keeping the same intent.";
-    default:
-      return "Process the input as requested.";
-  }
+function getModeInstruction(): string {
+  return "Create a complete prompt from the input description.";
 }
 
 /**

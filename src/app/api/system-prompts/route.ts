@@ -3,50 +3,31 @@ import { auth } from '@/server/auth';
 import { readSystemPromptForMode, writeSystemPromptForMode } from '@/server/settings';
 import { ensureSystemPromptsDefaultFile, initializeSystemPrompts } from '@/server/storage/system-prompts-init';
 
-// Ensure system prompts are never empty
-const DEFAULT_BUILD_PROMPT = `You are PromptCrafter, an expert at authoring high performance prompts for AI models.
+// Ensure system prompt is never empty (single prompt)
+const DEFAULT_PROMPT = `You are PromptCrafter, an expert at authoring high performance prompts for AI models.
 
 Goal:
-- Create a single, self contained prompt from scratch that achieves the user's objective.
+- Create a single, self contained prompt from scratch that achieves the user's objective, or refine existing prompt content when provided.
 
 Behavior:
-- Strictly obey any provided Mode, Task type, and Constraints.
+- Strictly obey any provided Task type and Constraints.
 - Incorporate tone, detail level, audience, language, and formatting requirements.
 - Be precise, unambiguous, and concise; avoid filler and meta commentary.
 
-Structure the final prompt (no extra explanation):
+Adaptation:
+- If the user provides an existing prompt, improve it while preserving intent and tightening scope.
+- If the user asks for direct technical help (code/UI), provide actionable code and explanation instead of a prompt.
+
+Structure for prompt creation or enhancement (no extra explanation):
 1) Instruction to the assistant (clear objective and role)
 2) Inputs to consider (summarize and normalize the user input)
 3) Steps/Policy (how to think, what to do, what to avoid)
 4) Constraints and acceptance criteria (must/should; edge cases)
-5) Output format (structure; if JSON is requested, specify keys and rules only)
 
 Rules:
 - Do not include code fences or rationale.
 - Prefer measurable criteria over vague language.
 - When constraints conflict, prioritize explicit Constraints, then Task type guidelines, then general quality.`;
-
-const DEFAULT_ENHANCE_PROMPT = `You are PromptCrafter, an expert at improving existing prompts for clarity, reliability, and results.
-
-Goal:
-- Rewrite the user's prompt to preserve intent while removing ambiguity and tightening scope.
-
-Behavior:
-- Strictly obey any provided Mode, Task type, and Constraints.
-- Improve structure, add missing constraints or acceptance criteria, and specify the desired output format.
-- Keep it concise and high signal; remove redundancy and vague wording.
-
-Produce only the improved prompt (no commentary), organized as:
-1) Instruction to the assistant (refined objective/role)
-2) Key inputs/assumptions (crisp, minimal)
-3) Steps/Policy (how to reason, what to check)
-4) Constraints and acceptance criteria (must/should; edge cases)
-5) Output format (exact structure; if JSON requested, specify keys and rules only)
-
-Rules:
-- No code fences or meta explanation.
-- Prefer explicit, testable requirements over generalities.
-- If constraints conflict, prioritize explicit Constraints, then Task type guidelines, then general quality.`;
 
 export async function GET() {
   console.log('[api/system-prompts] GET request received');
@@ -58,43 +39,27 @@ export async function GET() {
     // Try to initialize system prompts first to ensure they exist
     await initializeSystemPrompts();
     
-    // Read prompts from settings
-    let build = await readSystemPromptForMode('build');
-    let enhance = await readSystemPromptForMode('enhance');
+    // Read single prompt from settings (use build as the unified prompt)
+    let prompt = await readSystemPromptForMode('build');
     
-    // Ensure prompts are never empty
-    if (!build || build.trim() === '') {
-      console.log('[api/system-prompts] BUILD prompt is empty, using default');
-      build = DEFAULT_BUILD_PROMPT;
+    // Ensure prompt is never empty
+    if (!prompt || prompt.trim() === '') {
+      console.log('[api/system-prompts] System prompt is empty, using default');
+      prompt = DEFAULT_PROMPT;
       // Try to save the default
       try {
-        await writeSystemPromptForMode('build', DEFAULT_BUILD_PROMPT);
+        await writeSystemPromptForMode('build', DEFAULT_PROMPT);
       } catch (e) {
-        console.error('[api/system-prompts] Failed to write default BUILD prompt:', e);
+        console.error('[api/system-prompts] Failed to write default system prompt:', e);
       }
     }
     
-    if (!enhance || enhance.trim() === '') {
-      console.log('[api/system-prompts] ENHANCE prompt is empty, using default');
-      enhance = DEFAULT_ENHANCE_PROMPT;
-      // Try to save the default
-      try {
-        await writeSystemPromptForMode('enhance', DEFAULT_ENHANCE_PROMPT);
-      } catch (e) {
-        console.error('[api/system-prompts] Failed to write default ENHANCE prompt:', e);
-      }
-    }
-    
-    console.log('[api/system-prompts] Returning prompts, build length:', build?.length || 0, 'enhance length:', enhance?.length || 0);
-    return NextResponse.json({ build, enhance });
+    console.log('[api/system-prompts] Returning prompt length:', prompt?.length || 0);
+    return NextResponse.json({ prompt });
   } catch (error) {
     console.error('[api/system-prompts] Error in GET:', error);
     // If all else fails, return hardcoded defaults
-    return NextResponse.json({ 
-      build: DEFAULT_BUILD_PROMPT, 
-      enhance: DEFAULT_ENHANCE_PROMPT,
-      error: 'Using fallback prompts due to error'
-    });
+    return NextResponse.json({ prompt: DEFAULT_PROMPT, error: 'Using fallback prompt due to error' });
   }
 }
 
@@ -107,24 +72,16 @@ export async function PUT(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
     
-    console.log('[api/system-prompts] Updating prompts, build length:', body.build?.length || 0, 'enhance length:', body.enhance?.length || 0);
-    
-    if (typeof body.build === 'string') {
-      if (body.build.trim() === '') {
-        console.warn('[api/system-prompts] Attempted to save empty BUILD prompt, using default instead');
-        await writeSystemPromptForMode('build', DEFAULT_BUILD_PROMPT);
+    console.log('[api/system-prompts] Updating prompt, length:', body.prompt?.length || 0);
+    if (typeof body.prompt === 'string') {
+      if (body.prompt.trim() === '') {
+        console.warn('[api/system-prompts] Attempted to save empty system prompt, using default instead');
+        await writeSystemPromptForMode('build', DEFAULT_PROMPT);
       } else {
-        await writeSystemPromptForMode('build', body.build);
+        await writeSystemPromptForMode('build', body.prompt);
       }
-    }
-    
-    if (typeof body.enhance === 'string') {
-      if (body.enhance.trim() === '') {
-        console.warn('[api/system-prompts] Attempted to save empty ENHANCE prompt, using default instead');
-        await writeSystemPromptForMode('enhance', DEFAULT_ENHANCE_PROMPT);
-      } else {
-        await writeSystemPromptForMode('enhance', body.enhance);
-      }
+    } else {
+      return NextResponse.json({ error: 'Missing prompt' }, { status: 400 });
     }
     
     return NextResponse.json({ ok: true });
@@ -150,25 +107,12 @@ export async function POST(req: Request) {
         // Load defaults from the system-prompts-default.json file
         const defaults = await ensureSystemPromptsDefaultFile();
         await writeSystemPromptForMode('build', defaults.build);
-        await writeSystemPromptForMode('enhance', defaults.enhance);
-        return NextResponse.json({ 
-          ok: true, 
-          reset: true, 
-          build: defaults.build, 
-          enhance: defaults.enhance 
-        });
+        return NextResponse.json({ ok: true, reset: true, prompt: defaults.build });
       } catch (error) {
         console.error('[api/system-prompts] Error resetting to defaults from file:', error);
         // If that fails, use hardcoded defaults
-        await writeSystemPromptForMode('build', DEFAULT_BUILD_PROMPT);
-        await writeSystemPromptForMode('enhance', DEFAULT_ENHANCE_PROMPT);
-        return NextResponse.json({ 
-          ok: true, 
-          reset: true, 
-          build: DEFAULT_BUILD_PROMPT, 
-          enhance: DEFAULT_ENHANCE_PROMPT,
-          note: 'Using hardcoded defaults due to error'
-        });
+        await writeSystemPromptForMode('build', DEFAULT_PROMPT);
+        return NextResponse.json({ ok: true, reset: true, prompt: DEFAULT_PROMPT, note: 'Using hardcoded default due to error' });
       }
     }
     

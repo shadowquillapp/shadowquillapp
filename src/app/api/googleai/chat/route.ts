@@ -3,7 +3,7 @@ import { z } from "zod";
 
 
 import { auth } from "@/server/auth";
-import { type PromptMode, type TaskType } from "@/server/googleai";
+import { type TaskType } from "@/server/googleai";
 import { callLocalModel, readLocalModelConfig } from "@/server/local-model";
 import { buildUnifiedPrompt } from "@/server/prompt-builder";
 import { sanitizeAndDetectDrift } from "@/server/output-sanitize";
@@ -47,13 +47,13 @@ const handleChatRequest = async (req: Request): Promise<NextResponse> => {
       throw new Error('No local Ollama model configured. Please install Ollama and configure a gemma3 model.');
     }
     
-    const full = await buildUnifiedPrompt({ input: parsed.input, mode: parsed.mode as PromptMode, taskType: parsed.taskType as TaskType, ...(parsed.options && { options: parsed.options }) });
+    const full = await buildUnifiedPrompt({ input: parsed.input, taskType: parsed.taskType as TaskType, ...(parsed.options && { options: parsed.options }) });
     
     // If builder returned a rejection / guidance sentinel, surface directly (do NOT send to model)
     if (/^User input rejected:/i.test(full)) {
       output = full;
     } else {
-      const raw = await callLocalModel(full, { mode: parsed.mode as PromptMode, taskType: parsed.taskType as TaskType, ...(parsed.options && { options: parsed.options }) });
+      const raw = await callLocalModel(full, { taskType: parsed.taskType as TaskType, ...(parsed.options && { options: parsed.options }) });
       output = sanitizeAndDetectDrift(parsed.taskType as TaskType, parsed.options, raw).cleaned || raw;
     }
 

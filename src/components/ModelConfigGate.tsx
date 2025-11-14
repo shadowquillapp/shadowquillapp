@@ -421,8 +421,7 @@ export default function ModelConfigGate({ children }: Props) {
 function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [build, setBuild] = useState('');
-  const [enhance, setEnhance] = useState('');
+  const [prompt, setPrompt] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string|null>(null);
 
@@ -434,8 +433,7 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
         const res = await fetch('/api/system-prompts');
         if (res.ok) {
           const data = await res.json();
-            setBuild(data.build || '');
-            setEnhance(data.enhance || '');
+            setPrompt(data.prompt || data.build || '');
         }
       } finally { setLoading(false); }
     };
@@ -452,7 +450,7 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
           <div className="modal-backdrop-blur" onClick={() => setOpen(false)} />
           <div className="modal-content modal-content--large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title">Edit System Prompts</div>
+              <div className="modal-title">Edit System Prompt</div>
               <button onClick={() => setOpen(false)} className="md-btn" style={{ padding: '6px 10px' }}>Close</button>
             </div>
             <div className="modal-body">
@@ -462,18 +460,14 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
                     e.preventDefault();
                     setSaving(true); setError(null);
                     try {
-                      const res = await fetch('/api/system-prompts', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ build, enhance }) });
+                      const res = await fetch('/api/system-prompts', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
                       if (!res.ok) throw new Error('Save failed');
                       setOpen(false);
                     } catch (err:any) { setError(err.message || 'Unknown error'); } finally { setSaving(false); }
                   }}>
                     <div className="system-prompts-field">
-                      <label className="system-prompts-label">Build Mode Prompt</label>
-                      <textarea value={build} onChange={e => setBuild(e.target.value)} className="system-prompts-textarea" />
-                    </div>
-                    <div className="system-prompts-field">
-                      <label className="system-prompts-label">Enhance Mode Prompt</label>
-                      <textarea value={enhance} onChange={e => setEnhance(e.target.value)} className="system-prompts-textarea" />
+                      <label className="system-prompts-label">System Prompt</label>
+                      <textarea value={prompt} onChange={e => setPrompt(e.target.value)} className="system-prompts-textarea" />
                     </div>
                     {error && <div className="system-prompts-error">{error}</div>}
                     <div className="system-prompts-actions">
@@ -481,14 +475,14 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
                         <button
                           type="button"
                           onClick={async () => {
-                            if (!confirm('Restore default system prompts? This will overwrite your current edits.')) return;
+                            if (!confirm('Restore default system prompt? This will overwrite your current edits.')) return;
                             setSaving(true); setError(null);
                             try {
                               const res = await fetch('/api/system-prompts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reset' }) });
                               if (!res.ok) throw new Error('Reset failed');
                               const data = await res.json();
-                              if (data.build) setBuild(data.build);
-                              if (data.enhance) setEnhance(data.enhance);
+                              if (data.prompt) setPrompt(data.prompt);
+                              else if (data.build) setPrompt(data.build);
                             } catch (err:any) {
                               setError(err.message || 'Unknown error');
                             } finally { setSaving(false); }
