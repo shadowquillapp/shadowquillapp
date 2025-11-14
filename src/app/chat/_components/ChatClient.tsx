@@ -59,10 +59,15 @@ function useFLIPListAnimation(keys: readonly string[]) {
           el.style.transition = "none";
           el.style.transform = `translate(${dx}px, ${dy}px)`;
           el.style.willChange = "transform, opacity";
+          el.style.zIndex = "10";
           // Next frame, animate to identity
           requestAnimationFrame(() => {
-            el.style.transition = "transform 200ms ease, opacity 160ms ease";
+            el.style.transition = "transform 500ms ease, opacity 400ms ease";
             el.style.transform = "";
+            // Reset z-index after animation completes
+            setTimeout(() => {
+              el.style.zIndex = "";
+            }, 500);
           });
         }
       } else {
@@ -71,10 +76,15 @@ function useFLIPListAnimation(keys: readonly string[]) {
         el.style.opacity = "0";
         el.style.transform = "translateY(-6px)";
         el.style.willChange = "transform, opacity";
+        el.style.zIndex = "10";
         requestAnimationFrame(() => {
-          el.style.transition = "transform 200ms ease, opacity 160ms ease";
+          el.style.transition = "transform 500ms ease, opacity 400ms ease";
           el.style.opacity = "1";
           el.style.transform = "";
+          // Reset z-index after animation completes
+          setTimeout(() => {
+            el.style.zIndex = "";
+          }, 500);
         });
       }
     });
@@ -101,8 +111,12 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const modelMenuRef = useRef<HTMLDivElement | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
+  const [desktopRailEntering, setDesktopRailEntering] = useState(false);
+  const desktopRailEnterTimerRef = useRef<number | null>(null);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [presetEditorOpen, setPresetEditorOpen] = useState(false);
+  const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
+  const [editingPresetOriginalName, setEditingPresetOriginalName] = useState<string | null>(null);
   const [showAllChatsOpen, setShowAllChatsOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'default' | 'earth' | 'light'>('default');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
@@ -505,12 +519,30 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
   useEffect(() => {
     const checkScreenSize = () => {
       const isSmall = window.innerWidth < 1280; // xl breakpoint
-      setIsSmallScreen(isSmall);
+      setIsSmallScreen((prev) => {
+        if (prev && !isSmall) {
+          setSidebarOpen(false);
+          setDesktopRailEntering(true);
+          if (desktopRailEnterTimerRef.current) {
+            clearTimeout(desktopRailEnterTimerRef.current);
+          }
+          desktopRailEnterTimerRef.current = window.setTimeout(() => {
+            setDesktopRailEntering(false);
+            desktopRailEnterTimerRef.current = null;
+          }, 320);
+        }
+        return isSmall;
+      });
       if (!isSmall) setSidebarOpen(false); // Auto-close sidebar on large screens
     };
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
-    return () => window.removeEventListener('resize', checkScreenSize);
+    return () => {
+      window.removeEventListener('resize', checkScreenSize);
+      if (desktopRailEnterTimerRef.current) {
+        clearTimeout(desktopRailEnterTimerRef.current);
+      }
+    };
   }, []);
 
   // Position model dropdown to avoid viewport overflow
@@ -670,18 +702,28 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
   const savePreset = useCallback(async () => {
     const name = presetName.trim();
     if (!name) return;
-    savePresetLocal({
+    const payload: any = {
+      id: editingPresetId || undefined,
       name,
       taskType,
       options: {
-        tone, detail, format, language: language || undefined, temperature,
+        tone,
+        detail,
+        format,
+        language: language || undefined,
+        temperature,
         stylePreset: taskType === "image" ? normalizeStylePreset(stylePreset) : undefined,
         aspectRatio: taskType === "image" ? normalizeAspectRatio(aspectRatio) : undefined,
         includeTests: taskType === "coding" ? includeTests : undefined,
         requireCitations: taskType === "research" ? requireCitations : undefined,
-      }
-    });
-  }, [presetName, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations]);
+      },
+    };
+    savePresetLocal(payload);
+    // If editing a legacy preset (no id) and the name changed, remove the old entry by name
+    if (!editingPresetId && editingPresetOriginalName && editingPresetOriginalName !== name) {
+      try { deletePresetByIdOrName(undefined, editingPresetOriginalName); } catch {}
+    }
+  }, [presetName, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations, editingPresetId, editingPresetOriginalName]);
 
   const deletePreset = useCallback(async (presetId: string, presetName: string) => {
     if ((presetName || '').trim().toLowerCase() === 'default') return; // Default preset is non-deletable (safety)
@@ -1163,6 +1205,10 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
     return parts.length > 0 ? <>{parts}</> : <span style={{ whiteSpace: 'pre-wrap' }}>{content}</span>;
   }, [copyMessage, copiedMessageId, highlightJSON, highlightMarkdown]);
 
+  const railClassName = isSmallScreen
+    ? `app-rail--mobile ${sidebarOpen ? 'open' : ''}`
+    : `app-rail${desktopRailEntering ? ' app-rail--entering' : ''}`;
+
   return (
     <>
     {/* Electron Titlebar */}
@@ -1178,18 +1224,23 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
       )}
       
       {/* Left rail (Material list of presets + chat history) */}
-      <aside className={isSmallScreen ? `app-rail--mobile ${sidebarOpen ? 'open' : ''}` : "app-rail"} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, paddingTop: !isSmallScreen && isElectronRuntime() ? 48 : 16, top: isSmallScreen && isElectronRuntime() ? 32 : 0, height: isSmallScreen && isElectronRuntime() ? 'calc(100vh - 32px)' : undefined }}>
-        <button type="button" className="md-btn md-btn--primary" style={{width: '100%', border: '1px solid var(--color-outline)'}} onClick={() => { setMessages([]); setCurrentChatId(null); setInput(""); }}>
+      <aside className={railClassName} style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: 20, paddingTop: !isSmallScreen && isElectronRuntime() ? 60 : 20, top: isSmallScreen && isElectronRuntime() ? 32 : 0, height: isSmallScreen && isElectronRuntime() ? 'calc(100vh - 32px)' : undefined, fontSize: 15 }}>
+        <button
+          type="button"
+          className="md-btn md-btn--primary"
+          style={{ width: '100%', border: '1px solid var(--color-outline)', fontSize: 16, padding: '14px 18px', minHeight: 52, fontWeight: 600 }}
+          onClick={() => { setMessages([]); setCurrentChatId(null); setInput(""); }}
+        >
           New Crafter Chat
         </button>
 
-        <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginTop: 50 }}><b>RECENT PRESETS</b></div>
+        <div className="text-secondary" style={{ fontSize: 13, letterSpacing: 0.4, marginTop: 10 }}><b>RECENT PRESETS</b></div>
         {loadingPresets ? (
-          <div className="text-secondary" style={{ fontSize: 12 }}>Loading…</div>
+          <div className="text-secondary" style={{ fontSize: 14 }}>Loading…</div>
         ) : (
           <>
             {/* Recently used presets (up to 3) */}
-            <div style={{ display: 'grid', gap: 8 }}>
+            <div style={{ display: 'grid', gap: 12 }}>
               {recentPresetKeys
                 .map((key) => presets.find((p) => (p.id ?? p.name) === key))
                 .filter((p): p is { id?: string; name: string; taskType: TaskType; options?: any } => !!p)
@@ -1205,7 +1256,6 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                       title={`Use preset "${p.name}"`}
                       style={{
                         padding: 12,
-                        paddingRight: 40,
                         borderRadius: 10,
                         position: 'relative',
                         ...(currentTheme === 'earth'
@@ -1229,11 +1279,11 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                         applyPreset(p);
                       }}
                     >
-                      <div style={{ fontWeight: 600 }}>
-                        {isActive && <Icon name="star" className="text-[13px]" style={{ color: 'var(--color-on-surface)', marginRight: 6 }} />}
-                        {p.name}
+                      <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <span>{p.name}</span>
+                        {isActive && <Icon name="check" className="text-[13px]" style={{ color: 'var(--color-on-surface)', marginLeft: 6 }} />}
                       </div>
-                      <div className="text-secondary" style={{ fontSize: 11, marginTop: 2 }}>
+                      <div className="text-secondary" style={{ fontSize: 13, marginTop: 4 }}>
                         {p.taskType.charAt(0).toUpperCase() + p.taskType.slice(1)}
                       </div>
                       {(() => {
@@ -1249,58 +1299,29 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                         if (o.stylePreset) parts.push(capitalize(o.stylePreset));
                         if (o.aspectRatio) parts.push(capitalize(o.aspectRatio));
                         return parts.length ? (
-                          <div className="text-secondary" style={{ fontSize: 11, marginTop: 2 }}>
+                          <div className="text-secondary" style={{ fontSize: 12, marginTop: 4, lineHeight: 1.4 }}>
                             {parts.join(' • ')}
                           </div>
                         ) : null;
                       })()}
-                      {/* Cog edit button on right (not for Default preset) */}
-                      {(p.name || '').trim().toLowerCase() !== 'default' && (
-                        <button
-                          type="button"
-                          className="md-btn"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            // Prefill editor like previous Edit behavior
-                            setPresetName(p.name);
-                            setTaskType(p.taskType as any);
-                            const o = p.options || {};
-                            setTone(o.tone ?? 'neutral');
-                            setDetail(o.detail ?? 'normal');
-                            setFormat(o.format ?? 'markdown');
-                            setLanguage(o.language ?? 'English');
-                            setTemperature(typeof o.temperature === 'number' ? o.temperature : 0.7);
-                            setStylePreset(o.stylePreset ?? 'photorealistic');
-                            setAspectRatio(o.aspectRatio ?? '1:1');
-                            setIncludeTests(!!o.includeTests);
-                            setRequireCitations(!!o.requireCitations);
-                            setPresetEditorOpen(true);
-                          }}
-                          title={`Edit preset "${p.name}"`}
-                          aria-label={`Edit preset ${p.name}`}
-                          style={{ position: 'absolute', top: 8, right: 8, padding: 8 }}
-                        >
-                          <Icon name={'edit' as any} className="text-[13px]" />
-                        </button>
-                      )}
                     </div>
                   );
                 })}
               {recentPresetKeys.length === 0 && (
-                <div className="text-secondary" style={{ fontSize: 12 }}>No presets used yet</div>
+                <div className="text-secondary" style={{ fontSize: 14 }}>No presets used yet</div>
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button className="md-btn md-btn--primary" onClick={() => setPresetSelectorOpen(true)} style={{ padding: '4px 8px', fontSize: 12 }}>Preset Menu</button>
+            <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
+              <button className="md-btn md-btn--primary" onClick={() => setPresetSelectorOpen(true)} style={{ padding: '10px 13px', fontSize: 13 }}>Preset Settings</button>
             </div>
           </>
         )}
 
         {/* Recent chats pinned to bottom */}
         <div style={{ marginTop: 'auto' }}>
-          <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginBottom: 8 }}><b>RECENT CRAFT CHATS</b></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <div className="text-secondary" style={{ fontSize: 13, letterSpacing: 0.4, marginBottom: 12 }}><b>RECENT CRAFT CHATS</b></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {recentThree.map((c: any) => {
               const isActive = currentChatId === c.id;
               return (
@@ -1313,12 +1334,12 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                     textAlign: 'left',
                     background: 'transparent',
                     border: '1px solid var(--color-outline)',
-                    borderRadius: 10,
-                    padding: '6px 8px',
+                    borderRadius: 12,
+                    padding: '10px 14px',
                     cursor: 'pointer',
                     color: isActive ? 'var(--color-on-surface)' : 'var(--color-on-surface-variant)',
-                    fontSize: 13,
-                    fontWeight: isActive ? 600 : 400,
+                    fontSize: 14,
+                    fontWeight: isActive ? 600 : 500,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
@@ -1330,11 +1351,11 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
               );
             })}
             {recentThree.length === 0 && (
-              <div className="text-secondary" style={{ fontSize: 12, padding: '4px 0' }}>No chats yet</div>
+              <div className="text-secondary" style={{ fontSize: 14, padding: '6px 0' }}>No chats yet</div>
             )}
             </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 8 }}>
-            <button className="md-btn md-btn--primary" style={{ padding: '4px 8px', fontSize: 12, marginTop: 8}} onClick={() => setShowAllChatsOpen(true)}>Show All Chats</button>
+          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 12 }}>
+            <button className="md-btn md-btn--primary" style={{ padding: '10px 13px', fontSize: 13, marginTop: 8}} onClick={() => setShowAllChatsOpen(true)}>Show All Chats</button>
           </div>
             </div>
       </aside>
@@ -1654,7 +1675,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <div className="modal-title">Craft Chat History</div>
-            <div style={{ display: 'flex', gap: 8 }}>
+            <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <button
                 className="md-btn md-btn--destructive"
                 onClick={async () => {
@@ -1670,7 +1691,14 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
               >
                 <b>Delete All</b>
               </button>
-              <button className="md-btn" onClick={() => setShowAllChatsOpen(false)} style={{ padding: '6px 10px' }}><Icon name="close" /></button>
+              <button
+                aria-label="Close chat history dialog"
+                className="md-btn"
+                onClick={() => setShowAllChatsOpen(false)}
+                style={{ width: 36, height: 36, padding: 0 }}
+              >
+                <Icon name="close" />
+              </button>
             </div>
           </div>
           <div className="modal-body">
@@ -1817,7 +1845,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
             )}
                   </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-              <button className="md-btn" onClick={() => setPresetEditorOpen(false)}>Cancel</button>
+              <button className="md-btn" onClick={() => { setEditingPresetId(null); setEditingPresetOriginalName(null); setPresetEditorOpen(false); }}>Cancel</button>
               <button className="md-btn md-btn--primary" onClick={async () => {
                 const name = (presetName || "").trim();
                 await savePreset();
@@ -1832,6 +1860,8 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                     try { applyPreset(found); } catch {}
                   }
                 } catch {/* noop */}
+                setEditingPresetId(null);
+                setEditingPresetOriginalName(null);
                 setPresetEditorOpen(false);
               }}>Save</button>
             </div>
@@ -1847,7 +1877,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
         <div className="modal-backdrop-blur" />
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <div className="modal-title">Preset Menu</div>
+            <div className="modal-title">Preset Settings</div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button className="md-btn" onClick={() => setPresetSelectorOpen(false)} style={{ padding: '6px 10px' }}><Icon name="close" /></button>
             </div>
@@ -1871,12 +1901,14 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                   setAspectRatio("1:1");
                   setIncludeTests(true);
                   setRequireCitations(true);
+                  setEditingPresetId(null);
+                  setEditingPresetOriginalName(null);
                   setPresetEditorOpen(true);
                   setPresetSelectorOpen(false);
                 }}
                 style={{ padding: '12px 16px' }}
               >
-                + Create New Preset
+                Create Preset
                     </button>
 
               {presets.length > 0 ? (
@@ -1976,6 +2008,8 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                               e.stopPropagation();
                               // Prefill and open editor for this preset
                               setPresetName(p.name);
+                            setEditingPresetId(p.id ?? null);
+                            setEditingPresetOriginalName(p.name);
                               setTaskType(p.taskType as any);
                               const o = p.options || {};
                               setTone(o.tone ?? 'neutral');

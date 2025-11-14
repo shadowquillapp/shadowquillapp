@@ -103,7 +103,7 @@ The app automatically detects when Ollama is running and which Gemma 3 models ar
 
 If you find settings you like:
 
-1. Use the Preset Menu to add, save, edit or delete presets
+1. Use the Preset Settings to add, save, edit or delete presets
 2. Give your preset a name
 3. Access it anytime from the **Presets** menu with is all stored locally on your computer
 

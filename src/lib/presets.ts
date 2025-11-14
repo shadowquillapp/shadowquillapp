@@ -44,9 +44,21 @@ export function savePreset(preset: Preset): Preset {
 			list.push(preset);
 		}
 	} else {
-		const id = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-		list.push({ ...preset, id });
-		preset = { ...preset, id };
+		// If no id provided, attempt to update an existing preset by name (case-insensitive).
+		// This supports legacy presets without ids and prevents accidental duplicates on same-name save.
+		const normalizedName = (preset.name || "").trim().toLowerCase();
+		const existingIndexByName = list.findIndex((p) => (p.name || "").trim().toLowerCase() === normalizedName);
+		if (existingIndexByName !== -1) {
+			const existing = list[existingIndexByName];
+			const id = existing.id ?? `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+			const updated = { ...existing, ...preset, id };
+			list[existingIndexByName] = updated;
+			preset = updated;
+		} else {
+			const id = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+			list.push({ ...preset, id });
+			preset = { ...preset, id };
+		}
 	}
 	setJSON(PRESETS_KEY, list);
 	return preset;
