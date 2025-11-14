@@ -56,7 +56,7 @@
 [data-theme="warm"] {
 	--color-surface: #1A1A1A; /* deepest black - main background */
 	--color-surface-variant: #21252B; /* dark blue-gray - elevated surfaces */
-	--color-outline: #192226; /* darker blue-gray - borders/dividers */
+	--color-outline: #2f3a44; /* clearer, higher-contrast borders/dividers */
 	--color-on-surface: #EEE8D5; /* warm cream - primary text */
 	--color-on-surface-variant: #b8a882; /* muted cream - secondary text */
 
@@ -78,7 +78,7 @@
 	--surfaceA10: #21252B;
 	--surfaceA20: #192226;
 	--surfaceA30: #15130B;
-	--surfaceA40: #192226;
+	--surfaceA40: #2f3a44; /* match outline for visible borders */
 	--surfaceA50: #EEE8D5;
 	--surfaceTonalA0: #1A1A1A;
 	--surfaceTonalA10: #21252B;
@@ -98,19 +98,19 @@
 
 /* Light theme */
 [data-theme="light"] {
-	--color-surface: #ffffff; /* pure white background */
-	--color-surface-variant: #f8f9fa; /* light gray cards/rails */
-	--color-outline: #e9ecef; /* light borders */
-	--color-on-surface: #212529; /* dark text */
-	--color-on-surface-variant: #6c757d; /* muted text */
+	--color-surface: #f8fafc; /* soft slate background */
+	--color-surface-variant: #f1f5f9; /* slightly darker cards/rails for separation */
+	--color-outline: #cbd5e1; /* clearer borders (slate-300) */
+	--color-on-surface: #1f2937; /* slate-800 text */
+	--color-on-surface-variant: #475569; /* slate-600 text */
 
 	--color-primary: #8b7cf6; /* purple primary */
 	--color-primary-variant: #6d5bf0; /* darker purple hover */
 	--color-on-primary: #ffffff; /* white text on purple */
 
 	/* Override back-compat variables for light theme */
-	--darkA0: #ffffff;
-	--lightA0: #212529;
+	--darkA0: #f8fafc;
+	--lightA0: #1f2937;
 	--primaryA0: #8b7cf6;
 	--primaryA10: #6d5bf0;
 	--primaryA20: #5a4fcf;
@@ -118,12 +118,12 @@
 	--primaryA40: #c4b9f8;
 	--primaryA50: #e8e4fc;
 	--accentA0: #6d5bf0;
-	--surfaceA0: #ffffff;
-	--surfaceA10: #f8f9fa;
-	--surfaceA20: #e9ecef;
-	--surfaceA30: #dee2e6;
-	--surfaceA40: #ced4da;
-	--surfaceA50: #6c757d;
+	--surfaceA0: #f8fafc;    /* base background */
+	--surfaceA10: #f1f5f9;   /* cards/panels */
+	--surfaceA20: #e2e8f0;   /* dividers subtle */
+	--surfaceA30: #dde3ec;   /* inputs/hover */
+	--surfaceA40: #cbd5e1;   /* borders (match outline) */
+	--surfaceA50: #64748b;   /* secondary text */
 	--surfaceTonalA0: #ffffff;
 	--surfaceTonalA10: #f8f9fa;
 	--surfaceTonalA20: #e9ecef;
@@ -132,12 +132,12 @@
 	--surfaceTonalA50: #6c757d;
 	--buttonBg: #8b7cf6;
 	--buttonText: #ffffff;
-	--dropdownBg: #f8f9fa;
-	--cardBg: #f8f9fa;
+	--dropdownBg: #f1f5f9;
+	--cardBg: #f1f5f9;
 
 	/* Light theme specific shadows */
-	--shadow-1: 0 2px 8px rgba(0,0,0,0.08);
-	--shadow-2: 0 6px 16px rgba(0,0,0,0.12);
+	--shadow-1: 0 2px 8px rgba(0,0,0,0.10);
+	--shadow-2: 0 6px 16px rgba(0,0,0,0.16);
 }
 
 :root {
@@ -487,4 +487,63 @@ h3, h4, h5, h6 { line-height: 28px; }
 .bubble-container:hover .bubble-copy { opacity: 1; }
 .bubble-copy:hover { background: var(--color-surface); }
 
+/* Recent Chats (sidebar) */
+.recent-chats-card { padding: 8px; border-radius: var(--radius-md); }
+.recent-chats { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.recent-chat-item { 
+  width: 100%; 
+  text-align: left; 
+  display: flex; 
+  align-items: center; 
+  gap: 8px; 
+  padding: 6px 8px; 
+  border-radius: 10px; 
+  background: transparent; 
+  border: 1px solid transparent; 
+  color: var(--color-on-surface); 
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease, transform 80ms ease;
+  cursor: pointer;
+}
+.recent-chat-item:hover { background: var(--color-outline); }
+.recent-chat-item:active { transform: scale(0.99); }
+.recent-chat-item--active { 
+  background: color-mix(in srgb, var(--color-primary) 14%, transparent);
+  border-color: var(--color-primary);
+}
+.recent-chat-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-outline);
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+.recent-chat-text { min-width: 0; flex: 1; }
+.recent-chat-title { 
+  font-size: 13px; 
+  font-weight: 600; 
+  white-space: nowrap; 
+  overflow: hidden; 
+  text-overflow: ellipsis; 
+}
+.recent-chat-meta { 
+  font-size: 11px; 
+  color: var(--color-on-surface-variant); 
+  margin-top: -2px;
+}
+.recent-chat-count { 
+  margin-left: auto; 
+  flex-shrink: 0; 
+  border-radius: 9999px; 
+  background: var(--color-surface); 
+  border: 1px solid var(--color-outline); 
+  padding: 2px 6px; 
+  font-size: 10px; 
+  line-height: 1; 
+  color: var(--color-on-surface); 
+}
 
