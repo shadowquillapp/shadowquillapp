@@ -541,10 +541,13 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
     if (!open) return;
     const el = textareaRef.current;
     if (!el) return;
+    const MIN_HEIGHT = 200;
+    const MAX_HEIGHT = 520;
     el.style.height = 'auto';
-    const minHeight = 200;
-    const nextHeight = Math.max(el.scrollHeight, minHeight);
+    const scrollHeight = el.scrollHeight;
+    const nextHeight = Math.min(Math.max(scrollHeight, MIN_HEIGHT), MAX_HEIGHT);
     el.style.height = `${nextHeight}px`;
+    el.style.overflowY = scrollHeight > MAX_HEIGHT ? 'auto' : 'hidden';
   }, [prompt, open]);
 
   return (
@@ -600,8 +603,8 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
                               setError(err.message || 'Unknown error');
                             } finally { setSaving(false); }
                           }}
-                          className="md-btn"
-                        >Restore Defaults</button>
+                          className="md-btn md-btn--attention"
+                        >Restore Default</button>
                       </div>
                       <div className="system-prompts-actions-right">
                         <button type="button" onClick={() => setOpen(false)} className="md-btn">Cancel</button>
