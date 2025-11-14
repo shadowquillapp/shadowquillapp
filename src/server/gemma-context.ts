@@ -188,8 +188,6 @@ export function getFallbackSystemPrompt(mode: PromptMode): string {
   switch (mode) {
     case 'build':
       return "You create clear, actionable prompts from user descriptions.";
-    case 'enhance':
-      return "You improve prompts while preserving their original intent.";
     default:
       return "You help with prompt engineering tasks.";
   }
