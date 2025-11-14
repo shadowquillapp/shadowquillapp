@@ -1,5 +1,3 @@
-import { getJSON, setJSON } from "./local-storage";
-
 const SYSTEM_PROMPT_BUILD_KEY = "SYSTEM_PROMPT_BUILD";
 
 export const DEFAULT_BUILD_PROMPT = `You are PromptCrafter, an expert at authoring high-performance prompts for AI models.
@@ -24,18 +22,51 @@ Rules:
 - Prefer measurable criteria over vague language.
 - Ensure output is ready for direct copy-paste.`;
 
+function readRawPrompt(): string {
+	if (typeof window === "undefined") return "";
+	try {
+		return localStorage.getItem(SYSTEM_PROMPT_BUILD_KEY) || "";
+	} catch {
+		return "";
+	}
+}
+
+function writeRawPrompt(value: string): void {
+	if (typeof window === "undefined") return;
+	try {
+		localStorage.setItem(SYSTEM_PROMPT_BUILD_KEY, value);
+	} catch {
+		// ignore storage failures
+	}
+}
+
+function normalize(prompt: string | null | undefined): string {
+	return String(prompt ?? "").trim();
+}
+
 export function getSystemPromptBuild(): string {
-	const val = getJSON<string | null>(SYSTEM_PROMPT_BUILD_KEY, null);
-	return (val ?? DEFAULT_BUILD_PROMPT).trim();
+	const stored = normalize(readRawPrompt());
+	return stored || DEFAULT_BUILD_PROMPT;
 }
 
-export function setSystemPromptBuild(prompt: string): void {
-	setJSON(SYSTEM_PROMPT_BUILD_KEY, String(prompt ?? "").trim());
-}
-
-export function resetSystemPromptBuild(): string {
-	setSystemPromptBuild(DEFAULT_BUILD_PROMPT);
+export function ensureSystemPromptBuild(): string {
+	const stored = normalize(readRawPrompt());
+	if (stored) return stored;
+	writeRawPrompt(DEFAULT_BUILD_PROMPT);
 	return DEFAULT_BUILD_PROMPT;
 }
 
+export function setSystemPromptBuild(prompt: string): string {
+	const normalized = normalize(prompt);
+	if (!normalized) {
+		writeRawPrompt(DEFAULT_BUILD_PROMPT);
+		return DEFAULT_BUILD_PROMPT;
+	}
+	writeRawPrompt(normalized);
+	return normalized;
+}
 
+export function resetSystemPromptBuild(): string {
+	writeRawPrompt(DEFAULT_BUILD_PROMPT);
+	return DEFAULT_BUILD_PROMPT;
+}

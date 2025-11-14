@@ -1,7 +1,5 @@
 import type { GenerationOptions, TaskType } from "@/server/googleai";
-import { getSystemPromptBuild } from "./system-prompts";
-
-const PROMPTCRAFTER_SYSTEM_PROMPT = getSystemPromptBuild();
+import { DEFAULT_BUILD_PROMPT, ensureSystemPromptBuild } from "./system-prompts";
 const LEGACY_BUILD_PROMPT_PREFIX = "You create one high";
 
 const TYPE_GUIDELINES: Record<TaskType, string> = {
@@ -67,8 +65,8 @@ export function validateBuilderInput(rawUserInput: string, taskType: TaskType): 
 
 function resolveSystemPrompt(stored?: string | null): string {
 	const trimmed = (stored ?? "").trim();
-	if (!trimmed) return PROMPTCRAFTER_SYSTEM_PROMPT;
-	if (trimmed.startsWith(LEGACY_BUILD_PROMPT_PREFIX)) return PROMPTCRAFTER_SYSTEM_PROMPT;
+	if (!trimmed) return DEFAULT_BUILD_PROMPT;
+	if (trimmed.startsWith(LEGACY_BUILD_PROMPT_PREFIX)) return DEFAULT_BUILD_PROMPT;
 	return trimmed;
 }
 
@@ -141,7 +139,7 @@ export async function buildUnifiedPrompt({
 	const rawUserInput = input.trim();
 	const validationError = validateBuilderInput(rawUserInput, taskType);
 	if (validationError) return validationError;
-	const storedSystemPrompt = PROMPTCRAFTER_SYSTEM_PROMPT;
+	const storedSystemPrompt = ensureSystemPromptBuild();
 	const systemPrompt = resolveSystemPrompt(storedSystemPrompt);
 	const constraintParts: string[] = [];
 	if (options?.tone) constraintParts.push(`tone=${options.tone}`);
