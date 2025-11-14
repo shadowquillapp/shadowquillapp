@@ -57,16 +57,6 @@ const handleChatRequest = async (req: Request): Promise<NextResponse> => {
       output = sanitizeAndDetectDrift(parsed.taskType as TaskType, parsed.options, raw).cleaned || raw;
     }
 
-    // Wrap output according to selected format (markdown/json) unless it's a sentinel guidance
-    const fmt = parsed.options?.format ?? 'plain';
-    const isSentinel = /^(User input rejected:|NEED_CONTEXT\s+–|INPUT_INSUFFICIENT)$/i.test(output.trim());
-    if (!isSentinel) {
-      if (fmt === 'markdown') {
-        output = `\u0060\u0060\u0060markdown\n${output}\n\u0060\u0060\u0060`;
-      } else if (fmt === 'json') {
-        output = `\u0060\u0060\u0060json\n${output}\n\u0060\u0060\u0060`;
-      }
-    }
     return createSuccessResponse({ output });
   } catch (err) {
     if (err instanceof Error) {
