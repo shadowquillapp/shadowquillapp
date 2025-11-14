@@ -177,7 +177,7 @@ function createWindow() {
 
   // Hard guard against programmatic or edge-case resize attempts below limits
   win.on('will-resize', (event, newBounds) => {
-    if (newBounds.width < 950 || newBounds.height < 1000) {
+    if (newBounds.width < 950 || newBounds.height < 850) {
       event.preventDefault();
     }
   });
