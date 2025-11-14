@@ -1,7 +1,7 @@
 # PromptCrafter
 
 <p align="center">
-  <strong>Local-only AI prompt crafting with Ollama Gemma 3 models (Electron + Next.js).
+  <strong>Local-only AI prompt crafting with Ollama Gemma 3 models
 </p>
 
 <div align="center">
