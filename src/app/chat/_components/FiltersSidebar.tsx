@@ -38,8 +38,6 @@ interface FiltersSidebarProps {
   applyPreset: (p: { name: string; taskType: TaskType; options?: any }) => void;
   savePreset: () => void;
   refreshPresets?: () => Promise<void> | void;
-  defaultPresetId?: string | null;
-  setDefaultPresetId?: (id: string | null) => void;
   presetName: string;
   setPresetName: (val: string) => void;
   // Chats
@@ -263,8 +261,6 @@ export default function FiltersSidebar(props: FiltersSidebarProps) {
     applyPreset,
     savePreset,
     refreshPresets,
-    defaultPresetId,
-    setDefaultPresetId,
     presetName,
     setPresetName,
     chats,
@@ -418,38 +414,21 @@ export default function FiltersSidebar(props: FiltersSidebarProps) {
             onChange={(key) => {
               setSelectedPresetKey(key);
               const p = presets.find((x) => (x.id ?? x.name) === key);
-              if (p) applyPreset(p);
+              if (p) {
+                try { localStorage.setItem('last-selected-preset', key); } catch {}
+                applyPreset(p);
+              }
             }}
             options={[
               { value: "", label: loadingPresets ? "Loading…" : presets.length ? "Select a preset" : "No presets - create one!", disabled: true },
               ...presets.map((p) => ({
                 value: p.id ?? p.name,
-                label: `${(defaultPresetId && p.id === defaultPresetId) ? "(Default) " : ""}${p.name}`
+                label: p.name
               }))
             ]}
             className="w-full"
           />
-          {selectedPreset && (
-            <div className="mt-2 flex items-center justify-between gap-2 text-[11px] text-surface-400">
-              <label className="inline-flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  checked={!!(defaultPresetId && selectedPreset.id === defaultPresetId)}
-                  onChange={async (e) => {
-                    if (!selectedPreset?.id) return;
-                    if (e.target.checked) {
-                      await fetch("/api/presets/default", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ presetId: selectedPreset.id }) });
-                      setDefaultPresetId?.(selectedPreset.id);
-                    } else {
-                      await fetch("/api/presets/default", { method: "DELETE" });
-                      setDefaultPresetId?.(null);
-                    }
-                  }}
-                />
-                <span>Set as default</span>
-              </label>
-            </div>
-          )}
+          {/* Default preset functionality removed */}
           {/* Preset utilities */}
           <div className="mt-2 grid grid-cols-2 gap-2">
             <button
@@ -769,30 +748,21 @@ export default function FiltersSidebar(props: FiltersSidebarProps) {
                     await fetch(`/api/presets?${query}`, { method: "DELETE" });
                     await refreshPresets?.();
                   } finally {
-                    // After deletion: auto-open default preset; if none, open first; if none remain, reset to system defaults
+                    // After deletion: auto-select last selected or first available
                     try {
-                      const defRes = await fetch('/api/presets/default');
-                      const defData = await defRes.json().catch(() => ({}));
-                      let defaultId = typeof defData?.defaultPresetId === 'string' ? defData.defaultPresetId : null;
                       const listRes = await fetch('/api/presets');
                       const listData = await listRes.json().catch(() => ({}));
                       const list = Array.isArray(listData?.presets) ? listData.presets : [];
-
-                      // If stored default no longer exists, clear it server-side and in-memory
-                      const defaultExists = defaultId ? list.some((p: any) => p.id === defaultId) : false;
-                      if (defaultId && !defaultExists) {
-                        try { await fetch('/api/presets/default', { method: 'DELETE' }); } catch {}
-                        defaultId = null;
-                        try { setDefaultPresetId?.(null); } catch {}
-                      }
-
-                      const pick = (defaultId && list.find((p: any) => p.id === defaultId)) || list[0] || null;
+                      const lastKey = (typeof window !== 'undefined' ? localStorage.getItem('last-selected-preset') : null) || '';
+                      const pick = (lastKey && list.find((p: any) => (p.id ?? p.name) === lastKey)) || list[0] || null;
                       if (pick) {
-                        setSelectedPresetKey(pick.id ?? pick.name);
+                        const key = pick.id ?? pick.name;
+                        setSelectedPresetKey(key);
+                        try { localStorage.setItem('last-selected-preset', key); } catch {}
                         try { applyPreset(pick); } catch {}
                       } else {
-                        // No presets left: switch to system default prompt settings
                         setSelectedPresetKey("");
+                        try { localStorage.removeItem('last-selected-preset'); } catch {}
                         try {
                           setPresetName("");
                           setTaskType("general");

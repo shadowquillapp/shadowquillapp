@@ -56,7 +56,6 @@ type Format = "plain" | "markdown" | "json";
   const [presets, setPresets] = useState<Array<{ id?: string; name: string; taskType: TaskType; options?: any }>>([]);
   const [loadingPresets, setLoadingPresets] = useState(false);
   const [selectedPresetKey, setSelectedPresetKey] = useState("");
-  const [defaultPresetId, setDefaultPresetId] = useState<string | null>(null);
 
   // TRPC
   const utils = api.useUtils();
@@ -205,24 +204,18 @@ type Format = "plain" | "markdown" | "json";
     const load = async () => {
       setLoadingPresets(true);
       try {
-        const [res, defRes] = await Promise.all([
-          fetch("/api/presets"),
-          fetch("/api/presets/default").catch(() => null),
-        ]);
-        let defId: string | null = null;
-        if (defRes && defRes.ok) {
-          const d = await defRes.json().catch(() => ({}));
-          defId = typeof d?.defaultPresetId === "string" ? d.defaultPresetId : null;
-          setDefaultPresetId(defId);
-        }
+        const res = await fetch("/api/presets");
         if (res.ok) {
           const data = await res.json();
           const list = (data.presets ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options }));
           setPresets(list);
           if (!selectedPresetKey) {
-            const pick = (defId && list.find((p: any) => p.id === defId)) || list[0] || null;
+            const lastKey = (typeof window !== 'undefined' ? localStorage.getItem('last-selected-preset') : null) || '';
+            const pick = (lastKey && list.find((p: any) => (p.id ?? p.name) === lastKey)) || list[0] || null;
             if (pick) {
-              setSelectedPresetKey(pick.id ?? pick.name);
+              const key = pick.id ?? pick.name;
+              setSelectedPresetKey(key);
+              try { if (typeof window !== 'undefined') localStorage.setItem('last-selected-preset', key); } catch {}
               applyPreset(pick);
             }
           }
@@ -289,16 +282,30 @@ type Format = "plain" | "markdown" | "json";
       await fetch(`/api/presets?${query}`, { method: 'DELETE' });
       await reloadPresets();
       
-      // If deleted preset was selected, clear selection
+      // If deleted preset was selected, choose next available and persist
       if (selectedPresetKey === presetId || selectedPresetKey === presetName) {
         setSelectedPresetKey("");
+        try {
+          const res = await fetch("/api/presets");
+          const data = await res.json().catch(() => ({}));
+          const list = Array.isArray(data?.presets) ? data.presets : [];
+          const next = list[0] || null;
+          if (next) {
+            const key = next.id ?? next.name;
+            setSelectedPresetKey(key);
+            applyPreset({ name: next.name, taskType: next.taskType, options: next.options });
+            try { localStorage.setItem('last-selected-preset', key); } catch {}
+          } else {
+            try { localStorage.removeItem('last-selected-preset'); } catch {}
+          }
+        } catch {}
       }
     } catch (err) {
       setError('Failed to delete preset');
     } finally {
       setDeletingPresetId(null);
     }
-  }, [selectedPresetKey, reloadPresets]);
+  }, [selectedPresetKey, reloadPresets, applyPreset]);
 
   const send = useCallback(async () => {
     const text = input.trim();
@@ -934,7 +941,9 @@ type Format = "plain" | "markdown" | "json";
                     const list = Array.isArray(data?.presets) ? data.presets : [];
                     const found = list.find((p: any) => p.name === name);
                     if (found) {
-                      setSelectedPresetKey(found.id ?? found.name);
+                      const key = found.id ?? found.name;
+                      setSelectedPresetKey(key);
+                      try { localStorage.setItem('last-selected-preset', key); } catch {}
                       try { applyPreset(found); } catch {}
                     }
                   }
@@ -1008,8 +1017,9 @@ type Format = "plain" | "markdown" | "json";
                           border: 'none'
                         }}
                         onClick={() => { 
-                          setSelectedPresetKey(presetId); 
-                          applyPreset(p); 
+                          setSelectedPresetKey(presetId);
+                          try { localStorage.setItem('last-selected-preset', presetId); } catch {}
+                          applyPreset(p);
                           setPresetSelectorOpen(false);
                         }}
                       >
