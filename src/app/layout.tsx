@@ -6,7 +6,6 @@ import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
-import { TRPCReactProvider } from "@/trpc/react";
 import DatabaseSetupGate from "@/components/DatabaseSetupGate";
 import { DialogProvider } from "@/components/DialogProvider";
 
@@ -26,15 +25,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 		<html lang="en" className={`${geist.variable}`}>
 			<head>{/* No external CDN links to allow full offline operation */}</head>
 			<body className="overflow-hidden h-screen flex flex-col">
-				<TRPCReactProvider>
-					<DialogProvider>
-						<div className="flex-1 flex flex-col overflow-hidden">
-							<DatabaseSetupGate>
-								{children}
-							</DatabaseSetupGate>
-						</div>
-					</DialogProvider>
-				</TRPCReactProvider>
+				<DialogProvider>
+					<div className="flex-1 flex flex-col overflow-hidden">
+						<DatabaseSetupGate>
+							{children}
+						</DatabaseSetupGate>
+					</div>
+				</DialogProvider>
 			</body>
 		</html>
 	);
