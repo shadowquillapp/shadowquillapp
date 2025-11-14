@@ -13,6 +13,7 @@ import { Icon } from "@/components/Icon";
 import { isElectronRuntime } from '@/lib/runtime';
 import Titlebar from "@/components/Titlebar";
 import { useDialog } from "@/components/DialogProvider";
+import SettingsDialog from "@/components/SettingsDialog";
 
 type MessageRole = "user" | "assistant";
 interface MessageItem { id: string; role: MessageRole; content: string; }
@@ -102,7 +103,6 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const [isSmallScreen, setIsSmallScreen] = useState(false);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
   const [presetEditorOpen, setPresetEditorOpen] = useState(false);
-  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [showAllChatsOpen, setShowAllChatsOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'default' | 'earth' | 'light'>('default');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
@@ -114,8 +114,9 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const themeCooldownTimerRef = useRef<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-  const settingsMenuWrapRef = useRef<HTMLDivElement | null>(null);
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [settingsInitialTab, setSettingsInitialTab] = useState<'system' | 'ollama' | 'data'>('system');
 
   // Material UI + app settings (presets)
 type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
@@ -540,24 +541,19 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
   }, [modelMenuOpen]);
 
 
-  // Close settings dropdown on outside click or Escape
+  // Global event to open Settings dialog with initial tab
   useEffect(() => {
-    if (!settingsMenuOpen) return;
-    const onClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      const wrap = settingsMenuWrapRef.current;
-      if (wrap && !wrap.contains(target)) {
-        setSettingsMenuOpen(false);
-      }
+    const handler = (e: Event) => {
+      try {
+        const ce = e as CustomEvent;
+        const tab = ce?.detail?.tab as 'system' | 'ollama' | 'data' | undefined;
+        if (tab) setSettingsInitialTab(tab);
+      } catch {}
+      setSettingsOpen(true);
     };
-    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setSettingsMenuOpen(false); };
-    document.addEventListener('mousedown', onClickOutside);
-    document.addEventListener('keydown', onEsc);
-    return () => {
-      document.removeEventListener('mousedown', onClickOutside);
-      document.removeEventListener('keydown', onEsc);
-    };
-  }, [settingsMenuOpen]);
+    window.addEventListener('open-app-settings', handler as any);
+    return () => window.removeEventListener('open-app-settings', handler as any);
+  }, []);
 
   // Close All Chats modal on Escape (prevents overlay trapping clicks)
   useEffect(() => {
@@ -721,37 +717,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
     }
   }, [selectedPresetKey, reloadPresets, applyPreset]);
 
-  const deleteAllPresets = useCallback(async () => {
-    const deletables = presets.filter((p) => (p.name || '').trim().toLowerCase() !== 'default');
-    if (deletables.length === 0) return;
-    const ok = await confirm({ title: 'Delete All Presets', message: 'Delete all presets (except "Default")? This cannot be undone.', confirmText: 'Confirm', cancelText: 'Cancel', tone: 'destructive' });
-    if (!ok) return;
-    try {
-      await Promise.allSettled(
-        deletables.map((p) => {
-          if ((p.name || '').trim().toLowerCase() === 'default') return Promise.resolve(); // extra safety
-          deletePresetByIdOrName(p.id, p.name);
-          return Promise.resolve();
-        })
-      );
-      await reloadPresets();
-      try {
-        const list = getPresets();
-        const next = list.find((x: any) => x.name === 'Default') || list[0] || null;
-        if (next) {
-          const key = next.id ?? next.name;
-          setSelectedPresetKey(key);
-          applyPreset({ name: next.name, taskType: next.taskType, options: next.options });
-          try { localStorage.setItem('last-selected-preset', key); } catch {}
-        } else {
-          setSelectedPresetKey('');
-          try { localStorage.removeItem('last-selected-preset'); } catch {}
-        }
-      } catch {/* noop */}
-    } catch {
-      setError('Failed to delete presets');
-    }
-  }, [presets, reloadPresets, applyPreset]);
+  
 
   const send = useCallback(async () => {
     const text = input.trim();
@@ -1402,18 +1368,15 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
               <Icon name="palette" />
             </button>
             </div>
-            <div ref={settingsMenuWrapRef} style={{ position: 'relative' }}>
-              <button className="md-btn" style={{ padding: '8px 12px', minHeight: 40, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setSettingsMenuOpen((v) => !v)}>
-                Settings
-                <Icon name="chevronDown" className={`dropdown-arrow ${settingsMenuOpen ? 'dropdown-arrow--open' : ''}`} />
+            <div>
+              <button
+                className="md-btn"
+                style={{ padding: '8px 12px', minHeight: 40, display: 'flex', alignItems: 'center', gap: 6 }}
+                onClick={() => { setSettingsInitialTab('system'); setSettingsOpen(true); }}
+                title="Settings"
+              >
+                <Icon name="gear" />
               </button>
-              {settingsMenuOpen && (
-                <div className="menu-panel" style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', minWidth: 180 }}>
-                  <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-system-prompts')); } catch {}; setSettingsMenuOpen(false); }}>System Prompt</button>
-                  <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-provider-selection')); } catch {}; setSettingsMenuOpen(false); }}>Ollama Setup</button>
-                  <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-data-location')); } catch {}; setSettingsMenuOpen(false); }}>Local Data Management</button>
-                </div>
-              )}
             </div>
           </div>
           {themeToast && (
@@ -1679,6 +1642,10 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
       </section>
     </div>
     
+    {/* Settings Dialog */}
+    {settingsOpen && (
+      <SettingsDialog open={settingsOpen} onClose={() => setSettingsOpen(false)} initialTab={settingsInitialTab} />
+    )}
 
     {/* All Chats Modal */}
     {showAllChatsOpen && (
@@ -1882,15 +1849,6 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
           <div className="modal-header">
             <div className="modal-title">Preset Menu</div>
             <div style={{ display: 'flex', gap: 8 }}>
-              <button
-                className="md-btn md-btn--destructive"
-                onClick={() => void deleteAllPresets()}
-                style={{ padding: '6px 10px', color: '#ef4444', marginRight: 30 }}
-                disabled={presets.filter((p) => (p.name || '').trim().toLowerCase() !== 'default').length === 0}
-                title="Delete all presets (except Default)"
-              >
-              <b>Delete All</b>
-              </button>
               <button className="md-btn" onClick={() => setPresetSelectorOpen(false)} style={{ padding: '6px 10px' }}><Icon name="close" /></button>
             </div>
           </div>
