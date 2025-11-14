@@ -7,7 +7,7 @@ import { createPortal } from 'react-dom';
 import { CustomSelect } from "@/components/CustomSelect";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 
-type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
+type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing" | "video";
 type Tone = "neutral" | "friendly" | "formal" | "technical" | "persuasive";
 type Detail = "brief" | "normal" | "detailed";
 type Format = "plain" | "markdown" | "json";
@@ -503,6 +503,7 @@ export default function FiltersSidebar(props: FiltersSidebarProps) {
                 { value: "general", label: "General" },
                 { value: "coding", label: "Coding" },
                 { value: "image", label: "Image" },
+                { value: "video", label: "Video" },
                 { value: "research", label: "Research" },
                 { value: "writing", label: "Writing" },
                 { value: "marketing", label: "Marketing" }

@@ -133,12 +133,16 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const [settingsInitialTab, setSettingsInitialTab] = useState<'system' | 'ollama' | 'data'>('system');
 
   // Material UI + app settings (presets)
-type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
+type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing" | "video";
 type Tone = "neutral" | "friendly" | "formal" | "technical" | "persuasive";
 type Detail = "brief" | "normal" | "detailed";
 type Format = "plain" | "markdown" | "json";
 type ImageStylePreset = "photorealistic" | "illustration" | "3d" | "anime" | "watercolor";
 type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
+type VideoStylePreset = "cinematic" | "documentary" | "animation" | "timelapse" | "vlog";
+type CameraMovement = "static" | "pan" | "tilt" | "dolly" | "zoom" | "handheld" | "tracking";
+type ShotType = "wide" | "medium" | "close_up" | "over_the_shoulder" | "first_person";
+type FrameRate = 24 | 30 | 60;
 
   const normalizeStylePreset = (v: string | undefined): ImageStylePreset | undefined => {
     const allowed: ImageStylePreset[] = ["photorealistic", "illustration", "3d", "anime", "watercolor"];
@@ -150,6 +154,32 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
     return allowed.includes(v as ImageAspectRatio) ? (v as ImageAspectRatio) : undefined;
   };
 
+  const normalizeVideoStylePreset = (v: string | undefined): VideoStylePreset | undefined => {
+    const allowed: VideoStylePreset[] = ["cinematic", "documentary", "animation", "timelapse", "vlog"];
+    return allowed.includes(v as VideoStylePreset) ? (v as VideoStylePreset) : undefined;
+  };
+
+  const normalizeCameraMovement = (v: string | undefined): CameraMovement | undefined => {
+    const allowed: CameraMovement[] = ["static", "pan", "tilt", "dolly", "zoom", "handheld", "tracking"];
+    return allowed.includes(v as CameraMovement) ? (v as CameraMovement) : undefined;
+  };
+
+  const normalizeShotType = (v: string | undefined): ShotType | undefined => {
+    const allowed: ShotType[] = ["wide", "medium", "close_up", "over_the_shoulder", "first_person"];
+    return allowed.includes(v as ShotType) ? (v as ShotType) : undefined;
+  };
+
+  const normalizeFrameRate = (v: number | undefined): FrameRate | undefined => {
+    const allowed: FrameRate[] = [24, 30, 60];
+    return allowed.includes(v as FrameRate) ? (v as FrameRate) : undefined;
+  };
+
+  const normalizeDurationSeconds = (v: number | undefined): number | undefined => {
+    if (typeof v !== "number" || Number.isNaN(v)) return undefined;
+    const clamped = Math.max(1, Math.min(60, Math.round(v)));
+    return clamped;
+  };
+
   const [taskType, setTaskType] = useState<TaskType>("general");
   const [tone, setTone] = useState<Tone>("neutral");
   const [detail, setDetail] = useState<Detail>("normal");
@@ -158,6 +188,11 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
   const [temperature, setTemperature] = useState(0.7);
   const [stylePreset, setStylePreset] = useState("photorealistic");
   const [aspectRatio, setAspectRatio] = useState("1:1");
+  const [videoStylePreset, setVideoStylePreset] = useState<VideoStylePreset>("cinematic");
+  const [cameraMovement, setCameraMovement] = useState<CameraMovement>("static");
+  const [shotType, setShotType] = useState<ShotType>("medium");
+  const [durationSeconds, setDurationSeconds] = useState<number>(5);
+  const [frameRate, setFrameRate] = useState<FrameRate>(24);
   const [includeTests, setIncludeTests] = useState(true);
   const [requireCitations, setRequireCitations] = useState(true);
   const [presetName, setPresetName] = useState("");
@@ -688,6 +723,11 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
     setTemperature(typeof o.temperature === "number" ? o.temperature : 0.7);
     setStylePreset(o.stylePreset ?? "photorealistic");
     setAspectRatio(o.aspectRatio ?? "1:1");
+    setVideoStylePreset(o.stylePreset ?? "cinematic");
+    setCameraMovement(o.cameraMovement ?? "static");
+    setShotType(o.shotType ?? "medium");
+    setDurationSeconds(typeof o.durationSeconds === "number" ? o.durationSeconds : 5);
+    setFrameRate(typeof o.frameRate === "number" ? (o.frameRate as FrameRate) : 24);
     setIncludeTests(!!o.includeTests);
     setRequireCitations(!!o.requireCitations);
     // Track recent presets
@@ -712,10 +752,14 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
         format,
         language: language || undefined,
         temperature,
-        stylePreset: taskType === "image" ? normalizeStylePreset(stylePreset) : undefined,
-        aspectRatio: taskType === "image" ? normalizeAspectRatio(aspectRatio) : undefined,
+        stylePreset: taskType === "image" ? normalizeStylePreset(stylePreset) : (taskType === "video" ? normalizeVideoStylePreset(videoStylePreset) : undefined),
+        aspectRatio: (taskType === "image" || taskType === "video") ? normalizeAspectRatio(aspectRatio) : undefined,
         includeTests: taskType === "coding" ? includeTests : undefined,
         requireCitations: taskType === "research" ? requireCitations : undefined,
+        cameraMovement: taskType === "video" ? normalizeCameraMovement(cameraMovement) : undefined,
+        shotType: taskType === "video" ? normalizeShotType(shotType) : undefined,
+        durationSeconds: taskType === "video" ? normalizeDurationSeconds(durationSeconds) : undefined,
+        frameRate: taskType === "video" ? normalizeFrameRate(frameRate) : undefined,
       },
     };
     savePresetLocal(payload);
@@ -723,7 +767,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
     if (!editingPresetId && editingPresetOriginalName && editingPresetOriginalName !== name) {
       try { deletePresetByIdOrName(undefined, editingPresetOriginalName); } catch {}
     }
-  }, [presetName, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations, editingPresetId, editingPresetOriginalName]);
+  }, [presetName, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations, cameraMovement, shotType, durationSeconds, frameRate, videoStylePreset, editingPresetId, editingPresetOriginalName]);
 
   const deletePreset = useCallback(async (presetId: string, presetName: string) => {
     if ((presetName || '').trim().toLowerCase() === 'default') return; // Default preset is non-deletable (safety)
@@ -790,13 +834,17 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
           format,
           language: language || undefined,
           temperature,
-          stylePreset: taskType === 'image' ? normalizeStylePreset(stylePreset) : undefined,
-          aspectRatio: taskType === 'image' ? normalizeAspectRatio(aspectRatio) : undefined,
+          stylePreset: taskType === 'image' ? normalizeStylePreset(stylePreset) : (taskType === 'video' ? normalizeVideoStylePreset(videoStylePreset) : undefined),
+          aspectRatio: (taskType === 'image' || taskType === 'video') ? normalizeAspectRatio(aspectRatio) : undefined,
           includeTests: taskType === 'coding' ? includeTests : undefined,
           requireCitations: taskType === 'research' ? requireCitations : undefined,
+          cameraMovement: taskType === 'video' ? normalizeCameraMovement(cameraMovement) : undefined,
+          shotType: taskType === 'video' ? normalizeShotType(shotType) : undefined,
+          durationSeconds: taskType === 'video' ? normalizeDurationSeconds(durationSeconds) : undefined,
+          frameRate: taskType === 'video' ? normalizeFrameRate(frameRate) : undefined,
         }
       });
-      const output = await callLocalModelClient(built, { taskType, options: { tone, detail, format, language: language || undefined, temperature, stylePreset: taskType === 'image' ? normalizeStylePreset(stylePreset) : undefined, aspectRatio: taskType === 'image' ? normalizeAspectRatio(aspectRatio) : undefined, includeTests: taskType === 'coding' ? includeTests : undefined, requireCitations: taskType === 'research' ? requireCitations : undefined } });
+      const output = await callLocalModelClient(built, { taskType, options: { tone, detail, format, language: language || undefined, temperature, stylePreset: taskType === 'image' ? normalizeStylePreset(stylePreset) : (taskType === 'video' ? normalizeVideoStylePreset(videoStylePreset) : undefined), aspectRatio: (taskType === 'image' || taskType === 'video') ? normalizeAspectRatio(aspectRatio) : undefined, includeTests: taskType === 'coding' ? includeTests : undefined, requireCitations: taskType === 'research' ? requireCitations : undefined, cameraMovement: taskType === 'video' ? normalizeCameraMovement(cameraMovement) : undefined, shotType: taskType === 'video' ? normalizeShotType(shotType) : undefined, durationSeconds: taskType === 'video' ? normalizeDurationSeconds(durationSeconds) : undefined, frameRate: taskType === 'video' ? normalizeFrameRate(frameRate) : undefined } });
       const assistant: MessageItem = { id: crypto.randomUUID(), role: 'assistant', content: output };
       setMessages((m) => [...m, assistant]);
       try {
@@ -1298,6 +1346,10 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                         if (o.format) parts.push(capitalize(o.format));
                         if (o.stylePreset) parts.push(capitalize(o.stylePreset));
                         if (o.aspectRatio) parts.push(capitalize(o.aspectRatio));
+                        if (o.durationSeconds) parts.push(`${o.durationSeconds}s`);
+                        if (o.frameRate) parts.push(`${o.frameRate}fps`);
+                        if (o.cameraMovement) parts.push(`Cam ${capitalize(String(o.cameraMovement))}`);
+                        if (o.shotType) parts.push(`${String(o.shotType).replace(/_/g, '-').split('-').map(capitalize).join('-')}`);
                         return parts.length ? (
                           <div className="text-secondary" style={{ fontSize: 12, marginTop: 4, lineHeight: 1.4 }}>
                             {parts.join(' • ')}
@@ -1769,7 +1821,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                     </div>
             <div>
               <label className="text-secondary" style={{ fontSize: 12 }}>Type</label>
-              <CustomSelect value={taskType} onChange={(v) => setTaskType(v as any)} options={[{value:'general',label:'General'},{value:'coding',label:'Coding'},{value:'image',label:'Image'},{value:'research',label:'Research'},{value:'writing',label:'Writing'},{value:'marketing',label:'Marketing'}]} />
+              <CustomSelect value={taskType} onChange={(v) => setTaskType(v as any)} options={[{value:'general',label:'General'},{value:'coding',label:'Coding'},{value:'image',label:'Image'},{value:'video',label:'Video'},{value:'research',label:'Research'},{value:'writing',label:'Writing'},{value:'marketing',label:'Marketing'}]} />
                     </div>
             <div>
               <label className="text-secondary" style={{ fontSize: 12 }}>Tone</label>
@@ -1831,6 +1883,51 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                   </div>
               </>
               )}
+            {taskType === 'video' && (
+              <>
+                <div>
+                  <label className="text-secondary" style={{ fontSize: 12 }}>Video Style</label>
+                  <CustomSelect value={videoStylePreset} onChange={(v) => setVideoStylePreset(v as VideoStylePreset)} options={[{value:'cinematic',label:'Cinematic'},{value:'documentary',label:'Documentary'},{value:'animation',label:'Animation'},{value:'timelapse',label:'Timelapse'},{value:'vlog',label:'Vlog'}]} />
+                </div>
+                <div>
+                  <label className="text-secondary" style={{ fontSize: 12 }}>Aspect Ratio</label>
+                  <CustomSelect value={aspectRatio} onChange={(v) => setAspectRatio(v)} options={[{value:'1:1',label:'1:1'},{value:'16:9',label:'16:9'},{value:'9:16',label:'9:16'},{value:'4:3',label:'4:3'}]} />
+                </div>
+                <div>
+                  <label className="text-secondary" style={{ fontSize: 12 }}>Camera Movement</label>
+                  <CustomSelect value={cameraMovement} onChange={(v) => setCameraMovement(v as CameraMovement)} options={[{value:'static',label:'Static'},{value:'pan',label:'Pan'},{value:'tilt',label:'Tilt'},{value:'dolly',label:'Dolly'},{value:'zoom',label:'Zoom'},{value:'handheld',label:'Handheld'},{value:'tracking',label:'Tracking'}]} />
+                </div>
+                <div>
+                  <label className="text-secondary" style={{ fontSize: 12 }}>Shot Type</label>
+                  <CustomSelect value={shotType} onChange={(v) => setShotType(v as ShotType)} options={[{value:'wide',label:'Wide'},{value:'medium',label:'Medium'},{value:'close_up',label:'Close-up'},{value:'over_the_shoulder',label:'Over-the-shoulder'},{value:'first_person',label:'First-person'}]} />
+                </div>
+                <div>
+                  <label className="text-secondary" style={{ fontSize: 12 }}>Duration (seconds)</label>
+                  <input
+                    className="md-input"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={durationSeconds}
+                    onChange={(e) => setDurationSeconds(Math.max(1, Math.min(60, Math.round(Number(e.target.value) || 0))))}
+                    style={{
+                      width: '100%',
+                      background: 'var(--color-surface-variant)',
+                      color: 'var(--color-on-surface)',
+                      border: '1px solid var(--color-outline)',
+                      borderRadius: 8,
+                      padding: '8px 12px',
+                      fontSize: 14,
+                      boxShadow: 'var(--shadow-1)'
+                    }}
+                  />
+                </div>
+                <div>
+                  <label className="text-secondary" style={{ fontSize: 12 }}>Frame Rate</label>
+                  <CustomSelect value={String(frameRate)} onChange={(v) => setFrameRate(Number(v) as FrameRate)} options={[{value:'24',label:'24 fps'},{value:'30',label:'30 fps'},{value:'60',label:'60 fps'}]} />
+                </div>
+              </>
+            )}
             {taskType === 'coding' && (
               <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
                 <input type="checkbox" checked={includeTests} onChange={(e) => setIncludeTests(e.target.checked)} />
@@ -1899,6 +1996,11 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                   setTemperature(0.7);
                   setStylePreset("photorealistic");
                   setAspectRatio("1:1");
+                  setVideoStylePreset("cinematic");
+                  setCameraMovement("static");
+                  setShotType("medium");
+                  setDurationSeconds(5);
+                  setFrameRate(24);
                   setIncludeTests(true);
                   setRequireCitations(true);
                   setEditingPresetId(null);
@@ -1970,6 +2072,10 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                           if (o.format) parts.push(capitalize(o.format));
                           if (o.stylePreset) parts.push(capitalize(o.stylePreset));
                           if (o.aspectRatio) parts.push(capitalize(o.aspectRatio));
+                          if (o.durationSeconds) parts.push(`${o.durationSeconds}s`);
+                          if (o.frameRate) parts.push(`${o.frameRate}fps`);
+                          if (o.cameraMovement) parts.push(`Cam ${capitalize(String(o.cameraMovement))}`);
+                          if (o.shotType) parts.push(`${String(o.shotType).replace(/_/g, '-').split('-').map(capitalize).join('-')}`);
                           return parts.length ? (
                             <div className="text-secondary" style={{ fontSize: 11, marginTop: 2 }}>
                               {parts.join(' • ')}
@@ -2019,6 +2125,11 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                               setTemperature(typeof o.temperature === 'number' ? o.temperature : 0.7);
                               setStylePreset(o.stylePreset ?? 'photorealistic');
                               setAspectRatio(o.aspectRatio ?? '1:1');
+                              setVideoStylePreset(o.stylePreset ?? 'cinematic');
+                              setCameraMovement(o.cameraMovement ?? 'static');
+                              setShotType(o.shotType ?? 'medium');
+                              setDurationSeconds(typeof o.durationSeconds === 'number' ? o.durationSeconds : 5);
+                              setFrameRate(typeof o.frameRate === 'number' ? (o.frameRate as FrameRate) : 24);
                               setIncludeTests(!!o.includeTests);
                               setRequireCitations(!!o.requireCitations);
                               setPresetEditorOpen(true);

@@ -1,6 +1,6 @@
 import { getJSON, setJSON } from "./local-storage";
 
-export type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
+export type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing" | "video";
 
 export interface Preset {
 	id?: string;

@@ -9,6 +9,8 @@ const TYPE_GUIDELINES: Record<TaskType, string> = {
 		"Coding: build a full implementation prompt detailing objective, tech scope, environment/tooling, sequential steps, guardrails, and acceptance/verification criteria. Do not invent languages, frameworks, or meta fields unless explicitly given.",
 	image:
 		"Image: describe subject, context, composition, style, palette, lighting, and mood. Avoid meta commentary.",
+	video:
+		"Video: define subject, action, setting, pacing; specify cinematography (shot type, camera movement), composition, lighting, transitions, sound/VO, aspect ratio, duration, and frame rate. Avoid meta commentary.",
 	research:
 		"Research: define the question, scope, evidence standard, required citations, and anti-hallucination guardrails.",
 	writing:
@@ -120,9 +122,15 @@ function buildOptionDirectives(taskType: TaskType, options?: GenerationOptions):
 			directives.push(options.requireCitations ? "Require cited sources with each claim." : "Do not ask for citations.");
 		}
 	}
-	if (taskType === "image") {
+	if (taskType === "image" || taskType === "video") {
 		if (options.stylePreset) directives.push(`Use the ${options.stylePreset} visual style.`);
 		if (options.aspectRatio) directives.push(`Target an aspect ratio of ${options.aspectRatio}.`);
+	}
+	if (taskType === "video") {
+		if (typeof options.durationSeconds === "number") directives.push(`Target a runtime of approximately ${options.durationSeconds} seconds.`);
+		if (typeof options.frameRate === "number") directives.push(`Assume a frame rate of ${options.frameRate} fps.`);
+		if (options.cameraMovement) directives.push(`Favor ${options.cameraMovement} camera movement.`);
+		if (options.shotType) directives.push(`Compose primarily as ${options.shotType} shots.`);
 	}
 	return directives;
 }
@@ -147,9 +155,15 @@ export async function buildUnifiedPrompt({
 	if (options?.audience) constraintParts.push(`audience=${options.audience}`);
 	if (options?.language && options.language.toLowerCase() !== "english") constraintParts.push(`lang=${options.language}`);
 	if (options?.format) constraintParts.push(`format=${options.format}`);
-	if (taskType === "image") {
+	if (taskType === "image" || taskType === "video") {
 		if (options?.stylePreset) constraintParts.push(`style=${options.stylePreset}`);
 		if (options?.aspectRatio) constraintParts.push(`ratio=${options.aspectRatio}`);
+	}
+	if (taskType === "video") {
+		if (typeof options?.durationSeconds === "number") constraintParts.push(`duration=${options.durationSeconds}s`);
+		if (typeof options?.frameRate === "number") constraintParts.push(`fps=${options.frameRate}`);
+		if (options?.cameraMovement) constraintParts.push(`camera=${options.cameraMovement}`);
+		if (options?.shotType) constraintParts.push(`shot=${options.shotType}`);
 	}
 	if (taskType === "coding") {
 		const hasIncludePref = options && Object.prototype.hasOwnProperty.call(options, "includeTests");

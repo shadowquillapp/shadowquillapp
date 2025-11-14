@@ -12,7 +12,7 @@ import { env } from '@/env';
  */
 
 export type PromptMode = "build";
-export type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
+export type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing" | "video";
 
 export interface GenerationOptions {
   tone?: "neutral" | "friendly" | "formal" | "technical" | "persuasive" | undefined;
@@ -22,10 +22,15 @@ export interface GenerationOptions {
   language?: string | undefined;
   temperature?: number | undefined;
   // Task-specific
-  stylePreset?: "photorealistic" | "illustration" | "3d" | "anime" | "watercolor" | undefined;
+  stylePreset?: "photorealistic" | "illustration" | "3d" | "anime" | "watercolor" | "cinematic" | "documentary" | "animation" | "timelapse" | "vlog" | undefined;
   aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | undefined;
   includeTests?: boolean | undefined;
   requireCitations?: boolean | undefined;
+  // Video-specific
+  cameraMovement?: "static" | "pan" | "tilt" | "dolly" | "zoom" | "handheld" | "tracking" | undefined;
+  shotType?: "wide" | "medium" | "close_up" | "over_the_shoulder" | "first_person" | undefined;
+  durationSeconds?: number | undefined;
+  frameRate?: 24 | 30 | 60 | undefined;
 }
 
 export interface BuildPromptInput {
@@ -83,6 +88,8 @@ function getTaskGuidance(taskType: TaskType): string {
   switch (taskType) {
     case 'image':
       return "Image: subject, context, style, lighting. Use commas.";
+    case 'video':
+      return "Video: subject, actions, setting, pacing; shot type, camera movement, lighting, transitions; specify duration and aspect.";
     case 'coding':
       return "Coding: produce a concise prompt for a coding task. Do not add meta fields (Language, Environment, I/O, Tech stack) unless explicitly given. Do not invent tools or languages.";
     case 'research':
@@ -145,6 +152,27 @@ function getEssentialOptions(options?: GenerationOptions, taskType?: TaskType): 
     }
     if (options.aspectRatio) {
       rules.push(`Ratio: ${options.aspectRatio}`);
+    }
+  }
+
+  if (taskType === 'video') {
+    if (options.stylePreset) {
+      rules.push(`Style: ${options.stylePreset}`);
+    }
+    if (options.aspectRatio) {
+      rules.push(`Ratio: ${options.aspectRatio}`);
+    }
+    if (typeof options.durationSeconds === 'number') {
+      rules.push(`Duration: ~${options.durationSeconds}s`);
+    }
+    if (typeof options.frameRate === 'number') {
+      rules.push(`FPS: ${options.frameRate}`);
+    }
+    if (options.cameraMovement) {
+      rules.push(`Camera: ${options.cameraMovement}`);
+    }
+    if (options.shotType) {
+      rules.push(`Shot: ${options.shotType}`);
     }
   }
 
