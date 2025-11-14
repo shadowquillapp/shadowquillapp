@@ -1018,7 +1018,7 @@ function ChatsTab(props: {
               </button>
               <button
                 type="button"
-                className="min-w-[110px] rounded-md border border-primary-a20 bg-primary-a0/20 px-2 py-1 text-[11px] text-primary-300 hover:bg-primary-a0/30 interactive-glow"
+                className="md-btn md-btn--danger"
                 onClick={() => confirmDialog("Delete ALL chats?", "This will remove all chats.", async () => {
                   const ids = chats.map(c => c.id);
                   const results = await Promise.allSettled(ids.map(id => onDeleteChat ? onDeleteChat(id) : Promise.resolve()));
@@ -1029,6 +1029,7 @@ function ChatsTab(props: {
                   setSelectMode(false);
                   try { await utils.chat.list.invalidate(); } catch {}
                 })}
+                style={{ minWidth: 110, padding: '4px 8px', fontSize: 11 }}
               >
                 Delete All
               </button>

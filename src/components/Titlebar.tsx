@@ -43,7 +43,7 @@ export default function Titlebar() {
   return (
     <div
       className="fixed top-0 left-0 right-0 flex h-8 items-center select-none app-region-drag"
-      style={{ background: 'var(--color-surface-variant)', borderBottom: '1px solid var(--color-outline)', zIndex: 100 }}
+      style={{ background: 'var(--color-titlebar-background)', borderBottom: '1px solid var(--color-outline)', zIndex: 100 }}
     >
       <div className="ml-auto flex gap-2 px-2 app-region-no-drag">
         <TitlebarButton 

@@ -859,7 +859,7 @@ type Format = "plain" | "markdown" | "json";
             <div className="modal-title">All Chats</div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
-                className="md-btn"
+                className="md-btn md-btn--danger"
                 onClick={async () => {
                   if (!window.confirm('Delete ALL chats? This will permanently remove all chats.')) return;
                   const ids = recentChats.map((c: any) => c.id);
