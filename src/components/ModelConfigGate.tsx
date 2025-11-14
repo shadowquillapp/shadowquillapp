@@ -465,7 +465,7 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
 
   return (
     <>
-  {/* System Prompts open controlled via global event */}
+  {/* System Prompt open controlled via global event */}
   <OpenSystemPromptsListener onOpen={() => setOpen(true)} />
       {children}
       {open && (

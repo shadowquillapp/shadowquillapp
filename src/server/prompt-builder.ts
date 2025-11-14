@@ -87,7 +87,7 @@ const UNIFIED_MODE_GUIDELINES: string = [
     '- Never force structured format when user wants direct technical help.',
     'Rule: If the user input is ONLY a casual greeting / acknowledgement (e.g. hi, hey, hello, thanks, thank you, ok, cool, great) and contains no actionable objective or domain noun, reply EXACTLY: NEED_CONTEXT – Please describe what you want me to create or enhance.',
     'When creating prompts, structure as (no extra explanation):',
-    '1) Instruction to the assistant (clear objective and role)',
+    '1) Instructions (clear objective and role)',
     '2) Inputs to consider (summarize and normalize the user input)',
     '3) Steps/Policy (how to think, what to do, what to avoid)',
     '4) Constraints and acceptance criteria (must/should; edge cases)',

@@ -19,7 +19,7 @@ Adaptation:
 - If the user asks for direct technical help (code/UI), provide actionable code and explanation instead of a prompt.
 
 Structure for prompt creation or enhancement (no extra explanation):
-1) Instruction to the assistant (clear objective and role)
+1) Instructions (clear objective and role)
 2) Inputs to consider (summarize and normalize the user input)
 3) Steps/Policy (how to think, what to do, what to avoid)
 4) Constraints and acceptance criteria (must/should; edge cases)

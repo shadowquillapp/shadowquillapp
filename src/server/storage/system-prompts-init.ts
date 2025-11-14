@@ -28,7 +28,7 @@ IMPORTANT CONTEXT DETECTION:
 - Never force structured format when user wants direct technical help.
 
 When creating prompts, structure as (no extra explanation):
-1) Instruction to the assistant (clear objective and role)
+1) Instructions (clear objective and role)
 2) Inputs to consider (summarize and normalize the user input)
 3) Steps/Policy (how to think, what to do, what to avoid)
 4) Constraints and acceptance criteria (must/should; edge cases)
@@ -57,7 +57,7 @@ IMPORTANT CONTEXT DETECTION:
 - Only use structured format when enhancing actual prompts.
 
 When enhancing existing prompts, produce only the improved prompt (no commentary), organized as:
-1) Instruction to the assistant (refined objective/role)
+1) Instructions (refined objective/role)
 2) Key inputs/assumptions (crisp, minimal)
 3) Steps/Policy (how to reason, what to check)
 4) Constraints and acceptance criteria (must/should; edge cases)

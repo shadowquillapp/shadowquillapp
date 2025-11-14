@@ -804,7 +804,7 @@ type Format = "plain" | "markdown" | "json";
       <div className="fixed inset-0 z-50" onClick={() => setSettingsMenuOpen(false)}>
         <div className="menu-panel" style={{ position: 'absolute', right: 16, top: 56 }} onClick={(e) => e.stopPropagation()}>
           <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-db-location')); } catch {}; setSettingsMenuOpen(false); }}>Data Location</button>
-          <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-system-prompts')); } catch {}; setSettingsMenuOpen(false); }}>System Prompts</button>
+          <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-system-prompts')); } catch {}; setSettingsMenuOpen(false); }}>System Prompt</button>
           {/* Model Configuration removed - selection handled via model dropdown */}
         </div>
       </div>
