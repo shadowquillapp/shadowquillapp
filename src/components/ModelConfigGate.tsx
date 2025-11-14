@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Icon } from "./Icon";
 import { useDialog } from "./DialogProvider";
 import { isElectronRuntime } from '@/lib/runtime';
@@ -520,6 +520,7 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
   const [prompt, setPrompt] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string|null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -535,6 +536,16 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
     };
     void load();
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = 'auto';
+    const minHeight = 200;
+    const nextHeight = Math.max(el.scrollHeight, minHeight);
+    el.style.height = `${nextHeight}px`;
+  }, [prompt, open]);
 
   return (
     <>
@@ -563,7 +574,12 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
                   }}>
                     <div className="system-prompts-field">
                       <label className="system-prompts-label">System Prompt</label>
-                      <textarea value={prompt} onChange={e => setPrompt(e.target.value)} className="system-prompts-textarea" />
+                      <textarea
+                        ref={textareaRef}
+                        value={prompt}
+                        onChange={e => setPrompt(e.target.value)}
+                        className="system-prompts-textarea"
+                      />
                     </div>
                     {error && <div className="system-prompts-error">{error}</div>}
                     <div className="system-prompts-actions">

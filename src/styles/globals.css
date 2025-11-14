@@ -54,7 +54,7 @@ h3,h4,h5,h6{line-height:28px}
 .system-prompts-form{display:flex;flex-direction:column;gap:16px}
 .system-prompts-field{display:flex;flex-direction:column;gap:8px}
 .system-prompts-label{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--color-on-surface-variant)}
-.system-prompts-textarea{width:100%;border:1px solid var(--color-outline);border-radius:8px;background:var(--color-surface);color:var(--color-on-surface);padding:12px;font-size:12px;font-family:monospace;line-height:1.4;resize:vertical;min-height:200px}
+.system-prompts-textarea{width:100%;border:1px solid var(--color-outline);border-radius:8px;background:var(--color-surface);color:var(--color-on-surface);padding:12px;font-size:12px;font-family:monospace;line-height:1.4;resize:none;overflow:hidden;min-height:200px}
 .system-prompts-textarea:focus{outline:2px solid var(--color-primary);outline-offset:0;border-color:var(--color-primary)}
 .system-prompts-actions{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:8px}
 .system-prompts-actions-left{display:flex;gap:8px}
