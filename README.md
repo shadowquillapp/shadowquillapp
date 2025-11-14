@@ -1,232 +1,188 @@
 # PromptCrafter
 
-<p align="center">
-  <strong>Local-only AI prompt crafting with Ollama Gemma 3 models
-</p>
-
-<div align="center">
-  <a href="https://github.com/LekkerPrompt/LekkerPrompt">Repo Home</a> · <a href="https://github.com/LekkerPrompt/LekkerPrompt/issues">Issues</a> · <a href="https://promptcrafter.org">Website</a>
-</div>
+**[Repo](https://github.com/LekkerPrompt/LekkerPrompt) · [Issues](https://github.com/LekkerPrompt/LekkerPrompt/issues) · [Website](https://promptcrafter.org)**
 
 ## What Is PromptCrafter?
 
-PromptCrafter is a local-only AI prompt crafting tool that requires Ollama with Gemma 3 models for complete privacy. Build new prompts from scratch using structured controls for task type, tone, detail level, and output format.
+PromptCrafter is a desktop application for crafting AI prompts with complete privacy. All processing happens locally on your machine using Ollama with Gemma 3 models.
 
-**Complete Privacy**: All processing happens locally on your machine using Ollama. No data ever leaves your computer.
+**Complete Privacy**: No data ever leaves your computer. All AI processing runs locally through Ollama.
 
-**Local Storage**: Chats, presets, and system prompts are stored as JSON files in a directory you choose.
+**Local Storage**: Your chats, saved presets, and settings are stored as simple files in a folder you choose.
 
-The app runs as an Electron desktop application with a modern Material Design interface and three beautiful themes.
+**Modern Interface**: Clean, beautiful design with three themes and responsive layout that works on any screen size.
 
 ## Features
 
-### Core Functionality
+### Prompt Building
 
-- **Build Mode**: Create prompts from scratch with structured guidance
-- **Task Types**: General, coding, image, research, writing, marketing
-- **Customization**: Tone, detail level, output format, language, temperature control
-- **Smart Presets**: Save, edit, delete, and manage prompt configurations
+- **Structured Guidance**: Create prompts from scratch with helpful controls and options
+- **Task Types**: Choose from general, coding, image, research, writing, or marketing tasks
+- **Customization**: Adjust tone, detail level, output format, language, and creativity
+- **Save Presets**: Store your favorite prompt configurations for quick reuse
 
-### Local AI Integration
+### AI Integration
 
-- **Ollama Required**: Works exclusively with local Ollama Gemma 3 models (1B, 4B, 12B, 27B)
-- **Auto-Discovery**: Automatically detects available local models
-- **Model Switching**: Easy dropdown selection between installed models
-- **Complete Privacy**: All processing stays on your machine
+- **Local Ollama Models**: Works with Gemma 3 models (1B, 4B, 12B, 27B sizes available)
+- **Auto-Detection**: The app finds all models you have installed
+- **Easy Switching**: Change between models with a simple dropdown menu
+- **No Internet Required**: Everything runs on your machine
 
-### Interface & Experience
+### User Experience
 
-- **Material Design**: Modern, clean interface with 8pt grid system
-- **Three Themes**: Default (purple), WarmEarth, and Light themes
-- **Responsive Design**: Adapts to different screen sizes with mobile sidebar
-- **Chat History**: Persistent conversations with easy navigation
-- **Code Blocks**: Syntax highlighting and copy functionality for markdown/json
-<!-- RAG Learning removed -->
-
-### Technical Features
-
-- **Local Storage**: JSON-based data storage in your chosen directory
-<!-- RAG features removed -->
-- **System Prompts**: Customize AI behavior for the build mode
-- **Electron Integration**: Native desktop app with custom titlebar and window controls
+- **Three Beautiful Themes**: Default (purple), WarmEarth, and Light
+- **Chat History**: All your conversations are saved and easy to find
+- **Code Highlighting**: Formatted code blocks with copy button
+- **Responsive Design**: Works great on desktop, with mobile-friendly sidebar
+- **Keyboard Friendly**: Navigate and interact efficiently
 
 ## Download
 
-If you just want to use the app (no local build), grab the latest signed installers / portable builds from:
+Pre-built installers are available for download:
 
-- GitHub Releases: <https://github.com/LekkerPrompt/LekkerPrompt/releases>
-- Website mirror: <https://promptcrafter.org>
+- **GitHub Releases**: <https://github.com/LekkerPrompt/LekkerPrompt/releases>
+- **Website**: <https://promptcrafter.org>
 
-Then launch and pick a data directory on first run. Building from source is only needed if you want to hack on the code.
+Choose the installer for your operating system (Windows, macOS, or Linux). On first launch, you'll pick a folder to store your data.
 
-## Stack
+## Getting Started
 
-- Next.js (App Router)
-- Electron
-- TypeScript
-- tRPC + React Query
-- Tailwind CSS
-- Local JSON storage
-- Biome (lint / format)
+### What You Need
 
-No SQL / Prisma layer—intentionally simplified.
+Before using PromptCrafter, you need:
 
-## Prerequisites
+1. **Ollama** installed and running on your computer
+2. At least one **Gemma 3 model** downloaded through Ollama
 
-**Required:**
+### Install Ollama
 
-1. **Node.js 18.18+** (recommend 20+)
-2. **Ollama** installed and running
-3. **Gemma 3 model** pulled (e.g., `ollama pull gemma3:4b`)
+**Windows, macOS & Linux:**
 
-## Quick Start (Development)
+Download the installer from <https://ollama.ai/download>
+
+Or you can download using CLI:
+
+```bash
+curl -fsSL https://ollama.ai/install.sh | sh
+```
+
+### Download a Gemma 3 Model
+
+1. Start Ollama and open your terminal
+2. Run these commands based on what model, or models, you would like integrated:
+
+```bash
+ollama pull gemma3:1b   # Smallest, fastest (good for testing)
+ollama pull gemma3:4b   # Recommended model for most use-cases
+ollama pull gemma3:12b  # Better quality, needs more RAM
+ollama pull gemma3:27b  # Best quality, but needs very powerful hardware
+```
+
+We recommend starting with `gemma3:4b` by running `ollama pull gemma3:4b` for the best balance of speed and quality.
+
+### Start Using PromptCrafter
+
+1. **Launch the app** from your applications folder or desktop shortcut
+2. **Choose a data folder** when prompted on first run
+3. **Verify Ollama connection** in the initial setup screen
+4. **Select your model** from the dropdown menu
+5. **Start chatting** and creating prompts!
+
+The app will automatically detect when Ollama is running and which models you have available.
+
+## Using the App
+
+### Creating Your First Prompt
+
+1. Type your request or question in the chat input
+2. Adjust settings like task type, tone, and detail level using the sidebar controls
+3. Click Send or press Enter
+4. Review the AI's response
+5. Continue the conversation or start a new chat
+
+### Saving Presets
+
+If you find settings you like:
+
+1. Click the **Save Preset** button in the sidebar
+2. Give your preset a name
+3. Access it anytime from the **Presets** menu
+
+### Switching Models
+
+Click the model name at the top of the chat window to see all available models. Select a different one to switch instantly.
+
+### Changing Themes
+
+1. Click the **Settings** menu (gear icon)
+2. Choose from Default, WarmEarth, or Light theme
+3. Your choice is saved automatically
+
+## Privacy & Data
+
+**Everything is local.** PromptCrafter:
+
+- Never connects to external services (except Ollama on your machine)
+- Stores all data in the folder you chose
+- Doesn't collect telemetry or usage data
+- Gives you complete control over your conversations
+
+To completely reset the app, simply delete your data folder.
+
+## Building from Source
+
+If you want to modify PromptCrafter or build it yourself:
+
+**Requirements:**
+
+- Node.js 18.18 or newer (20+ recommended)
+- npm package manager
+
+**Quick start:**
 
 ```bash
 # Install dependencies
 npm install
 
-# Start development server
+# Run in development mode
 npm run dev
 ```
 
-Electron launches and spawns the Next.js dev server. On first run:
-
-1. Choose a data directory for local storage
-2. Configure your local Ollama connection
-3. Select a Gemma 3 model from the dropdown
-
-**Note**: `SKIP_ENV_VALIDATION=1` is set by default for development.
-
-## Environment Variables (Optional)
-
-| Name | Description |
-|------|-------------|
-| DATA_DIR | Data directory path (auto-set by Electron, overrides default `./data`) |
-| GOOGLE_SYSTEM_PROMPT | Global default system prompt |
-| GOOGLE_SYSTEM_PROMPT_BUILD | Build mode prompt override |
-| NEXT_PUBLIC_BASE_PATH | Base path if served under a subpath |
-| SKIP_ENV_VALIDATION | Skip environment validation (set to `1` for development) |
-
-All environment variables are optional. System prompts can be customized through the UI.
-
-## Ollama Setup
-
-**Install Ollama:**
+**Build installers:**
 
 ```bash
-# macOS/Linux
-curl -fsSL https://ollama.ai/install.sh | sh
+# Windows installer and portable
+npm run dist:win
 
-# Windows: Download from https://ollama.ai/download
+# All platforms (requires platform-specific build tools)
+npm run dist:electron
 ```
 
-**Pull Gemma 3 Models:**
+**Technology stack:**
 
-```bash
-# Choose one or more models based on your system:
-ollama pull gemma3:1b   # Fastest, basic quality
-ollama pull gemma3:4b   # Good balance of speed/quality  
-ollama pull gemma3:12b  # Higher quality, slower
-ollama pull gemma3:27b  # Best quality, requires powerful hardware
-```
-
-**Start Ollama:**
-
-```bash
-ollama serve
-```
-
-PromptCrafter will auto-detect available models and let you switch between them in the interface.
-
-## Building Production Desktop Bundles
-
-```bash
-npm run dist:win       # Windows installer + portable
-npm run dist:electron  # All supported targets (needs platform tooling)
-```
-
-Process: `build:electron` (Next.js production build) → `electron-builder` (asar packaging; selected `.next` assets unpacked). The main process starts an internal HTTP server for dynamic Next.js routes in production.
-
-## Scripts (select)
-
-| Script | Purpose |
-|--------|---------|
-| dev | Electron + Next.js dev |
-| build:electron | Production Next.js build for Electron |
-| dist:win / dist:electron | Package installers / bundles |
-| check / check:write | Biome lint & auto‑fix |
-| typecheck | TypeScript checking |
-
-## Data Model
-
-**Local JSON Storage:**
-
-- **Chats & Messages**: Conversation history
-- **Presets**: Saved prompt configurations with task settings
-- **System Prompts**: Custom AI behavior instructions
-- **App Settings**: Model configuration and preferences
-<!-- Vector store removed -->
-
-**Privacy**: All data stays local. Delete the data directory to completely reset the app.
-
-## Code Map
-
-**Electron:**
-
-- Main process: `electron/main.cjs`
-- Preload script: `electron/preload.cjs`
-- Startup: `electron/start-electron.cjs`
-
-**Frontend:**
-
-- Chat interface: `src/app/chat/_components/ChatClient.tsx`
-- UI components: `src/components/*`
-- Styling: `src/styles/globals.css` (Material Design + themes)
-
-**Backend:**
-
-- Local model integration: `src/server/local-model.ts`
-- Prompt building: `src/server/prompt-builder.ts`
-- Data storage: `src/server/storage/*` (JSON)
-- API routes: `src/app/api/*`
+- Desktop: Electron
+- Frontend: Next.js with React
+- Styling: Tailwind CSS
+- Language: TypeScript
+- Storage: Local JSON files
 
 ## Contributing
 
-Welcome contributions! High-impact areas:
+Contributions are welcome! Here are some areas where help would be great:
 
-- **Additional Local Providers**: LM Studio, vLLM, etc.
-- **Enhanced UI**: Prompt diff/comparison, better mobile experience
-- **Accessibility**: Keyboard shortcuts, ARIA labels, screen reader support
-- **Themes**: Additional color schemes and customization options
-- **Localization**: Multi-language interface support
+- **Additional Model Support**: LM Studio, vLLM, or other local AI providers
+- **UI Improvements**: Better mobile experience, new features, polish
+- **Accessibility**: Keyboard shortcuts, screen reader support
+- **Themes**: New color schemes and customization options
+- **Translations**: Multi-language support
 
-**Guidelines:**
+**Before contributing:**
 
-- Discuss large features via Issues first
-- Keep PRs focused and small
-- Follow existing code style (Biome enforced)
-- Maintain local-only privacy principles
-
-## Design Philosophy
-
-**Material Design Principles:**
-
-- **8pt Grid System**: Consistent spacing and alignment throughout
-- **Theme System**: Three beautiful themes (Default purple, WarmEarth, Light)
-- **Typography**: Clear hierarchy with proper line heights and spacing
-- **Interactive Elements**: Smooth animations and clear hover states
-- **Accessibility**: Proper contrast ratios and keyboard navigation
-
-**Privacy-First Approach:**
-
-- **Local Processing**: All AI operations happen on your machine
-- **No Telemetry**: No data collection or external connections
-- **User Control**: Complete ownership of your data and conversations
+- Check existing Issues or create one to discuss larger features
+- Keep changes focused and small
+- Follow the existing code style
+- Maintain the privacy-first, local-only approach
 
 ## License
 
 MIT © [LekkerPrompt](https://github.com/LekkerPrompt/LekkerPrompt)
-
----
-
-If this project helps you, a star ⭐ is appreciated.
