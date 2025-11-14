@@ -44,8 +44,6 @@ Pre-built installers are available for download:
 - **GitHub Releases**: <https://github.com/LekkerPrompt/LekkerPrompt/releases>
 - **Website**: <https://promptcrafter.org>
 
-Choose the installer for your operating system (Windows, macOS, or Linux). On first launch, you'll pick a folder to store your data.
-
 ## Getting Started
 
 ### What You Need
@@ -178,15 +176,7 @@ npm run dist:electron
 
 ## Contributing
 
-Contributions are welcome! Here are some areas where help would be great:
-
-- **Additional Model Support**: LM Studio, vLLM, or other local AI providers
-- **UI Improvements**: Better mobile experience, new features, polish
-- **Accessibility**: Keyboard shortcuts, screen reader support
-- **Themes**: New color schemes and customization options
-- **Translations**: Multi-language support
-
-**Before contributing:**
+Contributions are welcome! Before contributing:
 
 - Check existing Issues or create one to discuss larger features
 - Keep changes focused and small
@@ -195,4 +185,4 @@ Contributions are welcome! Here are some areas where help would be great:
 
 ## License
 
-MIT © [LekkerPrompt](https://github.com/LekkerPrompt/LekkerPrompt)
+MIT © [LekkerPrompt/PromptCrafter](https://github.com/LekkerPrompt)
