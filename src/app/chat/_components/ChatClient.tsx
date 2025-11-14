@@ -139,7 +139,7 @@ type Detail = "brief" | "normal" | "detailed";
 type Format = "plain" | "markdown" | "json";
 type ImageStylePreset = "photorealistic" | "illustration" | "3d" | "anime" | "watercolor";
 type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
-type VideoStylePreset = "cinematic" | "documentary" | "animation" | "timelapse" | "vlog";
+type VideoStylePreset = "cinematic" | "documentary" | "animation" | "timelapse" | "vlog" | "commercial" | "anime";
 type CameraMovement = "static" | "pan" | "tilt" | "dolly" | "zoom" | "handheld" | "tracking";
 type ShotType = "wide" | "medium" | "close_up" | "over_the_shoulder" | "first_person";
 type FrameRate = 24 | 30 | 60;
@@ -155,7 +155,7 @@ type FrameRate = 24 | 30 | 60;
   };
 
   const normalizeVideoStylePreset = (v: string | undefined): VideoStylePreset | undefined => {
-    const allowed: VideoStylePreset[] = ["cinematic", "documentary", "animation", "timelapse", "vlog"];
+    const allowed: VideoStylePreset[] = ["cinematic", "documentary", "animation", "timelapse", "vlog", "commercial", "anime"];
     return allowed.includes(v as VideoStylePreset) ? (v as VideoStylePreset) : undefined;
   };
 
@@ -1887,7 +1887,7 @@ type FrameRate = 24 | 30 | 60;
               <>
                 <div>
                   <label className="text-secondary" style={{ fontSize: 12 }}>Video Style</label>
-                  <CustomSelect value={videoStylePreset} onChange={(v) => setVideoStylePreset(v as VideoStylePreset)} options={[{value:'cinematic',label:'Cinematic'},{value:'documentary',label:'Documentary'},{value:'animation',label:'Animation'},{value:'timelapse',label:'Timelapse'},{value:'vlog',label:'Vlog'}]} />
+                  <CustomSelect value={videoStylePreset} onChange={(v) => setVideoStylePreset(v as VideoStylePreset)} options={[{value:'cinematic',label:'Cinematic'},{value:'documentary',label:'Documentary'},{value:'animation',label:'Animation'},{value:'timelapse',label:'Timelapse'},{value:'vlog',label:'Vlog'},{value:'commercial',label:'Commercial'},{value:'anime',label:'Anime'}]} />
                 </div>
                 <div>
                   <label className="text-secondary" style={{ fontSize: 12 }}>Aspect Ratio</label>

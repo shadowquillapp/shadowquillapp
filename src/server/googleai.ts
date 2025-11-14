@@ -11,7 +11,7 @@ export interface GenerationOptions {
   styleGuidelines?: string | undefined;
   temperature?: number | undefined;
   // Type-specific
-  stylePreset?: "photorealistic" | "illustration" | "3d" | "anime" | "watercolor" | "cinematic" | "documentary" | "animation" | "timelapse" | "vlog" | undefined;
+  stylePreset?: "photorealistic" | "illustration" | "3d" | "anime" | "watercolor" | "cinematic" | "documentary" | "animation" | "timelapse" | "vlog" | "commercial" | undefined;
   aspectRatio?: "1:1" | "16:9" | "9:16" | "4:3" | undefined;
   includeTests?: boolean | undefined;
   requireCitations?: boolean | undefined;
