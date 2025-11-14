@@ -10,7 +10,7 @@
 
 ## What Is PromptCrafter?
 
-PromptCrafter is a local-only AI prompt crafting tool that requires Ollama with Gemma 3 models for complete privacy. Build new prompts from scratch or enhance existing ones using structured controls for task type, tone, detail level, and output format.
+PromptCrafter is a local-only AI prompt crafting tool that requires Ollama with Gemma 3 models for complete privacy. Build new prompts from scratch using structured controls for task type, tone, detail level, and output format.
 
 **Complete Privacy**: All processing happens locally on your machine using Ollama. No data ever leaves your computer.
 
@@ -23,7 +23,6 @@ The app runs as an Electron desktop application with a modern Material Design in
 ### Core Functionality
 
 - **Build Mode**: Create prompts from scratch with structured guidance
-- **Enhance Mode**: Improve and refine existing prompts
 - **Task Types**: General, coding, image, research, writing, marketing
 - **Customization**: Tone, detail level, output format, language, temperature control
 - **Smart Presets**: Save, edit, delete, and manage prompt configurations
@@ -48,7 +47,7 @@ The app runs as an Electron desktop application with a modern Material Design in
 
 - **Local Storage**: JSON-based data storage in your chosen directory
 <!-- RAG features removed -->
-- **System Prompts**: Customize AI behavior for build and enhance modes
+- **System Prompts**: Customize AI behavior for the build mode
 - **Electron Integration**: Native desktop app with custom titlebar and window controls
 
 ## Download
@@ -105,7 +104,6 @@ Electron launches and spawns the Next.js dev server. On first run:
 | DATA_DIR | Data directory path (auto-set by Electron, overrides default `./data`) |
 | GOOGLE_SYSTEM_PROMPT | Global default system prompt |
 | GOOGLE_SYSTEM_PROMPT_BUILD | Build mode prompt override |
-| GOOGLE_SYSTEM_PROMPT_ENHANCE | Enhance mode prompt override |
 | NEXT_PUBLIC_BASE_PATH | Base path if served under a subpath |
 | SKIP_ENV_VALIDATION | Skip environment validation (set to `1` for development) |
 
