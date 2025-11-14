@@ -139,7 +139,7 @@ function createWindow() {
   const win = new BrowserWindow({
     width: 1280,
     height: 900,
-    minWidth: 600,
+    minWidth: 950,
     minHeight: 800,
     // Use a frameless window on macOS and Windows so only our custom titlebar is visible.
     ...(process.platform === 'darwin' || process.platform === 'win32' ? { frame: false } : {}),
@@ -155,7 +155,7 @@ function createWindow() {
 
   // Hard guard against programmatic or edge-case resize attempts below limits
   win.on('will-resize', (event, newBounds) => {
-    if (newBounds.width < 600 || newBounds.height < 800) {
+    if (newBounds.width < 950 || newBounds.height < 1024) {
       event.preventDefault();
     }
   });
