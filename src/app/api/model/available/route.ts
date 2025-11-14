@@ -39,10 +39,18 @@ export async function GET(request: Request) {
       const data = await res.json();
       console.log('[api/model/available] Ollama response:', JSON.stringify(data));
       
-      // Extract model names from Ollama API response (handle different response formats)
+      // Extract model data from Ollama API response (handle different response formats)
       const gemmaModels = data.models
-        ?.map((m: any) => m?.name || m?.id || null)
-        ?.filter((name: string | null) => name && name.toLowerCase().startsWith('gemma3:')) || [];
+        ?.filter((m: any) => {
+          const name = m?.name || m?.id || null;
+          return name && name.toLowerCase().startsWith('gemma3:');
+        })
+        ?.map((m: any) => ({
+          name: m?.name || m?.id || null,
+          size: m?.size || 0,
+          digest: m?.digest || null,
+          modified_at: m?.modified_at || null
+        })) || [];
       
       return NextResponse.json({ 
         current: cfg?.model || null, 
