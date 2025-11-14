@@ -34,6 +34,7 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const [presetSelectorOpen, setPresetSelectorOpen] = useState(false);
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Material UI + app settings (presets)
 type Mode = "build" | "enhance";
@@ -167,6 +168,30 @@ type Format = "plain" | "markdown" | "json";
       document.removeEventListener('keydown', onEsc);
     };
   }, [modelMenuOpen]);
+
+  // Auto-resize the chat input up to a reasonable max height
+  const autoResizeInput = useCallback(() => {
+    const ta = textareaRef.current;
+    if (!ta) return;
+    // Reset height to measure scrollHeight accurately
+    ta.style.height = 'auto';
+    const computed = window.getComputedStyle(ta);
+    const lineHeight = parseFloat(computed.lineHeight || '0') || 20;
+    const paddingTop = parseFloat(computed.paddingTop || '0') || 0;
+    const paddingBottom = parseFloat(computed.paddingBottom || '0') || 0;
+    const borderTop = parseFloat(computed.borderTopWidth || '0') || 0;
+    const borderBottom = parseFloat(computed.borderBottomWidth || '0') || 0;
+    const minHeight = parseFloat(computed.minHeight || '0') || 40;
+    // Clamp to a maximum number of lines
+    const MAX_ROWS = 8;
+    const maxHeight = Math.ceil(lineHeight * MAX_ROWS + paddingTop + paddingBottom + borderTop + borderBottom);
+    const nextHeight = Math.max(Math.min(ta.scrollHeight, maxHeight), minHeight);
+    ta.style.height = `${nextHeight}px`;
+    ta.style.overflowY = ta.scrollHeight > maxHeight ? 'auto' : 'hidden';
+  }, []);
+
+  // Recalculate input height whenever content changes
+  useEffect(() => { autoResizeInput(); }, [input, autoResizeInput]);
 
   // Ensure chat exists or create one
   const ensureChat = useCallback(async (firstLine: string) => {
@@ -694,13 +719,14 @@ type Format = "plain" | "markdown" | "json";
             <div className="md-card" style={{ padding: '16px', borderRadius: '20px', background: 'var(--color-surface-variant)', border: '1px solid var(--color-outline)' }}>
               {/* Text input (full width) */}
               <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }}
                 placeholder="Send a message to start crafting prompts…"
                 className="md-input"
                 rows={1}
-                style={{ resize: 'none', minHeight: 40, maxHeight: 160, background: 'var(--color-surface)', border: '1px solid var(--color-outline)', marginBottom: 12, width: '100%' }}
+                style={{ resize: 'none', minHeight: 40, background: 'var(--color-surface)', border: '1px solid var(--color-outline)', marginBottom: 12, width: '100%' }}
               />
 
               {/* Controls row below input */}
