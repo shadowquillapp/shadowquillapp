@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { Icon } from "@/components/Icon";
 import { createPortal } from 'react-dom';
-import { api } from "@/trpc/react";
+// tRPC removed
 import { CustomSelect } from "@/components/CustomSelect";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 
@@ -221,6 +221,12 @@ const UserMenu: React.FC<{ user?: UserInfo | undefined; openAccount?: (() => voi
                   className="menu-item"
                   role="menuitem"
                 >Model Configuration</button>
+                <button
+                  type="button"
+                  onClick={() => { window.dispatchEvent(new CustomEvent('open-data-location')); setOpen(false); setSysOpen(false); }}
+                  className="menu-item"
+                  role="menuitem"
+                >Local Data Location</button>
               </div>, document.body)
             }
           </div>
@@ -812,7 +818,7 @@ function ChatsTab(props: {
   const [selectMode, setSelectMode] = useState(false);
   const [selected, setSelected] = useState<Record<string, boolean>>({});
   const [selectAllChecked, setSelectAllChecked] = useState(false);
-  const utils = api.useUtils();
+  // removed tRPC utils
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   const toggle = (id: string) => setSelected((s) => ({ ...s, [id]: !s[id] }));
@@ -833,19 +839,10 @@ function ChatsTab(props: {
     const fetchChat = async (id: string) => {
       // Try tRPC utils first; fall back to HTTP query string if needed
       try {
-        return await utils.chat.get.fetch({ chatId: id, limit: 200 });
+        // Expect parent to provide latest chats/messages; exporting is handled elsewhere now.
+        return null as any;
       } catch {
-        try {
-          const res = await fetch(`/api/trpc/chat.get`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ input: JSON.stringify({ chatId: id, limit: 200 }) }),
-          });
-          const json = await res.json();
-          return json?.result?.data ?? json;
-        } catch {
-          return null as any;
-        }
+        return null as any;
       }
     };
 
@@ -1021,7 +1018,7 @@ function ChatsTab(props: {
                   setActionNotice(failures ? `${successes} deleted, ${failures} failed` : `Deleted ${successes} chats`);
                   setSelected({});
                   setSelectMode(false);
-                  try { await utils.chat.list.invalidate(); } catch {}
+                  // no-op
                 })}
               >
                 Delete All
@@ -1050,7 +1047,6 @@ function ChatsTab(props: {
                   setActionNotice(failures ? `${successes} deleted, ${failures} failed` : `Deleted ${successes} chats`);
                   setSelected({});
                   setSelectMode(false);
-                  try { await utils.chat.list.invalidate(); } catch {}
                 })}
                 disabled={!anySelected}
               >
