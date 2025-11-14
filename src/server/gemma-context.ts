@@ -73,7 +73,7 @@ export async function buildGemmaContext({ input, taskType, options }: BuildPromp
  * Mode-specific instructions - keep concise for Gemma 3B 1B
  */
 function getModeInstruction(): string {
-  return "Create a complete prompt from the input description.";
+  return "Create one prompt.";
 }
 
 /**
@@ -82,18 +82,18 @@ function getModeInstruction(): string {
 function getTaskGuidance(taskType: TaskType): string {
   switch (taskType) {
     case 'image':
-      return "For image prompts: describe subject, setting, style, lighting. Use comma-separated phrases.";
+      return "Image: subject, context, style, lighting. Use commas.";
     case 'coding':
-      return "For code prompts: specify language, goal, input/output. Be precise about requirements.";
+      return "Code: state language, goal, I/O. Be precise.";
     case 'research':
-      return "For research: state clear question, scope, and required evidence level.";
+      return "Research: question, scope, evidence level.";
     case 'writing':
-      return "For writing: specify audience, tone, format, and key points to cover.";
+      return "Writing: audience, tone, format, key points.";
     case 'marketing':
-      return "For marketing: identify product, audience, benefits, and desired action.";
+      return "Marketing: product, audience, benefits, CTA.";
     case 'general':
     default:
-      return "Be clear and specific about the desired outcome.";
+      return "Be clear and specific about the outcome.";
   }
 }
 
@@ -105,10 +105,10 @@ function getFormatRule(format: string): string {
     case 'json':
       return "Return valid JSON only. No extra text.";
     case 'markdown':
-      return "Use markdown formatting with proper headers and structure.";
+      return "Use markdown with clear headers and lists.";
     case 'plain':
     default:
-      return "Return plain text only. No formatting or labels.";
+      return "Return plain text only. No labels.";
   }
 }
 
@@ -187,7 +187,7 @@ export function validateInput(input: string, taskType: TaskType): { valid: boole
 export function getFallbackSystemPrompt(mode: PromptMode): string {
   switch (mode) {
     case 'build':
-      return "You create clear, actionable prompts from user descriptions.";
+      return "You create prompts from user descriptions.";
     default:
       return "You help with prompt engineering tasks.";
   }

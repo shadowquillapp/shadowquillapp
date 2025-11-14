@@ -1,34 +1,14 @@
 import { readSystemPromptForMode } from '@/server/settings';
 import type { TaskType, GenerationOptions } from '@/server/googleai';
-import { buildStylePresetPhrase } from '@/server/image-style-presets';
+// Image style descriptor expansion removed for minimal prompts
 
 const TYPE_GUIDELINES: Record<TaskType, string> = {
   general: '',
-  coding: [
-    'Code prompt goals: clarity, correctness, minimal necessary context.',
-    '- Specify language, libraries, target environment, and I/O shape when implied or missing.',
-    '- Avoid over-specifying internal implementation unless required.',
-    "- If tests requested, outline test cases after instructions as a separate section.",
-  ].join('\n'),
-  image: [
-    'Image prompt goals: produce a well-structured, high-signal text prompt for an image generation model.',
-    '- Explicitly cover: primary subject(s), secondary elements, style modifiers, lighting, mood, composition, camera / lens (if photographic), color palette, detail level.',
-    '- No meta commentary about what you are doing. Do not output instructions like "Instruction:"— output only the usable prompt unless a structured format was explicitly requested.',
-  '- Never ask the user clarifying questions; infer reasonable defaults and output a finished prompt.',
-  ].join('\n'),
-  research: [
-    'Research prompt goals: factual precision, sourcing, synthesis.',
-    '- Encourage model to verify claims and note uncertainty.',
-    "- If citations requested, specify inline bracket style with source name + URL. APA style is default for citations.",
-  ].join('\n'),
-  writing: [
-    'Writing prompt goals: audience alignment, tone fidelity, structure.',
-    '- Provide explicit sections or formatting expectations.',
-  ].join('\n'),
-  marketing: [
-    'Marketing prompt goals: benefit-led, audience-relevant, compliant.',
-    '- Include target persona, product differentiators, CTA style, required channels.',
-  ].join('\n'),
+  coding: 'Code: state language, environment, and I/O. Be precise.',
+  image: 'Image: cover subject, context, style, lighting. No meta.',
+  research: 'Research: precise claims; cite if requested.',
+  writing: 'Writing: align audience, tone, and structure.',
+  marketing: 'Marketing: persona, benefits, CTA.',
 };
 
 // Smart context detection function
@@ -74,30 +54,10 @@ function detectUserIntent(input: string, taskType: TaskType, options?: Generatio
 }
 
 const UNIFIED_MODE_GUIDELINES: string = [
-    'You are PromptCrafter, an expert at authoring high performance prompts for AI models.',
-    'Goal:',
-    '- Create a single, standalone prompt delivering the user objective.',
-    'Behavior:',
-    '- Strictly obey any provided Mode, Task type, and Constraints.',
-    '- Incorporate tone, detail level, audience, language, and response formatting requirements.',
-    '- Be precise, unambiguous, and concise; avoid filler and meta commentary.',
-    'IMPORTANT: Adapt your response based on user intent:',
-    '- For DIRECT TECHNICAL QUESTIONS (like "how to make chat wider" or "fix this CSS"), provide immediate, actionable code solutions and explanations.',
-    '- For PROMPT CREATION or ENHANCEMENT, use the structured format below and improve clarity while preserving intent.',
-    '- Never force structured format when user wants direct technical help.',
-    'Rule: If the user input is ONLY a casual greeting / acknowledgement (e.g. hi, hey, hello, thanks, thank you, ok, cool, great) and contains no actionable objective or domain noun, reply EXACTLY: NEED_CONTEXT – Please describe what you want me to create or enhance.',
-    'When creating prompts, structure as (no extra explanation):',
-    '1) Instructions (clear objective and role)',
-    '2) Inputs to consider (summarize and normalize the user input)',
-    '3) Steps/Policy (how to think, what to do, what to avoid)',
-    '4) Constraints and acceptance criteria (must/should; edge cases)',
-    'Rules:',
-    '- Do not include code fences or rationale.',
-    '- Prefer measurable criteria over vague language.',
-    '- When constraints conflict, prioritize explicit Constraints, then Task type guidelines, then general quality.',
-    '- FORMAT RULE: If JSON format is requested, specify keys and rules WITHIN the constraints section above, NOT as a separate section.',
-    '- FORMAT RULE: Do NOT add any "Response structure" or "Output format" sections to the prompt you create.',
-  ].join('\n');
+  'Create one prompt. Be concise. No meta.',
+  'Follow task type and constraints.',
+  'If the user asks for direct technical help, answer with code/steps (no prompt).',
+].join('\n');
 
 export interface BuildPromptInput {
   input: string;
@@ -116,119 +76,36 @@ export async function buildUnifiedPrompt({ input, taskType, options }: BuildProm
   // Get the system prompt, which will now come from either the app settings or system-prompts-default.json
   const systemPrompt = await readSystemPromptForMode('build') ?? '';
 
-  const optionLines: string[] = [];
-  if (options?.tone) optionLines.push(`Tone: ${options.tone}`);
-  if (options?.detail) optionLines.push(`Level of detail: ${options.detail}`);
-  if (options?.audience) optionLines.push(`Audience: ${options.audience}`);
-  if (options?.language) optionLines.push(`Language: ${options.language}`);
-  if (options?.styleGuidelines) optionLines.push(`Additional style guidelines:\n${options.styleGuidelines}`);
+  // Minimal constraints line
+  const constraintParts: string[] = [];
+  if (options?.tone) constraintParts.push(`tone=${options.tone}`);
+  if (options?.detail) constraintParts.push(`detail=${options.detail}`);
+  if (options?.audience) constraintParts.push(`audience=${options.audience}`);
+  if (options?.language && options.language.toLowerCase() !== 'english') constraintParts.push(`lang=${options.language}`);
+  if (options?.format) constraintParts.push(`format=${options.format}`);
   if (taskType === 'image') {
-    if (options?.stylePreset) {
-      optionLines.push(`Image style preset: ${options.stylePreset}`);
-      optionLines.push(`Style descriptor: ${buildStylePresetPhrase(options.stylePreset)}`);
-    }
-    if (options?.aspectRatio) optionLines.push(`Aspect ratio: ${options.aspectRatio}`);
+    if (options?.stylePreset) constraintParts.push(`style=${options.stylePreset}`);
+    if (options?.aspectRatio) constraintParts.push(`ratio=${options.aspectRatio}`);
   }
-  if (taskType === 'coding' && options?.includeTests) optionLines.push('Include tests when appropriate.');
-  if (taskType === 'research' && options?.requireCitations) optionLines.push('Include citations with links where possible.');
+  if (taskType === 'coding' && options?.includeTests) constraintParts.push('tests=yes');
+  if (taskType === 'research' && options?.requireCitations) constraintParts.push('citations=yes');
 
   const typeGuidelines = TYPE_GUIDELINES[taskType];
-  // Semantic expansions to help model internalize each selected option beyond a simple label
-  const semanticExpansions: string[] = [];
 
-  // Add context-aware guidance based on detected user intent
+  const lines: string[] = [];
+  if (systemPrompt) lines.push(systemPrompt);
+  lines.push(UNIFIED_MODE_GUIDELINES);
   if (userIntent.responseStrategy === 'direct_help') {
-    semanticExpansions.push(`CRITICAL: User wants DIRECT TECHNICAL HELP, not prompt creation. Provide immediate, actionable solutions for their specific question about ${taskType === 'coding' ? 'code/UI implementation' : 'their query'}.`);
-
-    if (options?.detail === 'brief') {
-      semanticExpansions.push('Response style: Keep it concise and actionable - focus on the specific solution they need.');
-    } else if (options?.detail === 'detailed') {
-      semanticExpansions.push('Response style: Provide comprehensive explanation with step-by-step implementation details.');
-    }
-
-    if (options?.tone === 'technical') {
-      semanticExpansions.push('Communication style: Use precise technical terminology appropriate for developers.');
-    } else if (options?.tone === 'friendly') {
-      semanticExpansions.push('Communication style: Be approachable and encouraging while remaining technically accurate.');
-    }
-
-  } else if (userIntent.responseStrategy === 'structured_prompt') {
-    // Standard prompt creation guidance
-    if (options?.tone) {
-      const toneMap: Record<string, string> = {
-        neutral: 'Tone semantics: objective, evenly weighted language; avoid emotive intensifiers.',
-        friendly: 'Tone semantics: warm, approachable, positive—avoid slang; keep clarity first.',
-        formal: 'Tone semantics: precise, professional register; avoid contractions; maintain impartial phrasing.',
-        technical: 'Tone semantics: domain-specific vocabulary, unambiguous definitions, prioritize precision over flair.',
-        persuasive: 'Tone semantics: benefit-led phrasing, confident active voice, avoid unsupported superlatives.'
-      };
-      const t = options.tone as keyof typeof toneMap;
-      if (toneMap[t]) semanticExpansions.push(toneMap[t] as string);
-    }
-
-    if (options?.detail) {
-      const detailMap: Record<string, string> = {
-        brief: 'Detail level: minimal—only essential attributes; omit auxiliary qualifiers.',
-        normal: 'Detail level: balanced—cover core facets without exhaustive micro-attributes.',
-        detailed: taskType === 'image'
-          ? 'Detail level: rich—include 18–32 distinct, non-redundant descriptive fragments capturing subject focus, environment, perspective, composition, lighting qualities (key + fill or ambient), mood, color palette strategy, texture/material adjectives, style modifiers, rendering / post-processing hints, plus aspect ratio token once.'
-          : 'Detail level: rich—enumerate scope, roles, step logic, edge cases, acceptance criteria, and quality bars explicitly.'
-      };
-      const d = options.detail as keyof typeof detailMap;
-      if (detailMap[d]) semanticExpansions.push(detailMap[d] as string);
-    }
+    lines.push('Direct help: answer with working code/steps. Be concise. No prompt.');
+  } else {
+    if (typeGuidelines) lines.push(typeGuidelines);
+    lines.push('Use 4 parts: 1) Instructions 2) Inputs 3) Steps/Policy 4) Constraints');
   }
+  if (constraintParts.length) lines.push(`Constraints: ${constraintParts.join(', ')}`);
+  lines.push(`Input: ${rawUserInput}`);
+  lines.push('One output only. If insufficient detail, reply INPUT_INSUFFICIENT.');
 
-  // Format guidance - adapt based on intent
-  if (options?.format) {
-    if (userIntent.responseStrategy === 'direct_help') {
-      // For direct help, format should match user expectation
-      if (options.format === 'markdown') {
-        semanticExpansions.push('Format: Use markdown for code examples and clear structure, but keep explanations natural and readable.');
-      } else if (options.format === 'json') {
-        semanticExpansions.push('Format: If providing structured data, use JSON format. Otherwise, provide natural text explanations.');
-      } else {
-        semanticExpansions.push('Format: Provide natural, readable text explanations with inline code examples.');
-      }
-    } else {
-      // Standard format guidance for prompt creation
-      if (options.format === 'json') {
-        semanticExpansions.push('Response formatting: Output ONLY a single JSON object. No prose before/after, no markdown fences, no alternatives.');
-      } else if (options.format === 'markdown') {
-        semanticExpansions.push('Response formatting: Output ONLY Markdown. Use proper headings and lists. Do NOT include extra sections labeled as other formats; provide exactly one representation.');
-      } else if (options.format === 'plain') {
-        semanticExpansions.push('Response formatting: Output ONLY plain text (no markdown fences, no JSON, no image/link markdown). Provide exactly one representation.');
-      }
-    }
-  }
-
-  // Task-specific guidance
-  if (taskType === 'coding' && userIntent.responseStrategy === 'direct_help') {
-    semanticExpansions.push('Coding guidance: Provide specific, working code examples. Include imports, error handling, and best practices.');
-    if (options?.includeTests) semanticExpansions.push('Testing: Include relevant test examples and testing patterns.');
-  } else if (taskType === 'image') {
-    semanticExpansions.push('Image semantics: Structure content using clear headings and lists. Organize information logically without using code blocks or text wrappers.');
-    if (options?.aspectRatio) semanticExpansions.push('Include aspect ratio specification (e.g., 16:9, 1:1, 9:16)');
-    if (options?.detail === 'detailed') semanticExpansions.push('Provide comprehensive details with clear organization and hierarchy.');
-  } else if (taskType === 'research' && options?.requireCitations) {
-    semanticExpansions.push('Citation semantics: each factual claim requiring support followed immediately by [SourceName](URL).');
-  }
-
-  if (options?.language && options.language.toLowerCase() !== 'english') {
-    semanticExpansions.push(`Language semantics: write entirely in ${options.language} (keep technical terms accurate).`);
-  }
-  const semanticsBlock = semanticExpansions.length ? `Option Semantics:\n- ${semanticExpansions.join('\n- ')}` : null;
-
-  return [
-    systemPrompt ? `System Instructions:\n${systemPrompt}` : null,
-    UNIFIED_MODE_GUIDELINES ? `Mode Guidelines:\n${UNIFIED_MODE_GUIDELINES}` : null,
-    typeGuidelines ? `Task Type Guidelines:\n${typeGuidelines}` : null,
-    optionLines.length ? `Constraints:\n- ${optionLines.join('\n- ')}` : null,
-  semanticsBlock,
-  `User Input Raw:\n${rawUserInput}`,
-  'Hard Rule: Produce exactly ONE output in the selected format. Do NOT include multiple versions or format-labeled sections. Never ask clarifying questions; infer reasonable defaults.',
-  'Failure Handling:\nIf you cannot comply due to insufficient detail, reply with exactly INPUT_INSUFFICIENT (no punctuation).',
-  ].filter(Boolean).join('\n\n');
+  return lines.join('\n\n');
 }
 
 // Centralized builder input validation. Returns an error string if invalid, otherwise null.

@@ -33,6 +33,28 @@ function removeFencedBlocksByLang(text: string, lang: string): string {
   return text.replace(re, '').trim();
 }
 
+// Remove short conversational lead-ins (e.g., "Sure, here's the prompt:")
+function stripCommonPrefaces(text: string): { result: string; removed: boolean } {
+  let s = text;
+  let removed = false;
+  for (let i = 0; i < 2; i++) {
+    const firstLine = s.split(/\r?\n/, 1)[0] ?? '';
+    const isPreface = /^\s*(sure|okay|alright)\b/i.test(firstLine) ||
+      /^\s*here('?s)?\b/i.test(firstLine) ||
+      /^\s*below\b/i.test(firstLine) ||
+      /^\s*i\s+(will|can|have)\b/i.test(firstLine) ||
+      /^\s*let('?s)?\b/i.test(firstLine);
+    if (isPreface && firstLine.length <= 120) {
+      const rest = s.substring(firstLine.length).replace(/^\r?\n/, '');
+      s = rest;
+      removed = true;
+      continue;
+    }
+    break;
+  }
+  return { result: s, removed };
+}
+
 function extractTopLevelJson(text: string): string | null {
   const s = text;
   let start = -1;
@@ -162,16 +184,28 @@ export function sanitizeAndDetectDrift(taskType: TaskType, options: GenerationOp
   }
 
   if (requestedFormat === 'markdown') {
+    // Strip conversational prefaces
+    const pre = stripCommonPrefaces(cleaned);
+    if (pre.removed) driftReasons.push('removed_preface');
+    cleaned = pre.result;
     cleaned = keepPreferredMarkdown(cleaned);
     // Ensure no JSON fenced blocks remain
     cleaned = removeFencedBlocksByLang(cleaned, 'json');
+    // Remove simple "Prompt:" labels
+    cleaned = cleaned.replace(/^\s*(Prompt|Final\s+prompt)\s*:\s*/gim, '');
     return { cleaned: cleaned.trim(), driftReasons };
   }
 
   // Plain text: remove markdown constructs conservatively
   // Remove only clear "Prompt:" or "Image prompt:" prefixes
-  if (/^(prompt|image\s+prompt)\s*:\s*/i.test(cleaned.trim())) {
-    cleaned = cleaned.replace(/^(prompt|image\s+prompt)\s*:\s*/i, '').trim();
+  // Strip conversational prefaces first
+  {
+    const pre = stripCommonPrefaces(cleaned);
+    if (pre.removed) driftReasons.push('removed_preface');
+    cleaned = pre.result;
+  }
+  if (/^(prompt|final\s+prompt|image\s+prompt)\s*:\s*/i.test(cleaned.trim())) {
+    cleaned = cleaned.replace(/^(prompt|final\s+prompt|image\s+prompt)\s*:\s*/i, '').trim();
     driftReasons.push('removed_prompt_prefix');
   }
   // Only unwrap JSON if it's clearly a wrapper object with a single prompt field

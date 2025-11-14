@@ -14,38 +14,28 @@ interface StyleDescriptor {
 export const IMAGE_STYLE_PRESETS: Record<ImageStylePreset, StyleDescriptor> = {
   photorealistic: {
     label: "Photorealistic",
-    baseTags: ["ultra realistic", "high dynamic range", "sharp focus", "8k detailed"],
-    lighting: ["natural light", "soft global illumination"],
-    renderingHints: ["cinematic depth of field"],
-    colorHints: ["balanced color grading"],
+    baseTags: ["photorealistic", "sharp focus"],
+    lighting: ["natural light"],
   },
   illustration: {
     label: "Illustration",
-    baseTags: ["detailed digital illustration", "clean line art", "crisp edges"],
-    lighting: ["soft diffuse lighting"],
-    renderingHints: ["vector-inspired shading"],
-    colorHints: ["harmonious palette"],
+    baseTags: ["clean digital illustration"],
+    lighting: ["soft light"],
   },
   "3d": {
     label: "3D Render",
-    baseTags: ["high detail 3d render", "physically based materials", "ray traced reflections"],
-    lighting: ["studio lighting", "subtle volumetrics"],
-    renderingHints: ["unreal engine look"],
-    colorHints: ["cinematic color grade"],
+    baseTags: ["3d render", "physically based materials"],
+    lighting: ["studio lighting"],
   },
   anime: {
     label: "Anime",
-    baseTags: ["polished anime style", "expressive characters", "clean cel shading", "true hand drawn japanese anime styling", "studio quality"],
-    lighting: ["soft rim lighting", "gentle glow"],
-    renderingHints: ["high fidelity line work"],
-    colorHints: ["vibrant yet balanced palette"],
+    baseTags: ["studio anime", "clean cel shading"],
+    lighting: ["soft rim lighting"],
   },
   watercolor: {
     label: "Watercolor",
-    baseTags: ["delicate watercolor painting", "organic pigment diffusion", "subtle paper texture"],
+    baseTags: ["watercolor painting"],
     lighting: ["ambient daylight"],
-    renderingHints: ["layered translucent washes"],
-    colorHints: ["soft complementary tones"],
   },
 };
 
