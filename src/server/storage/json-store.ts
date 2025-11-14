@@ -1,7 +1,5 @@
 import crypto from 'crypto';
-import fs from 'fs/promises';
-import path from 'path';
-import { resolveDataDir } from './data-path';
+// Disk IO removed: in-memory only store
 import { logger } from '../logging';
 
 export interface DataStore<T> {
@@ -20,65 +18,20 @@ export class JSONStore<T> {
   private isProcessingQueue: boolean = false;
 
   constructor(filename: string, dataDir?: string) {
-    const baseDir = resolveDataDir(dataDir);
-    this.filePath = path.join(baseDir, `${filename}.json`);
+    // In-memory only; file paths retained for logs/debug only
+    this.filePath = `memory://${filename}.json`;
     this.lockPath = `${this.filePath}.lock`;
-    logger.debug('Created JSON store', { filename, filePath: this.filePath });
+    logger.debug('Created in-memory JSON store', { filename, filePath: this.filePath });
   }
 
   async load(): Promise<DataStore<T>> {
     logger.debug('Loading JSON store', { filePath: this.filePath });
 
-    // Check if we have a valid cached version
-    if (this.cache) {
-      try {
-        const stat = await fs.stat(this.filePath);
-        // Only use cache if file hasn't been modified and cache is recent
-        if (this.cache.lastModified >= stat.mtimeMs &&
-            (Date.now() - this.cache.lastModified) < 5000) { // 5 second cache validity
-          logger.debug('Using cached JSON store data', { filePath: this.filePath });
-          return { ...this.cache }; // Return copy to prevent external mutations
-        }
-      } catch (e) {
-        logger.debug('JSON store stat failed', { filePath: this.filePath, error: e instanceof Error ? e.message : String(e) });
-      }
-      // If stat fails (file missing), fall through to reinitialize
-    }
-    
-    try {
-      logger.debug('Reading JSON store file', { filePath: this.filePath });
-      const content = await fs.readFile(this.filePath, 'utf-8');
-      logger.debug('Loaded JSON store content', { filePath: this.filePath, bytes: content.length });
-      // Use JSON reviver to handle Date objects properly
-      this.cache = JSON.parse(content, (key, value) => {
-        // Check if the value looks like an ISO date string
-        if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}.\d{3}Z$/.test(value)) {
-          return new Date(value);
-        }
-        return value;
-      });
-      // Migration logic can go here if needed
-      if (!this.cache?.version) {
-        this.cache = { 
-          data: this.cache?.data || {}, 
-          lastModified: Date.now(), 
-          version: this.version 
-        };
-      }
-      logger.debug('Successfully parsed JSON store', {
-        filePath: this.filePath,
-        itemsCount: Object.keys(this.cache.data || {}).length
-      });
-    } catch (e) {
-      logger.warn('Failed to read/parse JSON store', {
-        filePath: this.filePath,
-        error: e instanceof Error ? e.message : String(e)
-      });
+    if (!this.cache) {
       this.cache = { data: {}, lastModified: Date.now(), version: this.version };
-      logger.info('Initialized empty JSON store', { filePath: this.filePath });
+      logger.info('Initialized empty in-memory JSON store', { filePath: this.filePath });
     }
-    
-    return this.cache;
+    return { ...this.cache };
   }
 
   private async save(): Promise<void> {
@@ -86,27 +39,7 @@ export class JSONStore<T> {
 
     logger.debug('Saving JSON store', { filePath: this.filePath });
     this.cache.lastModified = Date.now();
-    try {
-      await this.acquireLock();
-      await fs.mkdir(path.dirname(this.filePath), { recursive: true });
-      // Use JSON replacer to handle Date objects properly
-      const data = JSON.stringify(this.cache, (key, value) => {
-        if (value instanceof Date) {
-          return value.toISOString();
-        }
-        return value;
-      }, 2);
-      logger.debug('Serializing JSON store data', { filePath: this.filePath, bytes: data.length });
-      const tmpPath = `${this.filePath}.tmp`;
-      await fs.writeFile(tmpPath, data, 'utf-8');
-      await fs.rename(tmpPath, this.filePath);
-      logger.debug('Successfully saved JSON store', { filePath: this.filePath });
-    } catch (error) {
-      logger.error('Failed to save JSON store', { filePath: this.filePath, error: error as Error });
-      throw error;
-    } finally {
-      await this.releaseLock();
-    }
+    // No disk IO
   }
 
   async create(item: T): Promise<string> {
@@ -233,97 +166,25 @@ export class JSONStore<T> {
   // Ensures all changes are written with one atomic rename.
   async mutate(mutator: (store: DataStore<T>) => void | Promise<void>): Promise<void> {
     return this.queueOperation(async () => {
-      try {
-        await this.acquireLock();
-        // Force fresh read from disk while lock is held to avoid stale cache
-        this.cache = null;
-        const store = await this.load();
-        await mutator(store);
-        // Save while lock is still held
-        store.lastModified = Date.now();
-        await fs.mkdir(path.dirname(this.filePath), { recursive: true });
-        const data = JSON.stringify(store, (key, value) => {
-          if (value instanceof Date) return value.toISOString();
-          return value;
-        }, 2);
-        const tmpPath = `${this.filePath}.tmp`;
-        await fs.writeFile(tmpPath, data, 'utf-8');
-        await fs.rename(tmpPath, this.filePath);
-      } finally {
-        // Clear cache to ensure other readers reload fresh state
-        this.cache = null;
-        await this.releaseLock();
-      }
+      const store = await this.load();
+      await mutator(store);
+      store.lastModified = Date.now();
+      this.cache = store;
     });
   }
 
   private async acquireLock(retries: number = 100, delayMs: number = 10, staleMs: number = 30000): Promise<void> {
-    if (this.lockHeld) {
-      return; // re-entrant for this instance
-    }
-    // Ensure the directory for the lock file exists before attempting to open it
-    try {
-      await fs.mkdir(path.dirname(this.lockPath), { recursive: true });
-    } catch {
-      // ignore
-    }
-    for (let attempt = 0; attempt < retries; attempt++) {
-      try {
-        const handle = await fs.open(this.lockPath, 'wx');
-        await handle.writeFile(String(Date.now()));
-        await handle.close();
-        this.lockHeld = true;
-        return;
-      } catch (err: any) {
-        // If lock exists and stale, try to clean it up
-        try {
-          const stat = await fs.stat(this.lockPath);
-          const age = Date.now() - stat.mtimeMs;
-          if (age > staleMs) {
-            await fs.unlink(this.lockPath).catch(() => {});
-          }
-        } catch {
-          // ignore
-        }
-        await new Promise(r => setTimeout(r, delayMs));
-      }
-    }
-    // Last try
-    try {
-      await fs.mkdir(path.dirname(this.lockPath), { recursive: true });
-    } catch {
-      // ignore
-    }
-    const handle = await fs.open(this.lockPath, 'wx');
-    await handle.writeFile(String(Date.now()));
-    await handle.close();
+    // No-op lock in memory mode
     this.lockHeld = true;
   }
 
   // Repair corrupted JSON file by replacing with proper structure
   async repairCorruptedFile(): Promise<void> {
-    try {
-      // Check if file exists and contains just "null"
-      const content = await fs.readFile(this.filePath, 'utf-8');
-      if (content.trim() === 'null') {
-        logger.warn('Repairing corrupted JSON file', { filePath: this.filePath });
-        const repairedContent = JSON.stringify({
-          data: {},
-          lastModified: Date.now(),
-          version: this.version
-        }, null, 2);
-        await fs.writeFile(this.filePath, repairedContent, 'utf-8');
-        logger.info('Successfully repaired JSON file', { filePath: this.filePath });
-      }
-    } catch (error) {
-      // File doesn't exist or other error, that's fine
-      logger.debug('JSON file repair not needed', { filePath: this.filePath });
-    }
+    // No-op in memory mode
+    logger.debug('repairCorruptedFile noop (in-memory store)', { filePath: this.filePath });
   }
 
   private async releaseLock(): Promise<void> {
-    if (!this.lockHeld) return;
     this.lockHeld = false;
-    await fs.unlink(this.lockPath).catch(() => {});
   }
 }
