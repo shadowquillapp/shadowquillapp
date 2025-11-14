@@ -28,7 +28,7 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const [presetEditorOpen, setPresetEditorOpen] = useState(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [showAllChatsOpen, setShowAllChatsOpen] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<'default' | 'warm' | 'light'>('default');
+  const [currentTheme, setCurrentTheme] = useState<'default' | 'earth' | 'light'>('default');
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
   const themeMenuWrapRef = useRef<HTMLDivElement | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
@@ -96,14 +96,14 @@ type Format = "plain" | "markdown" | "json";
 
   // Theme management
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme-preference') as 'default' | 'warm' | 'light' | null;
+    const savedTheme = localStorage.getItem('theme-preference') as 'default' | 'earth' | 'light' | null;
     if (savedTheme) {
       setCurrentTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme === 'default' ? '' : savedTheme);
     }
   }, []);
 
-  const setTheme = useCallback((theme: 'default' | 'warm' | 'light') => {
+  const setTheme = useCallback((theme: 'default' | 'earth' | 'light') => {
     setCurrentTheme(theme);
     document.documentElement.setAttribute('data-theme', theme === 'default' ? '' : theme);
     localStorage.setItem('theme-preference', theme);
@@ -113,7 +113,7 @@ type Format = "plain" | "markdown" | "json";
   const themes = [
     { id: 'default', name: 'Default'},
     { id: 'light', name: 'Light'},
-    { id: 'warm', name: 'Earth'},
+    { id: 'earth', name: 'Earth'},
   ] as const;
 
   // Refresh available models
@@ -205,6 +205,14 @@ type Format = "plain" | "markdown" | "json";
       document.removeEventListener('keydown', onEsc);
     };
   }, [settingsMenuOpen]);
+
+  // Close All Chats modal on Escape (prevents overlay trapping clicks)
+  useEffect(() => {
+    if (!showAllChatsOpen) return;
+    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowAllChatsOpen(false); };
+    document.addEventListener('keydown', onEsc);
+    return () => document.removeEventListener('keydown', onEsc);
+  }, [showAllChatsOpen]);
 
   // Auto-resize the chat input up to a reasonable max height
   const autoResizeInput = useCallback(() => {
@@ -553,7 +561,7 @@ type Format = "plain" | "markdown" | "json";
       
       {/* Left rail (Material list of presets + chat history) */}
       <aside className={isSmallScreen ? `app-rail--mobile ${sidebarOpen ? 'open' : ''}` : "app-rail"} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
-        <button type="button" className="md-btn md-btn--primary" style={{ width: '100%' }} onClick={() => { setMessages([]); setCurrentChatId(null); setInput(""); }}>
+        <button type="button" className="md-btn md-btn--primary" style={{width: '100%', border: '1px solid var(--color-outline)'}} onClick={() => { setMessages([]); setCurrentChatId(null); setInput(""); }}>
           New Chat
         </button>
 
@@ -679,7 +687,7 @@ type Format = "plain" | "markdown" | "json";
               <button
                       key={theme.id} 
                       className={`menu-item ${currentTheme === theme.id ? 'menu-item--selected' : ''}`} 
-                      onClick={() => setTheme(theme.id as 'default' | 'warm' | 'light')}
+                      onClick={() => setTheme(theme.id as 'default' | 'earth' | 'light')}
                     >
                       <div style={{ fontWeight: 600 }}>{theme.name}</div>
               </button>
@@ -849,16 +857,32 @@ type Format = "plain" | "markdown" | "json";
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <div className="modal-title">All Chats</div>
-            <button className="md-btn" onClick={() => setShowAllChatsOpen(false)} style={{ padding: '6px 10px' }}>Close</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                className="md-btn"
+                onClick={async () => {
+                  if (!window.confirm('Delete ALL chats? This will permanently remove all chats.')) return;
+                  const ids = recentChats.map((c: any) => c.id);
+                  try {
+                    await Promise.allSettled(ids.map((id: string) => deleteChat(id)));
+                  } catch {}
+                }}
+                style={{ padding: '6px 10px' }}
+                title="Delete all chats"
+              >
+                Delete All Chats
+              </button>
+              <button className="md-btn" onClick={() => setShowAllChatsOpen(false)} style={{ padding: '6px 10px' }}>Close</button>
+            </div>
           </div>
           <div className="modal-body">
             <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
               {(recentChats).map((c: any) => {
                 const isActive = currentChatId === c.id;
                 return (
-                  <li key={c.id}>
-              <button
-                type="button"
+                  <li key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                    <button
+                      type="button"
                       aria-current={isActive ? 'true' : undefined}
                       className="md-btn"
                       style={{
@@ -868,13 +892,24 @@ type Format = "plain" | "markdown" | "json";
                         background: isActive ? 'rgba(108,140,255,0.12)' : 'transparent',
                         outline: isActive ? '2px solid var(--color-primary)' : 'none',
                         outlineOffset: -2,
-                        cursor: 'pointer'
+                        cursor: 'pointer',
+                        flex: 1
                       }}
                       onClick={() => { void selectChat(c.id); setShowAllChatsOpen(false); }}
                     >
                       <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: isActive ? 600 : 500 }}>{c.title ?? 'Untitled'}</span>
                       <span className="text-secondary" style={{ fontSize: 12 }}>{new Date(c.updatedAt as any).toLocaleString()}</span>
-              </button>
+                    </button>
+                    <button
+                      type="button"
+                      className="md-btn"
+                      title="Delete chat"
+                      style={{ width: 36, height: 36, borderRadius: '50%', padding: 0, color: '#ef4444' }}
+                      onClick={async (e) => { e.stopPropagation(); if (!window.confirm('Delete this chat? This will permanently remove it.')) return; await deleteChat(c.id); }}
+                      aria-label="Delete chat"
+                    >
+                      <Icon name="trash" className="text-[13px]" />
+                    </button>
                   </li>
                 );
               })}
@@ -1079,13 +1114,14 @@ type Format = "plain" | "markdown" | "json";
                           position: 'absolute',
                           top: 12,
                           right: 12,
-                          padding: '4px 8px',
-                          fontSize: 11,
-                          opacity: isDeleting ? 0.6 : 1
+                          padding: 8,
+                          opacity: isDeleting ? 0.6 : 1,
+                          color: '#ef4444'
                         }}
                         title={`Delete preset "${p.name}"`}
+                        aria-label={`Delete preset ${p.name}`}
                       >
-                        {isDeleting ? '...' : 'Delete'}
+                        {isDeleting ? '...' : <Icon name="trash" className="text-[13px]" />}
                       </button>
                     </div>
                   );

@@ -22,6 +22,7 @@ import {
   faCopy,
   faCheck,
   faSquare,
+  faTrash,
 } from "@fortawesome/free-solid-svg-icons";
 
 const icons = {
@@ -45,6 +46,7 @@ const icons = {
   copy: faCopy,
   check: faCheck,
   stop: faSquare,
+  trash: faTrash,
 } as const;
 
 export type IconName = keyof typeof icons;

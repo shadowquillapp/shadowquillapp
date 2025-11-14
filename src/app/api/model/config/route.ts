@@ -3,6 +3,7 @@ import { z } from "zod";
 import { readLocalModelConfig, writeLocalModelConfig } from "@/server/local-model";
 import { env } from "@/env";
 import { dataLayer } from "@/server/storage/data-layer";
+import { auth } from "@/server/auth";
 
 const AllowedModels = ["gemma3:1b", "gemma3:4b", "gemma3:12b", "gemma3:27b"] as const;
 const OllamaBody = z.object({
@@ -119,6 +120,39 @@ export async function POST(req: Request) {
         console.error('[api/model/config] Failed to set default provider', defaultError);
         // Don't fail the whole request for default flag issues
       }
+    }
+
+    // First-time preset bootstrap: create and select a "Default" preset if none exist
+    try {
+      const session = await auth();
+      const isElectron = !!(process as any)?.versions?.electron;
+      const userId = session?.user?.id ?? 'local-user';
+      const presets = await dataLayer.findPresetsByUserId(userId);
+      if (!Array.isArray(presets) || presets.length === 0) {
+        console.log('[api/model/config] No presets found for user. Creating "Default" preset...');
+        const defaultPreset = await dataLayer.createPreset({
+          userId,
+          name: 'Default',
+          taskType: 'general',
+          options: {
+            tone: 'neutral',
+            detail: 'normal',
+            format: 'markdown',
+            language: 'English',
+            temperature: 0.7,
+            // Other task-specific settings are omitted by default and will use UI defaults
+          },
+        });
+        // Persist selection as the user's default preset (UI will also pick first preset on load)
+        const key = `default_preset:${userId}`;
+        await dataLayer.upsertAppSetting(key, defaultPreset.id);
+        console.log('[api/model/config] "Default" preset created and set as default:', defaultPreset.id);
+      } else {
+        console.log('[api/model/config] Presets already exist for user - skipping default creation');
+      }
+    } catch (presetInitError) {
+      console.error('[api/model/config] Failed to initialize default preset:', presetInitError);
+      // Non-fatal: continue
     }
     
     return NextResponse.json({ 
