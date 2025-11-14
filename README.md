@@ -1,11 +1,7 @@
 # PromptCrafter
 
 <p align="center">
-  <img src="https://promptcrafter.org/images/prompt-crafter-logo.png" alt="PromptCrafter Logo" width="300" height="300" />
-</p>
-
-<p align="center">
-  <strong>PromptCrafter</strong> — local-only AI prompt crafting with Ollama Gemma 3 models (Electron + Next.js).
+  <strong>Local-only AI prompt crafting with Ollama Gemma 3 models (Electron + Next.js).
 </p>
 
 <div align="center">
