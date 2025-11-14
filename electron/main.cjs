@@ -160,9 +160,9 @@ ipcMain.handle('promptcrafter:window:close', (e) => {
 function createWindow() {
   const win = new BrowserWindow({
     width: 1280,
-    height: 1000,
+    height: 850,
     minWidth: 950,
-    minHeight: 1000,
+    minHeight: 850,
     // Use a frameless window on macOS and Windows so only our custom titlebar is visible.
     ...(process.platform === 'darwin' || process.platform === 'win32' ? { frame: false } : {}),
     webPreferences: {
