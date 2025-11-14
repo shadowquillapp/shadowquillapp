@@ -5,6 +5,7 @@ import { useDialog } from "./DialogProvider";
 import { isElectronRuntime } from '@/lib/runtime';
 import { readLocalModelConfig as readLocalModelConfigClient, writeLocalModelConfig as writeLocalModelConfigClient, validateLocalModelConnection as validateLocalModelConnectionClient, listAvailableModels } from '@/lib/local-config';
 import { ensureDefaultPreset } from '@/lib/presets';
+import { ensureSystemPromptBuild, resetSystemPromptBuild, setSystemPromptBuild } from '@/lib/system-prompts';
 import Titlebar from './Titlebar';
 
 interface Props { children: React.ReactNode }
@@ -27,17 +28,13 @@ export default function ModelConfigGate({ children }: Props) {
   const [defaultProvider, setDefaultProvider] = useState<'ollama' | null>(null);
   const [hasValidDefault, setHasValidDefault] = useState(false);
   const [showProviderSelection, setShowProviderSelection] = useState(false);
-
-  // Ollama detection state
   const [ollamaCheckPerformed, setOllamaCheckPerformed] = useState(false);
   const [showOllamaMissingModal, setShowOllamaMissingModal] = useState(false);
-  // Local test state for Ollama connection (mirrors Local Gemma3 Models modal behavior)
   const [testingLocal, setTestingLocal] = useState(false);
   const [localTestResult, setLocalTestResult] = useState<null | { success: boolean; url: string; models?: Array<{ name: string; size: number }>; error?: string; duration?: number }>(null);
-  // Available models from Ollama
   const [availableModels, setAvailableModels] = useState<string[]>([]);
 
-  // Client side enhancement: if we didn't know on SSR, detect now (may cause gating AFTER first paint in rare cases where env var missing) but we avoid unmounting children if already rendered to prevent hydration mismatch warnings.
+  // Client side enhancement
   useEffect(() => {
     if (!electronMode && (isElectronRuntime() || process.env.NEXT_PUBLIC_ELECTRON === '1')) {
       setElectronMode(true);
@@ -113,11 +110,7 @@ export default function ModelConfigGate({ children }: Props) {
     void load();
     return () => { cancelled = true; };
   }, [electronMode, loadedOnce]);
-
-  // App is gated if we're in electron mode and either:
-  // 1. Still loading, OR
-  // 2. Need to show provider selection, OR  
-  // 3. Don't have a valid config yet
+  
   const gated = electronMode && (fetching || showProviderSelection || (!hasValidDefault && !config));
 
   // Detect if Ollama is running when provider selection first appears (initial launch, not previously configured)
@@ -494,8 +487,8 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
       try {
         // Load from local storage
         try {
-          const p = (typeof window !== 'undefined' ? localStorage.getItem('SYSTEM_PROMPT_BUILD') : null) || '';
-          setPrompt(p);
+          const value = ensureSystemPromptBuild();
+          setPrompt(value);
         } catch { setPrompt(''); }
       } finally { setLoading(false); }
     };
@@ -535,7 +528,8 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
                     e.preventDefault();
                     setSaving(true); setError(null);
                     try {
-                      try { if (typeof window !== 'undefined') localStorage.setItem('SYSTEM_PROMPT_BUILD', prompt || ''); } catch {}
+                      const normalized = setSystemPromptBuild(prompt);
+                      setPrompt(normalized);
                       setOpen(false);
                     } catch (err:any) { setError(err.message || 'Unknown error'); } finally { setSaving(false); }
                   }}>
@@ -558,28 +552,7 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
                             if (!ok) return;
                             setSaving(true); setError(null);
                             try {
-                              const def = `You are PromptCrafter, an expert at authoring high-performance prompts for AI models.
-
-Goal:
-- Create a single, self-contained prompt from scratch that achieves the user's objective.
-
-Behavior:
-- Strictly obey any provided Mode, Task type, and Constraints.
-- Incorporate tone, detail level, audience, language, and formatting requirements.
-- Be precise, unambiguous, and concise; avoid filler and meta commentary.
-
-Structure the final prompt (no extra explanation):
-1) Instruction to the assistant (clear objective and role)
-2) Inputs to consider (summarize and normalize the user input)
-3) Steps/Policy (how to think, what to do, what to avoid)
-4) Constraints and acceptance criteria (must/should; edge cases)
-5) Output format (structure; if JSON is requested, specify keys and rules only)
-
-Rules:
-- Do not include code fences or rationale.
-- Prefer measurable criteria over vague language.
-- Ensure output is ready for direct copy-paste.`;
-                              try { if (typeof window !== 'undefined') localStorage.setItem('SYSTEM_PROMPT_BUILD', def); } catch {}
+                              const def = resetSystemPromptBuild();
                               setPrompt(def);
                             } catch (err:any) {
                               setError(err.message || 'Unknown error');

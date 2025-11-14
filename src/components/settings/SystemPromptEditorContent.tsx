@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useDialog } from "../DialogProvider";
+import { ensureSystemPromptBuild, resetSystemPromptBuild, setSystemPromptBuild } from "@/lib/system-prompts";
 
 interface Props {
   onSaved?: () => void;
@@ -20,9 +21,9 @@ export default function SystemPromptEditorContent({ onSaved, onCancelReset }: Pr
     const load = async () => {
       setLoading(true);
       try {
-        const p = (typeof window !== "undefined" ? localStorage.getItem("SYSTEM_PROMPT_BUILD") : null) || "";
-        setPrompt(p);
-        setInitialPrompt(p);
+        const initial = ensureSystemPromptBuild();
+        setPrompt(initial);
+        setInitialPrompt(initial);
       } catch {
         setPrompt("");
         setInitialPrompt("");
@@ -59,10 +60,9 @@ export default function SystemPromptEditorContent({ onSaved, onCancelReset }: Pr
           setSaving(true);
           setError(null);
           try {
-            try {
-              if (typeof window !== "undefined") localStorage.setItem("SYSTEM_PROMPT_BUILD", prompt || "");
-            } catch {}
-            setInitialPrompt(prompt);
+            const normalized = setSystemPromptBuild(prompt);
+            setInitialPrompt(normalized);
+            setPrompt(normalized);
             onSaved?.();
           } catch (err: any) {
             setError(err.message || "Unknown error");
@@ -96,30 +96,7 @@ export default function SystemPromptEditorContent({ onSaved, onCancelReset }: Pr
                 setSaving(true);
                 setError(null);
                 try {
-                  const def = `You are PromptCrafter, an expert at authoring high-performance prompts for AI models.
-
-Goal:
-- Create a single, self-contained prompt from scratch that achieves the user's objective.
-
-Behavior:
-- Strictly obey any provided Mode, Task type, and Constraints.
-- Incorporate tone, detail level, audience, language, and formatting requirements.
-- Be precise, unambiguous, and concise; avoid filler and meta commentary.
-
-Structure the final prompt (no extra explanation):
-1) Instruction to the assistant (clear objective and role)
-2) Inputs to consider (summarize and normalize the user input)
-3) Steps/Policy (how to think, what to do, what to avoid)
-4) Constraints and acceptance criteria (must/should; edge cases)
-5) Output format (structure; if JSON is requested, specify keys and rules only)
-
-Rules:
-- Do not include code fences or rationale.
-- Prefer measurable criteria over vague language.
-- Ensure output is ready for direct copy-paste.`;
-                  try {
-                    if (typeof window !== "undefined") localStorage.setItem("SYSTEM_PROMPT_BUILD", def);
-                  } catch {}
+                  const def = resetSystemPromptBuild();
                   setPrompt(def);
                   setInitialPrompt(def);
                 } catch (err: any) {
@@ -142,7 +119,7 @@ Rules:
               }}
               className="md-btn"
             >
-              Cancel
+              Undo
             </button>
             <button disabled={saving} className="md-btn md-btn--primary">
               {saving ? "Saving…" : "Save"}
