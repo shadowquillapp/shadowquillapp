@@ -22,7 +22,7 @@ export interface LogEntry {
 export class Logger {
   private static instance: Logger;
   private logLevel: LogLevel = LogLevel.INFO;
-  private logFile?: string;
+  private logFile: string | undefined;
   private isElectron: boolean;
 
   private constructor() {
@@ -36,10 +36,8 @@ export class Logger {
       this.logLevel = LogLevel[envLogLevel as keyof typeof LogLevel];
     }
 
-    // Set up log file for Electron mode
-    if (this.isElectron && process.env.DATA_DIR) {
-      this.logFile = path.join(process.env.DATA_DIR, 'logs', 'promptcrafter.log');
-    }
+    // File logging disabled - logs go to console only
+    this.logFile = undefined;
   }
 
   static getInstance(): Logger {
