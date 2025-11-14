@@ -4,7 +4,6 @@ import { z } from "zod";
 export const env = createEnv({
 	server: {
 		GOOGLE_SYSTEM_PROMPT_BUILD: z.string().optional(),
-		GOOGLE_SYSTEM_PROMPT_ENHANCE: z.string().optional(),
 		NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
 	},
 	client: {
@@ -12,7 +11,6 @@ export const env = createEnv({
 	},
 	runtimeEnv: {
 		GOOGLE_SYSTEM_PROMPT_BUILD: process.env.GOOGLE_SYSTEM_PROMPT_BUILD,
-		GOOGLE_SYSTEM_PROMPT_ENHANCE: process.env.GOOGLE_SYSTEM_PROMPT_ENHANCE,
 		NEXT_PUBLIC_BASE_PATH: process.env.NEXT_PUBLIC_BASE_PATH,
 		NODE_ENV: process.env.NODE_ENV,
 	},
