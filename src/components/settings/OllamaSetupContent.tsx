@@ -282,7 +282,7 @@ export default function OllamaSetupContent() {
           <>
             Found{" "}
             <b>
-              <u>{availableModels.length} usable model{availableModels.length !== 1 ? "s" : ""}</u>
+              {availableModels.length} usable model{availableModels.length !== 1 ? "s" : ""}
             </b>
           </>
         )}
@@ -292,8 +292,8 @@ export default function OllamaSetupContent() {
           <div style={{ fontSize: 12 }}>{error || connectionError}</div>
         </div>
       )}
-      <div style={{ paddingTop: 8 }}>
-        <button disabled={!canSave} className="md-btn md-btn--primary" style={{ width: "100%" }}>
+      <div style={{ paddingTop: 8, display: "flex", justifyContent: "flex-end" }}>
+        <button disabled={!canSave} className="md-btn md-btn--primary">
           {saving || validating ? "Validating…" : "Save"}
         </button>
       </div>

@@ -15,14 +15,7 @@ interface Props {
 
 export default function SettingsDialog({ open, onClose, initialTab = "system" }: Props) {
   const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
-  const [displayedTab, setDisplayedTab] = useState<SettingsTab>(initialTab);
-  const [incomingTab, setIncomingTab] = useState<SettingsTab | null>(null);
-  const [animPhase, setAnimPhase] = useState(false);
-  const [containerHeight, setContainerHeight] = useState<number | undefined>(undefined);
-  const containerRef = React.useRef<HTMLDivElement | null>(null);
-  const prevRef = React.useRef<HTMLDivElement | null>(null);
-  const nextRef = React.useRef<HTMLDivElement | null>(null);
-  const animTimerRef = React.useRef<number | null>(null);
+  const contentRef = React.useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -64,62 +57,6 @@ export default function SettingsDialog({ open, onClose, initialTab = "system" }:
     );
   };
 
-  // Start transition when activeTab changes
-  useEffect(() => {
-    if (!open) return;
-    if (activeTab === displayedTab) return;
-    // Cancel any ongoing animation
-    if (animTimerRef.current) {
-      window.clearTimeout(animTimerRef.current);
-      animTimerRef.current = null;
-    }
-    setIncomingTab(activeTab);
-    setAnimPhase(false);
-    // Measure heights in next frame
-    const id1 = window.requestAnimationFrame(() => {
-      const prevH = prevRef.current?.offsetHeight ?? 0;
-      const nextH = nextRef.current?.offsetHeight ?? prevH;
-      // Lock current height, then animate to next
-      setContainerHeight(prevH);
-      const id2 = window.requestAnimationFrame(() => {
-        setAnimPhase(true);
-        setContainerHeight(nextH);
-        animTimerRef.current = window.setTimeout(() => {
-          setDisplayedTab(activeTab);
-          setIncomingTab(null);
-          setAnimPhase(false);
-        }, 380);
-      });
-      return () => window.cancelAnimationFrame(id2);
-    });
-    return () => window.cancelAnimationFrame(id1);
-  }, [activeTab, displayedTab, open]);
-
-  // Keep container height synced to current content to avoid post-animation jolts
-  useEffect(() => {
-    if (!open) return;
-    // Only track when no crossfade is in progress
-    if (incomingTab) return;
-    const el = prevRef.current;
-    if (!el) return;
-    // Set initial measured height
-    try {
-      setContainerHeight(el.offsetHeight);
-    } catch {}
-    let ro: ResizeObserver | null = null;
-    try {
-      ro = new ResizeObserver(() => {
-        try {
-          setContainerHeight(el.offsetHeight);
-        } catch {}
-      });
-      ro.observe(el);
-    } catch {/* ignore if ResizeObserver not available */}
-    return () => {
-      try { ro?.disconnect(); } catch {}
-    };
-  }, [displayedTab, open, incomingTab]);
-
   const renderContentFor = (tab: SettingsTab) => {
     switch (tab) {
       case "system":
@@ -148,6 +85,21 @@ export default function SettingsDialog({ open, onClose, initialTab = "system" }:
             width: 0 !important;
             height: 0 !important;
             display: none !important;
+          }
+          
+          .settings-tab-content {
+            animation: fadeInSlide 0.5s ease-out;
+          }
+          
+          @keyframes fadeInSlide {
+            from {
+              opacity: 0;
+              transform: translateY(8px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
           }
         `}</style>
         <div className="modal-header">
@@ -184,46 +136,40 @@ export default function SettingsDialog({ open, onClose, initialTab = "system" }:
             {/* Right content */}
             <div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
               <div
-                ref={containerRef}
+                ref={contentRef}
                 style={{
                   position: "relative",
-                  height: containerHeight !== undefined ? `${containerHeight}px` : undefined,
-                  transition: "height 350ms ease",
-                  willChange: "height",
                   overflow: "hidden",
                 }}
               >
-                {/* Outgoing (current) */}
+                {/* Render all tabs, but only show the active one */}
                 <div
-                  ref={prevRef}
+                  key={`system-${activeTab === "system" ? "active" : "hidden"}`}
+                  className={activeTab === "system" ? "settings-tab-content" : ""}
                   style={{
-                    position: incomingTab ? "absolute" as const : "relative" as const,
-                    inset: incomingTab ? 0 : undefined,
-                    opacity: incomingTab ? (animPhase ? 0 : 1) : 1,
-                    transform: incomingTab ? (animPhase ? "translateY(-6px)" : "translateY(0px)") : "none",
-                    transition: incomingTab ? "opacity 350ms ease, transform 350ms ease" : "none",
-                    pointerEvents: incomingTab ? "none" : "auto",
-                    overflow: "hidden",
+                    display: activeTab === "system" ? "block" : "none",
                   }}
                 >
-                  {renderContentFor(displayedTab)}
+                  {renderContentFor("system")}
                 </div>
-                {/* Incoming (next) */}
-                {incomingTab && (
-                  <div
-                    ref={nextRef}
-                    style={{
-                      position: "relative",
-                      opacity: animPhase ? 1 : 0,
-                      transform: animPhase ? "translateY(0px)" : "translateY(6px)",
-                      transition: "opacity 350ms ease, transform 350ms ease",
-                      overflow: "hidden",
-                    }}
-                    aria-hidden={!animPhase}
-                  >
-                    {renderContentFor(incomingTab)}
-                  </div>
-                )}
+                <div
+                  key={`ollama-${activeTab === "ollama" ? "active" : "hidden"}`}
+                  className={activeTab === "ollama" ? "settings-tab-content" : ""}
+                  style={{
+                    display: activeTab === "ollama" ? "block" : "none",
+                  }}
+                >
+                  {renderContentFor("ollama")}
+                </div>
+                <div
+                  key={`data-${activeTab === "data" ? "active" : "hidden"}`}
+                  className={activeTab === "data" ? "settings-tab-content" : ""}
+                  style={{
+                    display: activeTab === "data" ? "block" : "none",
+                  }}
+                >
+                  {renderContentFor("data")}
+                </div>
               </div>
             </div>
           </div>
