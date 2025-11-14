@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
 import type { ReactNode } from "react";
 // Local-only storage and model access (no API)
 import { createChat as localCreateChat, appendMessagesWithCap as localAppendMessages, deleteChat as localDeleteChat, listChatsByUser as localListChats, getChat as localGetChat } from "@/lib/local-db";
@@ -17,6 +17,73 @@ import { useDialog } from "@/components/DialogProvider";
 type MessageRole = "user" | "assistant";
 interface MessageItem { id: string; role: MessageRole; content: string; }
 type UserInfo = { name?: string | null; image?: string | null; email?: string | null };
+
+// Small FLIP-style animation helper for reordering/fading list items without extra deps
+function useFLIPListAnimation(keys: readonly string[]) {
+  const nodeMapRef = useRef<Map<string, HTMLElement>>(new Map());
+  const prevRectsRef = useRef<Map<string, DOMRect>>(new Map());
+
+  const register = useCallback((key: string) => {
+    return (el: HTMLElement | null) => {
+      if (el) {
+        nodeMapRef.current.set(key, el);
+      } else {
+        nodeMapRef.current.delete(key);
+      }
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    const nodeMap = nodeMapRef.current;
+    // Measure new rects
+    const nextRects = new Map<string, DOMRect>();
+    nodeMap.forEach((el, key) => {
+      try {
+        nextRects.set(key, el.getBoundingClientRect());
+      } catch {
+        // ignore measure errors
+      }
+    });
+
+    // Animate from previous rects to new rects
+    nextRects.forEach((nextRect, key) => {
+      const el = nodeMap.get(key);
+      if (!el) return;
+
+      const prevRect = prevRectsRef.current.get(key);
+      if (prevRect) {
+        const dx = prevRect.left - nextRect.left;
+        const dy = prevRect.top - nextRect.top;
+        if (dx !== 0 || dy !== 0) {
+          el.style.transition = "none";
+          el.style.transform = `translate(${dx}px, ${dy}px)`;
+          el.style.willChange = "transform, opacity";
+          // Next frame, animate to identity
+          requestAnimationFrame(() => {
+            el.style.transition = "transform 200ms ease, opacity 160ms ease";
+            el.style.transform = "";
+          });
+        }
+      } else {
+        // New element entering: fade/slide in slightly
+        el.style.transition = "none";
+        el.style.opacity = "0";
+        el.style.transform = "translateY(-6px)";
+        el.style.willChange = "transform, opacity";
+        requestAnimationFrame(() => {
+          el.style.transition = "transform 200ms ease, opacity 160ms ease";
+          el.style.opacity = "1";
+          el.style.transform = "";
+        });
+      }
+    });
+
+    // Store rects for next pass
+    prevRectsRef.current = nextRects;
+  }, [keys]);
+
+  return register;
+}
 
 export default function ChatClient(_props: { user?: UserInfo }) {
   const { confirm, showInfo } = useDialog();
@@ -83,6 +150,9 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
   const [loadingPresets, setLoadingPresets] = useState(false);
   const [selectedPresetKey, setSelectedPresetKey] = useState("");
   const [recentPresetKeys, setRecentPresetKeys] = useState<string[]>([]);
+
+  // Animation registration for recent presets reorder/replace
+  const registerRecentPresetItem = useFLIPListAnimation(recentPresetKeys);
 
   // Local chat list state
   const [chatList, setChatList] = useState<Array<{ id: string; title: string | null; updatedAt: number; messageCount: number }>>([]);
@@ -1144,7 +1214,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
       {/* Left rail (Material list of presets + chat history) */}
       <aside className={isSmallScreen ? `app-rail--mobile ${sidebarOpen ? 'open' : ''}` : "app-rail"} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, paddingTop: !isSmallScreen && isElectronRuntime() ? 48 : 16, top: isSmallScreen && isElectronRuntime() ? 32 : 0, height: isSmallScreen && isElectronRuntime() ? 'calc(100vh - 32px)' : undefined }}>
         <button type="button" className="md-btn md-btn--primary" style={{width: '100%', border: '1px solid var(--color-outline)'}} onClick={() => { setMessages([]); setCurrentChatId(null); setInput(""); }}>
-          New Crafter
+          New Crafter Chat
         </button>
 
         <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginTop: 50 }}><b>RECENT PRESETS</b></div>
@@ -1164,6 +1234,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                   return (
                     <div
                       key={key}
+                      ref={registerRecentPresetItem(key)}
                       className="md-card"
                       title={`Use preset "${p.name}"`}
                       style={{
@@ -1262,7 +1333,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
 
         {/* Recent chats pinned to bottom */}
         <div style={{ marginTop: 'auto' }}>
-          <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginBottom: 8 }}><b>RECENT CRAFTS</b></div>
+          <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginBottom: 8 }}><b>RECENT CRAFT CHATS</b></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {recentThree.map((c: any) => {
               const isActive = currentChatId === c.id;
@@ -1297,7 +1368,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
             )}
             </div>
           <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 8 }}>
-            <button className="md-btn md-btn--primary" style={{ padding: '4px 8px', fontSize: 12, marginTop: 8}} onClick={() => setShowAllChatsOpen(true)}>Show All Crafts</button>
+            <button className="md-btn md-btn--primary" style={{ padding: '4px 8px', fontSize: 12, marginTop: 8}} onClick={() => setShowAllChatsOpen(true)}>Show All Chats</button>
           </div>
             </div>
       </aside>
@@ -1340,7 +1411,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                 <div className="menu-panel" style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', minWidth: 180 }}>
                   <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-system-prompts')); } catch {}; setSettingsMenuOpen(false); }}>System Prompt</button>
                   <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-provider-selection')); } catch {}; setSettingsMenuOpen(false); }}>Ollama Setup</button>
-                  <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-data-location')); } catch {}; setSettingsMenuOpen(false); }}>Local Data Location</button>
+                  <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-data-location')); } catch {}; setSettingsMenuOpen(false); }}>Local Data Management</button>
                 </div>
               )}
             </div>
@@ -1615,12 +1686,12 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
         <div className="modal-backdrop-blur" />
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <div className="modal-title">All Crafts</div>
+            <div className="modal-title">Craft Chat History</div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 className="md-btn md-btn--destructive"
                 onClick={async () => {
-                  const ok = await confirm({ title: 'Delete All Crafts (Chats)', message: 'Delete ALL crafts? This will permanently remove all crafts.', confirmText: 'Confirm', cancelText: 'Cancel', tone: 'destructive' });
+                  const ok = await confirm({ title: 'Craft Chat Deletion', message: 'Delete ALL chats? This will permanently remove all chats.', confirmText: 'Confirm', cancelText: 'Cancel', tone: 'destructive' });
                   if (!ok) return;  
                   const ids = recentChats.map((c: any) => c.id);
                   try {

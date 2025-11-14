@@ -687,7 +687,7 @@ function DataLocationModalWrapper() {
           <div className="modal-backdrop-blur" onClick={() => setOpen(false)} />
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <div className="modal-title">Local Data Location</div>
+              <div className="modal-title">Local Data Management</div>
               <button onClick={() => setOpen(false)} className="md-btn" style={{ padding: '6px 10px' }}><Icon name="close" /></button>
             </div>
             <div className="modal-body">

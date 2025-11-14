@@ -226,7 +226,7 @@ const UserMenu: React.FC<{ user?: UserInfo | undefined; openAccount?: (() => voi
                   onClick={() => { window.dispatchEvent(new CustomEvent('open-data-location')); setOpen(false); setSysOpen(false); }}
                   className="menu-item"
                   role="menuitem"
-                >Local Data Location</button>
+                >Local Data Management</button>
               </div>, document.body)
             }
           </div>
