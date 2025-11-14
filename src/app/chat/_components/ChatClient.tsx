@@ -1295,7 +1295,7 @@ type Format = "plain" | "markdown" | "json";
             )}
             </div>
           <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 8 }}>
-            <button className="md-btn md-btn--primary" style={{ padding: '4px 8px', fontSize: 12 }} onClick={() => setShowAllChatsOpen(true)}>Show All Chats</button>
+            <button className="md-btn md-btn--primary" style={{ padding: '4px 8px', fontSize: 12, marginTop: 8}} onClick={() => setShowAllChatsOpen(true)}>Show All Chats</button>
           </div>
             </div>
       </aside>
@@ -1336,10 +1336,10 @@ type Format = "plain" | "markdown" | "json";
 
         {/* Content area (scrolls) */}
         <div style={{ padding: 24, paddingTop: 28, paddingBottom: 200, flex: 1, overflow: 'auto' }}>
-          <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
+          <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', height: '100%' }}>
             {!hasMessages ? (
-              <div>
-                <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24 }}>How can I help you craft prompts today?</h1>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+                <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24, textAlign: 'center' }}>How can I help you craft prompts today?</h1>
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -1365,17 +1365,8 @@ type Format = "plain" | "markdown" | "json";
                 {sending && (
                   <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 12 }}>
                     <div className="bubble bubble--assistant" style={{ opacity: .95, display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <span>Generating prompt... </span>
                       <div style={{ width: 14, height: 14, border: '2px solid var(--color-on-surface-variant)', borderTopColor: 'var(--color-primary)', borderRadius: '50%' }} className="md-spin" />
-                      <span>Generating prompt...</span>
-                      <button
-                        type="button"
-                        title="Stop generating"
-                        onClick={stopGenerating}
-                        className="md-icon-btn"
-                        style={{ marginLeft: 12 }}
-                      >
-                        <Icon name="stop" />
-                      </button>
                     </div>
                   </div>
                 )}
@@ -1524,18 +1515,42 @@ type Format = "plain" | "markdown" | "json";
                   </div>
                 </div>
 
-                {/* Send (right) */}
+                {/* Send or Stop (right) */}
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-              <button
-                  type="button"
-                    className="md-btn md-btn--primary" 
-                onClick={() => void send()}
-                    disabled={!input.trim() || sending}
-                    style={{ width: 40, height: 40, borderRadius: '50%', padding: 0, border: currentTheme === 'earth' ? '1px solid var(--color-outline)' : undefined }}
-                    title="Send message"
-                  >
-                    ↑
-              </button>
+                  {sending ? (
+                    <button
+                      type="button"
+                      className="md-btn"
+                      onClick={stopGenerating}
+                      title="Stop generating"
+                      style={{ 
+                        width: 40, 
+                        height: 40, 
+                        borderRadius: '50%', 
+                        padding: 0,
+                        backgroundColor: '#1a73e8',
+                        color: 'white',
+                        border: 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <Icon name="stop" />
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className="md-btn md-btn--primary" 
+                      onClick={() => void send()}
+                      disabled={!input.trim()}
+                      style={{ width: 40, height: 40, borderRadius: '50%', padding: 0, border: currentTheme === 'earth' ? '1px solid var(--color-outline)' : undefined }}
+                      title="Send message"
+                    >
+                      ↑
+                    </button>
+                  )}
             </div>
           </div>
         </div>
