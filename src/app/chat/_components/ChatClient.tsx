@@ -1280,7 +1280,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                           aria-label={`Edit preset ${p.name}`}
                           style={{ position: 'absolute', top: 8, right: 8, padding: 8 }}
                         >
-                          <Icon name="gear" className="text-[13px]" />
+                          <Icon name={'edit' as any} className="text-[13px]" />
                         </button>
                       )}
                     </div>
@@ -1921,7 +1921,10 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                           setPresetSelectorOpen(false);
                         }}
                       >
-                        <div style={{ fontWeight: 600, marginBottom: 4 }}>{p.name}</div>
+                        <div style={{ fontWeight: 600, marginBottom: 4 }}>
+                          {isSel && <Icon name="star" className="text-[13px]" style={{ color: 'var(--color-on-surface)', marginRight: 6 }} />}
+                          {p.name}
+                        </div>
                         <div style={{ fontSize: 12, opacity: 0.8 }}>{p.taskType.charAt(0).toUpperCase() + p.taskType.slice(1)}</div>
                         {(() => {
                           const o = p.options || {};
@@ -1991,7 +1994,7 @@ type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
                             aria-label={`Edit preset ${p.name}`}
                             style={{ padding: 8 }}
                           >
-                            <Icon name="gear" className="text-[13px]" />
+                            <Icon name={'edit' as any} className="text-[13px]" />
                           </button>
                         )}
                       </div>

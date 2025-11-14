@@ -211,19 +211,19 @@ const UserMenu: React.FC<{ user?: UserInfo | undefined; openAccount?: (() => voi
               >
                 <button
                   type="button"
-                  onClick={() => { window.dispatchEvent(new CustomEvent('open-system-prompts')); setOpen(false); setSysOpen(false); }}
+                  onClick={() => { window.dispatchEvent(new CustomEvent('open-app-settings', { detail: { tab: 'system' } })); setOpen(false); setSysOpen(false); }}
                   className="menu-item"
                   role="menuitem"
                 >System Prompts</button>
                 <button
                   type="button"
-                  onClick={() => { window.dispatchEvent(new CustomEvent('open-provider-selection')); setOpen(false); setSysOpen(false); }}
+                  onClick={() => { window.dispatchEvent(new CustomEvent('open-app-settings', { detail: { tab: 'ollama' } })); setOpen(false); setSysOpen(false); }}
                   className="menu-item"
                   role="menuitem"
                 >Model Configuration</button>
                 <button
                   type="button"
-                  onClick={() => { window.dispatchEvent(new CustomEvent('open-data-location')); setOpen(false); setSysOpen(false); }}
+                  onClick={() => { window.dispatchEvent(new CustomEvent('open-app-settings', { detail: { tab: 'data' } })); setOpen(false); setSysOpen(false); }}
                   className="menu-item"
                   role="menuitem"
                 >Local Data Management</button>

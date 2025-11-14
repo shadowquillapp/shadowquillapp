@@ -23,6 +23,7 @@ import {
   faCheck,
   faSquare,
   faTrash,
+  faPenToSquare,
 } from "@fortawesome/free-solid-svg-icons";
 
 const icons = {
@@ -47,9 +48,13 @@ const icons = {
   check: faCheck,
   stop: faSquare,
   trash: faTrash,
+  edit: faPenToSquare,
 } as const;
 
 export type IconName = keyof typeof icons;
+// Ensure 'edit' remains assignable even if type inference lags
+export type _IconNameForceInclude = 'edit';
+export type IconName = _IconNameForceInclude | keyof typeof icons;
 
 export const Icon: React.FC<{ name: IconName; className?: string; title?: string; style?: React.CSSProperties }> = ({ name, className, title, style }) => (
   <FontAwesomeIcon icon={icons[name]} className={className} title={title} style={style} />
