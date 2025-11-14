@@ -38,13 +38,34 @@ function removeProgrammingFencedBlocks(text: string): string {
   return text.replace(/```[a-zA-Z0-9_-]*\r?\n[\s\S]*?\r?\n```/g, '').trim();
 }
 
-function removeStructuredSectionLabels(text: string): string {
+// Remove common meta lines that models sometimes invent for coding tasks
+function removeCodingMetaLines(text: string): string {
   let out = text;
-  // Remove lines like "1) Instructions" or "2) Inputs"
-  out = out.replace(/^\s*\d+\)\s*(Instructions?|Inputs?|Steps\/?Policy|Constraints?)\s*$/gim, '');
-  // Remove same labels with trailing colon
-  out = out.replace(/^\s*(Instructions?|Inputs?|Steps\/?Policy|Constraints?)\s*:\s*$/gim, '');
-  // Trim redundant blank lines created by removals
+  const metaLine = /^\s*(Language|Env|Environment|I\/O|IO|Tech\s*stack|Runtime|Tools?|Editor|IDE)\s*:\s*.*$/gim;
+  out = out.replace(metaLine, '').trim();
+  // Also remove bullet-form meta like "- Language: X"
+  const bulletMeta = /^\s*[-*]\s*(Language|Env|Environment|I\/O|IO|Tech\s*stack|Runtime|Tools?|Editor|IDE)\s*:\s*.*$/gim;
+  out = out.replace(bulletMeta, '').trim();
+  // Collapse excess blank lines
+  out = out.replace(/\n{3,}/g, '\n\n');
+  return out;
+}
+
+// Remove meta-level output formatting directives such as
+// "Output should be in markdown format." or "Respond in JSON format."
+function removeOutputFormatDirectives(text: string): string {
+  let out = text;
+  const patterns: RegExp[] = [
+    /^\s*(Output|The output|Your output)\s+should\s+be\s+in\s+(markdown|json|plain)(\s+format)?\.?\s*$/gim,
+    /^\s*(Output|Answer|Respond|Reply)\s+(in|as)\s+(markdown|json|plain)(\s+format)?\.?\s*$/gim,
+    /^\s*(Provide|Return)\s+(the\s+)?(output|result|response)\s+(in|as)\s+(markdown|json|plain)(\s+format)?\.?\s*$/gim,
+    /^\s*(Format|Formatting)\s*:\s*(markdown|json|plain)\s*$/gim,
+    /^\s*Use\s+(markdown|json|plain)\s+(format|formatting)\s*(for\s+the\s+output)?\.?\s*$/gim,
+  ];
+  for (const re of patterns) {
+    out = out.replace(re, '').trim();
+  }
+  // Collapse excess blank lines created by removals
   out = out.replace(/\n{3,}/g, '\n\n');
   return out;
 }
@@ -196,7 +217,8 @@ export function sanitizeAndDetectDrift(taskType: TaskType, options: GenerationOp
     if (jsonCandidate) cleaned = jsonCandidate;
     // Validate JSON (for reporting only)
     try { JSON.parse(cleaned.trim()); } catch { driftReasons.push('invalid_json_format'); }
-    return { cleaned: cleaned.trim(), driftReasons };
+    // Wrap in JSON code block for proper display
+    return { cleaned: `\`\`\`json\n${cleaned.trim()}\n\`\`\``, driftReasons };
   }
 
   if (requestedFormat === 'markdown') {
@@ -211,12 +233,19 @@ export function sanitizeAndDetectDrift(taskType: TaskType, options: GenerationOp
       if (cleaned.length !== before) driftReasons.push('removed_code_blocks');
     }
     cleaned = keepPreferredMarkdown(cleaned);
-    cleaned = removeStructuredSectionLabels(cleaned);
+    if (taskType === 'coding') {
+      const beforeMeta = cleaned.length;
+      cleaned = removeCodingMetaLines(cleaned);
+      if (cleaned.length !== beforeMeta) driftReasons.push('removed_coding_meta_lines');
+    }
     // Ensure no JSON fenced blocks remain
     cleaned = removeFencedBlocksByLang(cleaned, 'json');
     // Remove simple "Prompt:" labels
     cleaned = cleaned.replace(/^\s*(Prompt|Final\s+prompt)\s*:\s*/gim, '');
-    return { cleaned: cleaned.trim(), driftReasons };
+    // Remove any meta-level output format directives
+    cleaned = removeOutputFormatDirectives(cleaned);
+    // Wrap in markdown code block for proper display
+    return { cleaned: `\`\`\`markdown\n${cleaned.trim()}\n\`\`\``, driftReasons };
   }
 
   // Plain text: remove markdown constructs conservatively
@@ -233,11 +262,17 @@ export function sanitizeAndDetectDrift(taskType: TaskType, options: GenerationOp
     cleaned = removeProgrammingFencedBlocks(cleaned);
     if (cleaned.length !== before) driftReasons.push('removed_code_blocks');
   }
-  cleaned = removeStructuredSectionLabels(cleaned);
+  if (taskType === 'coding') {
+    const beforeMeta = cleaned.length;
+    cleaned = removeCodingMetaLines(cleaned);
+    if (cleaned.length !== beforeMeta) driftReasons.push('removed_coding_meta_lines');
+  }
   if (/^(prompt|final\s+prompt|image\s+prompt)\s*:\s*/i.test(cleaned.trim())) {
     cleaned = cleaned.replace(/^(prompt|final\s+prompt|image\s+prompt)\s*:\s*/i, '').trim();
     driftReasons.push('removed_prompt_prefix');
   }
+  // Remove any meta-level output format directives
+  cleaned = removeOutputFormatDirectives(cleaned);
   // Only unwrap JSON if it's clearly a wrapper object with a single prompt field
   const unwrapped = unwrapJsonIfSinglePromptObject(cleaned);
   if (unwrapped && unwrapped.length > cleaned.length * 0.7) {

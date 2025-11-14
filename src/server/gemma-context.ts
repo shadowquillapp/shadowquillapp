@@ -84,7 +84,7 @@ function getTaskGuidance(taskType: TaskType): string {
     case 'image':
       return "Image: subject, context, style, lighting. Use commas.";
     case 'coding':
-      return "Code: state language, goal, I/O. Be precise.";
+      return "Coding: produce a concise prompt for a coding task. Do not add meta fields (Language, Environment, I/O, Tech stack) unless explicitly given. Do not invent tools or languages.";
     case 'research':
       return "Research: question, scope, evidence level.";
     case 'writing':
@@ -105,7 +105,7 @@ function getFormatRule(format: string): string {
     case 'json':
       return "Return valid JSON only. No extra text.";
     case 'markdown':
-      return "Use markdown with clear headers and lists.";
+      return "Return markdown only. No headings or labels.";
     case 'plain':
     default:
       return "Return plain text only. No labels.";
