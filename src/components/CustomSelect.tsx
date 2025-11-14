@@ -124,6 +124,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
       document.addEventListener('click', handleClickOutside);
       return () => document.removeEventListener('click', handleClickOutside);
     }
+    return undefined;
   }, [isOpen]);
 
   // Close dropdown on escape and reposition on window events
@@ -153,6 +154,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         window.removeEventListener('scroll', handleWindowResize, true);
       };
     }
+    return undefined;
   }, [isOpen]);
 
   return (
