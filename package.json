@@ -107,7 +107,7 @@
 			"category": "Utility",
 			"maintainer": "Sammy Hamwi <info@sammyhamwi.ai>",
 			"synopsis": "PromptCrafter AI prompt engineering tool",
-			"description": "PromptCrafter: build and enhance AI prompts locally with private JSON + vector storage.",
+			"description": "PromptCrafter: build AI prompts locally with private storage.",
 			"artifactName": "${productName}-${version}-${arch}.${ext}"
 		}
 	},
