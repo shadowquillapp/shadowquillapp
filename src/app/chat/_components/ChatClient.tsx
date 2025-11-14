@@ -881,6 +881,21 @@ type Format = "plain" | "markdown" | "json";
               <label className="text-secondary" style={{ fontSize: 12 }}>Language</label>
               <CustomSelect value={language} onChange={(v) => setLanguage(v)} options={[{value:'English',label:'English'},{value:'Dutch',label:'Dutch'},{value:'Arabic',label:'Arabic'},{value:'Mandarin Chinese',label:'Mandarin Chinese'},{value:'Spanish',label:'Spanish'},{value:'French',label:'French'},{value:'Russian',label:'Russian'},{value:'Urdu',label:'Urdu'}]} />
                     </div>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <label className="text-secondary" style={{ fontSize: 12, display: 'block' }}>Temperature</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <input
+                  type="range"
+                  min={0}
+                  max={1}
+                  step={0.1}
+                  value={temperature}
+                  onChange={(e) => setTemperature(parseFloat(e.target.value))}
+                  className="w-full"
+                />
+                <span className="text-secondary" style={{ fontSize: 12, width: 28, textAlign: 'right' }}>{temperature.toFixed(1)}</span>
+              </div>
+            </div>
             {taskType === 'image' && (
               <>
                 <div>
@@ -893,10 +908,39 @@ type Format = "plain" | "markdown" | "json";
                   </div>
               </>
               )}
+            {taskType === 'coding' && (
+              <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <input type="checkbox" checked={includeTests} onChange={(e) => setIncludeTests(e.target.checked)} />
+                <label className="text-secondary" style={{ fontSize: 12 }}>Include tests</label>
+              </div>
+            )}
+            {taskType === 'research' && (
+              <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+                <input type="checkbox" checked={requireCitations} onChange={(e) => setRequireCitations(e.target.checked)} />
+                <label className="text-secondary" style={{ fontSize: 12 }}>Require citations</label>
+              </div>
+            )}
                   </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
               <button className="md-btn" onClick={() => setPresetEditorOpen(false)}>Cancel</button>
-              <button className="md-btn md-btn--primary" onClick={async () => { await savePreset(); await reloadPresets(); setPresetEditorOpen(false); }}>Save</button>
+              <button className="md-btn md-btn--primary" onClick={async () => {
+                const name = (presetName || "").trim();
+                await savePreset();
+                await reloadPresets();
+                try {
+                  const res = await fetch('/api/presets');
+                  if (res.ok) {
+                    const data = await res.json();
+                    const list = Array.isArray(data?.presets) ? data.presets : [];
+                    const found = list.find((p: any) => p.name === name);
+                    if (found) {
+                      setSelectedPresetKey(found.id ?? found.name);
+                      try { applyPreset(found); } catch {}
+                    }
+                  }
+                } catch {/* noop */}
+                setPresetEditorOpen(false);
+              }}>Save</button>
             </div>
           </div>
         </div>
