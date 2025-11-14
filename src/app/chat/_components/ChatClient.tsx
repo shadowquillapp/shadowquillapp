@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import type { ReactNode } from "react";
 import { api } from "@/trpc/react";
 import { CustomSelect } from "@/components/CustomSelect";
 import { Icon } from "@/components/Icon";
@@ -811,190 +812,244 @@ type Format = "plain" | "markdown" | "json";
   }, []);
 
   // Syntax highlighting for JSON
-  const highlightJSON = useCallback((code: string) => {
-    try {
-      // Tokenize JSON
-      const jsonTokens = [];
-      let i = 0;
-      
-      const patterns = [
-        { type: 'string', regex: /"(?:\\.|[^"\\])*"/ },
-        { type: 'number', regex: /-?\d+\.?\d*/ },
-        { type: 'boolean', regex: /\b(true|false)\b/ },
-        { type: 'null', regex: /\bnull\b/ },
-        { type: 'punctuation', regex: /[{}[\],:]/},
-        { type: 'whitespace', regex: /\s+/ },
-      ];
-
-      while (i < code.length) {
-        let matched = false;
-        for (const pattern of patterns) {
-          const match = code.slice(i).match(new RegExp(`^${pattern.regex.source}`));
-          if (match) {
-            const token = match[0];
-            if (pattern.type !== 'whitespace') {
-              jsonTokens.push({ type: pattern.type, value: token, index: i });
-            } else {
-              jsonTokens.push({ type: 'whitespace', value: token, index: i });
-            }
-            i += token.length;
-            matched = true;
-            break;
-          }
-        }
-        if (!matched) i++;
+  const highlightJSON = useCallback((rawCode: string) => {
+    const normalize = () => {
+      if (!rawCode) return "";
+      try {
+        const parsed = JSON.parse(rawCode);
+        return JSON.stringify(parsed, null, 2);
+      } catch {
+        return rawCode;
       }
+    };
 
-      return jsonTokens.map((token, idx) => {
-        if (token.type === 'whitespace') return token.value;
+    const code = normalize();
+    type JsonToken =
+      | { type: "string" | "number" | "boolean" | "null" | "key" | "brace" | "bracket" | "colon" | "comma"; value: string }
+      | { type: "whitespace" | "plain"; value: string };
+    const tokens: JsonToken[] = [];
+    let i = 0;
+
+    const readString = () => {
+      let result = '"';
+      i += 1;
+      while (i < code.length) {
+        const ch = code[i] ?? "";
+        result += ch;
+        if (ch === "\\") {
+          i += 1;
+          result += code[i] ?? "";
+        } else if (ch === '"') {
+          i += 1;
+          break;
+        }
+        i += 1;
+      }
+      return result;
+    };
+
+    while (i < code.length) {
+      const ch = code[i] ?? "";
+      if (/\s/.test(ch)) {
+        const start = i;
+        while (i < code.length && /\s/.test(code[i] ?? "")) i += 1;
+        tokens.push({ type: "whitespace", value: code.slice(start, i) });
+        continue;
+      }
+      if (ch === '"') {
+        const strValue = readString();
+        let j = i;
+        while (j < code.length && /\s/.test(code[j] ?? "")) j += 1;
+        const nextChar = code[j] ?? "";
+        const isKey = nextChar === ":";
+        tokens.push({ type: isKey ? "key" : "string", value: strValue });
+        continue;
+      }
+      if (/[0-9-]/.test(ch)) {
+        const match = code.slice(i).match(/^-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?/);
+        if (match) {
+          tokens.push({ type: "number", value: match[0] });
+          i += match[0].length;
+          continue;
+        }
+      }
+      if (code.startsWith("true", i) || code.startsWith("false", i)) {
+        const value = code.startsWith("true", i) ? "true" : "false";
+        tokens.push({ type: "boolean", value });
+        i += value.length;
+        continue;
+      }
+      if (code.startsWith("null", i)) {
+        tokens.push({ type: "null", value: "null" });
+        i += 4;
+        continue;
+      }
+      const punctuationMap: Record<string, JsonToken["type"] | undefined> = {
+        "{": "brace",
+        "}": "brace",
+        "[": "bracket",
+        "]": "bracket",
+        ":": "colon",
+        ",": "comma",
+      };
+      const punctuationType = punctuationMap[ch];
+      if (punctuationType) {
+        tokens.push({ type: punctuationType, value: ch });
+        i += 1;
+        continue;
+      }
+      tokens.push({ type: "plain", value: ch });
+      i += 1;
+    }
+
+    return tokens.map((token, idx) => {
+      if (token.type === "whitespace" || token.type === "plain") {
         return (
-          <span key={idx} className={`token-${token.type}`}>
+          <span key={`json-${idx}`}>
             {token.value}
           </span>
         );
-      });
-    } catch {
-      return code;
-    }
+      }
+      return (
+        <span key={`json-${idx}`} className={`token-${token.type}`}>
+          {token.value}
+        </span>
+      );
+    });
   }, []);
 
   // Syntax highlighting for Markdown
   const highlightMarkdown = useCallback((code: string) => {
-    const lines = code.split('\n');
-    return lines.map((line, lineIdx) => {
-      const parts = [];
-      let remaining = line;
-      let key = 0;
+    const inlinePattern =
+      /(!?\[[^\]]*?\]\([^)]+\)|`[^`]+`|\*\*\*[^*]+?\*\*\*|___[^_]+?___|\*\*[^*]+?\*\*|__[^_]+?__|~~[^~]+?~~|\*(?!\s)(?:\\.|[^*])*(?:[^*\s])\*|_(?!\s)(?:\\.|[^_])*(?:[^_\s])_)/g;
 
-      // Headers
-      const headerMatch = remaining.match(/^(#{1,6})\s+(.*)$/);
+    const renderInline = (text: string, keyPrefix: string) => {
+      if (!text) return text;
+      const nodes: ReactNode[] = [];
+      let lastIndex = 0;
+      let match: RegExpExecArray | null;
+      let tokenIndex = 0;
+
+      while ((match = inlinePattern.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+          const plain = text.slice(lastIndex, match.index);
+          nodes.push(<span key={`${keyPrefix}-plain-${tokenIndex++}`}>{plain}</span>);
+        }
+        const token = match[0];
+
+        if (/^`/.test(token)) {
+          nodes.push(<span key={`${keyPrefix}-code-open-${tokenIndex++}`} className="token-md-code-tick">`</span>);
+          nodes.push(<span key={`${keyPrefix}-code-text-${tokenIndex++}`} className="token-md-code">{token.slice(1, -1)}</span>);
+          nodes.push(<span key={`${keyPrefix}-code-close-${tokenIndex++}`} className="token-md-code-tick">`</span>);
+        } else if (/^\*\*\*/.test(token) || /^___/.test(token)) {
+          nodes.push(<span key={`${keyPrefix}-bold-italic-open-${tokenIndex++}`} className="token-md-bold">**</span>);
+          nodes.push(<span key={`${keyPrefix}-bold-italic-mid-${tokenIndex++}`} className="token-md-italic">*</span>);
+          nodes.push(<span key={`${keyPrefix}-bold-italic-text-${tokenIndex++}`} className="token-md-bold-text token-md-italic-text">{token.slice(3, -3)}</span>);
+          nodes.push(<span key={`${keyPrefix}-bold-italic-mid-close-${tokenIndex++}`} className="token-md-italic">*</span>);
+          nodes.push(<span key={`${keyPrefix}-bold-italic-close-${tokenIndex++}`} className="token-md-bold">**</span>);
+        } else if (/^\*\*/.test(token) || /^__/.test(token)) {
+          nodes.push(<span key={`${keyPrefix}-bold-open-${tokenIndex++}`} className="token-md-bold">**</span>);
+          nodes.push(<span key={`${keyPrefix}-bold-text-${tokenIndex++}`} className="token-md-bold-text">{token.slice(2, -2)}</span>);
+          nodes.push(<span key={`${keyPrefix}-bold-close-${tokenIndex++}`} className="token-md-bold">**</span>);
+        } else if (/^\*(?!\*)/.test(token) || /^_(?!_)/.test(token)) {
+          nodes.push(<span key={`${keyPrefix}-italic-open-${tokenIndex++}`} className="token-md-italic">*</span>);
+          nodes.push(<span key={`${keyPrefix}-italic-text-${tokenIndex++}`} className="token-md-italic-text">{token.slice(1, -1)}</span>);
+          nodes.push(<span key={`${keyPrefix}-italic-close-${tokenIndex++}`} className="token-md-italic">*</span>);
+        } else if (/^~~/.test(token)) {
+          nodes.push(<span key={`${keyPrefix}-strike-open-${tokenIndex++}`} className="token-md-strike">~~</span>);
+          nodes.push(<span key={`${keyPrefix}-strike-text-${tokenIndex++}`} className="token-md-strike-text">{token.slice(2, -2)}</span>);
+          nodes.push(<span key={`${keyPrefix}-strike-close-${tokenIndex++}`} className="token-md-strike">~~</span>);
+        } else if (/^\[/.test(token) || /^!\[/.test(token)) {
+          const linkMatch = token.match(/^(!)?\[([^\]]+)]\(([^)]+)\)$/);
+          if (linkMatch) {
+            const isImage = Boolean(linkMatch[1]);
+            nodes.push(<span key={`${keyPrefix}-link-open-${tokenIndex++}`} className="token-md-punctuation">{isImage ? "![" : "["}</span>);
+            nodes.push(<span key={`${keyPrefix}-link-text-${tokenIndex++}`} className="token-md-link-text">{linkMatch[2]}</span>);
+            nodes.push(<span key={`${keyPrefix}-link-mid-${tokenIndex++}`} className="token-md-punctuation">](</span>);
+            nodes.push(<span key={`${keyPrefix}-link-url-${tokenIndex++}`} className="token-md-url">{linkMatch[3]}</span>);
+            nodes.push(<span key={`${keyPrefix}-link-close-${tokenIndex++}`} className="token-md-punctuation">)</span>);
+          } else {
+            nodes.push(<span key={`${keyPrefix}-unknown-${tokenIndex++}`}>{token}</span>);
+          }
+        } else {
+          nodes.push(<span key={`${keyPrefix}-unknown-${tokenIndex++}`}>{token}</span>);
+        }
+        lastIndex = match.index + token.length;
+      }
+
+      if (lastIndex < text.length) {
+        nodes.push(<span key={`${keyPrefix}-plain-${tokenIndex++}`}>{text.slice(lastIndex)}</span>);
+      }
+
+      return nodes;
+    };
+
+    const lines = code.split("\n");
+    return lines.map((line, lineIdx) => {
+      const lineKey = `md-line-${lineIdx}`;
+      const newline = lineIdx < lines.length - 1 ? "\n" : "";
+
+      const headerMatch = line.match(/^(#{1,6})(\s+)(.*)$/);
       if (headerMatch) {
-        parts.push(
-          <span key={key++} className="token-md-header">
-            {headerMatch[1]}
-          </span>,
-          ' ',
-          <span key={key++} className="token-md-header-text">
-            {headerMatch[2]}
+        const hashSymbols = headerMatch[1] ?? "";
+        const spacing = headerMatch[2] ?? " ";
+        const headingText = headerMatch[3] ?? "";
+        return (
+          <span key={lineKey}>
+            <span className="token-md-header">{hashSymbols}</span>
+            <span>{spacing}</span>
+            <span className="token-md-header-text">
+              {renderInline(headingText, `${lineKey}-header`)}
+            </span>
+            {newline}
           </span>
         );
       }
-      // Bold **text**
-      else if (remaining.includes('**')) {
-        let lastIdx = 0;
-        const boldRegex = /\*\*([^*]+)\*\*/g;
-        let match;
-        while ((match = boldRegex.exec(remaining)) !== null) {
-          if (match.index > lastIdx) {
-            parts.push(<span key={key++}>{remaining.slice(lastIdx, match.index)}</span>);
-          }
-          parts.push(
-            <span key={key++} className="token-md-bold">**</span>,
-            <span key={key++} className="token-md-bold-text">{match[1]}</span>,
-            <span key={key++} className="token-md-bold">**</span>
-          );
-          lastIdx = match.index + match[0].length;
-        }
-        if (lastIdx < remaining.length) {
-          parts.push(<span key={key++}>{remaining.slice(lastIdx)}</span>);
-        }
+
+      if (/^(\s*)(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
+        return (
+          <span key={lineKey} className="token-md-hr">
+            {line}
+            {newline}
+          </span>
+        );
       }
-      // Italic *text*
-      else if (remaining.includes('*') && !remaining.startsWith('*')) {
-        let lastIdx = 0;
-        const italicRegex = /\*([^*]+)\*/g;
-        let match;
-        while ((match = italicRegex.exec(remaining)) !== null) {
-          if (match.index > lastIdx) {
-            parts.push(<span key={key++}>{remaining.slice(lastIdx, match.index)}</span>);
-          }
-          parts.push(
-            <span key={key++} className="token-md-italic">*</span>,
-            <span key={key++} className="token-md-italic-text">{match[1]}</span>,
-            <span key={key++} className="token-md-italic">*</span>
-          );
-          lastIdx = match.index + match[0].length;
-        }
-        if (lastIdx < remaining.length) {
-          parts.push(<span key={key++}>{remaining.slice(lastIdx)}</span>);
-        }
+
+      const blockquoteMatch = line.match(/^(\s*>+\s*)(.*)$/);
+      if (blockquoteMatch) {
+        const quoteMarker = blockquoteMatch[1] ?? "";
+        const quoteContent = blockquoteMatch[2] ?? "";
+        return (
+          <span key={lineKey}>
+            <span className="token-md-quote-marker">{quoteMarker}</span>
+            <span className="token-md-quote-text">
+              {renderInline(quoteContent, `${lineKey}-quote`)}
+            </span>
+            {newline}
+          </span>
+        );
       }
-      // Links [text](url)
-      else if (remaining.includes('[') && remaining.includes('](')) {
-        let lastIdx = 0;
-        const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
-        let match;
-        while ((match = linkRegex.exec(remaining)) !== null) {
-          if (match.index > lastIdx) {
-            parts.push(<span key={key++}>{remaining.slice(lastIdx, match.index)}</span>);
-          }
-          parts.push(
-            <span key={key++} className="token-md-punctuation">[</span>,
-            <span key={key++} className="token-md-link-text">{match[1]}</span>,
-            <span key={key++} className="token-md-punctuation">](</span>,
-            <span key={key++} className="token-md-url">{match[2]}</span>,
-            <span key={key++} className="token-md-punctuation">)</span>
-          );
-          lastIdx = match.index + match[0].length;
-        }
-        if (lastIdx < remaining.length) {
-          parts.push(<span key={key++}>{remaining.slice(lastIdx)}</span>);
-        }
-      }
-      // Code `code`
-      else if (remaining.includes('`')) {
-        let lastIdx = 0;
-        const codeRegex = /`([^`]+)`/g;
-        let match;
-        while ((match = codeRegex.exec(remaining)) !== null) {
-          if (match.index > lastIdx) {
-            parts.push(<span key={key++}>{remaining.slice(lastIdx, match.index)}</span>);
-          }
-          parts.push(
-            <span key={key++} className="token-md-code-tick">`</span>,
-            <span key={key++} className="token-md-code">{match[1]}</span>,
-            <span key={key++} className="token-md-code-tick">`</span>
-          );
-          lastIdx = match.index + match[0].length;
-        }
-        if (lastIdx < remaining.length) {
-          parts.push(<span key={key++}>{remaining.slice(lastIdx)}</span>);
-        }
-      }
-      // Lists
-      else if (remaining.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/)) {
-        const listMatch = remaining.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/);
-        if (listMatch) {
-          parts.push(
-            <span key={key++}>{listMatch[1]}</span>,
-            <span key={key++} className="token-md-list-marker">{listMatch[2]}</span>,
-            ' ',
-            <span key={key++}>{listMatch[3]}</span>
-          );
-        }
-      }
-      // Blockquotes
-      else if (remaining.match(/^>\s+(.*)$/)) {
-        const quoteMatch = remaining.match(/^(>\s+)(.*)$/);
-        if (quoteMatch) {
-          parts.push(
-            <span key={key++} className="token-md-quote-marker">{quoteMatch[1]}</span>,
-            <span key={key++} className="token-md-quote-text">{quoteMatch[2]}</span>
-          );
-        }
-      }
-      // Horizontal rule
-      else if (remaining.match(/^(---|\*\*\*|___)\s*$/)) {
-        parts.push(<span key={key++} className="token-md-hr">{remaining}</span>);
-      }
-      else {
-        parts.push(<span key={key++}>{line}</span>);
+
+      const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/);
+      if (listMatch) {
+        const listIndent = listMatch[1] ?? "";
+        const listMarker = listMatch[2] ?? "";
+        const listBody = listMatch[3] ?? "";
+        return (
+          <span key={lineKey}>
+            <span>{listIndent}</span>
+            <span className="token-md-list-marker">{listMarker}</span>
+            <span> </span>
+            {renderInline(listBody, `${lineKey}-list`)}
+            {newline}
+          </span>
+        );
       }
 
       return (
-        <span key={lineIdx}>
-          {parts.length > 0 ? parts : line}
-          {lineIdx < lines.length - 1 && '\n'}
+        <span key={lineKey}>
+          {renderInline(line || " ", `${lineKey}-plain`)}
+          {newline}
         </span>
       );
     });
@@ -1002,7 +1057,7 @@ type Format = "plain" | "markdown" | "json";
 
   // Render message content with code block support
   const renderMessageContent = useCallback((content: string, messageId: string) => {
-    const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
+    const codeBlockRegex = /```([^\n]*)\n?([\s\S]*?)```/g;
     const parts = [];
     let lastIndex = 0;
     let match;
@@ -1022,7 +1077,8 @@ type Format = "plain" | "markdown" | "json";
 
       const [, language, code] = match;
       const codeId = `code-${messageId}-${match.index}`;
-      const lang = (language || 'code').toLowerCase();
+      const languageLabel = (language || '').trim();
+      const lang = (languageLabel || 'code').toLowerCase();
       
       // Apply syntax highlighting for specific languages
       let highlightedCode;
@@ -1037,7 +1093,7 @@ type Format = "plain" | "markdown" | "json";
       parts.push(
         <div key={`code-${match.index}`} className="bubble-code-block">
           <div className="bubble-code-header">
-            <span className="bubble-code-lang">{language || 'code'}</span>
+            <span className="bubble-code-lang">{languageLabel || 'code'}</span>
             <button
               type="button"
               className="bubble-code-copy"
