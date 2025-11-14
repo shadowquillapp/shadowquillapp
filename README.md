@@ -83,10 +83,9 @@ We recommend starting with `gemma3:4b` by running `ollama pull gemma3:4b` for th
 
 1. **Launch the app** from your applications folder or desktop shortcut
 2. **Configure Gemma 3 (Ollama) connection** when the dialog appears
-   - Keep the default base URL `http://localhost:11434` unless you changed Ollama’s port
+   - Keep the default base Ollama port `11434` unless you changed it yourself manually
    - Click “Check for models” to detect available `gemma3` models
-   - Pick a model (we recommend `gemma3:4b`) and save
-3. **Start chatting** and creating prompts!
+3. **Start crafting** and creating prompts!
 
 The app automatically detects when Ollama is running and which Gemma 3 models are available.
 
@@ -98,45 +97,33 @@ The app automatically detects when Ollama is running and which Gemma 3 models ar
 2. Adjust settings like task type, tone, and detail level using the sidebar controls
 3. Click Send or press Enter
 4. Review the AI's response
-5. Continue the conversation or start a new chat
+5. Continue crafting or start a new chat
 
 ### Saving Presets
 
 If you find settings you like:
 
-1. Click the **Save Preset** button in the sidebar
+1. Use the Preset Menu to add, save, edit or delete presets
 2. Give your preset a name
-3. Access it anytime from the **Presets** menu
-
-### Switching Models
-
-Open the Gemma 3 connection dialog (model badge/menu in the top bar), then select a different Gemma 3 size. Switching takes effect immediately once saved.
-
-### Changing Themes
-
-1. Click the **Settings** menu (gear icon)
-2. Choose from Default, WarmEarth, or Light theme
-3. Your choice is saved automatically
+3. Access it anytime from the **Presets** menu with is all stored locally on your computer
 
 ## Privacy & Data
 
 **Everything is local.** PromptCrafter:
 
 - Never connects to external services (only your local Ollama at `http://localhost:11434`)
-- Stores chats, presets, and settings in your OS profile under the app’s user data directory (Chromium localStorage/IndexedDB)
-- Doesn't collect telemetry or usage data
-- Gives you complete control over your conversations
+- Stores chats, presets, and settings in your OS profile under the app’s user data directory (Chromium localStorage/IndexedDB), meaning your data is FULLY localized to your computers hard drive
+- No sign up EVER required. This is a local application that runs on your computer so there will never be a need to make an account
+- Doesn't collect telemetry or usage data, and never will. Please feel free to take a look at the codebase to see for yourself
+- Gives you complete control over your privacy when it comes to a fully offline AI toolkit
 
-To completely reset the app, open Settings → Data Location and click Factory Reset (or manually delete the PromptCrafter user data directory shown there).
+To completely reset the app, open Settings → Data Location and click Reset Application, or manually delete the PromptCrafter user data directory shown there. The exact path to where everything is stored is avaiabled in the application's settings.
 
 ## Building from Source
 
 If you want to modify PromptCrafter or build it yourself:
 
 **Requirements:**
-
-- Node.js 18.18 or newer (20+ recommended)
-- npm package manager
 
 **Quick start:**
 
@@ -152,7 +139,7 @@ npm run dev
 
 ```bash
 # Windows installer and portable
-npm run dist:win
+npm run dist:[PLATFORM]
 
 # All platforms (requires platform-specific build tools)
 npm run dist:electron
