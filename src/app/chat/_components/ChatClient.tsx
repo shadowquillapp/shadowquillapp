@@ -2,7 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { api } from "@/trpc/react";
+// Local-only storage and model access (no API)
+import { createChat as localCreateChat, appendMessagesWithCap as localAppendMessages, deleteChat as localDeleteChat, listChatsByUser as localListChats, getChat as localGetChat } from "@/lib/local-db";
+import { buildUnifiedPrompt } from "@/lib/prompt-builder-client";
+import { callLocalModelClient } from "@/lib/model-client";
+import { readLocalModelConfig as readLocalModelConfigClient, listAvailableModels, writeLocalModelConfig as writeLocalModelConfigClient } from "@/lib/local-config";
+import { getPresets, savePreset as savePresetLocal, deletePresetByIdOrName } from "@/lib/presets";
 import { CustomSelect } from "@/components/CustomSelect";
 import { Icon } from "@/components/Icon";
 import { isElectronRuntime } from '@/lib/runtime';
@@ -36,15 +41,32 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [presetSelectorOpen, setPresetSelectorOpen] = useState(false);
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
+  const [themeSwitchCooldown, setThemeSwitchCooldown] = useState(false);
+  const [themeToast, setThemeToast] = useState<{ key: number; label: string } | null>(null);
+  const themeToastTimerRef = useRef<number | null>(null);
+  const themeCooldownTimerRef = useRef<number | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
   const settingsMenuWrapRef = useRef<HTMLDivElement | null>(null);
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Material UI + app settings (presets)
 type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
 type Tone = "neutral" | "friendly" | "formal" | "technical" | "persuasive";
 type Detail = "brief" | "normal" | "detailed";
 type Format = "plain" | "markdown" | "json";
+type ImageStylePreset = "photorealistic" | "illustration" | "3d" | "anime" | "watercolor";
+type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
+
+  const normalizeStylePreset = (v: string | undefined): ImageStylePreset | undefined => {
+    const allowed: ImageStylePreset[] = ["photorealistic", "illustration", "3d", "anime", "watercolor"];
+    return allowed.includes(v as ImageStylePreset) ? (v as ImageStylePreset) : undefined;
+  };
+
+  const normalizeAspectRatio = (v: string | undefined): ImageAspectRatio | undefined => {
+    const allowed: ImageAspectRatio[] = ["1:1", "16:9", "9:16", "4:3"];
+    return allowed.includes(v as ImageAspectRatio) ? (v as ImageAspectRatio) : undefined;
+  };
 
   const [taskType, setTaskType] = useState<TaskType>("general");
   const [tone, setTone] = useState<Tone>("neutral");
@@ -62,36 +84,22 @@ type Format = "plain" | "markdown" | "json";
   const [selectedPresetKey, setSelectedPresetKey] = useState("");
   const [recentPresetKeys, setRecentPresetKeys] = useState<string[]>([]);
 
-  // TRPC
-  const utils = api.useUtils();
-  const { data: chatList } = api.chat.list.useQuery(undefined, { refetchOnWindowFocus: false });
-  const createChat = api.chat.create.useMutation();
-  const appendMessages = api.chat.appendMessages.useMutation({ onSuccess: async () => { await utils.chat.list.invalidate(); } });
-  const removeChat = api.chat.remove.useMutation({ onSuccess: async () => { await utils.chat.list.invalidate(); } });
+  // Local chat list state
+  const [chatList, setChatList] = useState<Array<{ id: string; title: string | null; updatedAt: number; messageCount: number }>>([]);
+  useEffect(() => { void (async () => { const list = await localListChats(); setChatList(list); })(); }, []);
+  const refreshChatList = useCallback(async () => { const list = await localListChats(); setChatList(list); }, []);
 
   // Load local Ollama models only
   useEffect(() => {
     const load = async () => {
       try {
-        // Load current config and available models
-        const [cfgRes, availRes] = await Promise.all([
-          fetch('/api/model/config'),
-          fetch('/api/model/available?baseUrl=http://localhost:11434')
-        ]);
-        
-        if (availRes.ok) {
-          const av = await availRes.json();
-          setAvailableModels(Array.isArray(av?.available) ? av.available : []);
-        }
-        
-        if (cfgRes.ok) {
-          const cfgData = await cfgRes.json();
-          const cfg = cfgData?.config;
-          if (cfg && cfg.provider === 'ollama' && typeof cfg.model === 'string') {
-            setCurrentModelId(cfg.model);
-            const size = (cfg.model.split(':')[1] || '').toUpperCase();
-            setModelLabel(size ? `Gemma 3 ${size}` : 'Gemma 3');
-          }
+        const cfg = readLocalModelConfigClient();
+        const models = await listAvailableModels('http://localhost:11434');
+        setAvailableModels(models);
+        if (cfg && cfg.provider === 'ollama' && typeof cfg.model === 'string') {
+          setCurrentModelId(cfg.model);
+          const size = (cfg.model.split(':')[1] || '').toUpperCase();
+          setModelLabel(size ? `Gemma 3 ${size}` : 'Gemma 3');
         }
       } catch {/* ignore */}
     };
@@ -116,35 +124,51 @@ type Format = "plain" | "markdown" | "json";
   }, []);
 
   const cycleTheme = useCallback(() => {
+    if (themeSwitchCooldown) return;
     const themeOrder: Array<'default' | 'light' | 'earth'> = ['default', 'light', 'earth'];
     const currentIndex = themeOrder.indexOf(currentTheme);
     const nextIndex = (currentIndex + 1) % themeOrder.length;
     const nextTheme = themeOrder[nextIndex] ?? 'default';
+    // Begin cooldown to avoid rapid toggling
+    setThemeSwitchCooldown(true);
+    if (themeCooldownTimerRef.current) window.clearTimeout(themeCooldownTimerRef.current);
+    themeCooldownTimerRef.current = window.setTimeout(() => {
+      setThemeSwitchCooldown(false);
+      themeCooldownTimerRef.current = null;
+    }, 800);
     
     setCurrentTheme(nextTheme);
     document.documentElement.setAttribute('data-theme', nextTheme === 'default' ? '' : nextTheme);
     localStorage.setItem('theme-preference', nextTheme);
-  }, [currentTheme]);
+    // Show a transient theme toast
+    const label = nextTheme === 'default' ? 'Dark' : (nextTheme.charAt(0).toUpperCase() + nextTheme.slice(1));
+    const key = Date.now();
+    setThemeToast({ key, label });
+    if (themeToastTimerRef.current) window.clearTimeout(themeToastTimerRef.current);
+    themeToastTimerRef.current = window.setTimeout(() => {
+      setThemeToast(null);
+      themeToastTimerRef.current = null;
+    }, 900);
+  }, [currentTheme, themeSwitchCooldown]);
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (themeToastTimerRef.current) window.clearTimeout(themeToastTimerRef.current);
+      if (themeCooldownTimerRef.current) window.clearTimeout(themeCooldownTimerRef.current);
+    };
+  }, []);
 
   // Refresh available models
   const refreshModels = useCallback(async () => {
     try {
-      const [directRes, cfgRes] = await Promise.all([
-        fetch('/api/model/available?baseUrl=http://localhost:11434'),
-        fetch('/api/model/config'),
-      ]);
-      if (directRes.ok) {
-        const directData = await directRes.json();
-        setAvailableModels(Array.isArray(directData?.available) ? directData.available : []);
-      }
-      if (cfgRes.ok) {
-        const cfgData = await cfgRes.json();
-        const cfg = cfgData?.config;
-        if (cfg && cfg.provider === 'ollama' && typeof cfg.model === 'string') {
-          setCurrentModelId(cfg.model);
-          const size = (cfg.model.split(':')[1] || '').toUpperCase();
-          setModelLabel(size ? `Gemma 3 ${size}` : 'Gemma 3');
-        }
+      const models = await listAvailableModels('http://localhost:11434');
+      setAvailableModels(models);
+      const cfg = readLocalModelConfigClient();
+      if (cfg && cfg.provider === 'ollama' && typeof cfg.model === 'string') {
+        setCurrentModelId(cfg.model);
+        const size = (cfg.model.split(':')[1] || '').toUpperCase();
+        setModelLabel(size ? `Gemma 3 ${size}` : 'Gemma 3');
       }
                 } catch {
       setAvailableModels([]);
@@ -158,11 +182,9 @@ type Format = "plain" | "markdown" | "json";
     const startTime = Date.now();
     
     try {
-      const res = await fetch('/api/model/available?baseUrl=http://localhost:11434');
+      const models = await listAvailableModels('http://localhost:11434');
       const duration = Date.now() - startTime;
-      const data = await res.json().catch(() => ({}));
-      
-      if (data.error) {
+      if (!models.length) {
         await showInfo({
           title: 'Connection Failed',
           message: (
@@ -192,7 +214,7 @@ type Format = "plain" | "markdown" | "json";
                       Connection Failed
                     </div>
                     <div style={{ fontSize: 11, opacity: 0.6 }}>
-                      {data.error} • {duration}ms
+                      No models detected • {duration}ms
                     </div>
                   </div>
                 </div>
@@ -205,12 +227,12 @@ type Format = "plain" | "markdown" | "json";
         });
         setAvailableModels([]);
       } else {
-        const allModels: Array<{ name: string; size: number }> = Array.isArray(data.available) ? data.available : [];
+        const allModels: Array<{ name: string; size: number }> = models;
         const gemmaModels = allModels.filter((m: { name: string }) => /^gemma3\b/i.test(m.name));
         
         if (gemmaModels.length > 0) {
           await showInfo({
-            title: 'Connection Status',
+            title: 'Ollama Connection Status',
             message: (
               <div className="md-card" style={{ 
                 marginTop: 12, 
@@ -236,7 +258,7 @@ type Format = "plain" | "markdown" | "json";
                         color: '#10b981',
                         marginBottom: 2
                       }}>
-                        Connection Successful!
+                        Gemma 3 Connection Successful!
                       </div>
                       <div style={{ fontSize: 11, opacity: 0.6 }}>
                         Found {gemmaModels.length} model{gemmaModels.length !== 1 ? 's' : ''}
@@ -308,16 +330,11 @@ type Format = "plain" | "markdown" | "json";
           });
           setAvailableModels(allModels);
           
-          // Update current model if needed
-          const cfgRes = await fetch('/api/model/config');
-          if (cfgRes.ok) {
-            const cfgData = await cfgRes.json();
-            const cfg = cfgData?.config;
-            if (cfg && cfg.provider === 'ollama' && typeof cfg.model === 'string') {
-              setCurrentModelId(cfg.model);
-              const size = (cfg.model.split(':')[1] || '').toUpperCase();
-              setModelLabel(size ? `Gemma 3 ${size}` : 'Gemma 3');
-            }
+          const cfg = readLocalModelConfigClient();
+          if (cfg && cfg.provider === 'ollama' && typeof cfg.model === 'string') {
+            setCurrentModelId(cfg.model);
+            const size = (cfg.model.split(':')[1] || '').toUpperCase();
+            setModelLabel(size ? `Gemma 3 ${size}` : 'Gemma 3');
           }
         } else {
           await showInfo({
@@ -416,7 +433,7 @@ type Format = "plain" | "markdown" | "json";
   // Handle responsive sidebar
   useEffect(() => {
     const checkScreenSize = () => {
-      const isSmall = window.innerWidth < 1024; // lg breakpoint
+      const isSmall = window.innerWidth < 1280; // xl breakpoint
       setIsSmallScreen(isSmall);
       if (!isSmall) setSidebarOpen(false); // Auto-close sidebar on large screens
     };
@@ -508,21 +525,20 @@ type Format = "plain" | "markdown" | "json";
   const ensureChat = useCallback(async (firstLine: string) => {
     if (currentChatId) return currentChatId;
     const title = (firstLine || "New chat").slice(0, 40) || "New chat";
-    const created = await createChat.mutateAsync({ title });
+    const created = await localCreateChat(title);
     setCurrentChatId(created.id);
+    await refreshChatList();
     return created.id;
-  }, [currentChatId, createChat]);
+  }, [currentChatId, refreshChatList]);
 
   // Presets load / helpers
   useEffect(() => {
     const load = async () => {
       setLoadingPresets(true);
       try {
-        const res = await fetch("/api/presets");
-        if (res.ok) {
-          const data = await res.json();
-          const list = (data.presets ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options }));
-          setPresets(list);
+        const data = getPresets();
+        const list = (data ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options }));
+        setPresets(list);
           // Clean stale recent keys based on available presets
           setRecentPresetKeys((prev) => {
             const set = new Set(list.map((p: any) => (p.id ?? p.name)));
@@ -540,7 +556,6 @@ type Format = "plain" | "markdown" | "json";
               applyPreset(pick);
             }
           }
-        }
       } finally {
         setLoadingPresets(false);
       }
@@ -551,19 +566,16 @@ type Format = "plain" | "markdown" | "json";
   const reloadPresets = useCallback(async () => {
     setLoadingPresets(true);
     try {
-      const res = await fetch("/api/presets");
-      if (res.ok) {
-        const data = await res.json();
-        setPresets((data.presets ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options })));
+      const data = getPresets();
+      setPresets((data ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options })));
         // Clean recent presets after any mutation
         setRecentPresetKeys((prev) => {
-          const list = (data.presets ?? []) as any[];
+          const list = (data ?? []) as any[];
           const set = new Set(list.map((p) => (p.id ?? p.name)));
           const cleaned = prev.filter((k) => set.has(k)).slice(0, 3);
           try { localStorage.setItem('recent-presets', JSON.stringify(cleaned)); } catch {}
           return cleaned;
         });
-      }
     } finally { setLoadingPresets(false); }
   }, []);
 
@@ -592,21 +604,17 @@ type Format = "plain" | "markdown" | "json";
   const savePreset = useCallback(async () => {
     const name = presetName.trim();
     if (!name) return;
-    await fetch("/api/presets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          taskType,
-          options: {
-          tone, detail, format, language: language || undefined, temperature,
-            stylePreset: taskType === "image" ? stylePreset : undefined,
-            aspectRatio: taskType === "image" ? aspectRatio : undefined,
-            includeTests: taskType === "coding" ? includeTests : undefined,
-            requireCitations: taskType === "research" ? requireCitations : undefined,
-          },
-        }),
-      });
+    savePresetLocal({
+      name,
+      taskType,
+      options: {
+        tone, detail, format, language: language || undefined, temperature,
+        stylePreset: taskType === "image" ? normalizeStylePreset(stylePreset) : undefined,
+        aspectRatio: taskType === "image" ? normalizeAspectRatio(aspectRatio) : undefined,
+        includeTests: taskType === "coding" ? includeTests : undefined,
+        requireCitations: taskType === "research" ? requireCitations : undefined,
+      }
+    });
   }, [presetName, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations]);
 
   const deletePreset = useCallback(async (presetId: string, presetName: string) => {
@@ -617,16 +625,14 @@ type Format = "plain" | "markdown" | "json";
     setDeletingPresetId(presetId);
     try {
       const query = presetId ? `id=${encodeURIComponent(presetId)}` : `name=${encodeURIComponent(presetName)}`;
-      await fetch(`/api/presets?${query}`, { method: 'DELETE' });
+      deletePresetByIdOrName(presetId, presetName);
       await reloadPresets();
       
       // If deleted preset was selected, choose next available and persist
       if (selectedPresetKey === presetId || selectedPresetKey === presetName) {
         setSelectedPresetKey("");
         try {
-          const res = await fetch("/api/presets");
-          const data = await res.json().catch(() => ({}));
-          const list = Array.isArray(data?.presets) ? data.presets : [];
+          const list = getPresets();
           const next = list[0] || null;
           if (next) {
             const key = next.id ?? next.name;
@@ -648,21 +654,19 @@ type Format = "plain" | "markdown" | "json";
   const deleteAllPresets = useCallback(async () => {
     const deletables = presets.filter((p) => (p.name || '').trim().toLowerCase() !== 'default');
     if (deletables.length === 0) return;
-    const ok = await confirm({ title: 'Delete All Presets', message: 'Delete all presets (except "Default")? This cannot be undone.', confirmText: 'Delete All', cancelText: 'Cancel', tone: 'destructive' });
+    const ok = await confirm({ title: 'Delete All Presets', message: 'Delete all presets (except "Default")? This cannot be undone.', confirmText: 'Confirm', cancelText: 'Cancel', tone: 'destructive' });
     if (!ok) return;
     try {
       await Promise.allSettled(
         deletables.map((p) => {
           if ((p.name || '').trim().toLowerCase() === 'default') return Promise.resolve(); // extra safety
-          const query = p.id ? `id=${encodeURIComponent(p.id)}` : `id=${encodeURIComponent(p.id ?? '')}`;
-          return fetch(`/api/presets?${query}`, { method: 'DELETE' });
+          deletePresetByIdOrName(p.id, p.name);
+          return Promise.resolve();
         })
       );
       await reloadPresets();
       try {
-        const res = await fetch('/api/presets');
-        const data = await res.json().catch(() => ({}));
-        const list = Array.isArray(data?.presets) ? data.presets : [];
+        const list = getPresets();
         const next = list.find((x: any) => x.name === 'Default') || list[0] || null;
         if (next) {
           const key = next.id ?? next.name;
@@ -691,51 +695,37 @@ type Format = "plain" | "markdown" | "json";
     const user: MessageItem = { id: crypto.randomUUID(), role: "user", content: text };
     setMessages((m) => [...m, user]);
     try {
-      // Persist user message and update ID
-      try { 
-        const userResult = await appendMessages.mutateAsync({ chatId, messages: [{ id: user.id, role: user.role, content: user.content }], cap: 50 });
-        // Update the user message ID with the database ID
-        const createdUserMessages = userResult?.createdMessages;
-        const createdUserId = createdUserMessages?.[0]?.id;
-        if (createdUserId) {
-          setMessages((m) => m.map(msg => msg.id === user.id ? { ...msg, id: createdUserId } : msg));
-        }
+      // Persist user message
+      try {
+        const result = await localAppendMessages(chatId, [{ role: user.role, content: user.content }], 50);
+        const createdUserId = result?.created?.[0]?.id;
+        if (createdUserId) setMessages((m) => m.map(msg => msg.id === user.id ? { ...msg, id: createdUserId } : msg));
       } catch {}
 
-      const res = await fetch('/api/googleai/chat', {
-          method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
-          body: JSON.stringify({
-            input: text,
-            taskType,
-            options: {
-              tone,
-              detail,
-              format,
-              language: language || undefined,
-              temperature,
-              stylePreset: taskType === 'image' ? stylePreset : undefined,
-              aspectRatio: taskType === 'image' ? aspectRatio : undefined,
-              includeTests: taskType === 'coding' ? includeTests : undefined,
-              requireCitations: taskType === 'research' ? requireCitations : undefined,
-          }
-          }),
-        });
-      const json = await res.json().catch(() => ({} as any));
-      if (!res.ok) throw new Error((json?.error && (json.error.message || json.error)) || 'Request failed');
-      const output = (json?.data?.output ?? json?.output);
-      if (typeof output !== 'string') throw new Error('Invalid response');
+      // Build prompt and call local model directly
+      const built = await buildUnifiedPrompt({
+        input: text,
+        taskType,
+        options: {
+          tone,
+          detail,
+          format,
+          language: language || undefined,
+          temperature,
+          stylePreset: taskType === 'image' ? normalizeStylePreset(stylePreset) : undefined,
+          aspectRatio: taskType === 'image' ? normalizeAspectRatio(aspectRatio) : undefined,
+          includeTests: taskType === 'coding' ? includeTests : undefined,
+          requireCitations: taskType === 'research' ? requireCitations : undefined,
+        }
+      });
+      const output = await callLocalModelClient(built, { taskType, options: { tone, detail, format, language: language || undefined, temperature, stylePreset: taskType === 'image' ? normalizeStylePreset(stylePreset) : undefined, aspectRatio: taskType === 'image' ? normalizeAspectRatio(aspectRatio) : undefined, includeTests: taskType === 'coding' ? includeTests : undefined, requireCitations: taskType === 'research' ? requireCitations : undefined } });
       const assistant: MessageItem = { id: crypto.randomUUID(), role: 'assistant', content: output };
       setMessages((m) => [...m, assistant]);
-      try { 
-        const result = await appendMessages.mutateAsync({ chatId, messages: [{ id: assistant.id, role: assistant.role, content: assistant.content }], cap: 50 });
-        // Update the message ID with the database ID for proper feedback tracking
-          const createdAssistantMessages = result?.createdMessages;
-          const createdAssistantId = createdAssistantMessages?.[0]?.id;
-          if (createdAssistantId) {
-            setMessages((m) => m.map(msg => msg.id === assistant.id ? { ...msg, id: createdAssistantId } : msg));
-          }
+      try {
+        const result = await localAppendMessages(chatId, [{ role: assistant.role, content: assistant.content }], 50);
+        const createdAssistantId = result?.created?.[0]?.id;
+        if (createdAssistantId) setMessages((m) => m.map(msg => msg.id === assistant.id ? { ...msg, id: createdAssistantId } : msg));
+        await refreshChatList();
       } catch {}
     } catch (e: any) {
       // Handle abort signal specifically
@@ -748,7 +738,7 @@ type Format = "plain" | "markdown" | "json";
       setSending(false);
       abortRef.current = null;
     }
-  }, [input, sending, ensureChat, appendMessages, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations]);
+  }, [input, sending, ensureChat, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations]);
 
   const stopGenerating = useCallback(() => {
     try { 
@@ -765,10 +755,23 @@ type Format = "plain" | "markdown" | "json";
   }, []);
 
   const endRef = useRef<HTMLDivElement | null>(null);
-  useEffect(() => { endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages, sending]);
+  
+  // Auto-scroll to bottom when messages change or when sending
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    
+    // Use requestAnimationFrame to ensure DOM has updated
+    requestAnimationFrame(() => {
+      container.scrollTo({
+        top: container.scrollHeight,
+        behavior: 'smooth'
+      });
+    });
+  }, [messages, sending]);
 
   const hasMessages = messages.length > 0;
-  const recentChats = useMemo(() => (chatList ?? []).slice().sort((a: any, b: any) => new Date(b.updatedAt as any).getTime() - new Date(a.updatedAt as any).getTime()), [chatList]);
+  const recentChats = useMemo(() => (chatList ?? []).slice().sort((a: any, b: any) => (b.updatedAt as any) - (a.updatedAt as any)), [chatList]);
   const recentThree = useMemo(() => recentChats.slice(0, 3), [recentChats]);
 
   // Chat selection & deletion
@@ -777,20 +780,19 @@ type Format = "plain" | "markdown" | "json";
     const prevId = currentChatId;
     setCurrentChatId(id);
     try {
-      if (!chatList) void utils.chat.list.invalidate();
-      const data = await utils.chat.get.fetch({ chatId: id, limit: 50 });
+      const data = await localGetChat(id, 50);
       const loaded: MessageItem[] = (data.messages ?? []).map((m: any) => ({ id: m.id, role: m.role, content: m.content }));
       setMessages(loaded);
     } catch (e) {
       setError('Failed to load chat');
       setCurrentChatId(prevId ?? null);
     }
-  }, [chatList, utils.chat.get, utils.chat.list, currentChatId]);
+  }, [chatList, currentChatId]);
 
   const deleteChat = useCallback(async (id: string) => {
-    try { await removeChat.mutateAsync({ chatId: id }); await utils.chat.list.invalidate(); } catch {}
+    try { await localDeleteChat(id); await refreshChatList(); } catch {}
     if (currentChatId === id) { setCurrentChatId(null); setMessages([]); }
-  }, [removeChat, utils.chat.list, currentChatId]);
+  }, [refreshChatList, currentChatId]);
 
   // Copy message content
   const copyMessage = useCallback(async (messageId: string, content: string) => {
@@ -1142,7 +1144,7 @@ type Format = "plain" | "markdown" | "json";
       {/* Left rail (Material list of presets + chat history) */}
       <aside className={isSmallScreen ? `app-rail--mobile ${sidebarOpen ? 'open' : ''}` : "app-rail"} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, paddingTop: !isSmallScreen && isElectronRuntime() ? 48 : 16, top: isSmallScreen && isElectronRuntime() ? 32 : 0, height: isSmallScreen && isElectronRuntime() ? 'calc(100vh - 32px)' : undefined }}>
         <button type="button" className="md-btn md-btn--primary" style={{width: '100%', border: '1px solid var(--color-outline)'}} onClick={() => { setMessages([]); setCurrentChatId(null); setInput(""); }}>
-          New Chat
+          New Crafter
         </button>
 
         <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginTop: 50 }}><b>RECENT PRESETS</b></div>
@@ -1260,7 +1262,7 @@ type Format = "plain" | "markdown" | "json";
 
         {/* Recent chats pinned to bottom */}
         <div style={{ marginTop: 'auto' }}>
-          <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginBottom: 8 }}><b>RECENT CHATS</b></div>
+          <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginBottom: 8 }}><b>RECENT CRAFTS</b></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {recentThree.map((c: any) => {
               const isActive = currentChatId === c.id;
@@ -1295,7 +1297,7 @@ type Format = "plain" | "markdown" | "json";
             )}
             </div>
           <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 8 }}>
-            <button className="md-btn md-btn--primary" style={{ padding: '4px 8px', fontSize: 12, marginTop: 8}} onClick={() => setShowAllChatsOpen(true)}>Show All Chats</button>
+            <button className="md-btn md-btn--primary" style={{ padding: '4px 8px', fontSize: 12, marginTop: 8}} onClick={() => setShowAllChatsOpen(true)}>Show All Crafts</button>
           </div>
             </div>
       </aside>
@@ -1303,12 +1305,20 @@ type Format = "plain" | "markdown" | "json";
       {/* Main content */}
       <section className={isSmallScreen ? "app-content--mobile" : "app-content"} style={{ display: 'flex', flexDirection: 'column' }}>
         {/* Header actions */}
-        <div className={`app-header ${isElectronRuntime() ? 'app-header--electron' : ''}`} style={{ padding: '4px 16px', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div className={`app-header ${isElectronRuntime() ? 'app-header--electron' : ''}`} style={{ padding: '16px', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           {/* Hamburger menu for mobile */}
           {isSmallScreen && (
               <button
               className="md-btn" 
-              style={{ padding: 8 }} 
+              style={{ 
+                width: 40, 
+                height: 40, 
+                padding: 0, 
+                borderRadius: 8, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center' 
+              }} 
               onClick={() => setSidebarOpen((v) => !v)}
               title="Toggle sidebar"
             >
@@ -1316,9 +1326,11 @@ type Format = "plain" | "markdown" | "json";
               </button>
           )}
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'center' }}>
-            <button className="md-btn" style={{ padding: '8px 12px', minHeight: 40, display: 'flex', alignItems: 'center', gap: 6 }} onClick={cycleTheme} title={`Current theme: ${currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1)} (click to cycle)`}>
+            <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+              <button className="md-btn md-btn--primary" style={{ padding: '8px 12px', minHeight: 40, display: 'flex', alignItems: 'center', gap: 6 }} onClick={cycleTheme} disabled={themeSwitchCooldown} title={`Current theme: ${currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1)} (click to cycle)`}>
               <Icon name="palette" />
             </button>
+            </div>
             <div ref={settingsMenuWrapRef} style={{ position: 'relative' }}>
               <button className="md-btn" style={{ padding: '8px 12px', minHeight: 40, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setSettingsMenuOpen((v) => !v)}>
                 Settings
@@ -1328,233 +1340,270 @@ type Format = "plain" | "markdown" | "json";
                 <div className="menu-panel" style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', minWidth: 180 }}>
                   <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-system-prompts')); } catch {}; setSettingsMenuOpen(false); }}>System Prompt</button>
                   <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-provider-selection')); } catch {}; setSettingsMenuOpen(false); }}>Ollama Setup</button>
+                  <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-data-location')); } catch {}; setSettingsMenuOpen(false); }}>Local Data Location</button>
                 </div>
               )}
             </div>
           </div>
+          {themeToast && (
+            <div
+              key={themeToast.key}
+              className="theme-toast"
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
+                margin: 'auto',
+                pointerEvents: 'none',
+                zIndex: 2,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 10,
+                padding: '12px 16px',
+                borderRadius: 12,
+                background: 'var(--color-surface-variant)',
+                color: 'var(--color-on-surface)',
+                border: '1px solid var(--color-outline)',
+                boxShadow: 'var(--shadow-2)',
+                fontWeight: 700,
+                fontSize: 14,
+                whiteSpace: 'nowrap',
+                width: 'max-content',
+                height: 'max-content'
+              }}
+              aria-live="polite"
+              aria-atomic="true"
+            >
+              <Icon name="palette" />
+              <span style={{ marginLeft: 4 }}>{themeToast.label} theme</span>
+            </div>
+          )}
         </div>
 
         {/* Content area (scrolls) */}
-        <div style={{ padding: 24, paddingTop: 28, paddingBottom: 200, flex: 1, overflow: 'auto' }}>
-          <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', height: '100%' }}>
-            {!hasMessages ? (
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-                <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24, textAlign: 'center' }}>How can I help you craft prompts today?</h1>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                {messages.map((m) => (
-                  <div key={m.id} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-                    <div className="bubble-container">
-                      <div className={`bubble ${m.role === 'user' ? 'bubble--user' : 'bubble--assistant'}`}>
-                        {renderMessageContent(m.content, m.id)}
-                      </div>
-                      
-                      {/* Copy button outside bubble */}
-                      <button
-                        type="button"
-                        className={`bubble-copy ${m.role === 'user' ? 'bubble-copy--user' : 'bubble-copy--assistant'}`}
-                        onClick={() => copyMessage(m.id, m.content)}
-                        title="Copy message"
-                      >
-                        <Icon name={copiedMessageId === m.id ? 'check' : 'copy'} />
-                      </button>
-                    </div>
-                      </div>
-                ))}
-                {sending && (
-                  <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 12 }}>
-                    <div className="bubble bubble--assistant" style={{ opacity: .95, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <span>Generating prompt... </span>
-                      <div style={{ width: 14, height: 14, border: '2px solid var(--color-on-surface-variant)', borderTopColor: 'var(--color-primary)', borderRadius: '50%' }} className="md-spin" />
-                    </div>
-                  </div>
-                )}
-                <div ref={endRef} />
-              </div>
-            )}
-
-            {error && (
-              <div className="md-card" style={{ padding: 12, marginTop: 12, borderLeft: '4px solid var(--color-primary)' }}>{error}</div>
-            )}
-          </div>
-        </div>
-
-        {/* Floating Composer */}
-        <div
-          className="chat-composer-shell"
-          style={{
-            position: 'fixed',
-            bottom: 24,
-            left: isSmallScreen ? 16 : 344,
-            right: isSmallScreen ? 16 : 48,
-            zIndex: 20,
-            pointerEvents: 'none'
-          }}
-        >
-          <div
-            style={{
-              width: '100%',
-              maxWidth: isSmallScreen ? '100%' : '960px',
-              margin: '0 auto',
-              pointerEvents: 'auto'
-            }}
-          >
-            <div className="md-card chat-composer-card">
-              {/* Text input (full width) */}
-              <textarea
-                ref={textareaRef}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }}
-                placeholder="Ready to craft? Describe your task or paste an existing prompt..."
-                className="md-input"
-                rows={1}
-                style={{
-                  resize: 'none',
-                  minHeight: 40,
-                  background: 'var(--color-surface)',
-                  border: '1px solid var(--color-outline)',
-                  marginBottom: 12,
-                  width: '100%',
-                  borderRadius: 16,
-                  padding: '12px 14px'
-                }}
-              />
-
-              {/* Controls row below input */}
-              <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'center' }}>
-                {/* Model selection (left) */}
-                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-                  {/* Refresh connection button */}
-                  <button 
-                    type="button" 
-                    className="md-btn md-btn--primary" 
-                    title="Check Ollama connection and refresh models" 
-                    onClick={() => void checkOllamaConnection()}
-                    disabled={checkingConnection}
-                    style={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      width: 40, 
-                      height: 40, 
-                      padding: 0,
-                      opacity: checkingConnection ? 0.5 : 1,
-                      cursor: checkingConnection ? 'wait' : 'pointer',
-                      marginRight: 8,
-                    }}
-                  >
-                    <Icon name="refresh" className={checkingConnection ? 'md-spin' : ''} />
-                  </button>
-                  <div style={{ position: 'relative' }}>
-                    <button ref={modelBtnRef} type="button" className="md-btn" title="Select model" onClick={() => {
-                      const wasOpen = modelMenuOpen;
-                      setModelMenuOpen((v) => !v);
-                      // Auto-refresh models when opening dropdown
-                      if (!wasOpen) {
-                        refreshModels();
-                      }
-                    }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                      {modelLabel}
-                      <Icon name="chevronDown" className={`dropdown-arrow ${modelMenuOpen ? 'dropdown-arrow--open' : ''}`} />
-                    </button>
-                  {modelMenuOpen && (
-                    <div
-                      ref={modelMenuRef}
-                      className="menu-panel"
-                      style={{ position: 'absolute', left: 0, top: modelMenuUp ? 'auto' : 'calc(100% + 6px)', bottom: modelMenuUp ? 'calc(100% + 6px)' : 'auto', maxHeight: 320, overflowY: 'auto' }}
-                    >
-                      {availableModels.length > 0 ? (
-                        availableModels.map((m) => {
-                          const label = `Gemma 3 ${(m.name.split(':')[1] || '').toUpperCase()}`;
-                          const isSelected = currentModelId === m.name;
-                          return (
-                            <button
-                              key={m.name}
-                              className="menu-item"
-                              aria-current={isSelected ? 'true' : undefined}
-                    onClick={async () => {
-                                await fetch('/api/model/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'ollama', baseUrl: 'http://localhost:11434', model: m.name }) });
-                                setCurrentModelId(m.name);
-                                setModelLabel(label);
-                                setModelMenuOpen(false);
-                              }}
-                              style={{
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'space-between',
-                                gap: 8,
-                                background: isSelected ? 'rgba(108,140,255,0.12)' : undefined,
-                                outline: isSelected ? '2px solid var(--color-primary)' : 'none',
-                                outlineOffset: -2,
-                                fontWeight: isSelected ? 600 : undefined,
-                              }}
-                            >
-                              <span>{label}</span>
-                              {isSelected && <Icon name="check" />}
-                            </button>
-                          );
-                        })
-                      ) : (
-                        <div>
-                          <div className="menu-item" style={{ opacity: 0.6, cursor: 'default' }}>No local models found</div>
-                          <button className="menu-item" onClick={() => { refreshModels(); }} style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                            <Icon name="refresh" />
-                            Refresh
-                          </button>
-                          <div className="menu-divider" />
-                          <div className="menu-item" style={{ opacity: 0.6, cursor: 'default', fontSize: 12, padding: '8px 12px' }}>
-                            Install Ollama and pull gemma3 models:<br/>
-                            <code style={{ fontSize: 11 }}>ollama pull gemma3:1b</code>
-                          </div>
+        <div ref={scrollContainerRef} style={{ padding: 24, paddingTop: 28, flex: 1, overflow: 'auto' }}>
+          <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+              {!hasMessages ? (
+                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24, textAlign: 'center' }}>How can I help you craft prompts today?</h1>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {messages.map((m) => (
+                    <div key={m.id} style={{ display: 'flex', justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+                      <div className="bubble-container">
+                        <div className={`bubble ${m.role === 'user' ? 'bubble--user' : 'bubble--assistant'}`}>
+                          {renderMessageContent(m.content, m.id)}
                         </div>
+                        
+                        {/* Copy button outside bubble */}
+                        <button
+                          type="button"
+                          className={`bubble-copy ${m.role === 'user' ? 'bubble-copy--user' : 'bubble-copy--assistant'}`}
+                          onClick={() => copyMessage(m.id, m.content)}
+                          title="Copy message"
+                        >
+                          <Icon name={copiedMessageId === m.id ? 'check' : 'copy'} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {sending && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 12 }}>
+                      <div className="bubble bubble--assistant" style={{ opacity: .95, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <span>Generating prompt... </span>
+                        <div style={{ width: 14, height: 14, border: '2px solid var(--color-on-surface-variant)', borderTopColor: 'var(--color-primary)', borderRadius: '50%' }} className="md-spin" />
+                      </div>
+                    </div>
+                  )}
+                  <div ref={endRef} style={{ marginBottom: 32 }} />
+                </div>
+              )}
+
+              {error && (
+                <div className="md-card" style={{ padding: 12, marginTop: 12, borderLeft: '4px solid var(--color-primary)' }}>{error}</div>
+              )}
+            </div>
+
+            <div
+              className="chat-composer-shell"
+              style={{
+                position: 'sticky',
+                bottom: isSmallScreen ? 16 : 24,
+                marginTop: 32,
+                paddingTop: 16,
+                paddingBottom: isSmallScreen ? 8 : 0,
+                zIndex: 5
+              }}
+            >
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: isSmallScreen ? '100%' : '960px',
+                  margin: '0 auto'
+                }}
+              >
+                <div className="md-card chat-composer-card">
+                  {/* Text input (full width) */}
+                  <textarea
+                    ref={textareaRef}
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }}
+                    placeholder="Ready to craft? Describe your task or paste an existing prompt..."
+                    className="md-input"
+                    rows={1}
+                    style={{
+                      resize: 'none',
+                      minHeight: 40,
+                      background: 'var(--color-surface)',
+                      border: '1px solid var(--color-outline)',
+                      marginBottom: 12,
+                      width: '100%',
+                      borderRadius: 16,
+                      padding: '12px 14px'
+                    }}
+                  />
+
+                  {/* Controls row below input */}
+                  <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'center' }}>
+                    {/* Model selection (left) */}
+                    <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                      {/* Refresh connection button */}
+                      <button 
+                        type="button" 
+                        className="md-btn md-btn--primary" 
+                        title="Check Ollama connection and refresh models" 
+                        onClick={() => void checkOllamaConnection()}
+                        disabled={checkingConnection}
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          width: 40, 
+                          height: 40, 
+                          padding: 0,
+                          opacity: checkingConnection ? 0.5 : 1,
+                          cursor: checkingConnection ? 'wait' : 'pointer',
+                          marginRight: 8,
+                        }}
+                      >
+                        <Icon name="refresh" className={checkingConnection ? 'md-spin' : ''} />
+                      </button>
+                      <div style={{ position: 'relative' }}>
+                        <button
+                          ref={modelBtnRef}
+                          type="button"
+                          className="md-btn"
+                          title="Select model"
+                          onClick={() => {
+                            const wasOpen = modelMenuOpen;
+                            setModelMenuOpen((v) => !v);
+                            // Auto-refresh models when opening dropdown
+                            if (!wasOpen) {
+                              refreshModels();
+                            }
+                          }}
+                          style={{ display: 'flex', alignItems: 'center', gap: 6 }}
+                        >
+                          {modelLabel}
+                          <Icon name="chevronDown" className={`dropdown-arrow ${modelMenuOpen ? 'dropdown-arrow--open' : ''}`} />
+                        </button>
+                        {modelMenuOpen && (
+                          <div
+                            ref={modelMenuRef}
+                            className="menu-panel"
+                            style={{ position: 'absolute', left: 0, top: modelMenuUp ? 'auto' : 'calc(100% + 6px)', bottom: modelMenuUp ? 'calc(100% + 6px)' : 'auto', maxHeight: 320, overflowY: 'auto' }}
+                          >
+                            {availableModels.length > 0 ? (
+                              availableModels.map((m) => {
+                                const label = `Gemma 3 ${(m.name.split(':')[1] || '').toUpperCase()}`;
+                                const isSelected = currentModelId === m.name;
+                                return (
+                                  <button
+                                    key={m.name}
+                                    className="menu-item"
+                                    aria-current={isSelected ? 'true' : undefined}
+                                    onClick={async () => {
+                                      writeLocalModelConfigClient({ provider: 'ollama', baseUrl: 'http://localhost:11434', model: m.name } as any);
+                                      setCurrentModelId(m.name);
+                                      setModelLabel(label);
+                                      setModelMenuOpen(false);
+                                    }}
+                                    style={{
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'space-between',
+                                      gap: 8,
+                                      background: isSelected ? 'rgba(108,140,255,0.12)' : undefined,
+                                      outline: isSelected ? '2px solid var(--color-primary)' : 'none',
+                                      outlineOffset: -2,
+                                      fontWeight: isSelected ? 600 : undefined,
+                                    }}
+                                  >
+                                    <span>{label}</span>
+                                    {isSelected && <Icon name="check" />}
+                                  </button>
+                                );
+                              })
+                            ) : (
+                              <div>
+                                <div className="menu-item" style={{ opacity: 0.6, cursor: 'default' }}>No local models found</div>
+                                <button className="menu-item" onClick={() => { refreshModels(); }} style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
+                                  <Icon name="refresh" />
+                                  Refresh
+                                </button>
+                                <div className="menu-divider" />
+                                <div className="menu-item" style={{ opacity: 0.6, cursor: 'default', fontSize: 12, padding: '8px 12px' }}>
+                                  Install Ollama and pull gemma3 models:<br/>
+                                  <code style={{ fontSize: 11 }}>ollama pull gemma3:1b</code>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Send or Stop (right) */}
+                    <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                      {sending ? (
+                        <button
+                          type="button"
+                          className="md-btn md-btn--primary"
+                          onClick={stopGenerating}
+                          title="Stop generating"
+                          style={{ 
+                            width: 40,
+                            height: 40,
+                            borderRadius: '50%',
+                            padding: 0,
+                            border: currentTheme === 'earth' ? '1px solid var(--color-outline)' : undefined
+                          }}
+                        >
+                          <Icon name="stop" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          className="md-btn md-btn--primary" 
+                          onClick={() => void send()}
+                          disabled={!input.trim()}
+                          style={{ width: 40, height: 40, borderRadius: '50%', padding: 0, border: currentTheme === 'earth' ? '1px solid var(--color-outline)' : undefined }}
+                          title="Send message"
+                        >
+                          ↑
+                        </button>
                       )}
                     </div>
-                  )}
                   </div>
                 </div>
-
-                {/* Send or Stop (right) */}
-                <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  {sending ? (
-                    <button
-                      type="button"
-                      className="md-btn"
-                      onClick={stopGenerating}
-                      title="Stop generating"
-                      style={{ 
-                        width: 40, 
-                        height: 40, 
-                        borderRadius: '50%', 
-                        padding: 0,
-                        backgroundColor: '#1a73e8',
-                        color: 'white',
-                        border: 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <Icon name="stop" />
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      className="md-btn md-btn--primary" 
-                      onClick={() => void send()}
-                      disabled={!input.trim()}
-                      style={{ width: 40, height: 40, borderRadius: '50%', padding: 0, border: currentTheme === 'earth' ? '1px solid var(--color-outline)' : undefined }}
-                      title="Send message"
-                    >
-                      ↑
-                    </button>
-                  )}
+              </div>
             </div>
           </div>
-        </div>
-        </div>
         </div>
       </section>
     </div>
@@ -1566,13 +1615,13 @@ type Format = "plain" | "markdown" | "json";
         <div className="modal-backdrop-blur" />
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
-            <div className="modal-title">All Chats</div>
+            <div className="modal-title">All Crafts</div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
                 className="md-btn md-btn--destructive"
                 onClick={async () => {
-                  const ok = await confirm({ title: 'Delete All Chats', message: 'Delete ALL chats? This will permanently remove all chats.', confirmText: 'Delete All', cancelText: 'Cancel', tone: 'destructive' });
-                  if (!ok) return;
+                  const ok = await confirm({ title: 'Delete All Crafts (Chats)', message: 'Delete ALL crafts? This will permanently remove all crafts.', confirmText: 'Confirm', cancelText: 'Cancel', tone: 'destructive' });
+                  if (!ok) return;  
                   const ids = recentChats.map((c: any) => c.id);
                   try {
                     await Promise.allSettled(ids.map((id: string) => deleteChat(id)));
@@ -1736,17 +1785,13 @@ type Format = "plain" | "markdown" | "json";
                 await savePreset();
                 await reloadPresets();
                 try {
-                  const res = await fetch('/api/presets');
-                  if (res.ok) {
-                    const data = await res.json();
-                    const list = Array.isArray(data?.presets) ? data.presets : [];
-                    const found = list.find((p: any) => p.name === name);
-                    if (found) {
-                      const key = found.id ?? found.name;
-                      setSelectedPresetKey(key);
-                      try { localStorage.setItem('last-selected-preset', key); } catch {}
-                      try { applyPreset(found); } catch {}
-                    }
+                  const list = getPresets();
+                  const found = list.find((p: any) => p.name === name);
+                  if (found) {
+                    const key = found.id ?? found.name;
+                    setSelectedPresetKey(key);
+                    try { localStorage.setItem('last-selected-preset', key); } catch {}
+                    try { applyPreset(found); } catch {}
                   }
                 } catch {/* noop */}
                 setPresetEditorOpen(false);
@@ -1849,13 +1894,24 @@ type Format = "plain" | "markdown" | "json";
                       >
                         <div style={{ fontWeight: 600, marginBottom: 4 }}>{p.name}</div>
                         <div style={{ fontSize: 12, opacity: 0.8 }}>{p.taskType.charAt(0).toUpperCase() + p.taskType.slice(1)}</div>
-                        {p.options && (
-                          <div style={{ fontSize: 11, marginTop: 6, opacity: 0.7 }}>
-                            {p.options.tone && `${p.options.tone} tone`}
-                            {p.options.detail && ` • ${p.options.detail} detail`}
-                            {p.options.format && ` • ${p.options.format}`}
-                </div>
-              )}
+                        {(() => {
+                          const o = p.options || {};
+                          const parts: string[] = [];
+                          const capitalize = (str: string) => {
+                            if ((str || '').toLowerCase() === 'json') return 'JSON';
+                            return (str || '').charAt(0).toUpperCase() + (str || '').slice(1);
+                          };
+                          if (o.tone) parts.push(`${capitalize(o.tone)} Tone`);
+                          if (o.detail) parts.push(`${capitalize(o.detail)} Detail`);
+                          if (o.format) parts.push(capitalize(o.format));
+                          if (o.stylePreset) parts.push(capitalize(o.stylePreset));
+                          if (o.aspectRatio) parts.push(capitalize(o.aspectRatio));
+                          return parts.length ? (
+                            <div className="text-secondary" style={{ fontSize: 11, marginTop: 2 }}>
+                              {parts.join(' • ')}
+                            </div>
+                          ) : null;
+                        })()}
             </div>
                       
                       {/* Action buttons (top-right): trash (if not Default) + cog (always) */}
@@ -1900,6 +1956,7 @@ type Format = "plain" | "markdown" | "json";
                               setIncludeTests(!!o.includeTests);
                               setRequireCitations(!!o.requireCitations);
                               setPresetEditorOpen(true);
+                              setPresetSelectorOpen(false);
                             }}
                             title={`Edit preset "${p.name}"`}
                             aria-label={`Edit preset ${p.name}`}
