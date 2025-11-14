@@ -434,7 +434,6 @@ export class BusinessValidators {
       case '/api/googleai/chat':
         return DataValidator.validate(z.object({
           input: z.string().min(1).max(50000),
-          mode: z.enum(['build', 'enhance']).optional(),
           taskType: z.enum(['general', 'coding', 'image', 'research', 'writing', 'marketing']).optional(),
           options: z.object({
             temperature: z.number().min(0).max(1).optional(),

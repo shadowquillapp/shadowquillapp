@@ -1,13 +1,12 @@
 import { env } from "@/env";
 import { buildGemmaContext, validateInput, getFallbackSystemPrompt } from "@/server/gemma-context";
 import { readSystemPromptForMode } from "@/server/settings";
-import type { PromptMode, TaskType, GenerationOptions, BuildPromptInput } from "@/server/gemma-context";
+import type { TaskType, GenerationOptions } from "@/server/gemma-context";
 
-export type { PromptMode, TaskType, GenerationOptions };
+export type { TaskType, GenerationOptions };
 
 export interface GemmaChatInput {
   input: string;
-  mode: PromptMode;
   taskType: TaskType;
   options?: GenerationOptions;
 }
@@ -21,7 +20,7 @@ export interface GemmaChatInput {
  * 3. Call model with optimized settings
  * 4. Return clean output
  */
-export async function callGemma({ input, mode, taskType, options }: GemmaChatInput): Promise<string> {
+export async function callGemma({ input, taskType, options }: GemmaChatInput): Promise<string> {
   // Step 1: Input validation
   const validation = validateInput(input, taskType);
   if (!validation.valid) {
@@ -29,7 +28,7 @@ export async function callGemma({ input, mode, taskType, options }: GemmaChatInp
   }
 
   // Step 2: Build minimal context
-  const context = await buildGemmaContext({ input, mode, taskType, ...(options && { options }) });
+  const context = await buildGemmaContext({ input, taskType, ...(options && { options }) });
   
   // Handle validation errors from context building
   if (context.startsWith('ERROR:')) {
@@ -37,7 +36,7 @@ export async function callGemma({ input, mode, taskType, options }: GemmaChatInp
   }
 
   // Step 3: Get system prompt (fallback if empty)
-  const systemPrompt = await getSystemPrompt(mode);
+  const systemPrompt = await getSystemPrompt();
 
   // Step 4: Call model with optimized settings
   try {
@@ -51,9 +50,9 @@ export async function callGemma({ input, mode, taskType, options }: GemmaChatInp
 /**
  * Get system prompt with graceful fallback
  */
-async function getSystemPrompt(mode: PromptMode): Promise<string> {
+async function getSystemPrompt(): Promise<string> {
   try {
-    const storedPrompt = await readSystemPromptForMode(mode);
+    const storedPrompt = await readSystemPromptForMode('build');
     if (storedPrompt && storedPrompt.trim()) {
       return storedPrompt.trim();
     }
@@ -62,10 +61,8 @@ async function getSystemPrompt(mode: PromptMode): Promise<string> {
   }
 
   // Fallback to environment or built-in
-  const envKey = mode === 'build' ? 'GOOGLE_SYSTEM_PROMPT_BUILD' : 'GOOGLE_SYSTEM_PROMPT_ENHANCE';
-  const envPrompt = mode === 'build' ? env.GOOGLE_SYSTEM_PROMPT_BUILD : env.GOOGLE_SYSTEM_PROMPT_ENHANCE;
-  
-  return envPrompt || env.GOOGLE_SYSTEM_PROMPT || getFallbackSystemPrompt(mode);
+  const envPrompt = env.GOOGLE_SYSTEM_PROMPT_BUILD || env.GOOGLE_SYSTEM_PROMPT;
+  return envPrompt || getFallbackSystemPrompt('build');
 }
 
 /**
@@ -153,7 +150,6 @@ export async function checkGemmaHealth(): Promise<{ healthy: boolean; error?: st
   try {
     const testResponse = await callGemma({
       input: "test",
-      mode: "build",
       taskType: "general",
       options: { format: "plain" }
     });

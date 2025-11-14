@@ -1,7 +1,5 @@
 // Types only - local Ollama only
 import { buildStylePresetPhrase } from '@/server/image-style-presets';
-
-export type PromptMode = "build" | "enhance";
 export type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
 
 export interface GenerationOptions {
@@ -21,7 +19,6 @@ export interface GenerationOptions {
 
 export interface GoogleAIChatInput {
   input: string;
-  mode: PromptMode;
   taskType: TaskType;
   options?: GenerationOptions;
 }

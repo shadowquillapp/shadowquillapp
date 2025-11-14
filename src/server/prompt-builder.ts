@@ -1,6 +1,5 @@
 import { readSystemPromptForMode } from '@/server/settings';
-import { env } from '@/env';
-import type { PromptMode, TaskType, GenerationOptions } from '@/server/googleai';
+import type { TaskType, GenerationOptions } from '@/server/googleai';
 import { buildStylePresetPhrase } from '@/server/image-style-presets';
 
 const TYPE_GUIDELINES: Record<TaskType, string> = {
@@ -33,11 +32,11 @@ const TYPE_GUIDELINES: Record<TaskType, string> = {
 };
 
 // Smart context detection function
-function detectUserIntent(input: string, mode: PromptMode, taskType: TaskType, options?: GenerationOptions): {
+function detectUserIntent(input: string, taskType: TaskType, options?: GenerationOptions): {
   isDirectTechnicalQuestion: boolean;
   isPromptCreation: boolean;
-  isPromptEnhancement: boolean;
-  responseStrategy: 'direct_help' | 'structured_prompt' | 'enhanced_prompt';
+  isPromptEnhancement: boolean; // retained for future extensibility, treated as structured_prompt
+  responseStrategy: 'direct_help' | 'structured_prompt';
 } {
   const trimmed = input.trim();
 
@@ -64,35 +63,17 @@ function detectUserIntent(input: string, mode: PromptMode, taskType: TaskType, o
       isPromptEnhancement: false,
       responseStrategy: 'direct_help'
     };
-  } else if (mode === 'enhance') {
-    // In Enhance mode, prefer enhancement behavior regardless of input shape,
-    // unless it's clearly a direct technical question handled above.
-    return {
-      isDirectTechnicalQuestion: false,
-      isPromptCreation: false,
-      isPromptEnhancement: true,
-      responseStrategy: 'enhanced_prompt'
-    };
-  } else if (mode === 'build') {
-    return {
-      isDirectTechnicalQuestion: false,
-      isPromptCreation: true,
-      isPromptEnhancement: false,
-      responseStrategy: 'structured_prompt'
-    };
   } else {
-    // Default fallback
     return {
       isDirectTechnicalQuestion: false,
       isPromptCreation: true,
-      isPromptEnhancement: false,
+      isPromptEnhancement: looksLikeExistingPrompt,
       responseStrategy: 'structured_prompt'
     };
   }
 }
 
-const MODE_GUIDELINES: Record<PromptMode, string> = {
-  build: [
+const UNIFIED_MODE_GUIDELINES: string = [
     'You are PromptCrafter, an expert at authoring high performance prompts for AI models.',
     'Goal:',
     '- Create a single, standalone prompt delivering the user objective.',
@@ -102,7 +83,7 @@ const MODE_GUIDELINES: Record<PromptMode, string> = {
     '- Be precise, unambiguous, and concise; avoid filler and meta commentary.',
     'IMPORTANT: Adapt your response based on user intent:',
     '- For DIRECT TECHNICAL QUESTIONS (like "how to make chat wider" or "fix this CSS"), provide immediate, actionable code solutions and explanations.',
-    '- For PROMPT CREATION requests, use the structured format below.',
+    '- For PROMPT CREATION or ENHANCEMENT, use the structured format below and improve clarity while preserving intent.',
     '- Never force structured format when user wants direct technical help.',
     'Rule: If the user input is ONLY a casual greeting / acknowledgement (e.g. hi, hey, hello, thanks, thank you, ok, cool, great) and contains no actionable objective or domain noun, reply EXACTLY: NEED_CONTEXT – Please describe what you want me to create or enhance.',
     'When creating prompts, structure as (no extra explanation):',
@@ -116,51 +97,24 @@ const MODE_GUIDELINES: Record<PromptMode, string> = {
     '- When constraints conflict, prioritize explicit Constraints, then Task type guidelines, then general quality.',
     '- FORMAT RULE: If JSON format is requested, specify keys and rules WITHIN the constraints section above, NOT as a separate section.',
     '- FORMAT RULE: Do NOT add any "Response structure" or "Output format" sections to the prompt you create.',
-  ].join('\n'),
-  enhance: [
-    'You are PromptCrafter, an expert at improving existing prompts for clarity, reliability, and results.',
-    'Goal:',
-    '- Rewrite the user\'s prompt to preserve intent while removing ambiguity and tightening scope.',
-    'Behavior:',
-    '- Strictly obey any provided Mode, Task type, and Constraints.',
-    '- Improve structure, add missing constraints or acceptance criteria, and integrate response formatting requirements directly.',
-    '- Keep it concise and high‑signal; remove redundancy and vague wording.',
-    'IMPORTANT: Adapt your response based on user intent:',
-    '- If user provides EXISTING PROMPT TEXT, enhance it using structured format below.',
-    '- For DIRECT TECHNICAL QUESTIONS (like "make chat wider" or "fix CSS"), provide immediate code solutions, not prompt structure.',
-    '- Only use structured format when enhancing actual prompts.',
-    'Rule: If the user input is ONLY a casual greeting / acknowledgement (e.g. hi, hey, hello, thanks, thank you, ok, cool, great) and contains no actionable objective or domain noun, reply EXACTLY: NEED_CONTEXT – Please describe what you want me to create or enhance.',
-    'When enhancing existing prompts, produce only the improved prompt (no commentary), organized as:',
-    '1) Instruction to the assistant (refined objective/role)',
-    '2) Key inputs/assumptions (crisp, minimal)',
-    '3) Steps/Policy (how to reason, what to check)',
-    '4) Constraints and acceptance criteria (must/should; edge cases)',
-    'Rules:',
-    '- No code fences or meta explanation.',
-    '- Prefer explicit, testable requirements over generalities.',
-    '- If constraints conflict, prioritize explicit Constraints, then Task type guidelines, then general quality.',
-    '- FORMAT RULE: If JSON format is requested, specify keys and rules WITHIN the constraints section above, NOT as a separate section.',
-    '- FORMAT RULE: Do NOT add any "Response structure" or "Output format" sections to the prompt you create.',
-  ].join('\n'),
-};
+  ].join('\n');
 
 export interface BuildPromptInput {
   input: string;
-  mode: PromptMode;
   taskType: TaskType;
   options?: GenerationOptions;
 }
 
-export async function buildUnifiedPrompt({ input, mode, taskType, options }: BuildPromptInput): Promise<string> {
+export async function buildUnifiedPrompt({ input, taskType, options }: BuildPromptInput): Promise<string> {
   const rawUserInput = input.trim();
   const validationError = validateBuilderInput(rawUserInput, taskType);
   if (validationError) return validationError;
 
   // Smart context detection to determine response strategy
-  const userIntent = detectUserIntent(rawUserInput, mode, taskType, options);
+  const userIntent = detectUserIntent(rawUserInput, taskType, options);
 
   // Get the system prompt, which will now come from either the app settings or system-prompts-default.json
-  const systemPrompt = await readSystemPromptForMode(mode) ?? '';
+  const systemPrompt = await readSystemPromptForMode('build') ?? '';
 
   const optionLines: string[] = [];
   if (options?.tone) optionLines.push(`Tone: ${options.tone}`);
@@ -267,7 +221,7 @@ export async function buildUnifiedPrompt({ input, mode, taskType, options }: Bui
 
   return [
     systemPrompt ? `System Instructions:\n${systemPrompt}` : null,
-    MODE_GUIDELINES[mode] ? `Mode Guidelines:\n${MODE_GUIDELINES[mode]}` : null,
+    UNIFIED_MODE_GUIDELINES ? `Mode Guidelines:\n${UNIFIED_MODE_GUIDELINES}` : null,
     typeGuidelines ? `Task Type Guidelines:\n${typeGuidelines}` : null,
     optionLines.length ? `Constraints:\n- ${optionLines.join('\n- ')}` : null,
   semanticsBlock,

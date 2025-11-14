@@ -7,7 +7,6 @@ import { api } from "@/trpc/react";
 import { CustomSelect } from "@/components/CustomSelect";
 import ThemeSwitcher from "@/components/ThemeSwitcher";
 
-type Mode = "build" | "enhance";
 type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
 type Tone = "neutral" | "friendly" | "formal" | "technical" | "persuasive";
 type Detail = "brief" | "normal" | "detailed";

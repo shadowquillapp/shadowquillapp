@@ -37,8 +37,6 @@ export const TaskTypeSchema = z.enum([
   'marketing'
 ]);
 
-export const PromptModeSchema = z.enum(['build', 'enhance']);
-
 export const FormatSchema = z.enum(['plain', 'markdown', 'json']);
 
 export const ToneSchema = z.enum([
@@ -79,7 +77,6 @@ export const GenerationOptionsSchema = z.object({
 // Main prompt generation schema
 export const PromptGenerationSchema = z.object({
   input: PromptInputSchema,
-  mode: PromptModeSchema.default('build'),
   taskType: TaskTypeSchema.default('general'),
   options: GenerationOptionsSchema,
 });
@@ -228,7 +225,6 @@ export const Schemas = {
   Username: UsernameSchema,
   PromptInput: PromptInputSchema,
   TaskType: TaskTypeSchema,
-  PromptMode: PromptModeSchema,
   Format: FormatSchema,
   Tone: ToneSchema,
   DetailLevel: DetailLevelSchema,

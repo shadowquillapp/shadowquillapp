@@ -37,13 +37,11 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   // Material UI + app settings (presets)
-type Mode = "build" | "enhance";
 type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
 type Tone = "neutral" | "friendly" | "formal" | "technical" | "persuasive";
 type Detail = "brief" | "normal" | "detailed";
 type Format = "plain" | "markdown" | "json";
 
-  const [mode, setMode] = useState<Mode>("build");
   const [taskType, setTaskType] = useState<TaskType>("general");
   const [tone, setTone] = useState<Tone>("neutral");
   const [detail, setDetail] = useState<Detail>("normal");
@@ -331,7 +329,6 @@ type Format = "plain" | "markdown" | "json";
         signal: controller.signal,
           body: JSON.stringify({
             input: text,
-            mode,
             taskType,
             options: {
               tone,
@@ -372,7 +369,7 @@ type Format = "plain" | "markdown" | "json";
       setSending(false);
       abortRef.current = null;
     }
-  }, [input, sending, ensureChat, appendMessages, mode, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations]);
+  }, [input, sending, ensureChat, appendMessages, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations]);
 
   const stopGenerating = useCallback(() => {
     try { 
@@ -776,26 +773,8 @@ type Format = "plain" | "markdown" | "json";
                   )}
                 </div>
 
-                {/* Mode + Send (right) */}
+                {/* Send (right) */}
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                  <div className="mode-toggle">
-                    <div className={`mode-toggle-slider ${mode === 'enhance' ? 'mode-toggle-slider--enhance' : ''}`} />
-                <button
-                  type="button"
-                      className={`mode-toggle-option ${mode === 'build' ? 'mode-toggle-option--active' : 'mode-toggle-option--inactive'}`}
-                      onClick={() => setMode('build')}
-                    >
-                  Build
-                </button>
-                <button
-                  type="button"
-                      className={`mode-toggle-option ${mode === 'enhance' ? 'mode-toggle-option--active' : 'mode-toggle-option--inactive'}`}
-                      onClick={() => setMode('enhance')}
-                    >
-                  Enhance
-                </button>
-            </div>
-
               <button
                   type="button"
                     className="md-btn md-btn--primary" 
