@@ -8,10 +8,11 @@ import { Geist } from "next/font/google";
 
 import { TRPCReactProvider } from "@/trpc/react";
 import DatabaseSetupGate from "@/components/DatabaseSetupGate";
+import { DialogProvider } from "@/components/DialogProvider";
 
 export const metadata: Metadata = {
 	title: "PromptCrafter",
-	description: "PromptCrafter – AI assistant for building and enhancing prompts",
+	description: "PromptCrafter – AI assistant for building prompts",
 	icons: [{ rel: "icon", url: "public/branding/favicon.ico" }],
 };
 
@@ -26,11 +27,13 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 			<head>{/* No external CDN links to allow full offline operation */}</head>
 			<body className="overflow-hidden h-screen flex flex-col">
 				<TRPCReactProvider>
-					<div className="flex-1 flex flex-col overflow-hidden">
-						<DatabaseSetupGate>
-							{children}
-						</DatabaseSetupGate>
-					</div>
+					<DialogProvider>
+						<div className="flex-1 flex flex-col overflow-hidden">
+							<DatabaseSetupGate>
+								{children}
+							</DatabaseSetupGate>
+						</div>
+					</DialogProvider>
 				</TRPCReactProvider>
 			</body>
 		</html>
