@@ -6,6 +6,10 @@ contextBridge.exposeInMainWorld('promptcrafter', {
 	,
 	restartApp: () => ipcRenderer.invoke('promptcrafter:restartApp')
 	,
+	getDataPaths: () => ipcRenderer.invoke('promptcrafter:getDataPaths')
+	,
+	factoryReset: () => ipcRenderer.invoke('promptcrafter:factoryReset')
+	,
 	window: {
 		minimize: () => ipcRenderer.invoke('promptcrafter:window:minimize'),
 		maximizeToggle: () => ipcRenderer.invoke('promptcrafter:window:maximizeToggle'),
