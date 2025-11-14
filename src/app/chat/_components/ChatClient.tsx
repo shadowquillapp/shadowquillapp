@@ -30,11 +30,13 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const [showAllChatsOpen, setShowAllChatsOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'default' | 'warm' | 'light'>('default');
   const [themeMenuOpen, setThemeMenuOpen] = useState(false);
+  const themeMenuWrapRef = useRef<HTMLDivElement | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [presetSelectorOpen, setPresetSelectorOpen] = useState(false);
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const settingsMenuWrapRef = useRef<HTMLDivElement | null>(null);
 
   // Material UI + app settings (presets)
 type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing";
@@ -165,6 +167,44 @@ type Format = "plain" | "markdown" | "json";
       document.removeEventListener('keydown', onEsc);
     };
   }, [modelMenuOpen]);
+
+  // Close theme dropdown on outside click or Escape
+  useEffect(() => {
+    if (!themeMenuOpen) return;
+    const onClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const wrap = themeMenuWrapRef.current;
+      if (wrap && !wrap.contains(target)) {
+        setThemeMenuOpen(false);
+      }
+    };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setThemeMenuOpen(false); };
+    document.addEventListener('mousedown', onClickOutside);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, [themeMenuOpen]);
+
+  // Close settings dropdown on outside click or Escape
+  useEffect(() => {
+    if (!settingsMenuOpen) return;
+    const onClickOutside = (e: MouseEvent) => {
+      const target = e.target as Node;
+      const wrap = settingsMenuWrapRef.current;
+      if (wrap && !wrap.contains(target)) {
+        setSettingsMenuOpen(false);
+      }
+    };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setSettingsMenuOpen(false); };
+    document.addEventListener('mousedown', onClickOutside);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onClickOutside);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, [settingsMenuOpen]);
 
   // Auto-resize the chat input up to a reasonable max height
   const autoResizeInput = useCallback(() => {
@@ -606,8 +646,8 @@ type Format = "plain" | "markdown" | "json";
               <div className="text-secondary" style={{ fontSize: 12, padding: '4px 0' }}>No chats yet</div>
             )}
             </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-            <button className="md-btn" style={{ padding: '4px 8px', fontSize: 12 }} onClick={() => setShowAllChatsOpen(true)}>Show all</button>
+          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 8 }}>
+            <button className="md-btn" style={{ padding: '4px 8px', fontSize: 12 }} onClick={() => setShowAllChatsOpen(true)}>Show all chats</button>
           </div>
             </div>
       </aside>
@@ -628,8 +668,8 @@ type Format = "plain" | "markdown" | "json";
               </button>
           )}
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-            <div style={{ position: 'relative' }}>
-              <button className="md-btn" style={{ padding: 8, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setThemeMenuOpen((v) => !v)} title="Change theme">
+            <div ref={themeMenuWrapRef} style={{ position: 'relative' }}>
+              <button className="md-btn" style={{ padding: 8, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setThemeMenuOpen((v) => { const next = !v; if (next) setSettingsMenuOpen(false); return next; })} title="Change theme">
                 <Icon name="palette" />
                 <Icon name="chevronDown" className={`dropdown-arrow ${themeMenuOpen ? 'dropdown-arrow--open' : ''}`} />
               </button>
@@ -638,15 +678,8 @@ type Format = "plain" | "markdown" | "json";
                   {themes.map((theme) => (
               <button
                       key={theme.id} 
-                      className="menu-item" 
+                      className={`menu-item ${currentTheme === theme.id ? 'menu-item--selected' : ''}`} 
                       onClick={() => setTheme(theme.id as 'default' | 'warm' | 'light')}
-                      style={{ 
-                        display: 'flex', 
-                        flexDirection: 'column', 
-                        alignItems: 'flex-start',
-                        background: currentTheme === theme.id ? 'var(--color-primary)' : 'transparent',
-                        color: currentTheme === theme.id ? 'var(--color-on-primary)' : 'var(--color-on-surface)'
-                      }}
                     >
                       <div style={{ fontWeight: 600 }}>{theme.name}</div>
               </button>
@@ -654,10 +687,18 @@ type Format = "plain" | "markdown" | "json";
             </div>
           )}
         </div>
-            <button className="md-btn" style={{ padding: 8, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setSettingsMenuOpen((v) => !v)}>
-              Settings
-              <Icon name="chevronDown" className={`dropdown-arrow ${settingsMenuOpen ? 'dropdown-arrow--open' : ''}`} />
-            </button>
+            <div ref={settingsMenuWrapRef} style={{ position: 'relative' }}>
+              <button className="md-btn" style={{ padding: 8, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setSettingsMenuOpen((v) => { const next = !v; if (next) setThemeMenuOpen(false); return next; })}>
+                Settings
+                <Icon name="chevronDown" className={`dropdown-arrow ${settingsMenuOpen ? 'dropdown-arrow--open' : ''}`} />
+              </button>
+              {settingsMenuOpen && (
+                <div className="menu-panel" style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', minWidth: 180 }}>
+                  <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-db-location')); } catch {}; setSettingsMenuOpen(false); }}>Data Location</button>
+                  <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-system-prompts')); } catch {}; setSettingsMenuOpen(false); }}>System Prompt</button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
@@ -799,16 +840,7 @@ type Format = "plain" | "markdown" | "json";
         </div>
       </section>
     </div>
-    {/* App Settings Menu (top-right) */}
-    {settingsMenuOpen && (
-      <div className="fixed inset-0 z-50" onClick={() => setSettingsMenuOpen(false)}>
-        <div className="menu-panel" style={{ position: 'absolute', right: 16, top: 56 }} onClick={(e) => e.stopPropagation()}>
-          <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-db-location')); } catch {}; setSettingsMenuOpen(false); }}>Data Location</button>
-          <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-system-prompts')); } catch {}; setSettingsMenuOpen(false); }}>System Prompt</button>
-          {/* Model Configuration removed - selection handled via model dropdown */}
-        </div>
-      </div>
-    )}
+    
 
     {/* All Chats Modal */}
     {showAllChatsOpen && (

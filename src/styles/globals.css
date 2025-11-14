@@ -294,6 +294,7 @@ h3, h4, h5, h6 { line-height: 28px; }
 .menu-panel { border: 1px solid var(--color-outline); background: var(--color-surface-variant); padding: 8px 0; border-radius: 12px; min-width: 192px; box-shadow: var(--shadow-2); }
 .menu-item { width: 100%; text-align: left; font-size: 14px; line-height: 24px; padding: 8px 12px; color: var(--color-on-surface); background: transparent; border: none; transition: background 120ms, color 120ms; cursor: pointer; }
 .menu-item:hover { background: var(--color-outline); }
+.menu-item--selected { background: var(--color-outline); }
 .menu-divider { margin: 4px 0; height: 1px; background: var(--color-outline); }
 
 /* Modal backdrop */
