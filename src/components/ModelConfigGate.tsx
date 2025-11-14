@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { isElectronRuntime } from '@/lib/runtime';
 import { CustomSelect } from './CustomSelect';
+import Titlebar from './Titlebar';
 
 interface Props { children: React.ReactNode }
 
@@ -231,28 +232,38 @@ export default function ModelConfigGate({ children }: Props) {
     <SystemPromptEditorWrapper>
       <OpenProviderSelectionListener onOpen={() => setShowProviderSelection(true)} />
       <div className="relative w-full h-full" data-model-gate={electronMode ? (config ? 'ready' : 'pending') : 'disabled'}>
+        {/* Ensure the custom Electron titlebar is ALWAYS visible, even when gated */}
+        {electronMode && gated && <Titlebar />}
         {!gated && children}
         {electronMode && gated && (
-          <div className="fixed inset-0 z-40 flex items-center justify-center modal-backdrop-blur">
-            {(fetching && !loadedOnce) || validating ? (
-              <div className="text-center">
-                <div className="text-light text-sm mb-2">
-                  {validating ? 'Validating Gemma 3 connection…' : 'Loading Gemma 3 configuration…'}
+          <div className="modal-container">
+            <div className="modal-backdrop-blur" />
+            {((fetching && !loadedOnce) || validating) ? (
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <div className="modal-title">{validating ? 'Validating Gemma 3 connection…' : 'Loading Gemma 3 configuration…'}</div>
                 </div>
-                <div className="text-surface-400 text-xs">
-                  {validating ? 'Testing your default provider…' : 'Checking for saved settings…'}
+                <div className="modal-body">
+                  <div className="text-secondary text-sm">
+                    {validating ? 'Testing your default provider…' : 'Checking for saved settings…'}
+                  </div>
                 </div>
               </div>
             ) : showProviderSelection ? (
-              <div className="w-full max-w-md rounded-xl border border-surface-a40 bg-surface-a10 p-6 text-light shadow-2xl" style={{ backgroundColor: '#1e2028', borderColor: '#2d3039' }}>
-                <h1 className="mb-4 text-xl font-semibold">Configure Local Ollama</h1>
-                <p className="mb-4 text-sm text-surface-400">PromptCrafter requires a local Ollama installation with Gemma 3 models for complete privacy.</p>
-                {previouslyConfigured && connectionError && (
-                  <div className="mb-3 rounded border border-primary-400/40 bg-primary-100/20 px-3 py-2 text-[11px] text-light">
-                    Previous configuration detected but connection failed ({connectionError}). Update values and save again.
-                  </div>
-                )}
-                <form data-provider-form="true" onSubmit={async (e) => {
+              <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+                <div className="modal-header">
+                  <div className="modal-title">Configure Local Ollama</div>
+                </div>
+                <div className="modal-body">
+                  <p className="text-sm text-secondary mb-4">PromptCrafter requires a local Ollama installation with Gemma 3 models for complete privacy.</p>
+                  {previouslyConfigured && connectionError && (
+                    <div className="md-card" style={{ padding: 12, borderLeft: '4px solid var(--color-primary)' }}>
+                      <div style={{ fontSize: 12 }}>
+                        Previous configuration detected but connection failed ({connectionError}). Update values and save again.
+                      </div>
+                    </div>
+                  )}
+                  <form data-provider-form="true" onSubmit={async (e) => {
                   e.preventDefault();
                   setSaving(true); setError(null);
                   try {
@@ -295,103 +306,105 @@ export default function ModelConfigGate({ children }: Props) {
                     setError(err instanceof Error ? err.message : 'Unknown error');
                   } finally { setSaving(false); }
                 }} className="space-y-4">
-                  <div>
-                    <label className="block text-xs font-medium uppercase tracking-wide text-surface-400 mb-1">Provider</label>
-                    <div className="w-full rounded-md border border-surface-300/30 bg-surface-200 px-3 py-2 text-sm text-surface-400">
-                      🏠 Ollama (Local, Private)
-                    </div>
-                  </div>
-                  
-                  {/* Ollama configuration */}
-                      <div>
-                        <label className="block text-xs font-medium uppercase tracking-wide text-surface-400 mb-1" htmlFor="baseUrl">Base URL (local only)</label>
-                        <div className="flex gap-2">
-                          <input
-                            id="baseUrl"
-                            value={localBaseUrl}
-                            onChange={e => { setLocalBaseUrl(e.target.value); setLocalTestResult(null); }}
-                            required
-                            className="flex-1 rounded-md border border-surface-300/30 bg-surface-200 px-3 py-2 text-sm"
-                            placeholder="http://localhost:11434"
-                            autoComplete="off"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => testLocalConnection()}
-                            disabled={testingLocal || !localBaseUrl}
-                            className="rounded-md border border-primary-300/50 bg-primary/20 px-3 py-2 text-xs font-medium text-light hover:bg-primary/30 disabled:opacity-40 interactive-glow"
-                            title="Check for available Ollama models"
-                          >{testingLocal ? '...' : 'Check for models'}</button>
-                        </div>
-                        {localTestResult && (
-                          <div className={`mt-2 rounded-md border px-3 py-2 text-[11px] ${localTestResult.success ? 'border-primary-400/40 bg-primary-a0/20 text-primary-300' : 'border-red-500/40 bg-red-900/20 text-red-300'}`}>
-                            <div className="flex items-center justify-between gap-3">
-                              <span>{localTestResult.success ? 'Connection successful' : 'Connection failed'}{localTestResult.duration != null && ` (${localTestResult.duration}ms)`}</span>
-                            </div>
-                            {!localTestResult.success && localTestResult.error && (
-                              <div className="mt-1">{localTestResult.error}</div>
-                            )}
-                            {localTestResult.success && localTestResult.models && (
-                              <div className="mt-1 max-h-28 overflow-y-auto space-y-1">
-                                {localTestResult.models.length ? localTestResult.models.map(m => (
-                                  <div key={m} className="flex items-center gap-2 text-[10px] bg-surface-200/50 rounded px-2 py-1">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-primary-400" />
-                                    <span className="truncate">{m}</span>
-                                  </div>
-                                )) : <div className="text-[10px] opacity-70">No models reported</div>}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <label className="block text-xs font-medium uppercase tracking-wide text-surface-400 mb-1" htmlFor="model">Ollama Model</label>
-                        <CustomSelect
-                          value={model}
-                          onChange={(value) => setModel(value as string)}
-                          options={
-                            availableModels.length > 0 
-                              ? availableModels.map(m => ({ value: m, label: m }))
-                              : [{ value: "", label: "First check for available models", disabled: true }]
-                          }
-                          className="w-full"
-                          disabled={availableModels.length === 0}
+                    {/* Ollama configuration */}
+                    <div>
+                      <label className="data-location-label" htmlFor="baseUrl">Base URL (local only)</label>
+                      <div style={{ display: 'flex', gap: 8 }}>
+                        <input
+                          id="baseUrl"
+                          value={localBaseUrl}
+                          onChange={e => { setLocalBaseUrl(e.target.value); setLocalTestResult(null); }}
+                          required
+                          className="md-input"
+                          placeholder="http://localhost:11434"
+                          autoComplete="off"
+                          style={{ flex: 1 }}
                         />
+                        <button
+                          type="button"
+                          onClick={() => testLocalConnection()}
+                          disabled={testingLocal || !localBaseUrl}
+                          className="md-btn"
+                          title="Check for available Ollama models"
+                          style={{ whiteSpace: 'nowrap' }}
+                        >{testingLocal ? 'Checking…' : 'Check for models'}</button>
                       </div>
-                      <div className="text-[11px] text-surface-400 leading-relaxed">
-                        {availableModels.length === 0 ? (
-                          <>Click "Check for models" to find available Ollama models. If none are found, install Ollama and pull a compatible model.</>
-                        ) : (
-                          <>Found {availableModels.length} available model{availableModels.length !== 1 ? 's' : ''}. Select one from the dropdown.</>
-                        )}
-                      </div>
-                  
-                  {(error || connectionError) && <div className="rounded border border-primary-400/40 bg-primary/30 px-3 py-2 text-xs text-light">{error || connectionError}</div>}
-                  
-                  <div className="flex items-center space-x-2">
-                    <input 
-                      type="checkbox" 
-                      id="setAsDefault"
-                      checked={setAsDefault}
-                      onChange={(e) => setSetAsDefault(e.target.checked)}
-                      className="rounded border-surface-300 bg-surface-200 text-primary"
-                    />
-                    <label htmlFor="setAsDefault" className="text-xs text-surface-400">
-                      Set as default (auto-load this provider on startup)
-                    </label>
-                  </div>
-                  <div className="flex flex-col gap-2 pt-2">
-                    <button 
-                      disabled={saving || validating || (!model || model.trim() === '')}
-                      className="w-full rounded-md bg-primary py-2 text-sm font-semibold text-light disabled:opacity-60 interactive-glow"
-                      title={(!model || model.trim() === '') ? 'Please check for models and select one' : undefined}
-                    >
-                      {saving || validating ? 'Validating…' : 'Start PromptCrafter'}
-                    </button>
-                  </div>
-                </form>
+                      {localTestResult && (
+                        <div className="md-card" style={{ marginTop: 8, padding: 12 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontSize: 12 }}>
+                            <span style={{ color: localTestResult.success ? 'var(--color-primary)' : '#ef4444' }}>
+                              {localTestResult.success ? 'Connection successful' : 'Connection failed'}
+                              {localTestResult.duration != null && ` (${localTestResult.duration}ms)`}
+                            </span>
+                          </div>
+                          {!localTestResult.success && localTestResult.error && (
+                            <div style={{ marginTop: 6, fontSize: 12 }} className="text-secondary">{localTestResult.error}</div>
+                          )}
+                          {localTestResult.success && localTestResult.models && (
+                            <div style={{ marginTop: 8, maxHeight: 160, overflowY: 'auto', display: 'grid', gap: 6 }}>
+                              {localTestResult.models.length ? localTestResult.models.map(m => (
+                                <div key={m} className="md-card" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px' }}>
+                                  <span style={{ width: 6, height: 6, borderRadius: 9999, background: 'var(--color-primary)' }} />
+                                  <span style={{ fontSize: 12 }} className="truncate">{m}</span>
+                                </div>
+                              )) : <div className="text-secondary" style={{ fontSize: 12, opacity: 0.8 }}>No models reported</div>}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    <div>
+                      <label className="data-location-label" htmlFor="model">Ollama Model</label>
+                      <CustomSelect
+                        value={model}
+                        onChange={(value) => setModel(value as string)}
+                        options={
+                          availableModels.length > 0 
+                            ? availableModels.map(m => ({ value: m, label: m }))
+                            : [{ value: "", label: "First check for available models", disabled: true }]
+                        }
+                        className="w-full"
+                        disabled={availableModels.length === 0}
+                        aria-label="Available Ollama models"
+                      />
+                    </div>
+                    <div className="text-secondary" style={{ fontSize: 12, lineHeight: '18px' }}>
+                      {availableModels.length === 0 ? (
+                        <>Click “Check for models” to find available Ollama models. If none are found, install Ollama and pull a compatible model.</>
+                      ) : (
+                        <>Found {availableModels.length} available model{availableModels.length !== 1 ? 's' : ''}. Select one from the dropdown.</>
+                      )}
+                    </div>
                 
-                {/* Privacy consent modal removed - local only */}
+                    {(error || connectionError) && (
+                      <div className="md-card" style={{ padding: 12, borderLeft: '4px solid #ef4444' }}>
+                        <div style={{ fontSize: 12 }}>{error || connectionError}</div>
+                      </div>
+                    )}
+                
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <input 
+                        type="checkbox" 
+                        id="setAsDefault"
+                        checked={setAsDefault}
+                        onChange={(e) => setSetAsDefault(e.target.checked)}
+                      />
+                      <label htmlFor="setAsDefault" className="text-secondary" style={{ fontSize: 12 }}>
+                        Set as default (auto-load this provider on startup)
+                      </label>
+                    </div>
+                    <div style={{ paddingTop: 8 }}>
+                      <button 
+                        disabled={saving || validating || (!model || model.trim() === '')}
+                        className="md-btn md-btn--primary"
+                        style={{ width: '100%' }}
+                        title={(!model || model.trim() === '') ? 'Please check for models and select one' : undefined}
+                      >
+                        {saving || validating ? 'Validating…' : 'Start PromptCrafter'}
+                      </button>
+                    </div>
+                  </form>
+                </div>
               </div>
             ) : null}
             {showOllamaMissingModal && (
