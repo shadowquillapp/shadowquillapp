@@ -7,11 +7,41 @@ const http = require('http');
 /** @type {number|null} */
 let nextServerPort = null;
 
-// Ensure a stable userData path labeled "PromptCrafter" in dev and prod so
-// both Electron and the Next.js dev server read the same config file location.
+// Ensure a stable LOCAL-ONLY userData path labeled "PromptCrafter" in dev and prod.
+// Never rely on roaming or synced folders—everything must stay on-device.
+function resolveLocalOnlyDataRoots() {
+  const homeDir = app.getPath('home');
+  if (process.platform === 'win32') {
+    const localBase = process.env.LOCALAPPDATA && process.env.LOCALAPPDATA.trim().length
+      ? process.env.LOCALAPPDATA
+      : path.join(homeDir, 'AppData', 'Local');
+    return {
+      appDataRoot: localBase,
+      userDataDir: path.join(localBase, 'PromptCrafter'),
+    };
+  }
+
+  if (process.platform === 'darwin') {
+    const appDataRoot = path.join(homeDir, 'Library', 'Application Support');
+    return {
+      appDataRoot,
+      userDataDir: path.join(appDataRoot, 'PromptCrafter'),
+    };
+  }
+
+  // Default to XDG local share for Linux / other POSIX platforms
+  const appDataRoot = path.join(homeDir, '.local', 'share');
+  return {
+    appDataRoot,
+    userDataDir: path.join(appDataRoot, 'PromptCrafter'),
+  };
+}
+
 try {
-  const desiredUserData = path.join(app.getPath('appData'), 'PromptCrafter');
-  app.setPath('userData', desiredUserData);
+  const { appDataRoot, userDataDir } = resolveLocalOnlyDataRoots();
+  try { fs.mkdirSync(userDataDir, { recursive: true }); } catch (_) { /* ignore */ }
+  app.setPath('appData', appDataRoot);
+  app.setPath('userData', userDataDir);
 } catch (_) { /* ignore */ }
 
 // Treat anything not packaged as dev. Rely on app.isPackaged instead of NODE_ENV
