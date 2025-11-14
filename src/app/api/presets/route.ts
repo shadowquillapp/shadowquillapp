@@ -73,6 +73,16 @@ export async function DELETE(req: Request) {
   const url = new URL(req.url);
   const id = url.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id is required" }, { status: 400 });
+
+  // Verify preset exists, belongs to user, and is not the Default
+  const preset = await dataLayer.findPresetById(id);
+  if (!preset || preset.userId !== userId) {
+    return NextResponse.json({ error: "Preset not found" }, { status: 404 });
+  }
+  if ((preset.name || '').trim().toLowerCase() === 'default') {
+    return NextResponse.json({ error: 'Default preset cannot be deleted' }, { status: 400 });
+  }
+
   await dataLayer.deletePreset(id);
   return NextResponse.json({ ok: true });
 }

@@ -144,6 +144,9 @@ export async function DELETE(req: Request) {
     if (!preset || preset.userId !== userId) {
       return NextResponse.json({ error: "Preset not found" }, { status: 404 });
     }
+    if ((preset.name || '').trim().toLowerCase() === 'default') {
+      return NextResponse.json({ error: 'Default preset cannot be deleted' }, { status: 400 });
+    }
     
     await dataLayer.deletePreset(id);
     return NextResponse.json({ ok: true });
