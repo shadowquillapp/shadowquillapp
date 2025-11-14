@@ -8,7 +8,7 @@ PromptCrafter is a desktop application for crafting AI prompts with complete pri
 
 **Complete Privacy**: No data ever leaves your computer. All AI processing runs locally through Ollama.
 
-**Local Storage**: Your chats, saved presets, and settings are stored as simple files in a folder you choose.
+**Local Storage**: Your chats, saved presets, and settings are stored locally in the app’s profile (Electron’s Chromium storage: localStorage/IndexedDB). You can view the exact paths and factory‑reset from the in‑app Data Location panel.
 
 **Modern Interface**: Clean, beautiful design with three themes and responsive layout that works on any screen size.
 
@@ -23,15 +23,16 @@ PromptCrafter is a desktop application for crafting AI prompts with complete pri
 
 ### AI Integration
 
-- **Local Ollama Models**: Works with Gemma 3 models (1B, 4B, 12B, 27B sizes available)
-- **Auto-Detection**: The app finds all models you have installed
-- **Easy Switching**: Change between models with a simple dropdown menu
-- **No Internet Required**: Everything runs on your machine
+- **Provider: Ollama (local only)** — no cloud providers
+- **Gemma 3 only (1B, 4B, 12B, 27B)** — explicitly supported and auto‑detected
+- **Auto‑Detection**: Finds your installed Gemma 3 models from the local Ollama daemon
+- **Easy Switching**: Pick a Gemma 3 size from the built‑in connection dialog
+- **No Internet Required**: Prompts are generated entirely on your machine
 
 ### User Experience
 
 - **Three Beautiful Themes**: Default (purple), WarmEarth, and Light
-- **Chat History**: All your conversations are saved and easy to find
+- **Chat History**: Conversations are saved locally and easy to find
 - **Code Highlighting**: Formatted code blocks with copy button
 - **Responsive Design**: Works great on desktop, with mobile-friendly sidebar
 - **Keyboard Friendly**: Navigate and interact efficiently
@@ -83,12 +84,13 @@ We recommend starting with `gemma3:4b` by running `ollama pull gemma3:4b` for th
 ### Start Using PromptCrafter
 
 1. **Launch the app** from your applications folder or desktop shortcut
-2. **Choose a data folder** when prompted on first run
-3. **Verify Ollama connection** in the initial setup screen
-4. **Select your model** from the dropdown menu
-5. **Start chatting** and creating prompts!
+2. **Configure Gemma 3 (Ollama) connection** when the dialog appears
+   - Keep the default base URL `http://localhost:11434` unless you changed Ollama’s port
+   - Click “Check for models” to detect available `gemma3` models
+   - Pick a model (we recommend `gemma3:4b`) and save
+3. **Start chatting** and creating prompts!
 
-The app will automatically detect when Ollama is running and which models you have available.
+The app automatically detects when Ollama is running and which Gemma 3 models are available.
 
 ## Using the App
 
@@ -110,7 +112,7 @@ If you find settings you like:
 
 ### Switching Models
 
-Click the model name at the top of the chat window to see all available models. Select a different one to switch instantly.
+Open the Gemma 3 connection dialog (model badge/menu in the top bar), then select a different Gemma 3 size. Switching takes effect immediately once saved.
 
 ### Changing Themes
 
@@ -122,12 +124,12 @@ Click the model name at the top of the chat window to see all available models. 
 
 **Everything is local.** PromptCrafter:
 
-- Never connects to external services (except Ollama on your machine)
-- Stores all data in the folder you chose
+- Never connects to external services (only your local Ollama at `http://localhost:11434`)
+- Stores chats, presets, and settings in your OS profile under the app’s user data directory (Chromium localStorage/IndexedDB)
 - Doesn't collect telemetry or usage data
 - Gives you complete control over your conversations
 
-To completely reset the app, simply delete your data folder.
+To completely reset the app, open Settings → Data Location and click Factory Reset (or manually delete the PromptCrafter user data directory shown there).
 
 ## Building from Source
 
@@ -144,7 +146,7 @@ If you want to modify PromptCrafter or build it yourself:
 # Install dependencies
 npm install
 
-# Run in development mode
+# Run the desktop app in development mode
 npm run dev
 ```
 
@@ -164,7 +166,15 @@ npm run dist:electron
 - Frontend: Next.js with React
 - Styling: Tailwind CSS
 - Language: TypeScript
-- Storage: Local JSON files
+- Storage: Electron localStorage/IndexedDB (persistent) + in‑memory stores (runtime)
+
+### Project Structure (high-level)
+
+- `electron/` — Electron main, preload, and dev/start scripts
+- `src/app/` — Next.js App Router pages and UI
+- `src/components/` — Shared UI components
+- `src/lib/` — Local storage helpers, model config, presets
+- `src/server/` — Local-only services (model validation, in-memory data layer)
 
 ## Contributing
 
