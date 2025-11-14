@@ -6,9 +6,8 @@ const fs = require('fs');
 const http = require('http');
 /** @type {number|null} */
 let nextServerPort = null;
-let dataDirPath = null; // resolved chosen data directory
-const CONFIG_FILENAME = 'promptcrafter-config.json';
-let pendingDataDirInfo = null; // one-time info message to show after window creation
+let dataDirPath = null; // fixed data directory (no longer user-configurable)
+const CONFIG_FILENAME = 'promptcrafter-config.json'; // retained for compatibility if needed
 
 // Ensure a stable userData path labeled "PromptCrafter" in dev and prod so
 // both Electron and the Next.js dev server read the same config file location.
@@ -21,29 +20,15 @@ function getConfigPath() {
   return path.join(app.getPath('userData'), CONFIG_FILENAME);
 }
 
-function loadConfig() {
-  try {
-    const p = getConfigPath();
-    if (fs.existsSync(p)) {
-      return JSON.parse(fs.readFileSync(p, 'utf8'));
-    }
-  } catch (e) { /* ignore */ }
-  return {};
-}
-
-function saveConfig(cfg) {
-  try {
-    fs.mkdirSync(app.getPath('userData'), { recursive: true });
-    fs.writeFileSync(getConfigPath(), JSON.stringify(cfg, null, 2), 'utf8');
-  } catch (e) { /* ignore */ }
-}
+function loadConfig() { return {}; }
+function saveConfig(_cfg) { /* no-op: data directory is fixed */ }
 
 // Treat anything not packaged as dev. Rely on app.isPackaged instead of NODE_ENV
 // because packaged builds often don't set NODE_ENV.
 const isDev = !app.isPackaged;
 
-// Load or create data directory: default to Documents/PromptCrafter for all OS
-const cfg = loadConfig();
+// Use fixed data directory: default to Documents/PromptCrafter for all OS
+const cfg = {};
 
 // Expose userData path to renderer/server processes for unified config resolution
 try { process.env.PROMPTCRAFTER_USER_DATA_DIR = app.getPath('userData'); } catch(_) {}
@@ -65,46 +50,16 @@ function ensureDirWritable(dir) {
 
 function resolveAndPersistDataDirInternal() {
   try {
-    const configured = cfg.dataDir;
-    if (configured) {
-      if (ensureDirWritable(configured)) {
-        dataDirPath = configured;
-      } else {
-        const fallback = getDefaultDataDir();
-        if (ensureDirWritable(fallback)) {
-          dataDirPath = fallback;
-          cfg.dataDir = fallback;
-          saveConfig(cfg);
-          pendingDataDirInfo = `Data folder was missing or not writable. Using default at: ${fallback}`;
-        } else {
-          const lastResort = path.join(app.getPath('userData'), 'PromptCrafter');
-          if (ensureDirWritable(lastResort)) {
-            dataDirPath = lastResort;
-            cfg.dataDir = lastResort;
-            saveConfig(cfg);
-            pendingDataDirInfo = `Data folder was not writable. Using app data at: ${lastResort}`;
-          }
-        }
-      }
+    const fixed = getDefaultDataDir();
+    if (ensureDirWritable(fixed)) {
+      dataDirPath = fixed;
     } else {
-      const fallback = getDefaultDataDir();
-      if (ensureDirWritable(fallback)) {
-        dataDirPath = fallback;
-        cfg.dataDir = fallback;
-        saveConfig(cfg);
-        pendingDataDirInfo = `Created data folder at: ${fallback}`;
-      } else {
-        const lastResort = path.join(app.getPath('userData'), 'PromptCrafter');
-        if (ensureDirWritable(lastResort)) {
-          dataDirPath = lastResort;
-          cfg.dataDir = lastResort;
-          saveConfig(cfg);
-          pendingDataDirInfo = `Created data folder at: ${lastResort}`;
-        }
+      const lastResort = path.join(app.getPath('userData'), 'PromptCrafter');
+      if (ensureDirWritable(lastResort)) {
+        dataDirPath = lastResort;
       }
     }
     if (dataDirPath) {
-      // Expose for any backend code that reads env, but we do not rely on this
       process.env.DATA_DIR = dataDirPath;
     }
   } catch (e) {
@@ -145,73 +100,7 @@ function checkAndOptionallyClearZoneIdentifier() {
 }
 
 // Register IPC handlers early - before app.whenReady() to ensure they're available immediately
-ipcMain.handle('promptcrafter:getConfig', () => {
-  try {
-    return { dataDir: dataDirPath };
-  } catch (e) {
-    return { dataDir: null };
-  }
-});
-ipcMain.handle('promptcrafter:isDbConfigured', () => {
-  try {
-    const cfg = loadConfig();
-    const dir = cfg.dataDir || dataDirPath;
-    const writable = !!dir && canWriteToDir(dir);
-    return { configured: !!(dir && writable), writable, dataDir: dir };
-  } catch (e) {
-    return { configured: false, error: e?.message || 'unknown', writable: false };
-  }
-});
-ipcMain.handle('promptcrafter:getDbInfo', () => {
-  try {
-    if (!dataDirPath) return { ok: false, error: 'Data directory not configured' };
-    // Compute aggregate size of JSON files for approximation
-    let sizeBytes = 0;
-    try {
-      const entries = fs.readdirSync(dataDirPath);
-      for (const f of entries) {
-        if (/\.json$/i.test(f)) {
-          const full = path.join(dataDirPath, f);
-            try { const st = fs.statSync(full); if (st.isFile()) sizeBytes += st.size; } catch(_) {}
-        }
-      }
-    } catch(_) {}
-    // Provide representative data file path (first json file or directory marker)
-    let representative = null;
-    try {
-      const files = fs.readdirSync(dataDirPath).filter(f => f.endsWith('.json'));
-      representative = files[0] ? path.join(dataDirPath, files[0]) : dataDirPath;
-    } catch(_) { representative = dataDirPath; }
-    return { ok: true, dataDir: dataDirPath, dbPath: representative, sizeBytes, writable: canWriteToDir(dataDirPath) };
-  } catch (e) {
-    return { ok: false, error: e?.message || 'Failed to read data directory info' };
-  }
-});
-// Reset DB configuration: allow user to pick a new directory and optionally rebuild DB file
-ipcMain.handle('promptcrafter:resetDataDir', async () => {
-  try {
-  const result = await dialog.showOpenDialog({ properties: ['openDirectory', 'createDirectory'], title: 'Select new data directory' });
-    if (result.canceled || !result.filePaths?.[0]) return { ok: false, cancelled: true };
-    const selected = result.filePaths[0];
-    try { fs.mkdirSync(selected, { recursive: true }); } catch (_) {}
-    if (!canWriteToDir(selected)) {
-      return { ok: false, error: 'Selected folder is not writable. Choose another location (avoid protected folders).' };
-    }
-    // Persist new config
-    const cfg2 = loadConfig();
-    cfg2.dataDir = selected;
-    saveConfig(cfg2);
-    dataDirPath = selected;
-  // No single DB file now; JSON & vector stores will populate lazily.
-    // Point process env at new data directory path
-    process.env.DATA_DIR = dataDirPath;
-    // Create data directory to confirm writability
-    try { fs.mkdirSync(dataDirPath, { recursive: true }); } catch (_) {}
-    return { ok: true, dataDir: dataDirPath, dbPath: dataDirPath, note: 'Data directory updated successfully.' };
-  } catch (e) {
-    return { ok: false, error: e?.message || 'Reset failed' };
-  }
-});
+// Removed IPC handlers related to data directory management (fixed path now)
 
 // Restart the Electron application (used after DB reset)
 ipcMain.handle('promptcrafter:restartApp', () => {
@@ -223,24 +112,7 @@ ipcMain.handle('promptcrafter:restartApp', () => {
     return { ok: false, error: e?.message || 'Failed to restart' };
   }
 });
-ipcMain.handle('promptcrafter:chooseDataDir', async () => {
-  try {
-    const result = await dialog.showOpenDialog({ properties: ['openDirectory', 'createDirectory'] });
-    if (result.canceled || !result.filePaths?.[0]) return { ok: false };
-    const selected = result.filePaths[0];
-    try { fs.mkdirSync(selected, { recursive: true }); } catch (e) {}
-    if (!canWriteToDir(selected)) {
-      return { ok: false, error: 'Selected folder is not writable. Choose another location (avoid Downloads or protected folders).' };
-    }
-    const cfg2 = loadConfig();
-    cfg2.dataDir = selected;
-    saveConfig(cfg2);
-    dataDirPath = selected;
-    return { ok: true, dataDir: dataDirPath };
-  } catch (e) {
-    return { ok: false, error: e?.message || 'Failed to select directory' };
-  }
-});
+// Removed user-driven directory selection IPC handler
 ipcMain.handle('promptcrafter:getEnvSafety', () => {
   const execPath = process.execPath;
   const inDownloads = /[\\/](Downloads|downloads)[\\/]/.test(execPath);
@@ -309,16 +181,6 @@ function createWindow() {
         };
       })();
     `);
-    try {
-      if (pendingDataDirInfo) {
-        dialog.showMessageBox(win, {
-          type: 'info',
-          title: 'Data Folder Initialized',
-          message: pendingDataDirInfo,
-        }).catch(() => {});
-        pendingDataDirInfo = null;
-      }
-    } catch (_) { /* ignore */ }
   });
 
   // Basic spellchecker language setup (can be expanded later)

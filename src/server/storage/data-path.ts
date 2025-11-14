@@ -14,54 +14,9 @@ export function resetDataDirCache() {
  * 2. Check for Electron config file and use its dataDir setting.
  * 3. Otherwise use the user's Documents folder (cross-platform) with a subfolder `PromptCrafter`.
  */
-export function resolveDataDir(custom?: string): string {
-  if (custom) {
-    console.log(`[data-path] Using custom data dir: ${custom}`);
-    return custom;
-  }
-  
-  // Return cached result for consistency within the same process
-  if (cachedDataDir) {
-    console.log(`[data-path] Using cached data dir: ${cachedDataDir}`);
-    return cachedDataDir;
-  }
-  
-  if (process.env.DATA_DIR) {
-    cachedDataDir = process.env.DATA_DIR;
-    console.log(`[data-path] Using DATA_DIR from env: ${cachedDataDir}`);
-    return cachedDataDir;
-  }
-
-  // Try to read Electron config file to get the configured data directory
-  try {
-    const isElectron = !!(process as any)?.versions?.electron || process.env.ELECTRON === '1' || process.env.NEXT_PUBLIC_ELECTRON === '1';
-    console.log(`[data-path] isElectron=${isElectron}, NODE_ENV=${process.env.NODE_ENV}`);
-    
-    if (isElectron || process.env.NODE_ENV === 'development') {
-      const configPath = getElectronConfigPath();
-      console.log(`[data-path] Electron config path: ${configPath || 'not found'}`);
-      
-      if (configPath) {
-        const fs = require('fs');
-        if (fs.existsSync(configPath)) {
-          console.log(`[data-path] Electron config exists at ${configPath}`);
-          const content = fs.readFileSync(configPath, 'utf-8');
-          console.log(`[data-path] Electron config content: ${content}`);
-          
-          const config = JSON.parse(content);
-          if (config.dataDir && typeof config.dataDir === 'string') {
-            cachedDataDir = config.dataDir;
-            console.log(`[data-path] Using dataDir from Electron config: ${cachedDataDir}`);
-            return config.dataDir;
-          }
-        } else {
-          console.log(`[data-path] Electron config file does not exist: ${configPath}`);
-        }
-      }
-    }
-  } catch (error) {
-    console.warn('[data-path] Failed to read Electron config for data directory:', error);
-  }
+export function resolveDataDir(_custom?: string): string {
+  // Ignore any custom path or environment overrides; use fixed location.
+  if (cachedDataDir) return cachedDataDir;
 
   const home = process.env.HOME || process.env.USERPROFILE || os.homedir();
   const isWin = process.platform === 'win32';

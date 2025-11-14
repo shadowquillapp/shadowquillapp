@@ -1,7 +1,6 @@
 import { auth } from "@/server/auth";
 import ChatClient from "@/app/chat/_components/ChatClient";
 import ModelConfigGate from "../../components/ModelConfigGate";
-import { DataDirectoryModal } from "@/components/DataDirectoryPicker";
 
 export default async function ChatPage() {
   const session = await auth();
@@ -11,7 +10,6 @@ export default async function ChatPage() {
       <ModelConfigGate>
         <div className="flex h-full w-full">
           <ChatClient user={session?.user as any} />
-          <DataDirectoryModal />
         </div>
       </ModelConfigGate>
     </main>

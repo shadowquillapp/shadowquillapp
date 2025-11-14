@@ -211,12 +211,6 @@ const UserMenu: React.FC<{ user?: UserInfo | undefined; openAccount?: (() => voi
               >
                 <button
                   type="button"
-                  onClick={() => { window.dispatchEvent(new CustomEvent('open-db-location')); setOpen(false); setSysOpen(false); }}
-                  className="menu-item"
-                  role="menuitem"
-                >Data Location</button>
-                <button
-                  type="button"
                   onClick={() => { window.dispatchEvent(new CustomEvent('open-system-prompts')); setOpen(false); setSysOpen(false); }}
                   className="menu-item"
                   role="menuitem"
@@ -1018,7 +1012,7 @@ function ChatsTab(props: {
               </button>
               <button
                 type="button"
-                className="md-btn md-btn--danger"
+                className="min-w-[110px] rounded-md border border-primary-a20 bg-primary-a0/20 px-2 py-1 text-[11px] text-primary-300 hover:bg-primary-a0/30 interactive-glow"
                 onClick={() => confirmDialog("Delete ALL chats?", "This will remove all chats.", async () => {
                   const ids = chats.map(c => c.id);
                   const results = await Promise.allSettled(ids.map(id => onDeleteChat ? onDeleteChat(id) : Promise.resolve()));
@@ -1029,7 +1023,6 @@ function ChatsTab(props: {
                   setSelectMode(false);
                   try { await utils.chat.list.invalidate(); } catch {}
                 })}
-                style={{ minWidth: 110, padding: '4px 8px', fontSize: 11 }}
               >
                 Delete All
               </button>

@@ -108,12 +108,7 @@ export const FilePathSchema = z.string()
     'File path contains invalid characters'
   );
 
-export const DataDirectorySchema = z.string()
-  .max(4096)
-  .refine(
-    (val: string) => !/\.{2}/.test(val),
-    'Directory path cannot contain ".."'
-  );
+// Removed DataDirectorySchema (data directory is fixed and not user-configurable)
 
 // Model configuration schemas
 export const ModelProviderSchema = z.enum(['ollama', 'openrouter-proxy']);
@@ -235,7 +230,6 @@ export const Schemas = {
   ChatMessage: ChatMessageSchema,
   Chat: ChatSchema,
   FilePath: FilePathSchema,
-  DataDirectory: DataDirectorySchema,
   ModelProvider: ModelProviderSchema,
   BaseURL: BaseURLSchema,
   ModelName: ModelNameSchema,

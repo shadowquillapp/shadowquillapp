@@ -2,12 +2,6 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('promptcrafter', {
-	getConfig: () => ipcRenderer.invoke('promptcrafter:getConfig'),
-	isDbConfigured: () => ipcRenderer.invoke('promptcrafter:isDbConfigured'),
-	chooseDataDir: () => ipcRenderer.invoke('promptcrafter:chooseDataDir'),
-	getDbInfo: () => ipcRenderer.invoke('promptcrafter:getDbInfo'),
-	resetDataDir: () => ipcRenderer.invoke('promptcrafter:resetDataDir')
-	,
 	getEnvSafety: () => ipcRenderer.invoke('promptcrafter:getEnvSafety')
 	,
 	restartApp: () => ipcRenderer.invoke('promptcrafter:restartApp')
@@ -18,3 +12,12 @@ contextBridge.exposeInMainWorld('promptcrafter', {
 		close: () => ipcRenderer.invoke('promptcrafter:window:close')
 	}
 });
+
+// Forward info notifications from main to renderer UI to show in-app dialogs
+try {
+	ipcRenderer.on('promptcrafter:info', (_event, payload) => {
+		try {
+			window.dispatchEvent(new CustomEvent('app-info', { detail: payload || {} }));
+		} catch (_) { /* ignore */ }
+	});
+} catch (_) { /* ignore */ }
