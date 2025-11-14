@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Icon } from "./Icon";
 import { useDialog } from "./DialogProvider";
 import { isElectronRuntime } from '@/lib/runtime';
+import { readLocalModelConfig as readLocalModelConfigClient, writeLocalModelConfig as writeLocalModelConfigClient, validateLocalModelConnection as validateLocalModelConnectionClient, listAvailableModels } from '@/lib/local-config';
+import { ensureDefaultPreset } from '@/lib/presets';
 import Titlebar from './Titlebar';
 
 interface Props { children: React.ReactNode }
@@ -42,6 +44,11 @@ export default function ModelConfigGate({ children }: Props) {
     }
   }, [electronMode]);
 
+  // Ensure the 'Default' preset exists on startup (idempotent)
+  useEffect(() => {
+    try { ensureDefaultPreset(); } catch {}
+  }, []);
+
   // Load configuration and default provider on startup
   useEffect(() => {
     if (!electronMode || loadedOnce) return;
@@ -50,57 +57,39 @@ export default function ModelConfigGate({ children }: Props) {
     const load = async () => {
       setFetching(true);
       try {
-        // Load both config and default provider preference
-        const configRes = await fetch('/api/model/config').catch(() => null);
-
+        // Load config from local storage
+        const cfg = readLocalModelConfigClient();
         if (cancelled) return;
 
         // Default to Ollama since it's the only option
         setDefaultProvider('ollama');
 
         // Load existing configuration if available
-        if (configRes?.ok) {
-          try {
-            const configData = await configRes.json();
-            if (configData?.config) {
-              setConfig(configData.config);
-              if (configData.config.provider === 'ollama') {
-                const base = String(configData.config.baseUrl || 'http://localhost:11434');
-                const portMatch = base.match(/:(\d{1,5})/);
-                setLocalPort(portMatch?.[1] ?? '11434');
-                // Store the configured model, but don't set it as selected until we check availability
-                const configuredModel = configData.config.model;
-                
-                // Load available models immediately
-                testLocalConnection(configData.config.baseUrl, configuredModel);
-              }
-              setPreviouslyConfigured(true);
+        if (cfg) {
+          setConfig(cfg);
+          if (cfg.provider === 'ollama') {
+            const base = String(cfg.baseUrl || 'http://localhost:11434');
+            const portMatch = base.match(/:(\d{1,5})/);
+            setLocalPort(portMatch?.[1] ?? '11434');
+            // Load available models immediately
+            testLocalConnection(cfg.baseUrl, cfg.model);
+          }
+          setPreviouslyConfigured(true);
 
-              // Always validate loaded config; only proceed if validation passes
-              try {
-                setValidating(true);
-                const validateRes = await fetch('/api/model/validate');
-                if (validateRes.ok) {
-                  const validateData = await validateRes.json();
-                  if (validateData.ok) {
-                    setHasValidDefault(true);
-                    setConnectionError(null);
-                    setShowProviderSelection(false);
-                    return;
-                  } else {
-                    setConnectionError(validateData.error || 'Connection failed');
-                  }
-                } else {
-                  setConnectionError('Connection failed');
-                }
-              } catch (e) {
-                setConnectionError('Connection failed');
-              } finally {
-                setValidating(false);
-              }
+          // Validate loaded config
+          try {
+            setValidating(true);
+            const vr = await validateLocalModelConnectionClient(cfg);
+            if (vr.ok) {
+              setHasValidDefault(true);
+              setConnectionError(null);
+              setShowProviderSelection(false);
+              return;
+            } else {
+              setConnectionError(vr.error || 'Connection failed');
             }
-          } catch (e) {
-            console.warn('Failed to parse config response:', e);
+          } finally {
+            setValidating(false);
           }
         }
 
@@ -209,32 +198,19 @@ export default function ModelConfigGate({ children }: Props) {
     const start = Date.now();
     
     try {
-      const res = await fetch(`/api/model/available?baseUrl=${encodeURIComponent(url)}`);
-      const data = await res.json().catch(() => ({}));
+      const models = await listAvailableModels(url);
       const duration = Date.now() - start;
       
-      if (data.error) {
-        setLocalTestResult({ success: false, url, error: data.error, duration });
-        setAvailableModels([]);
+      const gemmaModels = models.filter((m) => m?.name && /^gemma3\b/i.test(m.name));
+      const gemmaModelNames = gemmaModels.map((m) => m.name);
+      setLocalTestResult({ success: true, url, models: gemmaModels, duration });
+      setAvailableModels(gemmaModelNames);
+      if (configuredModel && gemmaModelNames.includes(configuredModel)) {
+        setModel(configuredModel as string);
+      } else if (gemmaModelNames.length > 0) {
+        setModel(gemmaModelNames[0] ?? '');
       } else {
-        const allModels: Array<{ name: string; size: number }> = Array.isArray(data.available) ? data.available : [];
-        // Filter to Gemma 3 models only
-        const gemmaModels = allModels.filter((m: any) => m?.name && /^gemma3\b/i.test(m.name));
-        // Extract just the names for availableModels state
-        const gemmaModelNames = gemmaModels.map((m: any) => m.name);
-        
-        setLocalTestResult({ success: true, url, models: gemmaModels, duration });
-        setAvailableModels(gemmaModelNames);
-        
-        // If a configured model was provided, set it if it's in the available models
-        // Otherwise, select the first available model if there are any
-        if (configuredModel && gemmaModelNames.includes(configuredModel)) {
-          setModel(configuredModel as string);
-        } else if (gemmaModelNames.length > 0) {
-          setModel(gemmaModelNames[0] ?? '');
-        } else {
-          setModel('');
-        }
+        setModel('');
       }
     } catch (e:any) {
       const duration = Date.now() - start;
@@ -247,6 +223,7 @@ export default function ModelConfigGate({ children }: Props) {
 
   return (
     <SystemPromptEditorWrapper>
+      <DataLocationModalWrapper />
       <OpenProviderSelectionListener onOpen={() => setShowProviderSelection(true)} />
       <div className="relative w-full h-full" data-model-gate={electronMode ? (config ? 'ready' : 'pending') : 'disabled'}>
         {/* Ensure the custom Electron titlebar is ALWAYS visible, even when gated */}
@@ -283,37 +260,25 @@ export default function ModelConfigGate({ children }: Props) {
                   e.preventDefault();
                   setSaving(true); setError(null);
                   try {
-                    const payload = { provider: 'ollama', baseUrl: normalizeToBaseUrl(localPort), model };
-                    
-                    const res = await fetch('/api/model/config', { 
-                      method: 'POST', 
-                      headers: { 'Content-Type': 'application/json' }, 
-                      body: JSON.stringify(payload) 
-                    });
-                    if (!res.ok) throw new Error('Save failed');
-                    
-                    // After saving validate immediately
+                  const payload = { provider: 'ollama', baseUrl: normalizeToBaseUrl(localPort), model };
+                  writeLocalModelConfigClient(payload as any);
+                  // After saving validate immediately
                     setValidating(true);
                     try {
-                      const vr = await fetch('/api/model/validate');
-                      if (vr.ok) {
-                        const vjson = await vr.json();
-                        if (vjson.ok) {
-                          setConfig(payload);
-                          setConnectionError(null);
-                          setPreviouslyConfigured(true);
-                          setShowProviderSelection(false);
-                          try { window.dispatchEvent(new Event('MODEL_CHANGED')); } catch {}
-                        } else {
-                          const errorMsg = vjson.error || 'Connection failed';
-                          if (errorMsg === 'model-not-found') {
-                            setConnectionError(`Model "${model}" not found in Ollama. Run: ollama pull ${model}`);
-                          } else {
-                            setConnectionError(errorMsg);
-                          }
-                        }
+                      const vjson = await validateLocalModelConnectionClient(payload as any);
+                      if (vjson.ok) {
+                        setConfig(payload);
+                        setConnectionError(null);
+                        setPreviouslyConfigured(true);
+                        setShowProviderSelection(false);
+                        try { window.dispatchEvent(new Event('MODEL_CHANGED')); } catch {}
                       } else {
-                        setConnectionError('Connection failed');
+                        const errorMsg = vjson.error || 'Connection failed';
+                        if (errorMsg === 'model-not-found') {
+                          setConnectionError(`Model "${model}" not found in Ollama. Run: ollama pull ${model}`);
+                        } else {
+                          setConnectionError(errorMsg);
+                        }
                       }
                     } finally { setValidating(false); }
                   } catch (err) {
@@ -378,7 +343,7 @@ export default function ModelConfigGate({ children }: Props) {
                                   color: localTestResult.success ? '#10b981' : '#ef4444',
                                   marginBottom: 2
                                 }}>
-                                  {localTestResult.success ? 'Connection Successful!' : 'Connection Failed!'}
+                                  {localTestResult.success ? 'Gemma 3 Connection Successful!' : 'Connection Failed!'}
                                 </div>
                               </div>
                             </div>
@@ -527,11 +492,11 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
     const load = async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/system-prompts');
-        if (res.ok) {
-          const data = await res.json();
-            setPrompt(data.prompt || data.build || '');
-        }
+        // Load from local storage
+        try {
+          const p = (typeof window !== 'undefined' ? localStorage.getItem('SYSTEM_PROMPT_BUILD') : null) || '';
+          setPrompt(p);
+        } catch { setPrompt(''); }
       } finally { setLoading(false); }
     };
     void load();
@@ -570,8 +535,7 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
                     e.preventDefault();
                     setSaving(true); setError(null);
                     try {
-                      const res = await fetch('/api/system-prompts', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
-                      if (!res.ok) throw new Error('Save failed');
+                      try { if (typeof window !== 'undefined') localStorage.setItem('SYSTEM_PROMPT_BUILD', prompt || ''); } catch {}
                       setOpen(false);
                     } catch (err:any) { setError(err.message || 'Unknown error'); } finally { setSaving(false); }
                   }}>
@@ -594,11 +558,29 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
                             if (!ok) return;
                             setSaving(true); setError(null);
                             try {
-                              const res = await fetch('/api/system-prompts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reset' }) });
-                              if (!res.ok) throw new Error('Reset failed');
-                              const data = await res.json();
-                              if (data.prompt) setPrompt(data.prompt);
-                              else if (data.build) setPrompt(data.build);
+                              const def = `You are PromptCrafter, an expert at authoring high-performance prompts for AI models.
+
+Goal:
+- Create a single, self-contained prompt from scratch that achieves the user's objective.
+
+Behavior:
+- Strictly obey any provided Mode, Task type, and Constraints.
+- Incorporate tone, detail level, audience, language, and formatting requirements.
+- Be precise, unambiguous, and concise; avoid filler and meta commentary.
+
+Structure the final prompt (no extra explanation):
+1) Instruction to the assistant (clear objective and role)
+2) Inputs to consider (summarize and normalize the user input)
+3) Steps/Policy (how to think, what to do, what to avoid)
+4) Constraints and acceptance criteria (must/should; edge cases)
+5) Output format (structure; if JSON is requested, specify keys and rules only)
+
+Rules:
+- Do not include code fences or rationale.
+- Prefer measurable criteria over vague language.
+- Ensure output is ready for direct copy-paste.`;
+                              try { if (typeof window !== 'undefined') localStorage.setItem('SYSTEM_PROMPT_BUILD', def); } catch {}
+                              setPrompt(def);
                             } catch (err:any) {
                               setError(err.message || 'Unknown error');
                             } finally { setSaving(false); }
@@ -638,5 +620,130 @@ function OpenProviderSelectionListener({ onOpen }: { onOpen: () => void }) {
     return () => window.removeEventListener('open-provider-selection', handler as any);
   }, [onOpen]);
   return null;
+}
+
+function DataLocationModalWrapper() {
+  const { confirm } = useDialog();
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [paths, setPaths] = useState<null | {
+    userData?: string;
+    localStorageDir?: string;
+    localStorageLevelDb?: string;
+  }>(null);
+
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener('open-data-location', handler as any);
+    return () => window.removeEventListener('open-data-location', handler as any);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const load = async () => {
+      setLoading(true); setError(null);
+      try {
+        const api = (window as any).promptcrafter;
+        if (!api?.getDataPaths) {
+          setPaths(null);
+          setError('Not available outside the desktop app');
+          return;
+        }
+        let res: any = null;
+        try {
+          res = await api.getDataPaths();
+        } catch (e: any) {
+          const msg = String(e?.message || '');
+          if (msg.includes('No handler registered')) {
+            setPaths(null);
+            setError('Main process not updated yet. Please fully quit and relaunch the app.');
+            return;
+          }
+          throw e;
+        }
+        if (res?.ok) {
+          setPaths({
+            userData: res.userData,
+            localStorageDir: res.localStorageDir,
+            localStorageLevelDb: res.localStorageLevelDb,
+          });
+        } else {
+          setError(res?.error || 'Failed to load data paths');
+        }
+      } catch (e: any) {
+        setError(e?.message || 'Failed to load data paths');
+      } finally {
+        setLoading(false);
+      }
+    };
+    void load();
+  }, [open]);
+
+  return (
+    <>
+      {open && (
+        <div className="modal-container">
+          <div className="modal-backdrop-blur" onClick={() => setOpen(false)} />
+          <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <div className="modal-title">Local Data Location</div>
+              <button onClick={() => setOpen(false)} className="md-btn" style={{ padding: '6px 10px' }}><Icon name="close" /></button>
+            </div>
+            <div className="modal-body">
+              {loading ? (
+                <div className="text-sm">Loading…</div>
+              ) : (
+                <div className="space-y-3">
+                  {error && <div className="md-card" style={{ padding: 12, borderLeft: '4px solid #ef4444' }}>
+                    <div style={{ fontSize: 12 }}>{error}</div>
+                  </div>}
+                  <div className="md-card" style={{ padding: 12 }}>
+                    <div className="text-sm text-secondary" style={{ marginBottom: 8 }}>Electron Profile (userData)</div>
+                    <code style={{ fontSize: 12, wordBreak: 'break-all' }}>{paths?.userData || 'Unknown'}</code>
+                  </div>
+                  <div className="md-card" style={{ padding: 12 }}>
+                    <div className="text-sm text-secondary" style={{ marginBottom: 8 }}>Local Storage (LevelDB)</div>
+                    <code style={{ fontSize: 12, wordBreak: 'break-all' }}>{paths?.localStorageLevelDb || paths?.localStorageDir || 'Unknown'}</code>
+                  </div>
+                  <div className="md-card" style={{ padding: 12, borderLeft: '4px solid #ef4444' }}>
+                    <div className="text-sm" style={{ marginBottom: 8, color: '#ef4444' }}><b>Reset Application</b></div>
+                    <div className="text-xs text-secondary" style={{ marginBottom: 10 }}>
+                      This will delete all local data (settings, chats, presets) PERMANENTLY. Only use this if you want to start fresh.
+                    </div>
+                    <button
+                      className="md-btn md-btn--destructive"
+                      onClick={async () => {
+                        const ok = await confirm({ title: 'Factory Reset', message: 'Delete ALL local data and restart?', confirmText: 'Delete & Restart', cancelText: 'Cancel', tone: 'destructive' });
+                        if (!ok) return;
+                        setLoading(true); setError(null);
+                        try {
+                          const api = (window as any).promptcrafter;
+                          const res = await api?.factoryReset?.();
+                          if (!res?.ok) {
+                            setError(res?.error || 'Reset failed');
+                            setLoading(false);
+                            return;
+                          }
+                          await api?.restartApp?.();
+                        } catch (e: any) {
+                          setError(e?.message || 'Reset failed');
+                        } finally {
+                          setLoading(false);
+                        }
+                      }}
+                      style={{ padding: '6px 10px', color: '#ef4444', marginRight: 30, borderColor: '#ef4444' }}
+                    >
+                      <b>DELETE ALL LOCAL DATA</b>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
 }
 
