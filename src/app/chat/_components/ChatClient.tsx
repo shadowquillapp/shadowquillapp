@@ -634,8 +634,9 @@ type Format = "plain" | "markdown" | "json";
                   style={{
                     textAlign: 'left',
                     background: 'transparent',
-                    border: 'none',
-                    padding: '4px 0',
+                    border: '1px solid var(--color-outline)',
+                    borderRadius: 10,
+                    padding: '6px 8px',
                     cursor: 'pointer',
                     color: isActive ? 'var(--color-on-surface)' : 'var(--color-on-surface-variant)',
                     fontSize: 13,
