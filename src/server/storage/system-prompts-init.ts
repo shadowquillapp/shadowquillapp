@@ -6,24 +6,31 @@ import { dataLayer } from './data-layer';
 // Use hardcoded default system prompts
 export interface SystemPromptsDefault {
   build: string;
-  enhance: string;
   version: string;
 }
 
 // Default system prompts - hardcoded as backup in case file reading fails
-const DEFAULT_BUILD_PROMPT = `You create one high‑performance prompt.
+const DEFAULT_BUILD_PROMPT = `You are PromptCrafter, an expert at authoring high-performance prompts for AI models.
 
-- Follow task and constraints.
-- Be concise; no meta talk.
-- Output exactly one prompt; never include answers or code.
-- No headings, labels, or numbered sections.`;
+Goal:
+- Create a single, self-contained prompt from scratch that achieves the user's objective.
 
-const DEFAULT_ENHANCE_PROMPT = `You tighten an existing prompt.
+Behavior:
+- Strictly obey any provided Mode, Task type, and Constraints.
+- Incorporate tone, detail level, audience, language, and formatting requirements.
+- Be precise, unambiguous, and concise; avoid filler and meta commentary.
 
-- Keep intent; remove fluff.
-- Add only missing constraints that improve reliability.
-- Output only the improved prompt; never include answers or code.
-- No headings, labels, or numbered sections.`;
+Structure the final prompt (no extra explanation):
+1) Instruction to the assistant (clear objective and role)
+2) Inputs to consider (summarize and normalize the user input)
+3) Steps/Policy (how to think, what to do, what to avoid)
+4) Constraints and acceptance criteria (must/should; edge cases)
+5) Output format (structure; if JSON is requested, specify keys and rules only)
+
+Rules:
+- Do not include code fences or rationale.
+- Prefer measurable criteria over vague language.
+- Ensure output is ready for direct copy-paste.`;
 
 // Initialize system prompts default file
 export async function ensureSystemPromptsDefaultFile(): Promise<SystemPromptsDefault> {
@@ -43,11 +50,9 @@ export async function ensureSystemPromptsDefaultFile(): Promise<SystemPromptsDef
     try {
       console.log('Using hardcoded default system prompts');
       const buildContent = DEFAULT_BUILD_PROMPT;
-      const enhanceContent = DEFAULT_ENHANCE_PROMPT;
       
       const defaults: SystemPromptsDefault = {
         build: buildContent.trim(),
-        enhance: enhanceContent.trim(),
         version: '1.2.0'
       };
       
@@ -65,7 +70,6 @@ export async function ensureSystemPromptsDefaultFile(): Promise<SystemPromptsDef
       console.log('Using hardcoded defaults as last resort');
       return {
         build: DEFAULT_BUILD_PROMPT,
-        enhance: DEFAULT_ENHANCE_PROMPT,
         version: '1.2.0'
       };
     }
@@ -78,7 +82,6 @@ export async function initializeSystemPrompts(): Promise<void> {
   try {
     // Check if system prompts already exist in app settings
     const buildPrompt = await dataLayer.findAppSetting('SYSTEM_PROMPT_BUILD');
-    const enhancePrompt = await dataLayer.findAppSetting('SYSTEM_PROMPT_ENHANCE');
     
     // Get the defaults regardless - will either read from file or create from MD files
     const defaults = await ensureSystemPromptsDefaultFile();
@@ -86,7 +89,6 @@ export async function initializeSystemPrompts(): Promise<void> {
     
     // Always check if prompts exist and are not empty
     const needsBuildPrompt = !buildPrompt?.value || buildPrompt.value.trim() === '';
-    const needsEnhancePrompt = !enhancePrompt?.value || enhancePrompt.value.trim() === '';
     
     if (needsBuildPrompt) {
       console.log('Setting BUILD system prompt from defaults');
@@ -94,21 +96,12 @@ export async function initializeSystemPrompts(): Promise<void> {
     } else {
       console.log('BUILD system prompt already exists');
     }
-    
-    if (needsEnhancePrompt) {
-      console.log('Setting ENHANCE system prompt from defaults');
-      await dataLayer.upsertAppSetting('SYSTEM_PROMPT_ENHANCE', defaults.enhance);
-    } else {
-      console.log('ENHANCE system prompt already exists');
-    }
-    
     console.log('System prompts initialization complete');
   } catch (error) {
     console.error('Failed to initialize system prompts:', error);
     // Try one more time with hardcoded defaults
     try {
       await dataLayer.upsertAppSetting('SYSTEM_PROMPT_BUILD', DEFAULT_BUILD_PROMPT);
-      await dataLayer.upsertAppSetting('SYSTEM_PROMPT_ENHANCE', DEFAULT_ENHANCE_PROMPT);
       console.log('System prompts initialized with hardcoded defaults after error');
     } catch (fallbackError) {
       console.error('Final fallback for system prompts failed:', fallbackError);

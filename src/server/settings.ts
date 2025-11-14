@@ -3,9 +3,8 @@ import { ensureSystemPromptsDefaultFile } from "@/server/storage/system-prompts-
 
 const SYSTEM_PROMPT_KEY = "SYSTEM_PROMPT" as const;
 const SYSTEM_PROMPT_BUILD_KEY = "SYSTEM_PROMPT_BUILD" as const;
-const SYSTEM_PROMPT_ENHANCE_KEY = "SYSTEM_PROMPT_ENHANCE" as const;
 
-export type PromptMode = "build" | "enhance";
+export type PromptMode = "build";
 
 export async function readSystemPrompt(): Promise<string | null> {
   const setting = await dataLayer.findAppSetting(SYSTEM_PROMPT_KEY);
@@ -13,8 +12,7 @@ export async function readSystemPrompt(): Promise<string | null> {
 }
 
 export async function readSystemPromptForMode(mode: PromptMode): Promise<string | null> {
-  const key = mode === "build" ? SYSTEM_PROMPT_BUILD_KEY : SYSTEM_PROMPT_ENHANCE_KEY;
-  const setting = await dataLayer.findAppSetting(key);
+  const setting = await dataLayer.findAppSetting(SYSTEM_PROMPT_BUILD_KEY);
   if (setting?.value) return setting.value;
   // Fallback to legacy single prompt if per-mode not found
   const legacyPrompt = await readSystemPrompt();
@@ -23,9 +21,9 @@ export async function readSystemPromptForMode(mode: PromptMode): Promise<string 
   // If no stored value, get from defaults file
   try {
     const defaults = await ensureSystemPromptsDefaultFile();
-    return mode === "build" ? defaults.build : defaults.enhance;
+    return defaults.build;
   } catch (error) {
-    console.error(`Failed to load default system prompt for ${mode} mode:`, error);
+    console.error(`Failed to load default system prompt:`, error);
     return null;
   }
 }
@@ -35,8 +33,7 @@ export async function writeSystemPrompt(prompt: string): Promise<void> {
 }
 
 export async function writeSystemPromptForMode(mode: PromptMode, prompt: string): Promise<void> {
-  const key = mode === "build" ? SYSTEM_PROMPT_BUILD_KEY : SYSTEM_PROMPT_ENHANCE_KEY;
-  await dataLayer.upsertAppSetting(key, prompt);
+  await dataLayer.upsertAppSetting(SYSTEM_PROMPT_BUILD_KEY, prompt);
 }
 
 // NOTE: Legacy DB-based helper names removed.
