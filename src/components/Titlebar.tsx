@@ -45,6 +45,9 @@ export default function Titlebar() {
       className="fixed top-0 left-0 right-0 flex h-8 items-center select-none app-region-drag"
       style={{ background: 'var(--color-titlebar-background)', borderBottom: '1px solid var(--color-outline)', zIndex: 100 }}
     >
+      <div className="px-3 text-sm font-semibold">
+        PromptCrafter
+      </div>
       <div className="ml-auto flex gap-2 px-2 app-region-no-drag">
         <TitlebarButton 
           aria-label="Minimize" 
