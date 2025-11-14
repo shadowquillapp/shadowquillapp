@@ -162,7 +162,7 @@ export async function validateLocalModelConnection(cfg?: LocalModelConfig | null
   }
 }
 
-export async function callLocalModel(prompt: string, opts?: { mode?: 'build' | 'enhance'; taskType?: string; options?: any }): Promise<string> {
+export async function callLocalModel(prompt: string, opts?: { mode?: 'build'; taskType?: string; options?: any }): Promise<string> {
   const cfg = await readLocalModelConfig();
   if (!cfg) throw new Error("Model not configured");
   
@@ -170,10 +170,18 @@ export async function callLocalModel(prompt: string, opts?: { mode?: 'build' | '
     // Ollama simple generate API
     const controller = new AbortController();
     const to = setTimeout(() => controller.abort(), GENERATION_TIMEOUT_MS);
+    const payload: Record<string, any> = {
+      model: cfg.model,
+      prompt,
+      stream: false,
+    };
+    if (opts?.options && typeof opts.options.temperature === 'number') {
+      payload.options = { ...(payload.options ?? {}), temperature: opts.options.temperature };
+    }
     const res = await fetch(`${cfg.baseUrl.replace(/\/$/, "")}/api/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ model: cfg.model, prompt, stream: false }),
+      body: JSON.stringify(payload),
       signal: controller.signal,
     });
     clearTimeout(to);
