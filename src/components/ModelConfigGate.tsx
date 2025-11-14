@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useState } from 'react';
+import { Icon } from "./Icon";
+import { useDialog } from "./DialogProvider";
 import { isElectronRuntime } from '@/lib/runtime';
 import Titlebar from './Titlebar';
 
@@ -29,7 +31,7 @@ export default function ModelConfigGate({ children }: Props) {
   const [showOllamaMissingModal, setShowOllamaMissingModal] = useState(false);
   // Local test state for Ollama connection (mirrors Local Gemma3 Models modal behavior)
   const [testingLocal, setTestingLocal] = useState(false);
-  const [localTestResult, setLocalTestResult] = useState<null | { success: boolean; url: string; models?: string[]; error?: string; duration?: number }>(null);
+  const [localTestResult, setLocalTestResult] = useState<null | { success: boolean; url: string; models?: Array<{ name: string; size: number }>; error?: string; duration?: number }>(null);
   // Available models from Ollama
   const [availableModels, setAvailableModels] = useState<string[]>([]);
 
@@ -215,18 +217,21 @@ export default function ModelConfigGate({ children }: Props) {
         setLocalTestResult({ success: false, url, error: data.error, duration });
         setAvailableModels([]);
       } else {
-        const allModels: string[] = Array.isArray(data.available) ? data.available : [];
+        const allModels: Array<{ name: string; size: number }> = Array.isArray(data.available) ? data.available : [];
         // Filter to Gemma 3 models only
-        const gemmaModels = allModels.filter((m: any) => typeof m === 'string' && /^gemma3\b/i.test(m));
+        const gemmaModels = allModels.filter((m: any) => m?.name && /^gemma3\b/i.test(m.name));
+        // Extract just the names for availableModels state
+        const gemmaModelNames = gemmaModels.map((m: any) => m.name);
+        
         setLocalTestResult({ success: true, url, models: gemmaModels, duration });
-        setAvailableModels(gemmaModels);
+        setAvailableModels(gemmaModelNames);
         
         // If a configured model was provided, set it if it's in the available models
         // Otherwise, select the first available model if there are any
-        if (configuredModel && gemmaModels.includes(configuredModel)) {
+        if (configuredModel && gemmaModelNames.includes(configuredModel)) {
           setModel(configuredModel as string);
-        } else if (gemmaModels.length > 0) {
-          setModel(gemmaModels[0] ?? '');
+        } else if (gemmaModelNames.length > 0) {
+          setModel(gemmaModelNames[0] ?? '');
         } else {
           setModel('');
         }
@@ -264,7 +269,7 @@ export default function ModelConfigGate({ children }: Props) {
             ) : showProviderSelection ? (
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                  <div className="modal-title">Configure Local Gemma 3 Model</div>
+                  <div className="modal-title">Ollama Connection Setup</div>
                 </div>
                 <div className="modal-body">
                   {previouslyConfigured && connectionError && (
@@ -317,7 +322,7 @@ export default function ModelConfigGate({ children }: Props) {
                 }} className="space-y-4">
                     {/* Ollama configuration */}
                     <div style={{ paddingTop: 16, paddingBottom: 16 }}>
-                      <label className="data-location-label" htmlFor="port">Local Ollama port <i>(Default: 11434)</i></label>
+                      <label className="data-location-label" htmlFor="port">Local Ollama port <i>(Default: <b>11434</b>)</i></label>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <input
                           id="port"
@@ -341,62 +346,129 @@ export default function ModelConfigGate({ children }: Props) {
                           type="button"
                           onClick={() => testLocalConnection()}
                           disabled={testingLocal || !isValidPort(localPort)}
-                          className="md-btn"
+                          className="md-btn md-btn--attention"
                           title="Check for available Ollama models"
                           style={{ whiteSpace: 'nowrap' }}
                         >{testingLocal ? 'Checking…' : 'Check for models'}</button>
                       </div>
                       {localTestResult && (
-                        <div className="md-card" style={{ marginTop: 8, padding: 12 }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, fontSize: 12 }}>
-                            <span style={{ color: localTestResult.success ? 'var(--color-primary)' : '#ef4444' }}>
-                              {localTestResult.success ? 'Connection successful' : 'Connection failed'}
-                              {localTestResult.duration != null && ` (${localTestResult.duration}ms)`}
-                            </span>
-                          </div>
-                          {!localTestResult.success && localTestResult.error && (
-                            <div style={{ marginTop: 6, fontSize: 12 }} className="text-secondary">{localTestResult.error}</div>
-                          )}
-                          {localTestResult.success && localTestResult.models && (
-                            <div style={{ marginTop: 8, maxHeight: 160, overflowY: 'auto', display: 'grid', gap: 6 }}>
-                              {localTestResult.models.length ? localTestResult.models.map(m => (
-                                <div key={m} className="md-card" style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px' }}>
-                                  <span style={{ width: 6, height: 6, borderRadius: 9999, background: 'var(--color-primary)' }} />
-                                  <span style={{ fontSize: 12 }} className="truncate">{m}</span>
+                        <div className="md-card" style={{ 
+                          marginTop: 12, 
+                          padding: 0,
+                          overflow: 'hidden',
+                          borderLeft: localTestResult.success ? '3px solid #10b981' : '3px solid #ef4444'
+                        }}>
+                          <div style={{ 
+                            padding: '12px 16px',
+                            background: localTestResult.success ? 'rgba(16, 185, 129, 0.08)' : 'rgba(239, 68, 68, 0.08)',
+                            borderBottom: localTestResult.success && localTestResult.models?.length ? '1px solid rgba(255, 255, 255, 0.05)' : 'none'
+                          }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                              <span style={{ 
+                                fontSize: 16, 
+                                color: localTestResult.success ? '#10b981' : '#ef4444',
+                                fontWeight: 'bold'
+                              }}>
+                                {localTestResult.success ? '' : '✕'}
+                              </span>
+                              <div style={{ flex: 1 }}>
+                                <div style={{ 
+                                  fontSize: 13,
+                                  fontWeight: 600,
+                                  color: localTestResult.success ? '#10b981' : '#ef4444',
+                                  marginBottom: 2
+                                }}>
+                                  {localTestResult.success ? 'Connection Successful!' : 'Connection Failed!'}
                                 </div>
-                              )) : <div className="text-secondary" style={{ fontSize: 12, opacity: 0.8 }}>No models reported</div>}
+                              </div>
+                            </div>
+                          </div>
+                          {localTestResult.success && localTestResult.models && localTestResult.models.length > 0 && (
+                            <div style={{ 
+                              padding: '8px 12px',
+                              maxHeight: 180, 
+                              overflowY: 'auto',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: 6
+                            }}>
+                              {localTestResult.models.map((m, idx) => {
+                                const size = (m.name.split(':')[1] || '').toUpperCase();
+                                const displayName = size ? `Gemma 3 ${size}` : 'Gemma 3';
+                                const sizeInGB = (m.size / (1024 * 1024 * 1024)).toFixed(1);
+                                return (
+                                  <div 
+                                    key={m.name} 
+                                    style={{ 
+                                      display: 'flex', 
+                                      alignItems: 'center', 
+                                      gap: 10, 
+                                      padding: '8px 12px',
+                                      borderRadius: 6,
+                                      background: 'rgba(255, 255, 255, 0.02)',
+                                      border: '1px solid rgba(255, 255, 255, 0.05)',
+                                      transition: 'all 0.2s ease',
+                                      cursor: 'default'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                      e.currentTarget.style.background = 'rgba(16, 185, 129, 0.1)';
+                                      e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                                    }}
+                                    onMouseLeave={(e) => {
+                                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.02)';
+                                      e.currentTarget.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+                                    }}
+                                  >
+                                    <span style={{ 
+                                      color: '#10b981', 
+                                      fontSize: 14, 
+                                      fontWeight: 'bold',
+                                      lineHeight: 1
+                                    }}>✓</span>
+                                    <span style={{ 
+                                      fontSize: 13,
+                                      fontWeight: 500,
+                                      flex: 1
+                                    }} className="truncate">
+                                      {displayName} <code style={{ 
+                                        fontFamily: 'var(--font-mono, monospace)',
+                                        opacity: 0.7,
+                                        fontSize: 11,
+                                        background: 'rgba(255, 255, 255, 0.05)',
+                                        padding: '2px 4px',
+                                        borderRadius: 3
+                                      }}>{m.name} ({sizeInGB}GB)</code>
+                                    </span>
+                                    <span style={{
+                                      fontSize: 10,
+                                      padding: '2px 6px',
+                                      borderRadius: 4,
+                                      background: 'rgba(16, 185, 129, 0.15)',
+                                      color: '#10b981',
+                                      fontWeight: 600,
+                                      textTransform: 'uppercase',
+                                      letterSpacing: '0.5px'
+                                    }}>Ready</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+                          {localTestResult.success && localTestResult.models && localTestResult.models.length === 0 && (
+                            <div style={{ padding: '12px 16px', fontSize: 12, opacity: 0.6, textAlign: 'center' }}>
+                              No Gemma models found
                             </div>
                           )}
                         </div>
                       )}
                     </div>
-                    <div className="text-secondary" style={{ fontSize: 12, lineHeight: '18px' }}>
+                    <div className="text-secondary" style={{ fontSize: 14, lineHeight: '18px' }}>
                       {availableModels.length === 0 ? (
-                        <>PromptCrafter requires a local Ollama installation with Gemma 3 models for complete privacy.<br/><br/>Click “Check for models” to find available Gemma 3 models in Ollama. If none are found, install Ollama and pull a compatible Gemma 3 model.</>
+                        <>PromptCrafter requires a local Ollama installation with Gemma 3 models for complete privacy.<br/><br/>Click “Check for models” to find available Gemma 3 models in Ollama. <br/><br/>If none are found, install Ollama and pull a compatible Gemma 3 model.</>
                       ) : (
-                        <>Found {availableModels.length} usable model{availableModels.length !== 1 ? 's' : ''}. We’ll use the first one found: <code style={{ fontSize: 11 }}>{model}</code>. You can change this later from within the app.</>
+                        <>Found <b><u>{availableModels.length} usable model{availableModels.length !== 1 ? 's' : ''}</u></b>. Auto selecting: <code style={{ fontSize: 13 }}>{model}</code> <code style={{ fontSize: 11 }}>(You can change this later from within the app)</code></>
                       )}
                     </div>
-                    <div className="text-sm text-secondary" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
-                    <a
-                      className="md-link"
-                      href="https://ollama.com/download"
-                      target="_blank"
-                      rel="noreferrer"
-                      title="Download Ollama"
-                    >
-                      Download Ollama
-                    </a>
-                    <a
-                      className="md-link"
-                      href="https://ollama.com/library/gemma3"
-                      target="_blank"
-                      rel="noreferrer"
-                      title="Gemma 3 models for Ollama"
-                    >
-                      Gemma 3 in Ollama
-                    </a>
-                  </div>
                     {(error || connectionError) && (
                       <div className="md-card" style={{ padding: 12, borderLeft: '4px solid #ef4444' }}>
                         <div style={{ fontSize: 12 }}>{error || connectionError}</div>
@@ -428,7 +500,7 @@ export default function ModelConfigGate({ children }: Props) {
                     <p className="text-[11px] text-surface-400">After installing & starting Ollama, pull a model e.g.: <code>ollama pull gemma3:1b</code></p>
                   </div>
                   <div className="flex gap-3 flex-wrap">
-                    <button onClick={() => setShowOllamaMissingModal(false)} className="flex-1 rounded-md bg-surface-200 py-2 text-sm font-medium hover:bg-surface-300 interactive-glow">Close</button>
+                    <button onClick={() => setShowOllamaMissingModal(false)} className="flex-1 rounded-md bg-surface-200 py-2 text-sm font-medium hover:bg-surface-300 interactive-glow"><Icon name="close" /></button>
                     <button onClick={retryOllamaDetection} className="flex-1 rounded-md bg-primary py-2 text-sm font-medium text-light hover:bg-primary-200 interactive-glow">Retry Detection</button>
                   </div>
                 </div>
@@ -442,6 +514,7 @@ export default function ModelConfigGate({ children }: Props) {
 }
 
 function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) {
+  const { confirm } = useDialog();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [prompt, setPrompt] = useState('');
@@ -474,7 +547,7 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
           <div className="modal-content modal-content--large" onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
               <div className="modal-title">Edit System Prompt</div>
-              <button onClick={() => setOpen(false)} className="md-btn" style={{ padding: '6px 10px' }}>Close</button>
+              <button onClick={() => setOpen(false)} className="md-btn" style={{ padding: '6px 10px' }}><Icon name="close" /></button>
             </div>
             <div className="modal-body">
               <div className="system-prompts-container">
@@ -498,7 +571,8 @@ function SystemPromptEditorWrapper({ children }: { children: React.ReactNode }) 
                         <button
                           type="button"
                           onClick={async () => {
-                            if (!confirm('Restore default system prompt? This will overwrite your current edits.')) return;
+                            const ok = await confirm({ title: 'Restore Default', message: 'Restore default system prompt? This will overwrite your current edits.', confirmText: 'Restore', cancelText: 'Cancel' });
+                            if (!ok) return;
                             setSaving(true); setError(null);
                             try {
                               const res = await fetch('/api/system-prompts', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reset' }) });
