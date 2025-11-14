@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from 'react';
 import { isElectronRuntime } from '@/lib/runtime';
-import { CustomSelect } from './CustomSelect';
 import Titlebar from './Titlebar';
 
 interface Props { children: React.ReactNode }
@@ -25,7 +24,6 @@ export default function ModelConfigGate({ children }: Props) {
   const [defaultProvider, setDefaultProvider] = useState<'ollama' | null>(null);
   const [hasValidDefault, setHasValidDefault] = useState(false);
   const [showProviderSelection, setShowProviderSelection] = useState(false);
-  const [setAsDefault, setSetAsDefault] = useState(false);
   // Legacy DB reset state removed (no longer using SQLite); keep placeholders if needed for future migration features
   // const [resettingDb, setResettingDb] = useState(false);
   // const [resetNote, setResetNote] = useState<string | null>(null);
@@ -205,16 +203,18 @@ export default function ModelConfigGate({ children }: Props) {
         setLocalTestResult({ success: false, url, error: data.error, duration });
         setAvailableModels([]);
       } else {
-        const models = data.available || [];
-        setLocalTestResult({ success: true, url, models, duration });
-        setAvailableModels(models);
+        const allModels: string[] = Array.isArray(data.available) ? data.available : [];
+        // Filter to Gemma 3 models only
+        const gemmaModels = allModels.filter((m: any) => typeof m === 'string' && /^gemma3\b/i.test(m));
+        setLocalTestResult({ success: true, url, models: gemmaModels, duration });
+        setAvailableModels(gemmaModels);
         
         // If a configured model was provided, set it if it's in the available models
         // Otherwise, select the first available model if there are any
-        if (configuredModel && models.includes(configuredModel)) {
-          setModel(configuredModel);
-        } else if (models.length > 0) {
-          setModel(models[0]);
+        if (configuredModel && gemmaModels.includes(configuredModel)) {
+          setModel(configuredModel as string);
+        } else if (gemmaModels.length > 0) {
+          setModel(gemmaModels[0] ?? '');
         } else {
           setModel('');
         }
@@ -267,7 +267,7 @@ export default function ModelConfigGate({ children }: Props) {
                   e.preventDefault();
                   setSaving(true); setError(null);
                   try {
-                    const payload = { provider: 'ollama', baseUrl: localBaseUrl, model, setDefault: !!setAsDefault };
+                    const payload = { provider: 'ollama', baseUrl: localBaseUrl, model };
                     
                     const res = await fetch('/api/model/config', { 
                       method: 'POST', 
@@ -275,8 +275,6 @@ export default function ModelConfigGate({ children }: Props) {
                       body: JSON.stringify(payload) 
                     });
                     if (!res.ok) throw new Error('Save failed');
-                    
-                    // Default provider is saved server-side via setDefault flag above
                     
                     // After saving validate immediately
                     setValidating(true);
@@ -353,26 +351,11 @@ export default function ModelConfigGate({ children }: Props) {
                         </div>
                       )}
                     </div>
-                    <div>
-                      <label className="data-location-label" htmlFor="model">Ollama Model</label>
-                      <CustomSelect
-                        value={model}
-                        onChange={(value) => setModel(value as string)}
-                        options={
-                          availableModels.length > 0 
-                            ? availableModels.map(m => ({ value: m, label: m }))
-                            : [{ value: "", label: "First check for available models", disabled: true }]
-                        }
-                        className="w-full"
-                        disabled={availableModels.length === 0}
-                        aria-label="Available Ollama models"
-                      />
-                    </div>
                     <div className="text-secondary" style={{ fontSize: 12, lineHeight: '18px' }}>
                       {availableModels.length === 0 ? (
-                        <>Click “Check for models” to find available Ollama models. If none are found, install Ollama and pull a compatible model.</>
+                        <>Click “Check for models” to find available Gemma 3 models in Ollama. If none are found, install Ollama and pull a compatible Gemma 3 model.</>
                       ) : (
-                        <>Found {availableModels.length} available model{availableModels.length !== 1 ? 's' : ''}. Select one from the dropdown.</>
+                        <>Found {availableModels.length} Gemma 3 model{availableModels.length !== 1 ? 's' : ''}. We’ll use the first one found: <code style={{ fontSize: 11 }}>{model}</code>. You can change this later from within the app.</>
                       )}
                     </div>
                 
@@ -382,23 +365,12 @@ export default function ModelConfigGate({ children }: Props) {
                       </div>
                     )}
                 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <input 
-                        type="checkbox" 
-                        id="setAsDefault"
-                        checked={setAsDefault}
-                        onChange={(e) => setSetAsDefault(e.target.checked)}
-                      />
-                      <label htmlFor="setAsDefault" className="text-secondary" style={{ fontSize: 12 }}>
-                        Set as default (auto-load this provider on startup)
-                      </label>
-                    </div>
                     <div style={{ paddingTop: 8 }}>
                       <button 
                         disabled={saving || validating || (!model || model.trim() === '')}
                         className="md-btn md-btn--primary"
                         style={{ width: '100%' }}
-                        title={(!model || model.trim() === '') ? 'Please check for models and select one' : undefined}
+                        title={(!model || model.trim() === '') ? 'Please check for models first' : undefined}
                       >
                         {saving || validating ? 'Validating…' : 'Start PromptCrafter'}
                       </button>
