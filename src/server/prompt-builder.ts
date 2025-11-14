@@ -54,9 +54,9 @@ function detectUserIntent(input: string, taskType: TaskType, options?: Generatio
 }
 
 const UNIFIED_MODE_GUIDELINES: string = [
-  'Create one prompt. Be concise. No meta.',
-  'Follow task type and constraints.',
-  'If the user asks for direct technical help, answer with code/steps (no prompt).',
+  'Create ONE minimal prompt. No meta.',
+  'Never include answers or code. Output the prompt only.',
+  'No headings, no numbered sections, no labels.',
 ].join('\n');
 
 export interface BuildPromptInput {
@@ -95,12 +95,7 @@ export async function buildUnifiedPrompt({ input, taskType, options }: BuildProm
   const lines: string[] = [];
   if (systemPrompt) lines.push(systemPrompt);
   lines.push(UNIFIED_MODE_GUIDELINES);
-  if (userIntent.responseStrategy === 'direct_help') {
-    lines.push('Direct help: answer with working code/steps. Be concise. No prompt.');
-  } else {
-    if (typeGuidelines) lines.push(typeGuidelines);
-    lines.push('Use 4 parts: 1) Instructions 2) Inputs 3) Steps/Policy 4) Constraints');
-  }
+  if (typeGuidelines) lines.push(typeGuidelines);
   if (constraintParts.length) lines.push(`Constraints: ${constraintParts.join(', ')}`);
   lines.push(`Input: ${rawUserInput}`);
   lines.push('One output only. If insufficient detail, reply INPUT_INSUFFICIENT.');

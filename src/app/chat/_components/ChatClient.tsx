@@ -742,9 +742,8 @@ type Format = "plain" | "markdown" | "json";
                 {sending && (
                   <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 12 }}>
                     <div className="bubble bubble--assistant" style={{ opacity: .95, display: 'flex', alignItems: 'center', gap: 8 }}>
-                      <div style={{ width: 14, height: 14, border: '2px solid var(--color-on-surface-variant)', borderTopColor: 'var(--color-primary)', borderRadius: '50%' }} className="md-spin" />
                       <span>Generating</span>
-                      <AnimatedDots />
+                      <div style={{ width: 14, height: 14, border: '2px solid var(--color-on-surface-variant)', borderTopColor: 'var(--color-primary)', borderRadius: '50%' }} className="md-spin" />
                       <button
                         type="button"
                         title="Stop generating"

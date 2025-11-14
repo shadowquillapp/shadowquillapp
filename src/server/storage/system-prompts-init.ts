@@ -15,25 +15,15 @@ const DEFAULT_BUILD_PROMPT = `You create one high‑performance prompt.
 
 - Follow task and constraints.
 - Be concise; no meta talk.
-- Output exactly one prompt; no code fences.
-
-Structure:
-1) Instructions
-2) Inputs
-3) Steps/Policy
-4) Constraints`;
+- Output exactly one prompt; never include answers or code.
+- No headings, labels, or numbered sections.`;
 
 const DEFAULT_ENHANCE_PROMPT = `You tighten an existing prompt.
 
 - Keep intent; remove fluff.
 - Add only missing constraints that improve reliability.
-- Output only the improved prompt; no code fences or commentary.
-
-Structure:
-1) Instructions
-2) Key inputs/assumptions
-3) Steps/Policy
-4) Constraints`;
+- Output only the improved prompt; never include answers or code.
+- No headings, labels, or numbered sections.`;
 
 // Initialize system prompts default file
 export async function ensureSystemPromptsDefaultFile(): Promise<SystemPromptsDefault> {
@@ -58,7 +48,7 @@ export async function ensureSystemPromptsDefaultFile(): Promise<SystemPromptsDef
       const defaults: SystemPromptsDefault = {
         build: buildContent.trim(),
         enhance: enhanceContent.trim(),
-        version: '1.1.0'
+        version: '1.2.0'
       };
       
       // Ensure the data directory exists
@@ -76,7 +66,7 @@ export async function ensureSystemPromptsDefaultFile(): Promise<SystemPromptsDef
       return {
         build: DEFAULT_BUILD_PROMPT,
         enhance: DEFAULT_ENHANCE_PROMPT,
-        version: '1.1.0'
+        version: '1.2.0'
       };
     }
   }

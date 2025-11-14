@@ -33,6 +33,22 @@ function removeFencedBlocksByLang(text: string, lang: string): string {
   return text.replace(re, '').trim();
 }
 
+function removeProgrammingFencedBlocks(text: string): string {
+  // Remove fenced blocks with or without language tags (conservative for coding prompts)
+  return text.replace(/```[a-zA-Z0-9_-]*\r?\n[\s\S]*?\r?\n```/g, '').trim();
+}
+
+function removeStructuredSectionLabels(text: string): string {
+  let out = text;
+  // Remove lines like "1) Instructions" or "2) Inputs"
+  out = out.replace(/^\s*\d+\)\s*(Instructions?|Inputs?|Steps\/?Policy|Constraints?)\s*$/gim, '');
+  // Remove same labels with trailing colon
+  out = out.replace(/^\s*(Instructions?|Inputs?|Steps\/?Policy|Constraints?)\s*:\s*$/gim, '');
+  // Trim redundant blank lines created by removals
+  out = out.replace(/\n{3,}/g, '\n\n');
+  return out;
+}
+
 // Remove short conversational lead-ins (e.g., "Sure, here's the prompt:")
 function stripCommonPrefaces(text: string): { result: string; removed: boolean } {
   let s = text;
@@ -188,7 +204,14 @@ export function sanitizeAndDetectDrift(taskType: TaskType, options: GenerationOp
     const pre = stripCommonPrefaces(cleaned);
     if (pre.removed) driftReasons.push('removed_preface');
     cleaned = pre.result;
+    // For coding prompts, remove any code blocks (answers)
+    if (taskType === 'coding') {
+      const before = cleaned.length;
+      cleaned = removeProgrammingFencedBlocks(cleaned);
+      if (cleaned.length !== before) driftReasons.push('removed_code_blocks');
+    }
     cleaned = keepPreferredMarkdown(cleaned);
+    cleaned = removeStructuredSectionLabels(cleaned);
     // Ensure no JSON fenced blocks remain
     cleaned = removeFencedBlocksByLang(cleaned, 'json');
     // Remove simple "Prompt:" labels
@@ -204,6 +227,13 @@ export function sanitizeAndDetectDrift(taskType: TaskType, options: GenerationOp
     if (pre.removed) driftReasons.push('removed_preface');
     cleaned = pre.result;
   }
+  // For coding prompts, remove any fenced code blocks entirely
+  if (taskType === 'coding') {
+    const before = cleaned.length;
+    cleaned = removeProgrammingFencedBlocks(cleaned);
+    if (cleaned.length !== before) driftReasons.push('removed_code_blocks');
+  }
+  cleaned = removeStructuredSectionLabels(cleaned);
   if (/^(prompt|final\s+prompt|image\s+prompt)\s*:\s*/i.test(cleaned.trim())) {
     cleaned = cleaned.replace(/^(prompt|final\s+prompt|image\s+prompt)\s*:\s*/i, '').trim();
     driftReasons.push('removed_prompt_prefix');
