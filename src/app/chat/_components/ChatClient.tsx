@@ -6,18 +6,21 @@ import { CustomSelect } from "@/components/CustomSelect";
 import { Icon } from "@/components/Icon";
 import { isElectronRuntime } from '@/lib/runtime';
 import Titlebar from "@/components/Titlebar";
+import { useDialog } from "@/components/DialogProvider";
 
 type MessageRole = "user" | "assistant";
 interface MessageItem { id: string; role: MessageRole; content: string; }
 type UserInfo = { name?: string | null; image?: string | null; email?: string | null };
 
 export default function ChatClient(_props: { user?: UserInfo }) {
+  const { confirm, showInfo } = useDialog();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [modelLabel, setModelLabel] = useState<string>("Gemma 3 4B");
-  const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [availableModels, setAvailableModels] = useState<Array<{ name: string; size: number }>>([]);
+  const [currentModelId, setCurrentModelId] = useState<string | null>(null);
   const [modelMenuOpen, setModelMenuOpen] = useState(false);
   const [modelMenuUp, setModelMenuUp] = useState(false);
   const modelBtnRef = useRef<HTMLButtonElement | null>(null);
@@ -29,8 +32,6 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const [showAllChatsOpen, setShowAllChatsOpen] = useState(false);
   const [currentTheme, setCurrentTheme] = useState<'default' | 'earth' | 'light'>('default');
-  const [themeMenuOpen, setThemeMenuOpen] = useState(false);
-  const themeMenuWrapRef = useRef<HTMLDivElement | null>(null);
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
   const [presetSelectorOpen, setPresetSelectorOpen] = useState(false);
   const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
@@ -58,6 +59,7 @@ type Format = "plain" | "markdown" | "json";
   const [presets, setPresets] = useState<Array<{ id?: string; name: string; taskType: TaskType; options?: any }>>([]);
   const [loadingPresets, setLoadingPresets] = useState(false);
   const [selectedPresetKey, setSelectedPresetKey] = useState("");
+  const [recentPresetKeys, setRecentPresetKeys] = useState<string[]>([]);
 
   // TRPC
   const utils = api.useUtils();
@@ -85,7 +87,8 @@ type Format = "plain" | "markdown" | "json";
           const cfgData = await cfgRes.json();
           const cfg = cfgData?.config;
           if (cfg && cfg.provider === 'ollama' && typeof cfg.model === 'string') {
-          const size = (cfg.model.split(':')[1] || '').toUpperCase();
+            setCurrentModelId(cfg.model);
+            const size = (cfg.model.split(':')[1] || '').toUpperCase();
             setModelLabel(size ? `Gemma 3 ${size}` : 'Gemma 3');
           }
         }
@@ -101,33 +104,313 @@ type Format = "plain" | "markdown" | "json";
       setCurrentTheme(savedTheme);
       document.documentElement.setAttribute('data-theme', savedTheme === 'default' ? '' : savedTheme);
     }
+    // Load recent presets
+    try {
+      const stored = localStorage.getItem('recent-presets');
+      if (stored) {
+        const arr = JSON.parse(stored);
+        if (Array.isArray(arr)) setRecentPresetKeys(arr.filter((x) => typeof x === 'string'));
+      }
+    } catch {/* noop */}
   }, []);
 
-  const setTheme = useCallback((theme: 'default' | 'earth' | 'light') => {
-    setCurrentTheme(theme);
-    document.documentElement.setAttribute('data-theme', theme === 'default' ? '' : theme);
-    localStorage.setItem('theme-preference', theme);
-    setThemeMenuOpen(false);
-  }, []);
-
-  const themes = [
-    { id: 'default', name: 'Default'},
-    { id: 'light', name: 'Light'},
-    { id: 'earth', name: 'Earth'},
-  ] as const;
+  const cycleTheme = useCallback(() => {
+    const themeOrder: Array<'default' | 'light' | 'earth'> = ['default', 'light', 'earth'];
+    const currentIndex = themeOrder.indexOf(currentTheme);
+    const nextIndex = (currentIndex + 1) % themeOrder.length;
+    const nextTheme = themeOrder[nextIndex] ?? 'default';
+    
+    setCurrentTheme(nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme === 'default' ? '' : nextTheme);
+    localStorage.setItem('theme-preference', nextTheme);
+  }, [currentTheme]);
 
   // Refresh available models
   const refreshModels = useCallback(async () => {
     try {
-      const directRes = await fetch('/api/model/available?baseUrl=http://localhost:11434');
+      const [directRes, cfgRes] = await Promise.all([
+        fetch('/api/model/available?baseUrl=http://localhost:11434'),
+        fetch('/api/model/config'),
+      ]);
       if (directRes.ok) {
         const directData = await directRes.json();
         setAvailableModels(Array.isArray(directData?.available) ? directData.available : []);
+      }
+      if (cfgRes.ok) {
+        const cfgData = await cfgRes.json();
+        const cfg = cfgData?.config;
+        if (cfg && cfg.provider === 'ollama' && typeof cfg.model === 'string') {
+          setCurrentModelId(cfg.model);
+          const size = (cfg.model.split(':')[1] || '').toUpperCase();
+          setModelLabel(size ? `Gemma 3 ${size}` : 'Gemma 3');
+        }
       }
                 } catch {
       setAvailableModels([]);
     }
   }, []);
+
+  // Check Ollama connection and show dialog with results
+  const [checkingConnection, setCheckingConnection] = useState(false);
+  const checkOllamaConnection = useCallback(async () => {
+    setCheckingConnection(true);
+    const startTime = Date.now();
+    
+    try {
+      const res = await fetch('/api/model/available?baseUrl=http://localhost:11434');
+      const duration = Date.now() - startTime;
+      const data = await res.json().catch(() => ({}));
+      
+      if (data.error) {
+        await showInfo({
+          title: 'Connection Failed',
+          message: (
+            <div className="md-card" style={{ 
+              marginTop: 12, 
+              padding: 0,
+              overflow: 'hidden',
+              borderLeft: '3px solid #ef4444'
+            }}>
+              <div style={{ 
+                padding: '12px 16px',
+                background: 'rgba(239, 68, 68, 0.08)',
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ 
+                    fontSize: 16, 
+                    color: '#ef4444',
+                    fontWeight: 'bold'
+                  }}>✕</span>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ 
+                      fontSize: 13,
+                      fontWeight: 600,
+                      color: '#ef4444',
+                      marginBottom: 2
+                    }}>
+                      Connection Failed
+                    </div>
+                    <div style={{ fontSize: 11, opacity: 0.6 }}>
+                      {data.error} • {duration}ms
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div style={{ padding: '12px 16px', fontSize: 12, opacity: 0.8 }}>
+                Make sure Ollama is running on port 11434.
+              </div>
+            </div>
+          )
+        });
+        setAvailableModels([]);
+      } else {
+        const allModels: Array<{ name: string; size: number }> = Array.isArray(data.available) ? data.available : [];
+        const gemmaModels = allModels.filter((m: { name: string }) => /^gemma3\b/i.test(m.name));
+        
+        if (gemmaModels.length > 0) {
+          await showInfo({
+            title: 'Connection Status',
+            message: (
+              <div className="md-card" style={{ 
+                marginTop: 12, 
+                padding: 0,
+                overflow: 'hidden',
+                borderLeft: '3px solid #10b981'
+              }}>
+                <div style={{ 
+                  padding: '12px 16px',
+                  background: 'rgba(16, 185, 129, 0.08)',
+                  borderBottom: '1px solid rgba(255, 255, 255, 0.05)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ 
+                      fontSize: 16, 
+                      color: '#10b981',
+                      fontWeight: 'bold'
+                    }}></span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ 
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: '#10b981',
+                        marginBottom: 2
+                      }}>
+                        Connection Successful!
+                      </div>
+                      <div style={{ fontSize: 11, opacity: 0.6 }}>
+                        Found {gemmaModels.length} model{gemmaModels.length !== 1 ? 's' : ''}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ 
+                  padding: '8px 12px',
+                  maxHeight: 180, 
+                  overflowY: 'auto',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 6
+                }}>
+                  {gemmaModels.map((m) => {
+                    const size = (m.name.split(':')[1] || '').toUpperCase();
+                    const displayName = size ? `Gemma 3 ${size}` : 'Gemma 3';
+                    const sizeInGB = (m.size / (1024 * 1024 * 1024)).toFixed(1);
+                    return (
+                      <div 
+                        key={m.name} 
+                        style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: 10, 
+                          padding: '8px 12px',
+                          borderRadius: 6,
+                          background: 'rgba(255, 255, 255, 0.02)',
+                          border: '1px solid rgba(255, 255, 255, 0.05)',
+                        }}
+                      >
+                        <span style={{ 
+                          color: '#10b981', 
+                          fontSize: 14, 
+                          fontWeight: 'bold',
+                          lineHeight: 1
+                        }}>✓</span>
+                        <span style={{ 
+                          fontSize: 13,
+                          fontWeight: 500,
+                          flex: 1
+                        }}>
+                          {displayName} <code style={{ 
+                            fontFamily: 'var(--font-mono, monospace)',
+                            opacity: 0.7,
+                            fontSize: 11,
+                            background: 'rgba(255, 255, 255, 0.05)',
+                            padding: '2px 4px',
+                            borderRadius: 3
+                          }}>{m.name} ({sizeInGB}GB)</code>
+                        </span>
+                        <span style={{
+                          fontSize: 10,
+                          padding: '2px 6px',
+                          borderRadius: 4,
+                          background: 'rgba(16, 185, 129, 0.15)',
+                          color: '#10b981',
+                          fontWeight: 600,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.5px'
+                        }}>Ready</span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )
+          });
+          setAvailableModels(allModels);
+          
+          // Update current model if needed
+          const cfgRes = await fetch('/api/model/config');
+          if (cfgRes.ok) {
+            const cfgData = await cfgRes.json();
+            const cfg = cfgData?.config;
+            if (cfg && cfg.provider === 'ollama' && typeof cfg.model === 'string') {
+              setCurrentModelId(cfg.model);
+              const size = (cfg.model.split(':')[1] || '').toUpperCase();
+              setModelLabel(size ? `Gemma 3 ${size}` : 'Gemma 3');
+            }
+          }
+        } else {
+          await showInfo({
+            title: 'No Gemma Models',
+            message: (
+              <div className="md-card" style={{ 
+                marginTop: 12, 
+                padding: 0,
+                overflow: 'hidden',
+                borderLeft: '3px solid #f59e0b'
+              }}>
+                <div style={{ 
+                  padding: '12px 16px',
+                  background: 'rgba(245, 158, 11, 0.08)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                    <span style={{ 
+                      fontSize: 16, 
+                      color: '#f59e0b',
+                      fontWeight: 'bold'
+                    }}>⚠</span>
+                    <div style={{ flex: 1 }}>
+                      <div style={{ 
+                        fontSize: 13,
+                        fontWeight: 600,
+                        color: '#f59e0b',
+                        marginBottom: 2
+                      }}>
+                        No Gemma Models Found
+                      </div>
+                      <div style={{ fontSize: 11, opacity: 0.6 }}>
+                        Connected but no models detected • {duration}ms
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div style={{ padding: '12px 16px', fontSize: 12, opacity: 0.8, lineHeight: 1.6 }}>
+                  Please install a Gemma 3 model:<br/><br/>
+                  <code style={{ fontSize: 11, background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 3 }}>ollama pull gemma3:4b</code><br/>
+                  <code style={{ fontSize: 11, background: 'rgba(255,255,255,0.05)', padding: '2px 6px', borderRadius: 3 }}>ollama pull gemma3:12b</code>
+                </div>
+              </div>
+            )
+          });
+          setAvailableModels([]);
+        }
+      }
+    } catch (e: any) {
+      const duration = Date.now() - startTime;
+      await showInfo({
+        title: 'Connection Failed',
+        message: (
+          <div className="md-card" style={{ 
+            marginTop: 12, 
+            padding: 0,
+            overflow: 'hidden',
+            borderLeft: '3px solid #ef4444'
+          }}>
+            <div style={{ 
+              padding: '12px 16px',
+              background: 'rgba(239, 68, 68, 0.08)',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <span style={{ 
+                  fontSize: 16, 
+                  color: '#ef4444',
+                  fontWeight: 'bold'
+                }}>✕</span>
+                <div style={{ flex: 1 }}>
+                  <div style={{ 
+                    fontSize: 13,
+                    fontWeight: 600,
+                    color: '#ef4444',
+                    marginBottom: 2
+                  }}>
+                    Connection Failed
+                  </div>
+                  <div style={{ fontSize: 11, opacity: 0.6 }}>
+                    {e.message || 'Connection error'} • {duration}ms
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div style={{ padding: '12px 16px', fontSize: 12, opacity: 0.8 }}>
+              Make sure Ollama is running on port 11434.
+            </div>
+          </div>
+        )
+      });
+      setAvailableModels([]);
+    } finally {
+      setCheckingConnection(false);
+    }
+  }, [showInfo]);
 
   // Handle responsive sidebar
   useEffect(() => {
@@ -168,24 +451,6 @@ type Format = "plain" | "markdown" | "json";
     };
   }, [modelMenuOpen]);
 
-  // Close theme dropdown on outside click or Escape
-  useEffect(() => {
-    if (!themeMenuOpen) return;
-    const onClickOutside = (e: MouseEvent) => {
-      const target = e.target as Node;
-      const wrap = themeMenuWrapRef.current;
-      if (wrap && !wrap.contains(target)) {
-        setThemeMenuOpen(false);
-      }
-    };
-    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setThemeMenuOpen(false); };
-    document.addEventListener('mousedown', onClickOutside);
-    document.addEventListener('keydown', onEsc);
-    return () => {
-      document.removeEventListener('mousedown', onClickOutside);
-      document.removeEventListener('keydown', onEsc);
-    };
-  }, [themeMenuOpen]);
 
   // Close settings dropdown on outside click or Escape
   useEffect(() => {
@@ -257,6 +522,13 @@ type Format = "plain" | "markdown" | "json";
           const data = await res.json();
           const list = (data.presets ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options }));
           setPresets(list);
+          // Clean stale recent keys based on available presets
+          setRecentPresetKeys((prev) => {
+            const set = new Set(list.map((p: any) => (p.id ?? p.name)));
+            const cleaned = prev.filter((k) => set.has(k)).slice(0, 3);
+            try { localStorage.setItem('recent-presets', JSON.stringify(cleaned)); } catch {}
+            return cleaned;
+          });
           if (!selectedPresetKey) {
             const lastKey = (typeof window !== 'undefined' ? localStorage.getItem('last-selected-preset') : null) || '';
             const pick = (lastKey && list.find((p: any) => (p.id ?? p.name) === lastKey)) || list[0] || null;
@@ -282,11 +554,19 @@ type Format = "plain" | "markdown" | "json";
       if (res.ok) {
         const data = await res.json();
         setPresets((data.presets ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options })));
+        // Clean recent presets after any mutation
+        setRecentPresetKeys((prev) => {
+          const list = (data.presets ?? []) as any[];
+          const set = new Set(list.map((p) => (p.id ?? p.name)));
+          const cleaned = prev.filter((k) => set.has(k)).slice(0, 3);
+          try { localStorage.setItem('recent-presets', JSON.stringify(cleaned)); } catch {}
+          return cleaned;
+        });
       }
     } finally { setLoadingPresets(false); }
   }, []);
 
-  const applyPreset = useCallback((p: { name: string; taskType: TaskType; options?: any }) => {
+  const applyPreset = useCallback((p: { name: string; taskType: TaskType; options?: any; id?: string }) => {
     setPresetName(p.name);
     setTaskType(p.taskType);
     const o = p.options ?? {};
@@ -299,6 +579,13 @@ type Format = "plain" | "markdown" | "json";
     setAspectRatio(o.aspectRatio ?? "1:1");
     setIncludeTests(!!o.includeTests);
     setRequireCitations(!!o.requireCitations);
+    // Track recent presets
+    const key = (p as any).id ?? p.name;
+    setRecentPresetKeys((prev) => {
+      const next = [key, ...prev.filter((k) => k !== key)].slice(0, 3);
+      try { localStorage.setItem('recent-presets', JSON.stringify(next)); } catch {}
+      return next;
+    });
   }, []);
 
   const savePreset = useCallback(async () => {
@@ -322,7 +609,9 @@ type Format = "plain" | "markdown" | "json";
   }, [presetName, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations]);
 
   const deletePreset = useCallback(async (presetId: string, presetName: string) => {
-    if (!confirm(`Delete preset "${presetName}"? This cannot be undone.`)) return;
+    if ((presetName || '').trim().toLowerCase() === 'default') return; // Default preset is non-deletable (safety)
+    const ok = await confirm({ title: 'Delete Preset', message: `Delete preset "${presetName}"? This cannot be undone.`, confirmText: 'Delete', cancelText: 'Cancel', tone: 'destructive' });
+    if (!ok) return;
     
     setDeletingPresetId(presetId);
     try {
@@ -354,6 +643,40 @@ type Format = "plain" | "markdown" | "json";
       setDeletingPresetId(null);
     }
   }, [selectedPresetKey, reloadPresets, applyPreset]);
+
+  const deleteAllPresets = useCallback(async () => {
+    const deletables = presets.filter((p) => (p.name || '').trim().toLowerCase() !== 'default');
+    if (deletables.length === 0) return;
+    const ok = await confirm({ title: 'Delete All Presets', message: 'Delete all presets (except "Default")? This cannot be undone.', confirmText: 'Delete All', cancelText: 'Cancel', tone: 'destructive' });
+    if (!ok) return;
+    try {
+      await Promise.allSettled(
+        deletables.map((p) => {
+          if ((p.name || '').trim().toLowerCase() === 'default') return Promise.resolve(); // extra safety
+          const query = p.id ? `id=${encodeURIComponent(p.id)}` : `id=${encodeURIComponent(p.id ?? '')}`;
+          return fetch(`/api/presets?${query}`, { method: 'DELETE' });
+        })
+      );
+      await reloadPresets();
+      try {
+        const res = await fetch('/api/presets');
+        const data = await res.json().catch(() => ({}));
+        const list = Array.isArray(data?.presets) ? data.presets : [];
+        const next = list.find((x: any) => x.name === 'Default') || list[0] || null;
+        if (next) {
+          const key = next.id ?? next.name;
+          setSelectedPresetKey(key);
+          applyPreset({ name: next.name, taskType: next.taskType, options: next.options });
+          try { localStorage.setItem('last-selected-preset', key); } catch {}
+        } else {
+          setSelectedPresetKey('');
+          try { localStorage.removeItem('last-selected-preset'); } catch {}
+        }
+      } catch {/* noop */}
+    } catch {
+      setError('Failed to delete presets');
+    }
+  }, [presets, reloadPresets, applyPreset]);
 
   const send = useCallback(async () => {
     const text = input.trim();
@@ -487,6 +810,196 @@ type Format = "plain" | "markdown" | "json";
     }
   }, []);
 
+  // Syntax highlighting for JSON
+  const highlightJSON = useCallback((code: string) => {
+    try {
+      // Tokenize JSON
+      const jsonTokens = [];
+      let i = 0;
+      
+      const patterns = [
+        { type: 'string', regex: /"(?:\\.|[^"\\])*"/ },
+        { type: 'number', regex: /-?\d+\.?\d*/ },
+        { type: 'boolean', regex: /\b(true|false)\b/ },
+        { type: 'null', regex: /\bnull\b/ },
+        { type: 'punctuation', regex: /[{}[\],:]/},
+        { type: 'whitespace', regex: /\s+/ },
+      ];
+
+      while (i < code.length) {
+        let matched = false;
+        for (const pattern of patterns) {
+          const match = code.slice(i).match(new RegExp(`^${pattern.regex.source}`));
+          if (match) {
+            const token = match[0];
+            if (pattern.type !== 'whitespace') {
+              jsonTokens.push({ type: pattern.type, value: token, index: i });
+            } else {
+              jsonTokens.push({ type: 'whitespace', value: token, index: i });
+            }
+            i += token.length;
+            matched = true;
+            break;
+          }
+        }
+        if (!matched) i++;
+      }
+
+      return jsonTokens.map((token, idx) => {
+        if (token.type === 'whitespace') return token.value;
+        return (
+          <span key={idx} className={`token-${token.type}`}>
+            {token.value}
+          </span>
+        );
+      });
+    } catch {
+      return code;
+    }
+  }, []);
+
+  // Syntax highlighting for Markdown
+  const highlightMarkdown = useCallback((code: string) => {
+    const lines = code.split('\n');
+    return lines.map((line, lineIdx) => {
+      const parts = [];
+      let remaining = line;
+      let key = 0;
+
+      // Headers
+      const headerMatch = remaining.match(/^(#{1,6})\s+(.*)$/);
+      if (headerMatch) {
+        parts.push(
+          <span key={key++} className="token-md-header">
+            {headerMatch[1]}
+          </span>,
+          ' ',
+          <span key={key++} className="token-md-header-text">
+            {headerMatch[2]}
+          </span>
+        );
+      }
+      // Bold **text**
+      else if (remaining.includes('**')) {
+        let lastIdx = 0;
+        const boldRegex = /\*\*([^*]+)\*\*/g;
+        let match;
+        while ((match = boldRegex.exec(remaining)) !== null) {
+          if (match.index > lastIdx) {
+            parts.push(<span key={key++}>{remaining.slice(lastIdx, match.index)}</span>);
+          }
+          parts.push(
+            <span key={key++} className="token-md-bold">**</span>,
+            <span key={key++} className="token-md-bold-text">{match[1]}</span>,
+            <span key={key++} className="token-md-bold">**</span>
+          );
+          lastIdx = match.index + match[0].length;
+        }
+        if (lastIdx < remaining.length) {
+          parts.push(<span key={key++}>{remaining.slice(lastIdx)}</span>);
+        }
+      }
+      // Italic *text*
+      else if (remaining.includes('*') && !remaining.startsWith('*')) {
+        let lastIdx = 0;
+        const italicRegex = /\*([^*]+)\*/g;
+        let match;
+        while ((match = italicRegex.exec(remaining)) !== null) {
+          if (match.index > lastIdx) {
+            parts.push(<span key={key++}>{remaining.slice(lastIdx, match.index)}</span>);
+          }
+          parts.push(
+            <span key={key++} className="token-md-italic">*</span>,
+            <span key={key++} className="token-md-italic-text">{match[1]}</span>,
+            <span key={key++} className="token-md-italic">*</span>
+          );
+          lastIdx = match.index + match[0].length;
+        }
+        if (lastIdx < remaining.length) {
+          parts.push(<span key={key++}>{remaining.slice(lastIdx)}</span>);
+        }
+      }
+      // Links [text](url)
+      else if (remaining.includes('[') && remaining.includes('](')) {
+        let lastIdx = 0;
+        const linkRegex = /\[([^\]]+)\]\(([^)]+)\)/g;
+        let match;
+        while ((match = linkRegex.exec(remaining)) !== null) {
+          if (match.index > lastIdx) {
+            parts.push(<span key={key++}>{remaining.slice(lastIdx, match.index)}</span>);
+          }
+          parts.push(
+            <span key={key++} className="token-md-punctuation">[</span>,
+            <span key={key++} className="token-md-link-text">{match[1]}</span>,
+            <span key={key++} className="token-md-punctuation">](</span>,
+            <span key={key++} className="token-md-url">{match[2]}</span>,
+            <span key={key++} className="token-md-punctuation">)</span>
+          );
+          lastIdx = match.index + match[0].length;
+        }
+        if (lastIdx < remaining.length) {
+          parts.push(<span key={key++}>{remaining.slice(lastIdx)}</span>);
+        }
+      }
+      // Code `code`
+      else if (remaining.includes('`')) {
+        let lastIdx = 0;
+        const codeRegex = /`([^`]+)`/g;
+        let match;
+        while ((match = codeRegex.exec(remaining)) !== null) {
+          if (match.index > lastIdx) {
+            parts.push(<span key={key++}>{remaining.slice(lastIdx, match.index)}</span>);
+          }
+          parts.push(
+            <span key={key++} className="token-md-code-tick">`</span>,
+            <span key={key++} className="token-md-code">{match[1]}</span>,
+            <span key={key++} className="token-md-code-tick">`</span>
+          );
+          lastIdx = match.index + match[0].length;
+        }
+        if (lastIdx < remaining.length) {
+          parts.push(<span key={key++}>{remaining.slice(lastIdx)}</span>);
+        }
+      }
+      // Lists
+      else if (remaining.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/)) {
+        const listMatch = remaining.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/);
+        if (listMatch) {
+          parts.push(
+            <span key={key++}>{listMatch[1]}</span>,
+            <span key={key++} className="token-md-list-marker">{listMatch[2]}</span>,
+            ' ',
+            <span key={key++}>{listMatch[3]}</span>
+          );
+        }
+      }
+      // Blockquotes
+      else if (remaining.match(/^>\s+(.*)$/)) {
+        const quoteMatch = remaining.match(/^(>\s+)(.*)$/);
+        if (quoteMatch) {
+          parts.push(
+            <span key={key++} className="token-md-quote-marker">{quoteMatch[1]}</span>,
+            <span key={key++} className="token-md-quote-text">{quoteMatch[2]}</span>
+          );
+        }
+      }
+      // Horizontal rule
+      else if (remaining.match(/^(---|\*\*\*|___)\s*$/)) {
+        parts.push(<span key={key++} className="token-md-hr">{remaining}</span>);
+      }
+      else {
+        parts.push(<span key={key++}>{line}</span>);
+      }
+
+      return (
+        <span key={lineIdx}>
+          {parts.length > 0 ? parts : line}
+          {lineIdx < lines.length - 1 && '\n'}
+        </span>
+      );
+    });
+  }, []);
+
   // Render message content with code block support
   const renderMessageContent = useCallback((content: string, messageId: string) => {
     const codeBlockRegex = /```(\w+)?\n?([\s\S]*?)```/g;
@@ -509,6 +1022,17 @@ type Format = "plain" | "markdown" | "json";
 
       const [, language, code] = match;
       const codeId = `code-${messageId}-${match.index}`;
+      const lang = (language || 'code').toLowerCase();
+      
+      // Apply syntax highlighting for specific languages
+      let highlightedCode;
+      if (lang === 'json') {
+        highlightedCode = highlightJSON(code || '');
+      } else if (lang === 'markdown' || lang === 'md') {
+        highlightedCode = highlightMarkdown(code || '');
+      } else {
+        highlightedCode = code;
+      }
       
       parts.push(
         <div key={`code-${match.index}`} className="bubble-code-block">
@@ -523,7 +1047,7 @@ type Format = "plain" | "markdown" | "json";
               <Icon name={copiedMessageId === codeId ? 'check' : 'copy'} />
             </button>
           </div>
-          <div className="bubble-code-content">{code}</div>
+          <div className="bubble-code-content">{highlightedCode}</div>
         </div>
       );
 
@@ -543,85 +1067,140 @@ type Format = "plain" | "markdown" | "json";
     }
 
     return parts.length > 0 ? <>{parts}</> : <span style={{ whiteSpace: 'pre-wrap' }}>{content}</span>;
-  }, [copyMessage, copiedMessageId]);
+  }, [copyMessage, copiedMessageId, highlightJSON, highlightMarkdown]);
 
   return (
     <>
     {/* Electron Titlebar */}
     {isElectronRuntime() && <Titlebar />}
     
-    <div className={isSmallScreen ? "app-shell--mobile" : "app-shell"} style={{ paddingTop: isElectronRuntime() ? 32 : 0 }}>
+    <div className={isSmallScreen ? "app-shell--mobile" : "app-shell"}>
       {/* Sidebar backdrop for mobile */}
       {isSmallScreen && sidebarOpen && (
         <div 
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', zIndex: 25 }}
+          style={{ position: 'fixed', top: isElectronRuntime() ? 32 : 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 25 }}
         onClick={() => setSidebarOpen(false)}
       />
       )}
       
       {/* Left rail (Material list of presets + chat history) */}
-      <aside className={isSmallScreen ? `app-rail--mobile ${sidebarOpen ? 'open' : ''}` : "app-rail"} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16 }}>
+      <aside className={isSmallScreen ? `app-rail--mobile ${sidebarOpen ? 'open' : ''}` : "app-rail"} style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 16, paddingTop: !isSmallScreen && isElectronRuntime() ? 48 : 16, top: isSmallScreen && isElectronRuntime() ? 32 : 0, height: isSmallScreen && isElectronRuntime() ? 'calc(100vh - 32px)' : undefined }}>
         <button type="button" className="md-btn md-btn--primary" style={{width: '100%', border: '1px solid var(--color-outline)'}} onClick={() => { setMessages([]); setCurrentChatId(null); setInput(""); }}>
           New Chat
         </button>
 
-        <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4 }}>CURRENT PRESET</div>
+        <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginTop: 50 }}><b>RECENT PRESETS</b></div>
         {loadingPresets ? (
           <div className="text-secondary" style={{ fontSize: 12 }}>Loading…</div>
         ) : (
           <>
-            {selectedPresetKey ? (
-              (() => {
-                const selectedPreset = presets.find(p => (p.id ?? p.name) === selectedPresetKey);
-                return selectedPreset ? (
-                  <div className="md-card" style={{ padding: 12, borderRadius: 10, borderColor: 'var(--color-primary)', boxShadow: 'var(--shadow-2)' }}>
-                    <div style={{ fontWeight: 600 }}>{selectedPreset.name}</div>
-                    <div className="text-secondary" style={{ fontSize: 11, marginTop: 2 }}>{selectedPreset.taskType.charAt(0).toUpperCase() + selectedPreset.taskType.slice(1)}</div>
-                  </div>
-                ) : (
-                  <div className="text-secondary" style={{ fontSize: 12 }}>No preset selected</div>
-                );
-              })()
-            ) : (
-              <div className="text-secondary" style={{ fontSize: 12 }}>No preset selected</div>
-            )}
-            
+            {/* Recently used presets (up to 3) */}
+            <div style={{ display: 'grid', gap: 8 }}>
+              {recentPresetKeys
+                .map((key) => presets.find((p) => (p.id ?? p.name) === key))
+                .filter((p): p is { id?: string; name: string; taskType: TaskType; options?: any } => !!p)
+                .slice(0, 3)
+                .map((p) => {
+                  const key = p.id ?? p.name;
+                  const isActive = key === selectedPresetKey;
+                  return (
+                    <div
+                      key={key}
+                      className="md-card"
+                      title={`Use preset "${p.name}"`}
+                      style={{
+                        padding: 12,
+                        paddingRight: 40,
+                        borderRadius: 10,
+                        position: 'relative',
+                        ...(currentTheme === 'earth'
+                          ? {
+                              border: `2px solid ${isActive ? 'var(--color-on-surface)' : 'var(--color-outline)'}`,
+                              background: isActive ? 'rgba(238,232,213,0.06)' : 'transparent'
+                            }
+                          : currentTheme === 'light'
+                          ? {
+                              border: `2px solid ${isActive ? 'var(--color-primary)' : 'var(--color-outline)'}`
+                            }
+                          : {
+                              borderColor: isActive ? 'var(--color-primary)' : 'var(--color-outline)'
+                            }),
+                        boxShadow: 'var(--shadow-2)',
+                        cursor: 'pointer'
+                      }}
+                      onClick={() => {
+                        setSelectedPresetKey(key);
+                        try { localStorage.setItem('last-selected-preset', key); } catch {}
+                        applyPreset(p);
+                      }}
+                    >
+                      <div style={{ fontWeight: 600 }}>
+                        {isActive && <Icon name="star" className="text-[13px]" style={{ color: 'var(--color-on-surface)', marginRight: 6 }} />}
+                        {p.name}
+                      </div>
+                      <div className="text-secondary" style={{ fontSize: 11, marginTop: 2 }}>
+                        {p.taskType.charAt(0).toUpperCase() + p.taskType.slice(1)}
+                      </div>
+                      {(() => {
+                        const o = p.options || {};
+                        const parts: string[] = [];
+                        if (o.tone) parts.push(`${o.tone} tone`);
+                        if (o.detail) parts.push(`${o.detail} detail`);
+                        if (o.format) parts.push(o.format);
+                        if (o.stylePreset) parts.push(o.stylePreset);
+                        if (o.aspectRatio) parts.push(o.aspectRatio);
+                        return parts.length ? (
+                          <div className="text-secondary" style={{ fontSize: 11, marginTop: 2 }}>
+                            {parts.join(' • ')}
+                          </div>
+                        ) : null;
+                      })()}
+                      {/* Cog edit button on right (not for Default preset) */}
+                      {(p.name || '').trim().toLowerCase() !== 'default' && (
+                        <button
+                          type="button"
+                          className="md-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            // Prefill editor like previous Edit behavior
+                            setPresetName(p.name);
+                            setTaskType(p.taskType as any);
+                            const o = p.options || {};
+                            setTone(o.tone ?? 'neutral');
+                            setDetail(o.detail ?? 'normal');
+                            setFormat(o.format ?? 'markdown');
+                            setLanguage(o.language ?? 'English');
+                            setTemperature(typeof o.temperature === 'number' ? o.temperature : 0.7);
+                            setStylePreset(o.stylePreset ?? 'photorealistic');
+                            setAspectRatio(o.aspectRatio ?? '1:1');
+                            setIncludeTests(!!o.includeTests);
+                            setRequireCitations(!!o.requireCitations);
+                            setPresetEditorOpen(true);
+                          }}
+                          title={`Edit preset "${p.name}"`}
+                          aria-label={`Edit preset ${p.name}`}
+                          style={{ position: 'absolute', top: 8, right: 8, padding: 8 }}
+                        >
+                          <Icon name="gear" className="text-[13px]" />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              {recentPresetKeys.length === 0 && (
+                <div className="text-secondary" style={{ fontSize: 12 }}>No presets used yet</div>
+              )}
+            </div>
+
             <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button className="md-btn" onClick={() => setPresetSelectorOpen(true)} style={{ flex: 1 }}>
-                Preset Menu
-              </button>
-              <button className="md-btn" onClick={() => {
-                const sel = presets.find(p => (p.id ?? p.name) === selectedPresetKey);
-                if (sel) {
-                  // Prefill editor with selected values for editing
-                  setPresetName(sel.name);
-                  setTaskType(sel.taskType as any);
-                  const o = sel.options || {};
-                  setTone(o.tone ?? 'neutral');
-                  setDetail(o.detail ?? 'normal');
-                  setFormat(o.format ?? 'markdown');
-                  setLanguage(o.language ?? 'English');
-                  setTemperature(typeof o.temperature === 'number' ? o.temperature : 0.7);
-                  setStylePreset(o.stylePreset ?? 'photorealistic');
-                  setAspectRatio(o.aspectRatio ?? '1:1');
-                  setIncludeTests(!!o.includeTests);
-                  setRequireCitations(!!o.requireCitations);
-                } else {
-                  // Create new preset with current settings (don't change selection)
-                  setPresetName("");
-                  // Keep current settings as starting point
-                }
-                setPresetEditorOpen(true);
-              }}>
-                {selectedPresetKey ? 'Edit' : 'Create'}
-              </button>
-      </div>
+              <button className="md-btn md-btn--primary" onClick={() => setPresetSelectorOpen(true)} style={{ padding: '4px 8px', fontSize: 12 }}>Preset Menu</button>
+            </div>
           </>
         )}
 
         {/* Recent chats pinned to bottom */}
         <div style={{ marginTop: 'auto' }}>
-          <div className="text-secondary" style={{ fontSize: 11, letterSpacing: 0.4, marginBottom: 8 }}>RECENT CHATS</div>
+          <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginBottom: 8 }}><b>RECENT CHATS</b></div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {recentThree.map((c: any) => {
               const isActive = currentChatId === c.id;
@@ -656,7 +1235,7 @@ type Format = "plain" | "markdown" | "json";
             )}
             </div>
           <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 8 }}>
-            <button className="md-btn" style={{ padding: '4px 8px', fontSize: 12 }} onClick={() => setShowAllChatsOpen(true)}>Show all chats</button>
+            <button className="md-btn md-btn--primary" style={{ padding: '4px 8px', fontSize: 12 }} onClick={() => setShowAllChatsOpen(true)}>Show All Chats</button>
           </div>
             </div>
       </aside>
@@ -664,7 +1243,7 @@ type Format = "plain" | "markdown" | "json";
       {/* Main content */}
       <section className={isSmallScreen ? "app-content--mobile" : "app-content"} style={{ display: 'flex', flexDirection: 'column' }}>
         {/* Header actions */}
-        <div className="app-header" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div className={`app-header ${isElectronRuntime() ? 'app-header--electron' : ''}`} style={{ padding: '4px 16px', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
           {/* Hamburger menu for mobile */}
           {isSmallScreen && (
               <button
@@ -676,35 +1255,19 @@ type Format = "plain" | "markdown" | "json";
               ☰
               </button>
           )}
-          <div style={{ marginLeft: 'auto', display: 'flex', gap: 8, alignItems: 'center' }}>
-            <div ref={themeMenuWrapRef} style={{ position: 'relative' }}>
-              <button className="md-btn" style={{ padding: 8, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setThemeMenuOpen((v) => { const next = !v; if (next) setSettingsMenuOpen(false); return next; })} title="Change theme">
-                <Icon name="palette" />
-                <Icon name="chevronDown" className={`dropdown-arrow ${themeMenuOpen ? 'dropdown-arrow--open' : ''}`} />
-              </button>
-              {themeMenuOpen && (
-                <div className="menu-panel" style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', minWidth: 180 }}>
-                  {themes.map((theme) => (
-              <button
-                      key={theme.id} 
-                      className={`menu-item ${currentTheme === theme.id ? 'menu-item--selected' : ''}`} 
-                      onClick={() => setTheme(theme.id as 'default' | 'earth' | 'light')}
-                    >
-                      <div style={{ fontWeight: 600 }}>{theme.name}</div>
-              </button>
-                  ))}
-            </div>
-          )}
-        </div>
+          <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'center' }}>
+            <button className="md-btn" style={{ padding: '8px 12px', minHeight: 40, display: 'flex', alignItems: 'center', gap: 6 }} onClick={cycleTheme} title={`Current theme: ${currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1)} (click to cycle)`}>
+              <Icon name="palette" />
+            </button>
             <div ref={settingsMenuWrapRef} style={{ position: 'relative' }}>
-              <button className="md-btn" style={{ padding: 8, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setSettingsMenuOpen((v) => { const next = !v; if (next) setThemeMenuOpen(false); return next; })}>
+              <button className="md-btn" style={{ padding: '8px 12px', minHeight: 40, display: 'flex', alignItems: 'center', gap: 6 }} onClick={() => setSettingsMenuOpen((v) => !v)}>
                 Settings
                 <Icon name="chevronDown" className={`dropdown-arrow ${settingsMenuOpen ? 'dropdown-arrow--open' : ''}`} />
               </button>
               {settingsMenuOpen && (
                 <div className="menu-panel" style={{ position: 'absolute', right: 0, top: 'calc(100% + 6px)', minWidth: 180 }}>
-                  <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-db-location')); } catch {}; setSettingsMenuOpen(false); }}>Data Location</button>
                   <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-system-prompts')); } catch {}; setSettingsMenuOpen(false); }}>System Prompt</button>
+                  <button className="menu-item" onClick={() => { try { window.dispatchEvent(new CustomEvent('open-provider-selection')); } catch {}; setSettingsMenuOpen(false); }}>Ollama Setup</button>
                 </div>
               )}
             </div>
@@ -712,7 +1275,7 @@ type Format = "plain" | "markdown" | "json";
         </div>
 
         {/* Content area (scrolls) */}
-        <div style={{ padding: 24, paddingBottom: 200, flex: 1, overflow: 'auto' }}>
+        <div style={{ padding: 24, paddingTop: 28, paddingBottom: 200, flex: 1, overflow: 'auto' }}>
           <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
             {!hasMessages ? (
               <div>
@@ -767,36 +1330,84 @@ type Format = "plain" | "markdown" | "json";
         </div>
 
         {/* Floating Composer */}
-        <div style={{ position: 'fixed', bottom: 24, left: isSmallScreen ? 24 : 344, right: 24, zIndex: 20 }}>
-          <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto' }}>
-            <div className="md-card" style={{ padding: '16px', borderRadius: '20px', background: 'var(--color-surface-variant)', border: '1px solid var(--color-outline)' }}>
+        <div
+          className="chat-composer-shell"
+          style={{
+            position: 'fixed',
+            bottom: 24,
+            left: isSmallScreen ? 16 : 344,
+            right: isSmallScreen ? 16 : 48,
+            zIndex: 20,
+            pointerEvents: 'none'
+          }}
+        >
+          <div
+            style={{
+              width: '100%',
+              maxWidth: isSmallScreen ? '100%' : '960px',
+              margin: '0 auto',
+              pointerEvents: 'auto'
+            }}
+          >
+            <div className="md-card chat-composer-card">
               {/* Text input (full width) */}
               <textarea
                 ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); void send(); } }}
-                placeholder="Send a message to start crafting prompts…"
+                placeholder="Ready to craft? Describe your task or paste an existing prompt..."
                 className="md-input"
                 rows={1}
-                style={{ resize: 'none', minHeight: 40, background: 'var(--color-surface)', border: '1px solid var(--color-outline)', marginBottom: 12, width: '100%' }}
+                style={{
+                  resize: 'none',
+                  minHeight: 40,
+                  background: 'var(--color-surface)',
+                  border: '1px solid var(--color-outline)',
+                  marginBottom: 12,
+                  width: '100%',
+                  borderRadius: 16,
+                  padding: '12px 14px'
+                }}
               />
 
               {/* Controls row below input */}
               <div style={{ display: 'flex', gap: 8, justifyContent: 'space-between', alignItems: 'center' }}>
                 {/* Model selection (left) */}
-                <div style={{ position: 'relative' }}>
-                  <button ref={modelBtnRef} type="button" className="md-btn" title="Select model" onClick={() => {
-                    const wasOpen = modelMenuOpen;
-                    setModelMenuOpen((v) => !v);
-                    // Auto-refresh models when opening dropdown
-                    if (!wasOpen) {
-                      refreshModels();
-                    }
-                  }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                    {modelLabel}
-                    <Icon name="chevronDown" className={`dropdown-arrow ${modelMenuOpen ? 'dropdown-arrow--open' : ''}`} />
+                <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+                  {/* Refresh connection button */}
+                  <button 
+                    type="button" 
+                    className="md-btn md-btn--primary" 
+                    title="Check Ollama connection and refresh models" 
+                    onClick={() => void checkOllamaConnection()}
+                    disabled={checkingConnection}
+                    style={{ 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      width: 40, 
+                      height: 40, 
+                      padding: 0,
+                      opacity: checkingConnection ? 0.5 : 1,
+                      cursor: checkingConnection ? 'wait' : 'pointer',
+                      marginRight: 8,
+                    }}
+                  >
+                    <Icon name="refresh" className={checkingConnection ? 'md-spin' : ''} />
                   </button>
+                  <div style={{ position: 'relative' }}>
+                    <button ref={modelBtnRef} type="button" className="md-btn" title="Select model" onClick={() => {
+                      const wasOpen = modelMenuOpen;
+                      setModelMenuOpen((v) => !v);
+                      // Auto-refresh models when opening dropdown
+                      if (!wasOpen) {
+                        refreshModels();
+                      }
+                    }} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                      {modelLabel}
+                      <Icon name="chevronDown" className={`dropdown-arrow ${modelMenuOpen ? 'dropdown-arrow--open' : ''}`} />
+                    </button>
                   {modelMenuOpen && (
                     <div
                       ref={modelMenuRef}
@@ -804,13 +1415,36 @@ type Format = "plain" | "markdown" | "json";
                       style={{ position: 'absolute', left: 0, top: modelMenuUp ? 'auto' : 'calc(100% + 6px)', bottom: modelMenuUp ? 'calc(100% + 6px)' : 'auto', maxHeight: 320, overflowY: 'auto' }}
                     >
                       {availableModels.length > 0 ? (
-                        availableModels.map((m) => (
-                          <button key={m} className="menu-item" onClick={async () => {
-                            await fetch('/api/model/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'ollama', baseUrl: 'http://localhost:11434', model: m }) });
-                            setModelLabel(`Gemma 3 ${(m.split(':')[1] || '').toUpperCase()}`);
-                            setModelMenuOpen(false);
-                          }}>{`Gemma 3 ${(m.split(':')[1] || '').toUpperCase()}`}</button>
-                        ))
+                        availableModels.map((m) => {
+                          const label = `Gemma 3 ${(m.name.split(':')[1] || '').toUpperCase()}`;
+                          const isSelected = currentModelId === m.name;
+                          return (
+                            <button
+                              key={m.name}
+                              className="menu-item"
+                              aria-current={isSelected ? 'true' : undefined}
+                    onClick={async () => {
+                                await fetch('/api/model/config', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ provider: 'ollama', baseUrl: 'http://localhost:11434', model: m.name }) });
+                                setCurrentModelId(m.name);
+                                setModelLabel(label);
+                                setModelMenuOpen(false);
+                              }}
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                gap: 8,
+                                background: isSelected ? 'rgba(108,140,255,0.12)' : undefined,
+                                outline: isSelected ? '2px solid var(--color-primary)' : 'none',
+                                outlineOffset: -2,
+                                fontWeight: isSelected ? 600 : undefined,
+                              }}
+                            >
+                              <span>{label}</span>
+                              {isSelected && <Icon name="check" />}
+                            </button>
+                          );
+                        })
                       ) : (
                         <div>
                           <div className="menu-item" style={{ opacity: 0.6, cursor: 'default' }}>No local models found</div>
@@ -827,6 +1461,7 @@ type Format = "plain" | "markdown" | "json";
                       )}
                     </div>
                   )}
+                  </div>
                 </div>
 
                 {/* Send (right) */}
@@ -836,7 +1471,7 @@ type Format = "plain" | "markdown" | "json";
                     className="md-btn md-btn--primary" 
                 onClick={() => void send()}
                     disabled={!input.trim() || sending}
-                    style={{ width: 40, height: 40, borderRadius: '50%', padding: 0 }}
+                    style={{ width: 40, height: 40, borderRadius: '50%', padding: 0, border: currentTheme === 'earth' ? '1px solid var(--color-outline)' : undefined }}
                     title="Send message"
                   >
                     ↑
@@ -859,25 +1494,31 @@ type Format = "plain" | "markdown" | "json";
             <div className="modal-title">All Chats</div>
             <div style={{ display: 'flex', gap: 8 }}>
               <button
-                className="md-btn md-btn--danger"
+                className="md-btn md-btn--destructive"
                 onClick={async () => {
-                  if (!window.confirm('Delete ALL chats? This will permanently remove all chats.')) return;
+                  const ok = await confirm({ title: 'Delete All Chats', message: 'Delete ALL chats? This will permanently remove all chats.', confirmText: 'Delete All', cancelText: 'Cancel', tone: 'destructive' });
+                  if (!ok) return;
                   const ids = recentChats.map((c: any) => c.id);
                   try {
                     await Promise.allSettled(ids.map((id: string) => deleteChat(id)));
                   } catch {}
                 }}
-                style={{ padding: '6px 10px' }}
+                style={{ padding: '6px 10px', color: '#ef4444', marginRight: 30 }}
                 title="Delete all chats"
               >
-                Delete All Chats
+                <b>Delete All</b>
               </button>
-              <button className="md-btn" onClick={() => setShowAllChatsOpen(false)} style={{ padding: '6px 10px' }}>Close</button>
+              <button className="md-btn" onClick={() => setShowAllChatsOpen(false)} style={{ padding: '6px 10px' }}><Icon name="close" /></button>
             </div>
           </div>
           <div className="modal-body">
-            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
-              {(recentChats).map((c: any) => {
+            {recentChats.length === 0 ? (
+              <div className="text-secondary" style={{ fontSize: 13, padding: 12, textAlign: 'center' }}>
+                No chats have been created yet.
+              </div>
+            ) : (
+              <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: 6 }}>
+                {(recentChats).map((c: any) => {
                 const isActive = currentChatId === c.id;
                 return (
                   <li key={c.id} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
@@ -902,18 +1543,19 @@ type Format = "plain" | "markdown" | "json";
                     </button>
                     <button
                       type="button"
-                      className="md-btn"
+                      className="md-btn md-btn--destructive"
                       title="Delete chat"
                       style={{ width: 36, height: 36, borderRadius: '50%', padding: 0, color: '#ef4444' }}
-                      onClick={async (e) => { e.stopPropagation(); if (!window.confirm('Delete this chat? This will permanently remove it.')) return; await deleteChat(c.id); }}
+                      onClick={async (e) => { e.stopPropagation(); const ok = await confirm({ title: 'Delete Chat', message: 'Delete this chat? This will permanently remove it.', confirmText: 'Delete', cancelText: 'Cancel', tone: 'destructive' }); if (!ok) return; await deleteChat(c.id); }}
                       aria-label="Delete chat"
                     >
                       <Icon name="trash" className="text-[13px]" />
                     </button>
                   </li>
                 );
-              })}
-                    </ul>
+                })}
+              </ul>
+            )}
                   </div>
                     </div>
                     </div>
@@ -927,7 +1569,7 @@ type Format = "plain" | "markdown" | "json";
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <div className="modal-title">Edit Preset</div>
-            <button className="md-btn" onClick={() => setPresetEditorOpen(false)} style={{ padding: '6px 10px' }}>Close</button>
+            <button className="md-btn" onClick={() => setPresetEditorOpen(false)} style={{ padding: '6px 10px' }}><Icon name="close" /></button>
                     </div>
           <div className="modal-body">
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
@@ -956,7 +1598,24 @@ type Format = "plain" | "markdown" | "json";
               <CustomSelect value={language} onChange={(v) => setLanguage(v)} options={[{value:'English',label:'English'},{value:'Dutch',label:'Dutch'},{value:'Arabic',label:'Arabic'},{value:'Mandarin Chinese',label:'Mandarin Chinese'},{value:'Spanish',label:'Spanish'},{value:'French',label:'French'},{value:'Russian',label:'Russian'},{value:'Urdu',label:'Urdu'}]} />
                     </div>
             <div style={{ gridColumn: '1 / -1' }}>
-              <label className="text-secondary" style={{ fontSize: 12, display: 'block' }}>Temperature</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <label className="text-secondary" style={{ fontSize: 12 }}>Temperature</label>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await showInfo({
+                      title: 'Temperature',
+                      message: 'Temperature controls randomness. Lower values (e.g., 0.2) are more focused and deterministic; higher values (e.g., 0.8) are more creative and diverse. Range: 0.0–1.0.',
+                      okText: 'Got it'
+                    });
+                  }}
+                  title="Controls randomness: lower = focused/deterministic, higher = creative/diverse (0–1)"
+                  aria-label="What does temperature do?"
+                  style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-on-surface-variant)', display: 'inline-flex', alignItems: 'center' }}
+                >
+                  <Icon name="info" className="text-[13px]" />
+                </button>
+              </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <input
                   type="range"
@@ -1031,7 +1690,18 @@ type Format = "plain" | "markdown" | "json";
         <div className="modal-content" onClick={(e) => e.stopPropagation()}>
           <div className="modal-header">
             <div className="modal-title">Preset Menu</div>
-            <button className="md-btn" onClick={() => setPresetSelectorOpen(false)} style={{ padding: '6px 10px' }}>Close</button>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                className="md-btn md-btn--destructive"
+                onClick={() => void deleteAllPresets()}
+                style={{ padding: '6px 10px', color: '#ef4444', marginRight: 30 }}
+                disabled={presets.filter((p) => (p.name || '').trim().toLowerCase() !== 'default').length === 0}
+                title="Delete all presets (except Default)"
+              >
+              <b>Delete All</b>
+              </button>
+              <button className="md-btn" onClick={() => setPresetSelectorOpen(false)} style={{ padding: '6px 10px' }}><Icon name="close" /></button>
+            </div>
           </div>
           <div className="modal-body">
             <div style={{ display: 'grid', gap: 12 }}>
@@ -1071,15 +1741,27 @@ type Format = "plain" | "markdown" | "json";
                       padding: 16, 
                       borderRadius: 12, 
                       position: 'relative',
-                      borderColor: isSel ? 'var(--color-primary)' : 'var(--color-outline)',
-                      borderWidth: isSel ? '2px' : '1px'
+                      ...(currentTheme === 'earth'
+                        ? {
+                            border: `2px solid ${isSel ? 'var(--color-on-surface)' : 'var(--color-outline)'}`,
+                            background: isSel ? 'rgba(238,232,213,0.06)' : 'transparent'
+                          }
+                        : currentTheme === 'light'
+                        ? {
+                            border: `2px solid ${isSel ? 'var(--color-primary)' : 'var(--color-outline)'}`
+                          }
+                        : {
+                            borderColor: isSel ? 'var(--color-primary)' : 'var(--color-outline)',
+                            borderWidth: isSel ? '2px' : '1px'
+                          })
                     }}>
                       <div
                         style={{
                           textAlign: 'left',
                           cursor: 'pointer',
                           background: 'transparent',
-                          color: isSel ? 'var(--color-primary)' : 'var(--color-on-surface)',
+                          // Ensure readable text across all themes (Earth primary matches surface)
+                          color: 'var(--color-on-surface)',
                           padding: 0,
                           border: 'none'
                         }}
@@ -1101,28 +1783,57 @@ type Format = "plain" | "markdown" | "json";
               )}
             </div>
                       
-                      {/* Delete button */}
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          deletePreset(presetId, p.name);
-                        }}
-                        disabled={isDeleting}
-                        className="md-btn"
-                        style={{ 
-                          position: 'absolute',
-                          top: 12,
-                          right: 12,
-                          padding: 8,
-                          opacity: isDeleting ? 0.6 : 1,
-                          color: '#ef4444'
-                        }}
-                        title={`Delete preset "${p.name}"`}
-                        aria-label={`Delete preset ${p.name}`}
-                      >
-                        {isDeleting ? '...' : <Icon name="trash" className="text-[13px]" />}
-                      </button>
+                      {/* Action buttons (top-right): trash (if not Default) + cog (always) */}
+                      <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 6 }}>
+                        {(p.name || '').trim().toLowerCase() !== 'default' && (
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              deletePreset(presetId, p.name);
+                            }}
+                            disabled={isDeleting}
+                            className="md-btn md-btn--destructive"
+                            style={{ 
+                              padding: 8,
+                              opacity: isDeleting ? 0.6 : 1,
+                              color: '#ef4444'
+                            }}
+                            title={`Delete preset "${p.name}"`}
+                            aria-label={`Delete preset ${p.name}`}
+                          >
+                            {isDeleting ? '...' : <Icon name="trash" className="text-[13px]" />}
+                          </button>
+                        )}
+                        {(p.name || '').trim().toLowerCase() !== 'default' && (
+                          <button
+                            type="button"
+                            className="md-btn"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              // Prefill and open editor for this preset
+                              setPresetName(p.name);
+                              setTaskType(p.taskType as any);
+                              const o = p.options || {};
+                              setTone(o.tone ?? 'neutral');
+                              setDetail(o.detail ?? 'normal');
+                              setFormat(o.format ?? 'markdown');
+                              setLanguage(o.language ?? 'English');
+                              setTemperature(typeof o.temperature === 'number' ? o.temperature : 0.7);
+                              setStylePreset(o.stylePreset ?? 'photorealistic');
+                              setAspectRatio(o.aspectRatio ?? '1:1');
+                              setIncludeTests(!!o.includeTests);
+                              setRequireCitations(!!o.requireCitations);
+                              setPresetEditorOpen(true);
+                            }}
+                            title={`Edit preset "${p.name}"`}
+                            aria-label={`Edit preset ${p.name}`}
+                            style={{ padding: 8 }}
+                          >
+                            <Icon name="gear" className="text-[13px]" />
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })
