@@ -306,6 +306,21 @@ h3, h4, h5, h6 { line-height: 28px; }
   z-index: 1; 
 }
 
+/* Text link */
+.md-link { 
+  color: var(--color-on-surface-variant); 
+  text-decoration: underline; 
+  text-underline-offset: 2px; 
+  transition: color 120ms ease, background-color 120ms ease; 
+  border-radius: 4px;
+  padding: 2px 4px;
+}
+.md-link:hover { 
+  color: var(--color-on-primary); 
+  background: var(--color-primary); 
+  text-decoration: none;
+}
+
 /* Modal containers */
 .modal-container { position: fixed; inset: 0; z-index: 50; display: flex; align-items: center; justify-content: center; }
 .modal-content { position: relative; z-index: 10; width: min(720px, 92vw); max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; background: var(--color-surface-variant); border: 1px solid var(--color-outline); border-radius: var(--radius-lg); box-shadow: var(--shadow-2); }

@@ -12,8 +12,7 @@ export default function ModelConfigGate({ children }: Props) {
   const [fetching, setFetching] = useState(false);
   const [config, setConfig] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  // Store Ollama base URL separately so API provider never overwrites user local choice
-  const [localBaseUrl, setLocalBaseUrl] = useState('http://localhost:11434');
+  const [localPort, setLocalPort] = useState<string>('11434');
   const [model, setModel] = useState<string>('');
   const [provider] = useState<'ollama'>('ollama');
   const [saving, setSaving] = useState(false);
@@ -24,10 +23,7 @@ export default function ModelConfigGate({ children }: Props) {
   const [defaultProvider, setDefaultProvider] = useState<'ollama' | null>(null);
   const [hasValidDefault, setHasValidDefault] = useState(false);
   const [showProviderSelection, setShowProviderSelection] = useState(false);
-  // Legacy DB reset state removed (no longer using SQLite); keep placeholders if needed for future migration features
-  // const [resettingDb, setResettingDb] = useState(false);
-  // const [resetNote, setResetNote] = useState<string | null>(null);
-  // const [showRestartModal, setShowRestartModal] = useState(false);
+
   // Ollama detection state
   const [ollamaCheckPerformed, setOllamaCheckPerformed] = useState(false);
   const [showOllamaMissingModal, setShowOllamaMissingModal] = useState(false);
@@ -67,7 +63,9 @@ export default function ModelConfigGate({ children }: Props) {
             if (configData?.config) {
               setConfig(configData.config);
               if (configData.config.provider === 'ollama') {
-                setLocalBaseUrl(configData.config.baseUrl || 'http://localhost:11434');
+                const base = String(configData.config.baseUrl || 'http://localhost:11434');
+                const portMatch = base.match(/:(\d{1,5})/);
+                setLocalPort(portMatch?.[1] ?? '11434');
                 // Store the configured model, but don't set it as selected until we check availability
                 const configuredModel = configData.config.model;
                 
@@ -152,7 +150,7 @@ export default function ModelConfigGate({ children }: Props) {
       } catch (_err) {
         if (cancelled) return;
         // Not reachable: blank out the URL so user explicitly sets it and show modal
-        setLocalBaseUrl('');
+        setLocalPort('');
         setShowOllamaMissingModal(true);
       }
     };
@@ -171,23 +169,37 @@ export default function ModelConfigGate({ children }: Props) {
       const res = await fetch('http://localhost:11434/api/tags', { signal: controller.signal });
       clearTimeout(t);
       if (res.ok) {
-        setLocalBaseUrl('http://localhost:11434');
+        setLocalPort('11434');
       } else {
-        setLocalBaseUrl('');
+        setLocalPort('');
         setShowOllamaMissingModal(true);
       }
     } catch {
-      setLocalBaseUrl('');
+      setLocalPort('');
       setShowOllamaMissingModal(true);
     } finally {
       setOllamaCheckPerformed(true);
     }
   };
 
+  const isValidPort = (port: string): boolean => {
+    // Only digits, length between 2 and 5
+    return /^\d{2,5}$/.test((port || '').trim());
+  };
+
+  const normalizeToBaseUrl = (value?: string): string => {
+    const raw = (value || '').trim();
+    if (!raw) return '';
+    if (/^\d{1,5}$/.test(raw)) return `http://localhost:${raw}`;
+    if (/^localhost:\d{1,5}$/.test(raw)) return `http://${raw}`;
+    if (/^https?:\/\//.test(raw)) return raw.replace(/\/$/, '');
+    return raw;
+  };
+
   // Test connection to local Ollama server using specified baseUrl (or current localBaseUrl if not provided)
   // If configuredModel is provided, it will be selected if found in available models
   const testLocalConnection = async (baseUrlParam?: string, configuredModel?: string) => {
-    const url = (baseUrlParam || localBaseUrl || '').replace(/\/$/, '');
+    const url = normalizeToBaseUrl(baseUrlParam ?? localPort);
     if (!url) return;
     
     setTestingLocal(true);
@@ -252,10 +264,9 @@ export default function ModelConfigGate({ children }: Props) {
             ) : showProviderSelection ? (
               <div className="modal-content" onClick={(e) => e.stopPropagation()}>
                 <div className="modal-header">
-                  <div className="modal-title">Configure Local Ollama</div>
+                  <div className="modal-title">Configure Local Gemma 3 Model</div>
                 </div>
                 <div className="modal-body">
-                  <p className="text-sm text-secondary mb-4">PromptCrafter requires a local Ollama installation with Gemma 3 models for complete privacy.</p>
                   {previouslyConfigured && connectionError && (
                     <div className="md-card" style={{ padding: 12, borderLeft: '4px solid var(--color-primary)' }}>
                       <div style={{ fontSize: 12 }}>
@@ -267,7 +278,7 @@ export default function ModelConfigGate({ children }: Props) {
                   e.preventDefault();
                   setSaving(true); setError(null);
                   try {
-                    const payload = { provider: 'ollama', baseUrl: localBaseUrl, model };
+                    const payload = { provider: 'ollama', baseUrl: normalizeToBaseUrl(localPort), model };
                     
                     const res = await fetch('/api/model/config', { 
                       method: 'POST', 
@@ -305,23 +316,31 @@ export default function ModelConfigGate({ children }: Props) {
                   } finally { setSaving(false); }
                 }} className="space-y-4">
                     {/* Ollama configuration */}
-                    <div>
-                      <label className="data-location-label" htmlFor="baseUrl">Base URL (local only)</label>
+                    <div style={{ paddingTop: 16, paddingBottom: 16 }}>
+                      <label className="data-location-label" htmlFor="port">Local Ollama port <i>(Default: 11434)</i></label>
                       <div style={{ display: 'flex', gap: 8 }}>
                         <input
-                          id="baseUrl"
-                          value={localBaseUrl}
-                          onChange={e => { setLocalBaseUrl(e.target.value); setLocalTestResult(null); }}
+                          id="port"
+                          type="text"
+                          inputMode="numeric"
+                          pattern="[0-9]*"
+                          maxLength={5}
+                          value={localPort}
+                          onChange={e => {
+                            const raw = (e.target.value || '').replace(/\D/g, '').slice(0, 5);
+                            setLocalPort(raw);
+                            setLocalTestResult(null);
+                          }}
                           required
                           className="md-input"
-                          placeholder="http://localhost:11434"
+                          placeholder="11434"
                           autoComplete="off"
                           style={{ flex: 1 }}
                         />
                         <button
                           type="button"
                           onClick={() => testLocalConnection()}
-                          disabled={testingLocal || !localBaseUrl}
+                          disabled={testingLocal || !isValidPort(localPort)}
                           className="md-btn"
                           title="Check for available Ollama models"
                           style={{ whiteSpace: 'nowrap' }}
@@ -353,12 +372,31 @@ export default function ModelConfigGate({ children }: Props) {
                     </div>
                     <div className="text-secondary" style={{ fontSize: 12, lineHeight: '18px' }}>
                       {availableModels.length === 0 ? (
-                        <>Click “Check for models” to find available Gemma 3 models in Ollama. If none are found, install Ollama and pull a compatible Gemma 3 model.</>
+                        <>PromptCrafter requires a local Ollama installation with Gemma 3 models for complete privacy.<br/><br/>Click “Check for models” to find available Gemma 3 models in Ollama. If none are found, install Ollama and pull a compatible Gemma 3 model.</>
                       ) : (
-                        <>Found {availableModels.length} Gemma 3 model{availableModels.length !== 1 ? 's' : ''}. We’ll use the first one found: <code style={{ fontSize: 11 }}>{model}</code>. You can change this later from within the app.</>
+                        <>Found {availableModels.length} usable model{availableModels.length !== 1 ? 's' : ''}. We’ll use the first one found: <code style={{ fontSize: 11 }}>{model}</code>. You can change this later from within the app.</>
                       )}
                     </div>
-                
+                    <div className="text-sm text-secondary" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 8 }}>
+                    <a
+                      className="md-link"
+                      href="https://ollama.com/download"
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Download Ollama"
+                    >
+                      Download Ollama
+                    </a>
+                    <a
+                      className="md-link"
+                      href="https://ollama.com/library/gemma3"
+                      target="_blank"
+                      rel="noreferrer"
+                      title="Gemma 3 models for Ollama"
+                    >
+                      Gemma 3 in Ollama
+                    </a>
+                  </div>
                     {(error || connectionError) && (
                       <div className="md-card" style={{ padding: 12, borderLeft: '4px solid #ef4444' }}>
                         <div style={{ fontSize: 12 }}>{error || connectionError}</div>
