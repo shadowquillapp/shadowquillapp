@@ -64,7 +64,9 @@ function detectUserIntent(input: string, mode: PromptMode, taskType: TaskType, o
       isPromptEnhancement: false,
       responseStrategy: 'direct_help'
     };
-  } else if (mode === 'enhance' && looksLikeExistingPrompt) {
+  } else if (mode === 'enhance') {
+    // In Enhance mode, prefer enhancement behavior regardless of input shape,
+    // unless it's clearly a direct technical question handled above.
     return {
       isDirectTechnicalQuestion: false,
       isPromptCreation: false,
