@@ -6,8 +6,6 @@ const fs = require('fs');
 const http = require('http');
 /** @type {number|null} */
 let nextServerPort = null;
-let dataDirPath = null; // fixed data directory (no longer user-configurable)
-const CONFIG_FILENAME = 'promptcrafter-config.json'; // retained for compatibility if needed
 
 // Ensure a stable userData path labeled "PromptCrafter" in dev and prod so
 // both Electron and the Next.js dev server read the same config file location.
@@ -16,71 +14,9 @@ try {
   app.setPath('userData', desiredUserData);
 } catch (_) { /* ignore */ }
 
-function getConfigPath() {
-  return path.join(app.getPath('userData'), CONFIG_FILENAME);
-}
-
-function loadConfig() { return {}; }
-function saveConfig(_cfg) { /* no-op: data directory is fixed */ }
-
 // Treat anything not packaged as dev. Rely on app.isPackaged instead of NODE_ENV
 // because packaged builds often don't set NODE_ENV.
 const isDev = !app.isPackaged;
-
-// Use fixed data directory: default to Documents/PromptCrafter for all OS
-const cfg = {};
-
-// Expose userData path to renderer/server processes for unified config resolution
-try { process.env.PROMPTCRAFTER_USER_DATA_DIR = app.getPath('userData'); } catch(_) {}
-
-function getDefaultDataDir() {
-  try {
-    const docs = app.getPath('documents');
-    return path.join(docs, 'PromptCrafter');
-  } catch (_) {
-    // Last resort if documents is unavailable
-    return path.join(app.getPath('userData'), 'PromptCrafter');
-  }
-}
-
-function ensureDirWritable(dir) {
-  try { fs.mkdirSync(dir, { recursive: true }); } catch (_) {}
-  return canWriteToDir(dir);
-}
-
-function resolveAndPersistDataDirInternal() {
-  try {
-    const fixed = getDefaultDataDir();
-    if (ensureDirWritable(fixed)) {
-      dataDirPath = fixed;
-    } else {
-      const lastResort = path.join(app.getPath('userData'), 'PromptCrafter');
-      if (ensureDirWritable(lastResort)) {
-        dataDirPath = lastResort;
-      }
-    }
-    if (dataDirPath) {
-      process.env.DATA_DIR = dataDirPath;
-    }
-  } catch (e) {
-    console.warn('[Electron] Failed to resolve data directory', e);
-  }
-  return dataDirPath;
-}
-
-resolveAndPersistDataDirInternal();
-
-// Utility: attempt write/delete test file to confirm directory is writable
-function canWriteToDir(dir) {
-  try {
-    const testFile = path.join(dir, '.promptcrafter-write-test');
-    fs.writeFileSync(testFile, 'ok');
-    fs.unlinkSync(testFile);
-    return true;
-  } catch (e) {
-    return false;
-  }
-}
 
 // Attempt to detect Windows Mark-of-the-Web ADS (Zone.Identifier) and optionally remove
 function checkAndOptionallyClearZoneIdentifier() {
@@ -100,7 +36,6 @@ function checkAndOptionallyClearZoneIdentifier() {
 }
 
 // Register IPC handlers early - before app.whenReady() to ensure they're available immediately
-// Removed IPC handlers related to data directory management (fixed path now)
 
 // Restart the Electron application (used after DB reset)
 ipcMain.handle('promptcrafter:restartApp', () => {
@@ -112,13 +47,70 @@ ipcMain.handle('promptcrafter:restartApp', () => {
     return { ok: false, error: e?.message || 'Failed to restart' };
   }
 });
-// Removed user-driven directory selection IPC handler
+
 ipcMain.handle('promptcrafter:getEnvSafety', () => {
   const execPath = process.execPath;
   const inDownloads = /[\\/](Downloads|downloads)[\\/]/.test(execPath);
   const zone = checkAndOptionallyClearZoneIdentifier();
   return { execPath, inDownloads, zoneIdentifierPresent: zone.zoneIdentifierPresent, zoneRemoved: zone.removed };
 });
+
+// Robustly register data IPC handlers (safe to call multiple times)
+function registerDataIPCHandlers() {
+  try { ipcMain.removeHandler('promptcrafter:getDataPaths'); } catch (_) {}
+  try { ipcMain.removeHandler('promptcrafter:factoryReset'); } catch (_) {}
+
+  // Expose resolved data paths for UI
+  ipcMain.handle('promptcrafter:getDataPaths', () => {
+    try {
+      const userData = app.getPath('userData');
+      const localStorageDir = path.join(userData, 'Local Storage');
+      const localStorageLevelDb = path.join(localStorageDir, 'leveldb');
+      return {
+        ok: true,
+        userData,
+        localStorageDir,
+        localStorageLevelDb,
+      };
+    } catch (e) {
+      return { ok: false, error: e?.message || 'Failed to resolve data paths' };
+    }
+  });
+
+  // Factory reset: clear Chromium storage (localStorage, IndexedDB, etc)
+  ipcMain.handle('promptcrafter:factoryReset', async () => {
+    try {
+      // Clear all persistent storage for the default session (localStorage, IndexedDB, Cache, etc.)
+      try {
+        await session.defaultSession.clearStorageData({});
+        await session.defaultSession.clearCache();
+      } catch (_) { /* ignore */ }
+
+      // Remove common subfolders inside userData that can hold remnants
+      try {
+        const userData = app.getPath('userData');
+        const maybeDirs = [
+          'IndexedDB',
+          'Local Storage',
+          'Service Worker',
+          'Cookies',
+          'GPUCache',
+          'Code Cache',
+          'Cache'
+        ];
+        for (const name of maybeDirs) {
+          try { fs.rmSync(path.join(userData, name), { recursive: true, force: true }); } catch (_) {}
+        }
+      } catch (_) { /* ignore */ }
+
+      return { ok: true };
+    } catch (e) {
+      return { ok: false, error: e?.message || 'Factory reset failed' };
+    }
+  });
+}
+// Register immediately and again on ready (in case of race during startup)
+try { registerDataIPCHandlers(); } catch (_) {}
 
 // Window controls for custom frameless UI
 ipcMain.handle('promptcrafter:window:minimize', (e) => {
@@ -150,12 +142,12 @@ function createWindow() {
   // Enable built-in Chromium spellchecker
   spellcheck: true,
     },
-    title: 'PromptCrafter',
+    title: '',
   });
 
   // Hard guard against programmatic or edge-case resize attempts below limits
   win.on('will-resize', (event, newBounds) => {
-    if (newBounds.width < 950 || newBounds.height < 1024) {
+    if (newBounds.width < 950 || newBounds.height < 800) {
       event.preventDefault();
     }
   });
@@ -304,6 +296,8 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  // Ensure IPC handlers are registered after ready as well
+  try { registerDataIPCHandlers(); } catch (_) {}
   // Build a custom application menu that:
   // - Keeps File & Edit menus (standard roles)
   // - Keeps View but removes Developer Tools toggle
