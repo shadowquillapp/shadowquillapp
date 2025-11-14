@@ -1200,11 +1200,15 @@ type Format = "plain" | "markdown" | "json";
                       {(() => {
                         const o = p.options || {};
                         const parts: string[] = [];
-                        if (o.tone) parts.push(`${o.tone} tone`);
-                        if (o.detail) parts.push(`${o.detail} detail`);
-                        if (o.format) parts.push(o.format);
-                        if (o.stylePreset) parts.push(o.stylePreset);
-                        if (o.aspectRatio) parts.push(o.aspectRatio);
+                        const capitalize = (str: string) => {
+                          if (str.toLowerCase() === 'json') return 'JSON';
+                          return str.charAt(0).toUpperCase() + str.slice(1);
+                        };
+                        if (o.tone) parts.push(`${capitalize(o.tone)} Tone`);
+                        if (o.detail) parts.push(`${capitalize(o.detail)} Detail`);
+                        if (o.format) parts.push(capitalize(o.format));
+                        if (o.stylePreset) parts.push(capitalize(o.stylePreset));
+                        if (o.aspectRatio) parts.push(capitalize(o.aspectRatio));
                         return parts.length ? (
                           <div className="text-secondary" style={{ fontSize: 11, marginTop: 2 }}>
                             {parts.join(' • ')}
