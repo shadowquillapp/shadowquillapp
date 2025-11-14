@@ -45,14 +45,7 @@ export default function Titlebar() {
       className="fixed top-0 left-0 right-0 flex h-8 items-center select-none app-region-drag"
       style={{ background: 'var(--color-surface-variant)', borderBottom: '1px solid var(--color-outline)', zIndex: 100 }}
     >
-      <div className="flex gap-2 px-2 app-region-no-drag">
-        <TitlebarButton 
-          aria-label="Close" 
-          color="#FF5F57"
-          onClick={() => { try { (window as any).promptcrafter?.window?.close?.(); } catch {} }}
-        >
-          <Icon name="close" className="h-2 w-2" />
-        </TitlebarButton>
+      <div className="ml-auto flex gap-2 px-2 app-region-no-drag">
         <TitlebarButton 
           aria-label="Minimize" 
           color="#FFBD2E"
@@ -66,6 +59,13 @@ export default function Titlebar() {
           onClick={() => { try { (window as any).promptcrafter?.window?.maximizeToggle?.(); } catch {} }}
         >
           <Icon name="expand" className="h-2 w-2" />
+        </TitlebarButton>
+        <TitlebarButton 
+          aria-label="Close" 
+          color="#FF5F57"
+          onClick={() => { try { (window as any).promptcrafter?.window?.close?.(); } catch {} }}
+        >
+          <Icon name="close" className="h-2 w-2" />
         </TitlebarButton>
       </div>
     </div>
