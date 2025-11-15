@@ -88,13 +88,13 @@ export default function SettingsDialog({ open, onClose, initialTab = "system" }:
           }
           
           .settings-tab-content {
-            animation: fadeInSlide 0.5s ease-out;
+            animation: fadeInSlide 1s cubic-bezier(0.4, 0, 0.2, 1);
           }
           
           @keyframes fadeInSlide {
             from {
               opacity: 0;
-              transform: translateY(8px);
+              transform: translateY(4px);
             }
             to {
               opacity: 1;
