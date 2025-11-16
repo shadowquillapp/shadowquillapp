@@ -10,7 +10,7 @@ const TYPE_GUIDELINES: Record<TaskType, string> = {
 	image:
 		"Image: describe subject, context, composition, style, palette, lighting, and mood. Avoid meta commentary.",
 	video:
-		"Video: define subject, action, setting, pacing; specify cinematography (shot type, camera movement), composition, lighting, transitions, sound/VO, aspect ratio, duration, and frame rate. Avoid meta commentary.",
+		"Video: define subject, action, setting, pacing; specify cinematography (shot type, camera movement), composition, lighting, transitions, sound/VO, aspect ratio, duration, and frame rate. Avoid meta commentary. The 'Instruction' must directly instruct video generation (not a storyboard, concept brief, or outline).",
 	research:
 		"Research: define the question, scope, evidence standard, required citations, and anti-hallucination guardrails.",
 	writing:

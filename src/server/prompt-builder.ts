@@ -30,7 +30,7 @@ const TYPE_GUIDELINES: Record<TaskType, string> = {
   general: 'General: restate the goal clearly, enumerate key considerations, and clarify success criteria without drifting from the user’s topic.',
   coding: 'Coding: build a full implementation prompt detailing objective, tech scope, environment/tooling, sequential steps, guardrails, and acceptance/verification criteria. Do not invent languages, frameworks, or meta fields unless explicitly given.',
   image: 'Image: describe subject, context, composition, style, palette, lighting, and mood. Avoid meta commentary.',
-  video: 'Video: define subject, action, setting, pacing; specify cinematography (shot type, camera movement), composition, lighting, transitions, sound/VO, aspect ratio, duration, and frame rate. Avoid meta commentary.',
+  video: 'Video: define subject, action, setting, pacing; specify cinematography (shot type, camera movement), composition, lighting, transitions, sound/VO, aspect ratio, duration, and frame rate. Avoid meta commentary. The \'Instruction\' must directly instruct video generation (not a storyboard, concept brief, or outline).',
   research: 'Research: define the question, scope, evidence standard, required citations, and anti-hallucination guardrails.',
   writing: 'Writing: specify audience, tone, structure, thematic beats, and stylistic constraints.',
   marketing: 'Marketing: outline persona, value props, proof points, emotional drivers, CTA, and compliance limits.',
