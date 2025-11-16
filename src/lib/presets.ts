@@ -50,10 +50,16 @@ export function savePreset(preset: Preset): Preset {
 		const existingIndexByName = list.findIndex((p) => (p.name || "").trim().toLowerCase() === normalizedName);
 		if (existingIndexByName !== -1) {
 			const existing = list[existingIndexByName];
-			const id = existing.id ?? `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-			const updated = { ...existing, ...preset, id };
-			list[existingIndexByName] = updated;
-			preset = updated;
+			if (existing) {
+				const id = existing.id ?? `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+				const updated = { ...existing, ...preset, id };
+				list[existingIndexByName] = updated;
+				preset = updated;
+			} else {
+				const id = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+				list.push({ ...preset, id });
+				preset = { ...preset, id };
+			}
 		} else {
 			const id = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 			list.push({ ...preset, id });
