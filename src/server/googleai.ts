@@ -1,5 +1,4 @@
 // Types only - local Ollama only
-import { buildStylePresetPhrase } from '@/server/image-style-presets';
 export type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing" | "video";
 
 export interface GenerationOptions {

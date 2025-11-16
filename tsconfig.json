@@ -38,11 +38,26 @@
 	},
 	"include": [
 		"next-env.d.ts",
-		"**/*.ts",
-		"**/*.tsx",
-		"**/*.cjs",
-		"**/*.js",
+		"src/**/*.ts",
+		"src/**/*.tsx",
 		".next/types/**/*.ts"
 	],
-	"exclude": ["node_modules", "src/server/gemma.ts"]
+	"exclude": [
+		"node_modules",
+		".next",
+		"public",
+		"dist",
+		"build",
+		"src/server/storage-init.ts",
+		"src/app/chat/_components/FiltersSidebar.tsx",
+		"src/components/ThemeSwitcher.tsx",
+		"src/styles/ThemeProvider.tsx",
+		"src/server/local-model.ts",
+		"src/server/gemma-context.ts",
+		"src/server/image-style-presets.ts",
+		"src/server/data-validation/**",
+		"src/server/validation/**",
+		"src/server/output-sanitize.ts",
+		"src/server/gemma.ts"
+	]
 }

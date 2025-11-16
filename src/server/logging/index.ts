@@ -26,9 +26,7 @@ export class Logger {
   private isElectron: boolean;
 
   private constructor() {
-    this.isElectron = !!(process as any)?.versions?.electron ||
-                      process.env.ELECTRON === '1' ||
-                      process.env.NEXT_PUBLIC_ELECTRON === '1';
+    this.isElectron = !!(process as any)?.versions?.electron || process.env.ELECTRON === '1' || process.env.NEXT_PUBLIC_ELECTRON === '1';
 
     // Set log level based on environment
     const envLogLevel = process.env.LOG_LEVEL?.toUpperCase();
