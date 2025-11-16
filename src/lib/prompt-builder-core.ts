@@ -8,7 +8,7 @@ const TYPE_GUIDELINES: Record<TaskType, string> = {
   image:
     "Image: describe subject, context, composition, style, palette, lighting, and mood. Avoid meta commentary.",
   video:
-    "Video: define subject, action, setting, pacing; specify cinematography (shot type, camera movement), composition, lighting, transitions, sound/VO, aspect ratio, duration, and frame rate. Avoid meta commentary. The 'Instruction' must directly instruct video generation (not a storyboard, concept brief, or outline).",
+    "Video: define subject, action, setting, pacing; specify cinematography (shot type, camera movement), composition, lighting, transitions, sound/VO, aspect ratio, duration, and frame rate. Focus on cinematic direction and vivid scene description. Avoid meta commentary. The 'Instruction' must directly instruct video generation (not a storyboard, concept brief, or outline).",
   research:
     "Research: define the question, scope, evidence standard, required citations, and anti-hallucination guardrails.",
   writing:
@@ -16,6 +16,39 @@ const TYPE_GUIDELINES: Record<TaskType, string> = {
   marketing:
     "Marketing: outline persona, value props, proof points, emotional drivers, CTA, and compliance limits.",
 };
+
+const VIDEO_PROMPT_TEMPLATE: string = [
+  "#1 [Duration] - Action: [Camera Instruction] — [Movement Type] /* Ki */",
+  "SUBJECT: (person; detailed description; wardrobe; expression; micro-actions; emotional subtext)",
+  "SCENE: (location; detailed description; time of day; atmosphere; key props; environmental motion)",
+  "LIGHT: (type; intensity; direction; quality; practicals; key accents; motivated sources)",
+  "GRADE: (color palette; restrained saturation; filmic contrast curve; soft highlight roll-off; skin tone integrity; grain; bloom; halation; LUT intent)",
+  "CAM: (camera type; framing; focal length vibe; depth of field; composition rules; lens behavior)",
+  "AUDIO: (diegetic sounds; ambient noise; foley accents; room tone; music mood; SFX cues)",
+  "",
+  "#2 [Duration] - Action: [Dynamic Movement] — [Movement Type] /* Ki */",
+  "SUBJECT: (person; kinetic behavior; gestures; interaction with space/props; continuity from #1)",
+  "SCENE: (location continuation or cut; spatial layers; foreground/midground/background dynamics)",
+  "LIGHT: (evolution over time; flicker; occlusion; reflections; volumetrics; practical interplay; color separation in practicals)",
+  "GRADE: (palette continuity; midtone richness; hue separation; highlight shoulder and shadow floor protection; temporal grading continuity)",
+  "CAM: (blocking; parallax; reveal/whip/transition mechanics; rack focus or hold; horizon discipline)",
+  "AUDIO: (movement-linked foley; ambient modulation; transitional sonic motifs; music hit points)",
+  "",
+  "#3 [Duration] - Action: [Static Pose] — [Movement Type] /* Ki */",
+  "SUBJECT: (person; final pose; eye-line; breath; micro-tension; silhouette clarity)",
+  "SCENE: (anchoring details; framing elements; negative space; symmetry/asymmetry; set dressing)",
+  "LIGHT: (final balance; edge/rim; key-fill ratios; specular control; color separation; balanced white point)",
+  "GRADE: (final look anchor; selective, restrained saturation; gentle local contrast; vignette; texture retention; stabilization intent)",
+  "CAM: (shot size; locking strategy; tripod/handheld feel; DOF lock; composition stability)",
+  "AUDIO: (sustain/decay; reverb tail; ambient bed; music resolve; silence as a beat)",
+  "",
+  "Notes:",
+  "- Replace bracketed tokens with concrete, evocative detail; avoid generic adjectives.",
+  "- Do not reference specific camera models or brands; describe qualities instead.",
+  "- Keep continuity of palette, lighting motivation, and spatial logic across sections.",
+  "- Tasteful grading policy: preserve skin tones, protect highlights/shadows, avoid neon oversaturation and extreme teal–orange; prefer filmic contrast with soft shoulder and clean shadow floor.",
+  "- Quality policy: avoid oversharpening and heavy noise reduction; retain natural texture; use subtle grain and bloom judiciously; keep compression artifacts minimal.",
+].join("\n");
 
 const UNIFIED_MODE_GUIDELINES: string = [
   "Strictly obey mode, task type, and constraints supplied by the user.",
@@ -140,6 +173,16 @@ export function buildOptionDirectives(taskType: TaskType, options?: GenerationOp
     if (typeof options.frameRate === "number") directives.push(`Assume a frame rate of ${options.frameRate} fps.`);
     if (options.cameraMovement) directives.push(`Favor ${options.cameraMovement} camera movement.`);
     if (options.shotType) directives.push(`Compose primarily as ${options.shotType} shots.`);
+    // Tasteful color grading and quality guidance
+    directives.push(
+      "Color/grade: favor restrained saturation, filmic contrast curve, soft highlight roll-off, and preserved shadow detail; maintain a consistent, motivated palette; preserve skin tone integrity and natural hue separation."
+    );
+    directives.push(
+      "Avoid: neon oversaturation, clipped highlights, crushed blacks, heavy HDR glow, extreme teal–orange, plastic skin, and excessive digital sharpening."
+    );
+    directives.push(
+      "Texture/quality: keep natural micro-contrast and texture; apply subtle film grain where appropriate; avoid aggressive noise reduction; minimize compression artifacts."
+    );
   }
   return directives;
 }
@@ -184,6 +227,12 @@ export function buildUnifiedPromptCore(params: {
   if (systemPrompt) lines.push(systemPrompt);
   lines.push(UNIFIED_MODE_GUIDELINES);
   if (typeGuidelines) lines.push(typeGuidelines);
+  if (taskType === "video") {
+    lines.push(
+      "Template:\nUse this modular structure to elicit detailed, cinematic video prompts.\n" +
+        VIDEO_PROMPT_TEMPLATE
+    );
+  }
   if (optionDirectives.length) {
     lines.push(`Directives:\n${optionDirectives.map((d) => `- ${d}`).join("\n")}`);
   }
