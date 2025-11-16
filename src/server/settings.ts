@@ -1,22 +1,13 @@
 import { dataLayer } from "@/server/storage/data-layer";
 import { ensureSystemPromptsDefaultFile } from "@/server/storage/system-prompts-init";
 
-const SYSTEM_PROMPT_KEY = "SYSTEM_PROMPT" as const;
 const SYSTEM_PROMPT_BUILD_KEY = "SYSTEM_PROMPT_BUILD" as const;
 
 export type PromptMode = "build";
 
-export async function readSystemPrompt(): Promise<string | null> {
-  const setting = await dataLayer.findAppSetting(SYSTEM_PROMPT_KEY);
-  return setting?.value ?? null;
-}
-
 export async function readSystemPromptForMode(mode: PromptMode): Promise<string | null> {
   const setting = await dataLayer.findAppSetting(SYSTEM_PROMPT_BUILD_KEY);
   if (setting?.value) return setting.value;
-  // Fallback to legacy single prompt if per-mode not found
-  const legacyPrompt = await readSystemPrompt();
-  if (legacyPrompt) return legacyPrompt;
   
   // If no stored value, get from defaults file
   try {
@@ -26,10 +17,6 @@ export async function readSystemPromptForMode(mode: PromptMode): Promise<string 
     console.error(`Failed to load default system prompt:`, error);
     return null;
   }
-}
-
-export async function writeSystemPrompt(prompt: string): Promise<void> {
-  await dataLayer.upsertAppSetting(SYSTEM_PROMPT_KEY, prompt);
 }
 
 export async function writeSystemPromptForMode(mode: PromptMode, prompt: string): Promise<void> {
