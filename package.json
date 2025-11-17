@@ -1,8 +1,8 @@
 {
 	"name": "shadowquill",
 	"version": "1.0.0",
-	"author": "LekkerPrompt <info@shadowquill.org>",
-	"homepage": "https://github.com/LekkerPrompt/LekkerPrompt/shadowquill-app",
+	"author": "ShadowQuill <info@shadowquill.org>",
+	"homepage": "https://shadowquill.org",
 	"description": "ShadowQuill",
 	"private": true,
 	"type": "module",
@@ -90,7 +90,7 @@
 				"portable"
 			],
 			"icon": "public/branding/favicon.ico",
-			"publisherName": "LekkerPrompt",
+			"publisherName": "ShadowQuill",
 			"signAndEditExecutable": true
 		},
 		"nsis": {

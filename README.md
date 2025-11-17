@@ -1,6 +1,6 @@
 # ShadowQuill
 
-**[Repo](https://github.com/LekkerPrompt/shadowquill-app) · [Issues](https://github.com/LekkerPrompt/shadowquill-app/issues) · [Website](https://shadowquill.org)**
+**[Repo](https://github.com/ShadowQuill/shadowquill-app) · [Issues](https://github.com/ShadowQuill/shadowquill-app/issues) · [Website](https://shadowquill.org)**
 
 ## What Is ShadowQuill?
 
@@ -41,7 +41,7 @@ ShadowQuill is a desktop application for crafting AI prompts with complete priva
 
 Pre-built installers are available for download:
 
-- **GitHub Releases**: <https://github.com/LekkerPrompt/shadowquill-app/releases>
+- **GitHub Releases**: <https://github.com/ShadowQuill/shadowquill-app/releases>
 - **Website**: <https://shadowquill.org>
 
 ## Getting Started
@@ -172,4 +172,4 @@ Contributions are welcome! Before contributing:
 
 ## License
 
-MIT © [LekkerPrompt/ShadowQuill](https://github.com/LekkerPrompt)
+MIT © [ShadowQuill](https://github.com/ShadowQuill)
