@@ -6,8 +6,8 @@
 **Fully localized AI prompt generator app focused on privacy first architecture**
   
   [![Website](https://img.shields.io/badge/Website-shadowquill.org-8b7cf6)](https://shadowquill.org)
-  [![GitHub](https://img.shields.io/badge/GitHub-ShadowQuillApp-181717?logo=github)](https://github.com/ShadowQuillApp/shadowquill-app)
-  [![Issues](https://img.shields.io/github/issues/ShadowQuillApp/shadowquill-app)](https://github.com/ShadowQuillApp/shadowquill-app/issues)
+  [![GitHub](https://img.shields.io/badge/GitHub-shadowquillapp-181717?logo=github)](https://github.com/shadowquillapp/shadowquillapp)
+  [![Issues](https://img.shields.io/github/issues/shadowquillapp/shadowquillapp)](https://github.com/shadowquillapp/shadowquillapp/issues)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 </div>
 
@@ -58,7 +58,7 @@ ShadowQuill is a desktop application for crafting AI prompts with complete priva
 
 Pre-built installers are available for download:
 
-- **GitHub Releases**: <https://github.com/ShadowQuillApp/shadowquill-app/releases>
+- **GitHub Releases**: <https://github.com/shadowquillapp/shadowquillapp/releases>
 - **Website**: <https://shadowquill.org>
 
 ## Getting Started
@@ -231,4 +231,4 @@ Contributions are welcome! Before contributing:
 
 ## License
 
-MIT © [ShadowQuill](https://github.com/ShadowQuillApp)
+MIT © [ShadowQuill](https://github.com/shadowquillapp)
