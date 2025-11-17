@@ -272,7 +272,7 @@ export default function OllamaSetupContent() {
       <div className="text-secondary" style={{ fontSize: 14, lineHeight: "18px" }}>
         {availableModels.length === 0 ? (
           <>
-            PromptCrafter requires a local Ollama installation with Gemma 3 models for complete privacy.<br />
+            ShadowQuill requires a local Ollama installation with Gemma 3 models for complete privacy.<br />
             <br />
             Click “Check for models” to find available Gemma 3 models in Ollama. <br />
             <br />

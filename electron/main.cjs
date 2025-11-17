@@ -1,4 +1,4 @@
-// Electron main process for PromptCrafter standalone
+// Electron main process for ShadowQuill standalone
 // @ts-nocheck
 const path = require('path');
 const { app, BrowserWindow, shell, session, dialog, ipcMain, Menu } = require('electron');
@@ -7,7 +7,7 @@ const http = require('http');
 /** @type {number|null} */
 let nextServerPort = null;
 
-// Ensure a stable LOCAL-ONLY userData path labeled "PromptCrafter" in dev and prod.
+// Ensure a stable LOCAL-ONLY userData path labeled "ShadowQuill" in dev and prod.
 // Never rely on roaming or synced folders—everything must stay on-device.
 function resolveLocalOnlyDataRoots() {
   const homeDir = app.getPath('home');
@@ -17,7 +17,7 @@ function resolveLocalOnlyDataRoots() {
       : path.join(homeDir, 'AppData', 'Local');
     return {
       appDataRoot: localBase,
-      userDataDir: path.join(localBase, 'PromptCrafter'),
+      userDataDir: path.join(localBase, 'ShadowQuill'),
     };
   }
 
@@ -25,7 +25,7 @@ function resolveLocalOnlyDataRoots() {
     const appDataRoot = path.join(homeDir, 'Library', 'Application Support');
     return {
       appDataRoot,
-      userDataDir: path.join(appDataRoot, 'PromptCrafter'),
+      userDataDir: path.join(appDataRoot, 'ShadowQuill'),
     };
   }
 
@@ -33,7 +33,7 @@ function resolveLocalOnlyDataRoots() {
   const appDataRoot = path.join(homeDir, '.local', 'share');
   return {
     appDataRoot,
-    userDataDir: path.join(appDataRoot, 'PromptCrafter'),
+    userDataDir: path.join(appDataRoot, 'ShadowQuill'),
   };
 }
 
@@ -68,7 +68,7 @@ function checkAndOptionallyClearZoneIdentifier() {
 // Register IPC handlers early - before app.whenReady() to ensure they're available immediately
 
 // Restart the Electron application (used after DB reset)
-ipcMain.handle('promptcrafter:restartApp', () => {
+ipcMain.handle('shadowquill:restartApp', () => {
   try {
     app.relaunch();
     app.exit(0);
@@ -78,7 +78,7 @@ ipcMain.handle('promptcrafter:restartApp', () => {
   }
 });
 
-ipcMain.handle('promptcrafter:getEnvSafety', () => {
+ipcMain.handle('shadowquill:getEnvSafety', () => {
   const execPath = process.execPath;
   const inDownloads = /[\\/](Downloads|downloads)[\\/]/.test(execPath);
   const zone = checkAndOptionallyClearZoneIdentifier();
@@ -87,11 +87,11 @@ ipcMain.handle('promptcrafter:getEnvSafety', () => {
 
 // Robustly register data IPC handlers (safe to call multiple times)
 function registerDataIPCHandlers() {
-  try { ipcMain.removeHandler('promptcrafter:getDataPaths'); } catch (_) {}
-  try { ipcMain.removeHandler('promptcrafter:factoryReset'); } catch (_) {}
+  try { ipcMain.removeHandler('shadowquill:getDataPaths'); } catch (_) {}
+  try { ipcMain.removeHandler('shadowquill:factoryReset'); } catch (_) {}
 
   // Expose resolved data paths for UI
-  ipcMain.handle('promptcrafter:getDataPaths', () => {
+  ipcMain.handle('shadowquill:getDataPaths', () => {
     try {
       const userData = app.getPath('userData');
       const localStorageDir = path.join(userData, 'Local Storage');
@@ -108,7 +108,7 @@ function registerDataIPCHandlers() {
   });
 
   // Factory reset: clear Chromium storage (localStorage, IndexedDB, etc)
-  ipcMain.handle('promptcrafter:factoryReset', async () => {
+  ipcMain.handle('shadowquill:factoryReset', async () => {
     try {
       // Clear all persistent storage for the default session (localStorage, IndexedDB, Cache, etc.)
       try {
@@ -143,16 +143,16 @@ function registerDataIPCHandlers() {
 try { registerDataIPCHandlers(); } catch (_) {}
 
 // Window controls for custom frameless UI
-ipcMain.handle('promptcrafter:window:minimize', (e) => {
+ipcMain.handle('shadowquill:window:minimize', (e) => {
   const w = BrowserWindow.fromWebContents(e.sender);
   if (w) w.minimize();
 });
-ipcMain.handle('promptcrafter:window:maximizeToggle', (e) => {
+ipcMain.handle('shadowquill:window:maximizeToggle', (e) => {
   const w = BrowserWindow.fromWebContents(e.sender);
   if (!w) return;
   if (w.isMaximized()) w.unmaximize(); else w.maximize();
 });
-ipcMain.handle('promptcrafter:window:close', (e) => {
+ipcMain.handle('shadowquill:window:close', (e) => {
   const w = BrowserWindow.fromWebContents(e.sender);
   if (w) w.close();
 });
@@ -181,11 +181,6 @@ function createWindow() {
       event.preventDefault();
     }
   });
-
-  // Only open DevTools if explicitly requested via env flag during development
-  if (isDev && process.env.PROMPTCRAFTER_ELECTRON_DEVTOOLS === '1') {
-    win.webContents.openDevTools({ mode: 'detach' });
-  }
 
   // Simple fix: Override console after page loads to filter autofill errors
   win.webContents.once('did-finish-load', () => {
@@ -313,7 +308,7 @@ function createWindow() {
     if (!isDev) {
       const msg = `Failed to load application (code ${errorCode}): ${errorDescription} URL=${validatedURL}`;
       console.error(msg);
-      win.webContents.executeJavaScript(`document.body.innerHTML = '<div style="font-family:system-ui;padding:2rem;">'+${JSON.stringify('PromptCrafter failed to load.')}+'<br><pre style="white-space:pre-wrap;color:#900;">'+${JSON.stringify('Restart the app. If the issue persists, report this log:')}+'\n'+${JSON.stringify(' ')}+${JSON.stringify(msg)}+'</pre></div>'`);
+      win.webContents.executeJavaScript(`document.body.innerHTML = '<div style="font-family:system-ui;padding:2rem;">'+${JSON.stringify('ShadowQuill failed to load.')}+'<br><pre style="white-space:pre-wrap;color:#900;">'+${JSON.stringify('Restart the app. If the issue persists, report this log:')}+'\n'+${JSON.stringify(' ')}+${JSON.stringify(msg)}+'</pre></div>'`);
     }
   });
 

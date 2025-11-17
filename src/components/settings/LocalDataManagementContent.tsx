@@ -17,7 +17,7 @@ export default function LocalDataManagementContent() {
       setLoading(true);
       setError(null);
       try {
-        const api = (window as any).promptcrafter;
+        const api = (window as any).shadowquill;
         if (!api?.getDataPaths) {
           setPaths(null);
           setError("Not available outside the desktop app");
@@ -100,7 +100,7 @@ export default function LocalDataManagementContent() {
                 setLoading(true);
                 setError(null);
                 try {
-                  const api = (window as any).promptcrafter;
+                  const api = (window as any).shadowquill;
                   const res = await api?.factoryReset?.();
                   if (!res?.ok) {
                     setError(res?.error || "Reset failed");

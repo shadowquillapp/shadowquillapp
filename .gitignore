@@ -4,4 +4,4 @@
 next-env.d.ts
 /build
 **.DS_Store
-/.docs/
+/docs
