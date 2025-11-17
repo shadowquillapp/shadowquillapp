@@ -50,16 +50,16 @@
 		"@types/node": "^20.19.10",
 		"@types/react": "^19.1.11",
 		"@types/react-dom": "^19.0.0",
-		"@vitest/coverage-v8": "^3.2.4",
+		"@vitest/coverage-v8": "^4.0.10",
 		"cross-env": "^7.0.3",
 		"electron": "^38.0.0",
-		"electron-builder": "^24.13.3",
+		"electron-builder": "^26.0.12",
 		"jsdom": "^24.0.0",
 		"postcss": "^8.5.3",
 		"tailwindcss": "^4.0.15",
 		"tsx": "^4.20.5",
 		"typescript": "^5.8.2",
-		"vitest": "^3.2.4"
+		"vitest": "^4.0.10"
 	},
 	"build": {
 		"appId": "com.shadowquill.app",
@@ -112,7 +112,7 @@
 		}
 	},
 	"overrides": {
-		"glob": "^10.4.5"
+		"glob": "^11.0.4"
 	},
 	"packageManager": "npm@11.4.2",
 	"engines": {
