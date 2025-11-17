@@ -1,10 +1,10 @@
-# PromptCrafter
+# ShadowQuill
 
-**[Repo](https://github.com/LekkerPrompt/LekkerPrompt) · [Issues](https://github.com/LekkerPrompt/LekkerPrompt/issues) · [Website](https://promptcrafter.org)**
+**[Repo](https://github.com/LekkerPrompt/shadowquill-app) · [Issues](https://github.com/LekkerPrompt/shadowquill-app/issues) · [Website](https://shadowquill.org)**
 
-## What Is PromptCrafter?
+## What Is ShadowQuill?
 
-PromptCrafter is a desktop application for crafting AI prompts with complete privacy. All processing happens locally on your machine using Ollama with Gemma 3 models.
+ShadowQuill is a desktop application for crafting AI prompts with complete privacy. All processing happens locally on your machine using Ollama with Gemma 3 models.
 
 **Complete Privacy**: No data ever leaves your computer. All AI processing runs locally through Ollama.
 
@@ -41,14 +41,14 @@ PromptCrafter is a desktop application for crafting AI prompts with complete pri
 
 Pre-built installers are available for download:
 
-- **GitHub Releases**: <https://github.com/LekkerPrompt/LekkerPrompt/releases>
-- **Website**: <https://promptcrafter.org>
+- **GitHub Releases**: <https://github.com/LekkerPrompt/shadowquill-app/releases>
+- **Website**: <https://shadowquill.org>
 
 ## Getting Started
 
 ### What You Need
 
-Before using PromptCrafter, you need:
+Before using ShadowQuill, you need:
 
 1. **Ollama** installed and running on your computer
 2. At least one **Gemma 3 model** downloaded through Ollama
@@ -79,7 +79,7 @@ ollama pull gemma3:27b  # Best quality, but needs very powerful hardware
 
 We recommend starting with `gemma3:4b` by running `ollama pull gemma3:4b` for the best balance of speed and quality.
 
-### Start Using PromptCrafter
+### Start Using ShadowQuill
 
 1. **Launch the app** from your applications folder or desktop shortcut
 2. **Configure Gemma 3 (Ollama) connection** when the dialog appears
@@ -109,7 +109,7 @@ If you find settings you like:
 
 ## Privacy & Data
 
-**Everything is local.** PromptCrafter:
+**Everything is local.** ShadowQuill:
 
 - Never connects to external services (only your local Ollama at `http://localhost:11434`)
 - Stores chats, presets, and settings in your OS profile under the app’s user data directory (Chromium localStorage/IndexedDB), meaning your data is FULLY localized to your computers hard drive
@@ -117,11 +117,11 @@ If you find settings you like:
 - Doesn't collect telemetry or usage data, and never will. Please feel free to take a look at the codebase to see for yourself
 - Gives you complete control over your privacy when it comes to a fully offline AI toolkit
 
-To completely reset the app, open Settings → Data Location and click Reset Application, or manually delete the PromptCrafter user data directory shown there. The exact path to where everything is stored is avaiabled in the application's settings.
+To completely reset the app, open Settings → Data Location and click Reset Application, or manually delete the ShadowQuill user data directory shown there. The exact path to where everything is stored is avaiabled in the application's settings.
 
 ## Building from Source
 
-If you want to modify PromptCrafter or build it yourself:
+If you want to modify ShadowQuill or build it yourself:
 
 **Requirements:**
 
@@ -172,4 +172,4 @@ Contributions are welcome! Before contributing:
 
 ## License
 
-MIT © [LekkerPrompt/PromptCrafter](https://github.com/LekkerPrompt)
+MIT © [LekkerPrompt/ShadowQuill](https://github.com/LekkerPrompt)

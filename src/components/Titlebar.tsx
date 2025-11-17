@@ -46,27 +46,27 @@ export default function Titlebar() {
       style={{ background: 'var(--color-titlebar-background)', borderBottom: '1px solid var(--color-outline)', zIndex: 100 }}
     >
       <div className="px-3 text-sm font-semibold">
-        PromptCrafter
+        ShadowQuill
       </div>
       <div className="ml-auto flex gap-2 px-2 app-region-no-drag">
         <TitlebarButton 
           aria-label="Minimize" 
           color="#FFBD2E"
-          onClick={() => { try { (window as any).promptcrafter?.window?.minimize?.(); } catch {} }}
+          onClick={() => { try { (window as any).shadowquill?.window?.minimize?.(); } catch {} }}
         >
           <Icon name="minus" className="h-2 w-2" />
         </TitlebarButton>
         <TitlebarButton 
           aria-label="Maximize" 
           color="#28CA42"
-          onClick={() => { try { (window as any).promptcrafter?.window?.maximizeToggle?.(); } catch {} }}
+          onClick={() => { try { (window as any).shadowquill?.window?.maximizeToggle?.(); } catch {} }}
         >
           <Icon name="expand" className="h-2 w-2" />
         </TitlebarButton>
         <TitlebarButton 
           aria-label="Close" 
           color="#FF5F57"
-          onClick={() => { try { (window as any).promptcrafter?.window?.close?.(); } catch {} }}
+          onClick={() => { try { (window as any).shadowquill?.window?.close?.(); } catch {} }}
         >
           <Icon name="close" className="h-2 w-2" />
         </TitlebarButton>

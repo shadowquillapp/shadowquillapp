@@ -422,7 +422,7 @@ export default function ModelConfigGate({ children }: Props) {
                     </div>
                     <div className="text-secondary" style={{ fontSize: 14, lineHeight: '18px' }}>
                       {availableModels.length === 0 ? (
-                        <>PromptCrafter requires a local Ollama installation with Gemma 3 models for complete privacy.<br/><br/>Click “Check for models” to find available Gemma 3 models in Ollama. <br/><br/>If none are found, install Ollama and pull a compatible Gemma 3 model.</>
+                        <>ShadowQuill requires a local Ollama installation with Gemma 3 models for complete privacy.<br/><br/>Click “Check for models” to find available Gemma 3 models in Ollama. <br/><br/>If none are found, install Ollama and pull a compatible Gemma 3 model.</>
                       ) : (
                         <>Found <b><u>{availableModels.length} usable model{availableModels.length !== 1 ? 's' : ''}</u></b>. Auto selecting: <code style={{ fontSize: 13 }}>{model}</code> <code style={{ fontSize: 11 }}>(You can change this later from within the app)</code></>
                       )}
@@ -440,7 +440,7 @@ export default function ModelConfigGate({ children }: Props) {
                         style={{ width: '100%' }}
                         title={(!model || model.trim() === '') ? 'Please check for models first' : undefined}
                       >
-                        {saving || validating ? 'Validating…' : 'Start PromptCrafter'}
+                        {saving || validating ? 'Validating…' : 'Start ShadowQuill'}
                       </button>
                     </div>
                   </form>
@@ -617,7 +617,7 @@ function DataLocationModalWrapper() {
     const load = async () => {
       setLoading(true); setError(null);
       try {
-        const api = (window as any).promptcrafter;
+        const api = (window as any).shadowquill;
         if (!api?.getDataPaths) {
           setPaths(null);
           setError('Not available outside the desktop app');
@@ -691,7 +691,7 @@ function DataLocationModalWrapper() {
                         if (!ok) return;
                         setLoading(true); setError(null);
                         try {
-                          const api = (window as any).promptcrafter;
+                          const api = (window as any).shadowquill;
                           const res = await api?.factoryReset?.();
                           if (!res?.ok) {
                             setError(res?.error || 'Reset failed');

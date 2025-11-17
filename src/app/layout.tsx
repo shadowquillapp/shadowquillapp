@@ -10,8 +10,8 @@ import DatabaseSetupGate from "@/components/DatabaseSetupGate";
 import { DialogProvider } from "@/components/DialogProvider";
 
 export const metadata: Metadata = {
-	title: "PromptCrafter",
-	description: "PromptCrafter – AI assistant for building prompts",
+	title: "ShadowQuill",
+	description: "ShadowQuill – AI assistant for building prompts",
 	icons: [{ rel: "icon", url: "public/branding/favicon.ico" }],
 };
 

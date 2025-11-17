@@ -1,25 +1,25 @@
 // Preload script: expose limited IPC for selecting data directory.
 const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld('promptcrafter', {
-	getEnvSafety: () => ipcRenderer.invoke('promptcrafter:getEnvSafety')
+contextBridge.exposeInMainWorld('shadowquill', {
+	getEnvSafety: () => ipcRenderer.invoke('shadowquill:getEnvSafety')
 	,
-	restartApp: () => ipcRenderer.invoke('promptcrafter:restartApp')
+	restartApp: () => ipcRenderer.invoke('shadowquill:restartApp')
 	,
-	getDataPaths: () => ipcRenderer.invoke('promptcrafter:getDataPaths')
+	getDataPaths: () => ipcRenderer.invoke('shadowquill:getDataPaths')
 	,
-	factoryReset: () => ipcRenderer.invoke('promptcrafter:factoryReset')
+	factoryReset: () => ipcRenderer.invoke('shadowquill:factoryReset')
 	,
 	window: {
-		minimize: () => ipcRenderer.invoke('promptcrafter:window:minimize'),
-		maximizeToggle: () => ipcRenderer.invoke('promptcrafter:window:maximizeToggle'),
-		close: () => ipcRenderer.invoke('promptcrafter:window:close')
+		minimize: () => ipcRenderer.invoke('shadowquill:window:minimize'),
+		maximizeToggle: () => ipcRenderer.invoke('shadowquill:window:maximizeToggle'),
+		close: () => ipcRenderer.invoke('shadowquill:window:close')
 	}
 });
 
 // Forward info notifications from main to renderer UI to show in-app dialogs
 try {
-	ipcRenderer.on('promptcrafter:info', (_event, payload) => {
+	ipcRenderer.on('shadowquill:info', (_event, payload) => {
 		try {
 			window.dispatchEvent(new CustomEvent('app-info', { detail: payload || {} }));
 		} catch (_) { /* ignore */ }

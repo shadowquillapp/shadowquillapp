@@ -1,9 +1,9 @@
 {
-	"name": "promptcrafter",
-	"version": "2.0.0",
-	"author": "LekkerPrompt <info@promptcrafter.org>",
-	"homepage": "https://github.com/LekkerPrompt/LekkerPrompt/tree/master/apps/promptcrafter",
-	"description": "PromptCrafter",
+	"name": "shadowquill",
+	"version": "1.0.0",
+	"author": "LekkerPrompt <info@shadowquill.org>",
+	"homepage": "https://github.com/LekkerPrompt/LekkerPrompt/shadowquill-app",
+	"description": "ShadowQuill",
 	"private": true,
 	"type": "module",
 	"scripts": {
@@ -62,8 +62,8 @@
 		"vitest": "^3.2.4"
 	},
 	"build": {
-		"appId": "com.promptcrafter.app",
-		"productName": "PromptCrafter",
+		"appId": "com.shadowquill.app",
+		"productName": "ShadowQuill",
 		"files": [
 			"**/*",
 			"!node_modules/.cache/**/*",
@@ -106,8 +106,8 @@
 			],
 			"category": "Utility",
 			"maintainer": "Sammy Hamwi <info@sammyhamwi.ai>",
-			"synopsis": "PromptCrafter AI prompt engineering tool",
-			"description": "PromptCrafter: build AI prompts locally with private storage.",
+			"synopsis": "ShadowQuill AI prompt engineering tool",
+			"description": "ShadowQuill: build AI prompts locally with private storage.",
 			"artifactName": "${productName}-${version}-${arch}.${ext}"
 		}
 	},
