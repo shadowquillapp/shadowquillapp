@@ -8,34 +8,42 @@ ShadowQuill is a desktop application for crafting AI prompts with complete priva
 
 **Complete Privacy**: No data ever leaves your computer. All AI processing runs locally through Ollama.
 
-**Local Storage**: Your chats, saved presets, and settings are stored locally in the app’s profile (Electron’s Chromium storage: localStorage/IndexedDB). You can view the exact paths and factory‑reset from the in‑app Data Location panel.
+**Local Storage**: Your chats, presets, system prompts, and settings are stored locally in the app's user data directory using localStorage and JSON files. You can view the exact paths and factory‑reset from Settings → Data Location.
 
-**Modern Interface**: Clean, beautiful design with three themes and responsive layout that works on any screen size.
+**Modern Interface**: Clean, beautiful design with four themes and responsive layout that works on any screen size.
 
 ## Features
 
-### Prompt Building
+### Chat Interface
 
-- **Structured Guidance**: Create prompts from scratch with helpful controls and options
-- **Task Types**: Choose from general, coding, image, research, writing, or marketing tasks
+- **Natural Conversation**: Chat directly with AI to generate and refine prompts
+- **Task Types**: Choose from general, coding, image, video, research, writing, or marketing tasks
 - **Customization**: Adjust tone, detail level, output format, language, and creativity
-- **Save Presets**: Store your favorite prompt configurations for quick reuse
+- **Chat History**: All conversations are saved locally and easy to access
+
+### Preset Studio
+
+- **Visual Preset Manager**: Dedicated studio interface for creating and managing prompt presets
+- **Rich Configuration**: Configure all prompt parameters including task type, tone, detail, format, and task-specific options
+- **Apply to Chat**: Load presets directly into your chat sessions
+- **Import/Export**: Duplicate and organize your preset library
 
 ### AI Integration
 
 - **Provider: Ollama (local only)** — no cloud providers
 - **Gemma 3 only (1B, 4B, 12B, 27B)** — explicitly supported and auto‑detected
 - **Auto‑Detection**: Finds your installed Gemma 3 models from the local Ollama daemon
-- **Easy Switching**: Pick a Gemma 3 size from the built‑in connection dialog
-- **No Internet Required**: Prompts are generated entirely on your machine
+- **Easy Switching**: Pick a Gemma 3 size from the model selector in chat
+- **No Internet Required**: All AI processing happens entirely on your machine
 
 ### User Experience
 
-- **Three Beautiful Themes**: Default (purple), WarmEarth, and Light
-- **Chat History**: Conversations are saved locally and easy to find
-- **Code Highlighting**: Formatted code blocks with copy button
+- **Four Beautiful Themes**: Earth (warm), Purple Dark, Dark, and Light
+- **Code Highlighting**: Syntax-highlighted code blocks (JSON, Markdown) with copy button
+- **System Prompt Editor**: Customize the AI's behavior with your own system prompts
 - **Responsive Design**: Works great on desktop, with mobile-friendly sidebar
 - **Keyboard Friendly**: Navigate and interact efficiently
+- **Data Management**: View storage locations and reset app data from settings
 
 ## Download
 
@@ -91,39 +99,59 @@ The app automatically detects when Ollama is running and which Gemma 3 models ar
 
 ## Using the App
 
-### Creating Your First Prompt
+### 1. Chat Interface
 
-1. Type your request or question in the chat input
-2. Adjust settings like task type, tone, and detail level using the sidebar controls
-3. Click Send or press Enter
-4. Review the AI's response
-5. Continue crafting or start a new chat
+The main chat interface is where you interact with AI:
 
-### Saving Presets
+1. **Start a conversation**: Type your request in the chat input at the bottom
+2. **Adjust settings**: Use the sidebar to configure:
+   - Task type (general, coding, image, video, research, writing, marketing)
+   - Tone (neutral, friendly, formal, technical, persuasive)
+   - Detail level (brief, normal, detailed)
+   - Output format (plain, markdown, XML)
+   - Temperature and other advanced options
+3. **Send**: Click Send or press Enter to generate the AI response
+4. **Continue**: Keep chatting to refine your prompts or ask follow-up questions
+5. **History**: Access previous chats from the chat list in the sidebar
 
-If you find settings you like:
+### 2. Managing Presets
 
-1. Use the Preset Settings to add, save, edit or delete presets
-2. Give your preset a name
-3. Access it anytime from the **Presets** menu with is all stored locally on your computer
+**Loading Presets in Chat:**
+
+- Click the preset dropdown in the sidebar
+- Select from your saved presets or recently used ones
+- Settings are automatically applied to your current session
+
+**Preset Studio:**
+
+1. Navigate to the Preset Studio from the header menu
+2. Browse your preset library at the top of the screen
+3. Click a preset to edit its configuration
+4. Adjust all settings: task type, tone, detail, format, and task-specific options
+5. Save changes or create new presets
+6. Use "Apply to Chat" to load a preset and return to the chat interface
 
 ## Privacy & Data
 
 **Everything is local.** ShadowQuill:
 
 - Never connects to external services (only your local Ollama at `http://localhost:11434`)
-- Stores chats, presets, and settings in your OS profile under the app’s user data directory (Chromium localStorage/IndexedDB), meaning your data is FULLY localized to your computers hard drive
-- No sign up EVER required. This is a local application that runs on your computer so there will never be a need to make an account
-- Doesn't collect telemetry or usage data, and never will. Please feel free to take a look at the codebase to see for yourself
-- Gives you complete control over your privacy when it comes to a fully offline AI toolkit
+- Stores chats, presets, system prompts, and settings in your OS profile under the app's user data directory using localStorage and JSON files
+- All data is FULLY localized to your computer's hard drive
+- No sign up EVER required. This is a local application that runs on your computer
+- Doesn't collect telemetry or usage data, and never will. Feel free to review the source code
+- Gives you complete control over your privacy with a fully offline AI toolkit
 
-To completely reset the app, open Settings → Data Location and click Reset Application, or manually delete the ShadowQuill user data directory shown there. The exact path to where everything is stored is avaiabled in the application's settings.
+**Data Management:**
+
+- View exact storage paths: Settings → Data Location
+- Reset app data: Settings → Data Location → Reset Application
+- Customize AI behavior: Settings → System Prompts
+- All data can be manually accessed or deleted from the user data directory shown in settings
 
 ## Building from Source
 
 If you want to modify ShadowQuill or build it yourself:
-
-**Requirements:**
 
 **Quick start:**
 
@@ -139,36 +167,58 @@ npm run dev
 
 ```bash
 # Windows installer and portable
-npm run dist:[PLATFORM]
+npm run dist:win
 
 # All platforms (requires platform-specific build tools)
 npm run dist:electron
 ```
 
-**Technology stack:**
+**Other commands:**
+
+```bash
+# Type checking
+npm run typecheck
+
+# Code linting and formatting (Biome)
+npm run check
+npm run check:write
+
+# Run tests
+npm run test
+```
+
+**Tech-stack:**
 
 - Desktop: Electron
 - Frontend: Next.js with React
 - Styling: Tailwind CSS
 - Language: TypeScript
-- Storage: Electron localStorage/IndexedDB (persistent) + in‑memory stores (runtime)
+- Storage: localStorage and locations given with paths in ShadowQuill settings menu
 
-### Project Structure (high-level)
+### Project Structure
 
-- `electron/` — Electron main, preload, and dev/start scripts
-- `src/app/` — Next.js App Router pages and UI
-- `src/components/` — Shared UI components
-- `src/lib/` — Local storage helpers, model config, presets
-- `src/server/` — Local-only services (model validation, in-memory data layer)
+- `electron/` — Electron main process, preload scripts, and dev/start scripts
+- `src/app/` — Next.js App Router pages:
+  - `chat/` — Main chat interface
+  - `studio/` — Preset Studio for managing presets
+- `src/components/` — Shared UI components (dialogs, settings, titlebar, etc.)
+- `src/lib/` — Core client-side libraries:
+  - Local storage, config, and database helpers
+  - Prompt builder logic
+  - Model client for Ollama communication
+  - Preset management
+- `src/server/` — Server-side utilities (types, storage layer, logging)
+- `src/styles/` — Global CSS with theme definitions
+- `public/` — Static assets and branding
 
 ## Contributing
 
 Contributions are welcome! Before contributing:
 
-- Check existing Issues or create one to discuss larger features
+- Check existing Issues or create one to discuss what you would like to contribute/fix
 - Keep changes focused and small
-- Follow the existing code style
-- Maintain the privacy-first, local-only approach
+- Follow the existing code style if possible
+- Maintain the privacy-first, local-only approach (important)
 
 ## License
 
