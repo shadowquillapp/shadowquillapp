@@ -3,7 +3,7 @@
   
 # ShadowQuill
   
-**Privacy-first AI prompt engineering toolkit**
+**Fully localized AI prompt generator app focused on privacy first architecture**
   
   [![Website](https://img.shields.io/badge/Website-shadowquill.org-8b7cf6)](https://shadowquill.org)
   [![GitHub](https://img.shields.io/badge/GitHub-ShadowQuillApp-181717?logo=github)](https://github.com/ShadowQuillApp/shadowquill-app)
