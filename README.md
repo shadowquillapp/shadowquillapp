@@ -1,6 +1,15 @@
+<div align="center">
+  <img src="public/icon.png" alt="ShadowQuill Logo" width="120" height="120">
+  
 # ShadowQuill
-
-**[Repo](https://github.com/ShadowQuillApp/shadowquill-app) · [Issues](https://github.com/ShadowQuillApp/shadowquill-app/issues) · [Website](https://shadowquill.org)**
+  
+**Privacy-first AI prompt engineering toolkit**
+  
+  [![Website](https://img.shields.io/badge/Website-shadowquill.org-8b7cf6)](https://shadowquill.org)
+  [![GitHub](https://img.shields.io/badge/GitHub-ShadowQuillApp-181717?logo=github)](https://github.com/ShadowQuillApp/shadowquill-app)
+  [![Issues](https://img.shields.io/github/issues/ShadowQuillApp/shadowquill-app)](https://github.com/ShadowQuillApp/shadowquill-app/issues)
+  [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+</div>
 
 ## What Is ShadowQuill?
 
