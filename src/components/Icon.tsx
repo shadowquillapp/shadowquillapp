@@ -15,8 +15,11 @@ import {
   faThumbsUp,
   faThumbsDown,
   faMinus,
+  faPlus,
   faUpRightAndDownLeftFromCenter,
   faChevronDown,
+  faChevronLeft,
+  faChevronRight,
   faRotateRight,
   faPalette,
   faCopy,
@@ -24,6 +27,11 @@ import {
   faSquare,
   faTrash,
   faPenToSquare,
+  faSearch,
+  faEye,
+  faFolderOpen,
+  faSave,
+  faCodeCompare,
 } from "@fortawesome/free-solid-svg-icons";
 
 const icons = {
@@ -40,8 +48,12 @@ const icons = {
   thumbsUp: faThumbsUp,
   thumbsDown: faThumbsDown,
   minus: faMinus,
+  plus: faPlus,
   expand: faUpRightAndDownLeftFromCenter,
   chevronDown: faChevronDown,
+  "chevron-down": faChevronDown,
+  "chevron-left": faChevronLeft,
+  "chevron-right": faChevronRight,
   refresh: faRotateRight,
   palette: faPalette,
   copy: faCopy,
@@ -49,13 +61,15 @@ const icons = {
   stop: faSquare,
   trash: faTrash,
   edit: faPenToSquare,
+  search: faSearch,
+  eye: faEye,
+  "folder-open": faFolderOpen,
+  save: faSave,
+  "git-compare": faCodeCompare,
 } as const;
 
-export type IconName = keyof typeof icons;
-// Ensure 'edit' remains assignable even if type inference lags
 export type _IconNameForceInclude = 'edit';
 export type IconName = _IconNameForceInclude | keyof typeof icons;
-
 export const Icon: React.FC<{ name: IconName; className?: string; title?: string; style?: React.CSSProperties }> = ({ name, className, title, style }) => (
   <FontAwesomeIcon icon={icons[name]} className={className} title={title} style={style} />
 );
