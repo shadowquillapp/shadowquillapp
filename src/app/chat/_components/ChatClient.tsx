@@ -2,13 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
 import type { ReactNode } from "react";
-// Local-only storage and model access (no API)
+import { useRouter } from "next/navigation";
 import { createChat as localCreateChat, appendMessagesWithCap as localAppendMessages, deleteChat as localDeleteChat, listChatsByUser as localListChats, getChat as localGetChat } from "@/lib/local-db";
 import { buildUnifiedPrompt } from "@/lib/prompt-builder-client";
 import { callLocalModelClient } from "@/lib/model-client";
 import { readLocalModelConfig as readLocalModelConfigClient, listAvailableModels, writeLocalModelConfig as writeLocalModelConfigClient } from "@/lib/local-config";
-import { getPresets, savePreset as savePresetLocal, deletePresetByIdOrName } from "@/lib/presets";
-import { CustomSelect } from "@/components/CustomSelect";
+import { getPresets } from "@/lib/presets";
 import { Icon } from "@/components/Icon";
 import { isElectronRuntime } from '@/lib/runtime';
 import Titlebar from "@/components/Titlebar";
@@ -19,85 +18,9 @@ type MessageRole = "user" | "assistant";
 interface MessageItem { id: string; role: MessageRole; content: string; }
 type UserInfo = { name?: string | null; image?: string | null; email?: string | null };
 
-// Small FLIP-style animation helper for reordering/fading list items without extra deps
-function useFLIPListAnimation(keys: readonly string[]) {
-  const nodeMapRef = useRef<Map<string, HTMLElement>>(new Map());
-  const prevRectsRef = useRef<Map<string, DOMRect>>(new Map());
-
-  const register = useCallback((key: string) => {
-    return (el: HTMLElement | null) => {
-      if (el) {
-        nodeMapRef.current.set(key, el);
-      } else {
-        nodeMapRef.current.delete(key);
-      }
-    };
-  }, []);
-
-  useLayoutEffect(() => {
-    const nodeMap = nodeMapRef.current;
-    // Measure new rects
-    const nextRects = new Map<string, DOMRect>();
-    nodeMap.forEach((el, key) => {
-      try {
-        nextRects.set(key, el.getBoundingClientRect());
-      } catch {
-        // ignore measure errors
-      }
-    });
-
-    // Animate from previous rects to new rects
-    nextRects.forEach((nextRect, key) => {
-      const el = nodeMap.get(key);
-      if (!el) return;
-
-      const prevRect = prevRectsRef.current.get(key);
-      if (prevRect) {
-        const dx = prevRect.left - nextRect.left;
-        const dy = prevRect.top - nextRect.top;
-        if (dx !== 0 || dy !== 0) {
-          el.style.transition = "none";
-          el.style.transform = `translate(${dx}px, ${dy}px)`;
-          el.style.willChange = "transform, opacity";
-          el.style.zIndex = "10";
-          // Next frame, animate to identity
-          requestAnimationFrame(() => {
-            el.style.transition = "transform 500ms ease, opacity 400ms ease";
-            el.style.transform = "";
-            // Reset z-index after animation completes
-            setTimeout(() => {
-              el.style.zIndex = "";
-            }, 500);
-          });
-        }
-      } else {
-        // New element entering: fade/slide in slightly
-        el.style.transition = "none";
-        el.style.opacity = "0";
-        el.style.transform = "translateY(-6px)";
-        el.style.willChange = "transform, opacity";
-        el.style.zIndex = "10";
-        requestAnimationFrame(() => {
-          el.style.transition = "transform 500ms ease, opacity 400ms ease";
-          el.style.opacity = "1";
-          el.style.transform = "";
-          // Reset z-index after animation completes
-          setTimeout(() => {
-            el.style.zIndex = "";
-          }, 500);
-        });
-      }
-    });
-
-    // Store rects for next pass
-    prevRectsRef.current = nextRects;
-  }, [keys]);
-
-  return register;
-}
-
 export default function ChatClient(_props: { user?: UserInfo }) {
   const { confirm, showInfo } = useDialog();
+  const router = useRouter();
   const [input, setInput] = useState("");
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [sending, setSending] = useState(false);
@@ -114,14 +37,9 @@ export default function ChatClient(_props: { user?: UserInfo }) {
   const [desktopRailEntering, setDesktopRailEntering] = useState(false);
   const desktopRailEnterTimerRef = useRef<number | null>(null);
   const [currentChatId, setCurrentChatId] = useState<string | null>(null);
-  const [presetEditorOpen, setPresetEditorOpen] = useState(false);
-  const [editingPresetId, setEditingPresetId] = useState<string | null>(null);
-  const [editingPresetOriginalName, setEditingPresetOriginalName] = useState<string | null>(null);
   const [showAllChatsOpen, setShowAllChatsOpen] = useState(false);
-  const [currentTheme, setCurrentTheme] = useState<'default' | 'earth' | 'light'>('default');
+  const [currentTheme, setCurrentTheme] = useState<'earth' | 'purpledark' | 'dark' | 'light'>('earth');
   const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
-  const [presetSelectorOpen, setPresetSelectorOpen] = useState(false);
-  const [deletingPresetId, setDeletingPresetId] = useState<string | null>(null);
   const [themeSwitchCooldown, setThemeSwitchCooldown] = useState(false);
   const [themeToast, setThemeToast] = useState<{ key: number; label: string } | null>(null);
   const themeToastTimerRef = useRef<number | null>(null);
@@ -136,13 +54,14 @@ export default function ChatClient(_props: { user?: UserInfo }) {
 type TaskType = "general" | "coding" | "image" | "research" | "writing" | "marketing" | "video";
 type Tone = "neutral" | "friendly" | "formal" | "technical" | "persuasive";
 type Detail = "brief" | "normal" | "detailed";
-type Format = "plain" | "markdown" | "json";
+  type Format = "plain" | "markdown" | "xml";
 type ImageStylePreset = "photorealistic" | "illustration" | "3d" | "anime" | "watercolor";
 type ImageAspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
 type VideoStylePreset = "cinematic" | "documentary" | "animation" | "timelapse" | "vlog" | "commercial" | "anime";
 type CameraMovement = "static" | "pan" | "tilt" | "dolly" | "zoom" | "handheld" | "tracking";
 type ShotType = "wide" | "medium" | "close_up" | "over_the_shoulder" | "first_person";
 type FrameRate = 24 | 30 | 60;
+  type ReasoningStyle = "none" | "cot" | "plan_then_solve" | "tree_of_thought";
 
   const normalizeStylePreset = (v: string | undefined): ImageStylePreset | undefined => {
     const allowed: ImageStylePreset[] = ["photorealistic", "illustration", "3d", "anime", "watercolor"];
@@ -186,8 +105,8 @@ type FrameRate = 24 | 30 | 60;
   const [format, setFormat] = useState<Format>("markdown");
   const [language, setLanguage] = useState("English");
   const [temperature, setTemperature] = useState(0.7);
-  const [stylePreset, setStylePreset] = useState("photorealistic");
-  const [aspectRatio, setAspectRatio] = useState("1:1");
+  const [stylePreset, setStylePreset] = useState<ImageStylePreset>("photorealistic");
+  const [aspectRatio, setAspectRatio] = useState<ImageAspectRatio>("1:1");
   const [videoStylePreset, setVideoStylePreset] = useState<VideoStylePreset>("cinematic");
   const [cameraMovement, setCameraMovement] = useState<CameraMovement>("static");
   const [shotType, setShotType] = useState<ShotType>("medium");
@@ -195,14 +114,57 @@ type FrameRate = 24 | 30 | 60;
   const [frameRate, setFrameRate] = useState<FrameRate>(24);
   const [includeTests, setIncludeTests] = useState(true);
   const [requireCitations, setRequireCitations] = useState(true);
-  const [presetName, setPresetName] = useState("");
+  const [useDelimiters, setUseDelimiters] = useState(true);
+  const [includeVerification, setIncludeVerification] = useState(false);
+  const [reasoningStyle, setReasoningStyle] = useState<ReasoningStyle>("none");
+  const [endOfPromptToken, setEndOfPromptToken] = useState("<|endofprompt|>");
+  const [outputXMLSchema, setOutputXMLSchema] = useState("");
+  const [additionalContext, setAdditionalContext] = useState("");
+  const [examplesText, setExamplesText] = useState("");
   const [presets, setPresets] = useState<Array<{ id?: string; name: string; taskType: TaskType; options?: any }>>([]);
   const [loadingPresets, setLoadingPresets] = useState(false);
   const [selectedPresetKey, setSelectedPresetKey] = useState("");
   const [recentPresetKeys, setRecentPresetKeys] = useState<string[]>([]);
-
-  // Animation registration for recent presets reorder/replace
-  const registerRecentPresetItem = useFLIPListAnimation(recentPresetKeys);
+  
+  // Minimal FLIP animation for recent presets reorder
+  const recentListItemRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const recentPrevPositionsRef = useRef<Map<string, DOMRect>>(new Map());
+  const [recentElevatedKey, setRecentElevatedKey] = useState<string | null>(null);
+  const recentElevateTimerRef = useRef<number | null>(null);
+  useLayoutEffect(() => {
+    // Measure current positions
+    const currentPositions = new Map<string, DOMRect>();
+    recentListItemRefs.current.forEach((el, key) => {
+      if (el) currentPositions.set(key, el.getBoundingClientRect());
+    });
+    // Animate from previous positions to current
+    currentPositions.forEach((rect, key) => {
+      const prev = recentPrevPositionsRef.current.get(key);
+      const el = recentListItemRefs.current.get(key);
+      if (!el || !prev) return;
+      const dx = prev.left - rect.left;
+      const dy = prev.top - rect.top;
+      if (dx !== 0 || dy !== 0) {
+        el.style.transform = `translate(${dx}px, ${dy}px)`;
+        el.style.transition = "transform 0s";
+        // next frame: animate to new place
+        requestAnimationFrame(() => {
+          el.style.transition = "transform 500ms ease";
+          el.style.transform = "";
+        });
+      }
+    });
+    // Save for next pass
+    recentPrevPositionsRef.current = currentPositions;
+  }, [recentPresetKeys.join("|")]);
+  useEffect(() => {
+    return () => {
+      if (recentElevateTimerRef.current) {
+        window.clearTimeout(recentElevateTimerRef.current);
+        recentElevateTimerRef.current = null;
+      }
+    };
+  }, []);
 
   // Local chat list state
   const [chatList, setChatList] = useState<Array<{ id: string; title: string | null; updatedAt: number; messageCount: number }>>([]);
@@ -228,12 +190,17 @@ type FrameRate = 24 | 30 | 60;
 
   // Theme management
   useEffect(() => {
-    const savedTheme = localStorage.getItem('theme-preference') as 'default' | 'earth' | 'light' | null;
-    if (savedTheme) {
-      setCurrentTheme(savedTheme);
-      document.documentElement.setAttribute('data-theme', savedTheme === 'default' ? '' : savedTheme);
+    let savedTheme = localStorage.getItem('theme-preference') as 'earth' | 'purpledark' | 'dark' | 'light' | 'default' | null;
+    // Migrate old 'default' theme to 'purpledark'
+    if (savedTheme === 'default') {
+      savedTheme = 'purpledark';
+      localStorage.setItem('theme-preference', 'purpledark');
     }
-    // Load recent presets
+    if (savedTheme && (savedTheme === 'earth' || savedTheme === 'purpledark' || savedTheme === 'dark' || savedTheme === 'light')) {
+      setCurrentTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme === 'earth' ? '' : savedTheme);
+    }
+    // Load recent presets (initial)
     try {
       const stored = localStorage.getItem('recent-presets');
       if (stored) {
@@ -245,10 +212,10 @@ type FrameRate = 24 | 30 | 60;
 
   const cycleTheme = useCallback(() => {
     if (themeSwitchCooldown) return;
-    const themeOrder: Array<'default' | 'light' | 'earth'> = ['default', 'light', 'earth'];
+    const themeOrder: Array<'earth' | 'purpledark' | 'dark' | 'light'> = ['earth', 'purpledark', 'dark', 'light'];
     const currentIndex = themeOrder.indexOf(currentTheme);
     const nextIndex = (currentIndex + 1) % themeOrder.length;
-    const nextTheme = themeOrder[nextIndex] ?? 'default';
+    const nextTheme = themeOrder[nextIndex] ?? 'earth';
     // Begin cooldown to avoid rapid toggling
     setThemeSwitchCooldown(true);
     if (themeCooldownTimerRef.current) window.clearTimeout(themeCooldownTimerRef.current);
@@ -258,10 +225,16 @@ type FrameRate = 24 | 30 | 60;
     }, 800);
     
     setCurrentTheme(nextTheme);
-    document.documentElement.setAttribute('data-theme', nextTheme === 'default' ? '' : nextTheme);
+    document.documentElement.setAttribute('data-theme', nextTheme === 'earth' ? '' : nextTheme);
     localStorage.setItem('theme-preference', nextTheme);
     // Show a transient theme toast
-    const label = nextTheme === 'default' ? 'Dark' : (nextTheme.charAt(0).toUpperCase() + nextTheme.slice(1));
+    const themeLabels: Record<'earth' | 'purpledark' | 'dark' | 'light', string> = {
+      earth: 'Default',
+      purpledark: 'Dark Purple',
+      dark: 'Dark',
+      light: 'Light'
+    };
+    const label = themeLabels[nextTheme];
     const key = Date.now();
     setThemeToast({ key, label });
     if (themeToastTimerRef.current) window.clearTimeout(themeToastTimerRef.current);
@@ -664,56 +637,7 @@ type FrameRate = 24 | 30 | 60;
     return created.id;
   }, [currentChatId, refreshChatList]);
 
-  // Presets load / helpers
-  useEffect(() => {
-    const load = async () => {
-      setLoadingPresets(true);
-      try {
-        const data = getPresets();
-        const list = (data ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options }));
-        setPresets(list);
-          // Clean stale recent keys based on available presets
-          setRecentPresetKeys((prev) => {
-            const set = new Set(list.map((p: any) => (p.id ?? p.name)));
-            const cleaned = prev.filter((k) => set.has(k)).slice(0, 3);
-            try { localStorage.setItem('recent-presets', JSON.stringify(cleaned)); } catch {}
-            return cleaned;
-          });
-          if (!selectedPresetKey) {
-            const lastKey = (typeof window !== 'undefined' ? localStorage.getItem('last-selected-preset') : null) || '';
-            const pick = (lastKey && list.find((p: any) => (p.id ?? p.name) === lastKey)) || list[0] || null;
-            if (pick) {
-              const key = pick.id ?? pick.name;
-              setSelectedPresetKey(key);
-              try { if (typeof window !== 'undefined') localStorage.setItem('last-selected-preset', key); } catch {}
-              applyPreset(pick);
-            }
-          }
-      } finally {
-        setLoadingPresets(false);
-      }
-    };
-    void load();
-  }, []);
-
-  const reloadPresets = useCallback(async () => {
-    setLoadingPresets(true);
-    try {
-      const data = getPresets();
-      setPresets((data ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options })));
-        // Clean recent presets after any mutation
-        setRecentPresetKeys((prev) => {
-          const list = (data ?? []) as any[];
-          const set = new Set(list.map((p) => (p.id ?? p.name)));
-          const cleaned = prev.filter((k) => set.has(k)).slice(0, 3);
-          try { localStorage.setItem('recent-presets', JSON.stringify(cleaned)); } catch {}
-          return cleaned;
-        });
-    } finally { setLoadingPresets(false); }
-  }, []);
-
   const applyPreset = useCallback((p: { name: string; taskType: TaskType; options?: any; id?: string }) => {
-    setPresetName(p.name);
     setTaskType(p.taskType);
     const o = p.options ?? {};
     if (o.tone) setTone(o.tone);
@@ -730,6 +654,13 @@ type FrameRate = 24 | 30 | 60;
     setFrameRate(typeof o.frameRate === "number" ? (o.frameRate as FrameRate) : 24);
     setIncludeTests(!!o.includeTests);
     setRequireCitations(!!o.requireCitations);
+    setUseDelimiters(typeof o.useDelimiters === "boolean" ? o.useDelimiters : true);
+    setIncludeVerification(!!o.includeVerification);
+    setReasoningStyle((o.reasoningStyle as ReasoningStyle) ?? "none");
+    setEndOfPromptToken(o.endOfPromptToken ?? "<|endofprompt|>");
+    setOutputXMLSchema(o.outputXMLSchema ?? (o.outputSchema ?? ""));
+    setAdditionalContext(o.additionalContext ?? "");
+    setExamplesText(o.examplesText ?? "");
     // Track recent presets
     const key = (p as any).id ?? p.name;
     setRecentPresetKeys((prev) => {
@@ -739,71 +670,74 @@ type FrameRate = 24 | 30 | 60;
     });
   }, []);
 
-  const savePreset = useCallback(async () => {
-    const name = presetName.trim();
-    if (!name) return;
-    const payload: any = {
-      id: editingPresetId || undefined,
-      name,
-      taskType,
-      options: {
-        tone,
-        detail,
-        format,
-        language: language || undefined,
-        temperature,
-        stylePreset: taskType === "image" ? normalizeStylePreset(stylePreset) : (taskType === "video" ? normalizeVideoStylePreset(videoStylePreset) : undefined),
-        aspectRatio: (taskType === "image" || taskType === "video") ? normalizeAspectRatio(aspectRatio) : undefined,
-        includeTests: taskType === "coding" ? includeTests : undefined,
-        requireCitations: taskType === "research" ? requireCitations : undefined,
-        cameraMovement: taskType === "video" ? normalizeCameraMovement(cameraMovement) : undefined,
-        shotType: taskType === "video" ? normalizeShotType(shotType) : undefined,
-        durationSeconds: taskType === "video" ? normalizeDurationSeconds(durationSeconds) : undefined,
-        frameRate: taskType === "video" ? normalizeFrameRate(frameRate) : undefined,
-      },
-    };
-    savePresetLocal(payload);
-    // If editing a legacy preset (no id) and the name changed, remove the old entry by name
-    if (!editingPresetId && editingPresetOriginalName && editingPresetOriginalName !== name) {
-      try { deletePresetByIdOrName(undefined, editingPresetOriginalName); } catch {}
-    }
-  }, [presetName, taskType, tone, detail, format, language, temperature, stylePreset, aspectRatio, includeTests, requireCitations, cameraMovement, shotType, durationSeconds, frameRate, videoStylePreset, editingPresetId, editingPresetOriginalName]);
-
-  const deletePreset = useCallback(async (presetId: string, presetName: string) => {
-    if ((presetName || '').trim().toLowerCase() === 'default') return; // Default preset is non-deletable (safety)
-    const ok = await confirm({ title: 'Delete Preset', message: `Delete preset "${presetName}"? This cannot be undone.`, confirmText: 'Delete', cancelText: 'Cancel', tone: 'destructive' });
-    if (!ok) return;
-    
-    setDeletingPresetId(presetId);
-    try {
-      const query = presetId ? `id=${encodeURIComponent(presetId)}` : `name=${encodeURIComponent(presetName)}`;
-      deletePresetByIdOrName(presetId, presetName);
-      await reloadPresets();
-      
-      // If deleted preset was selected, choose next available and persist
-      if (selectedPresetKey === presetId || selectedPresetKey === presetName) {
-        setSelectedPresetKey("");
-        try {
-          const list = getPresets();
-          const next = list[0] || null;
-          if (next) {
-            const key = next.id ?? next.name;
+  // Presets load / helpers
+  useEffect(() => {
+    const load = async () => {
+      setLoadingPresets(true);
+      try {
+        const data = getPresets();
+        const list = (data ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options }));
+        setPresets(list);
+        // Reconcile recent against current list
+        setRecentPresetKeys((prev) => {
+          const set = new Set(list.map((p: any) => (p.id ?? p.name)));
+          const cleaned = prev.filter((k) => set.has(k)).slice(0, 3);
+          try { localStorage.setItem('recent-presets', JSON.stringify(cleaned)); } catch {}
+          return cleaned;
+        });
+        if (!selectedPresetKey) {
+          const lastKey = (typeof window !== 'undefined' ? localStorage.getItem('last-selected-preset') : null) || '';
+          const pick = (lastKey && list.find((p: any) => (p.id ?? p.name) === lastKey)) || list[0] || null;
+          if (pick) {
+            const key = pick.id ?? pick.name;
             setSelectedPresetKey(key);
-            applyPreset({ name: next.name, taskType: next.taskType, options: next.options });
-            try { localStorage.setItem('last-selected-preset', key); } catch {}
-          } else {
-            try { localStorage.removeItem('last-selected-preset'); } catch {}
+            try { if (typeof window !== 'undefined') localStorage.setItem('last-selected-preset', key); } catch {}
+            applyPreset(pick);
           }
-        } catch {}
       }
-    } catch (err) {
-      setError('Failed to delete preset');
     } finally {
-      setDeletingPresetId(null);
+      setLoadingPresets(false);
     }
-  }, [selectedPresetKey, reloadPresets, applyPreset]);
+  };
+  void load();
+}, [applyPreset, selectedPresetKey]);
 
-  
+  const reloadPresets = useCallback(async () => {
+    setLoadingPresets(true);
+    try {
+      const data = getPresets();
+      setPresets((data ?? []).map((p: any) => ({ id: p.id, name: p.name, taskType: p.taskType, options: p.options })));
+      // Reconcile recent presets after any mutation
+      setRecentPresetKeys((prev) => {
+        const list = (data ?? []) as any[];
+        const set = new Set(list.map((p) => (p.id ?? p.name)));
+        const cleaned = prev.filter((k) => set.has(k)).slice(0, 3);
+        try { localStorage.setItem('recent-presets', JSON.stringify(cleaned)); } catch {}
+        return cleaned;
+      });
+    } finally { setLoadingPresets(false); }
+  }, []);
+
+  // Check for preset applied from Preset Studio page
+  useEffect(() => {
+    const applyPresetFromStorage = () => {
+      try {
+        const stored = sessionStorage.getItem('PC_APPLY_PRESET');
+        if (stored) {
+          const preset = JSON.parse(stored);
+          applyPreset(preset);
+          // persist selection and recent
+          const key = preset.id ?? preset.name;
+          setSelectedPresetKey(key);
+          try { localStorage.setItem('last-selected-preset', key); } catch {}
+          sessionStorage.removeItem('PC_APPLY_PRESET');
+        }
+      } catch (error) {
+        console.error('Failed to apply preset from storage:', error);
+      }
+    };
+    applyPresetFromStorage();
+  }, [applyPreset]);
 
   const send = useCallback(async () => {
     const text = input.trim();
@@ -842,9 +776,16 @@ type FrameRate = 24 | 30 | 60;
           shotType: taskType === 'video' ? normalizeShotType(shotType) : undefined,
           durationSeconds: taskType === 'video' ? normalizeDurationSeconds(durationSeconds) : undefined,
           frameRate: taskType === 'video' ? normalizeFrameRate(frameRate) : undefined,
+          useDelimiters,
+          includeVerification,
+          reasoningStyle,
+          endOfPromptToken: endOfPromptToken || undefined,
+          outputXMLSchema: format === 'xml' ? (outputXMLSchema || undefined) : undefined,
+          additionalContext: additionalContext || undefined,
+          examplesText: examplesText || undefined,
         }
       });
-      const output = await callLocalModelClient(built, { taskType, options: { tone, detail, format, language: language || undefined, temperature, stylePreset: taskType === 'image' ? normalizeStylePreset(stylePreset) : (taskType === 'video' ? normalizeVideoStylePreset(videoStylePreset) : undefined), aspectRatio: (taskType === 'image' || taskType === 'video') ? normalizeAspectRatio(aspectRatio) : undefined, includeTests: taskType === 'coding' ? includeTests : undefined, requireCitations: taskType === 'research' ? requireCitations : undefined, cameraMovement: taskType === 'video' ? normalizeCameraMovement(cameraMovement) : undefined, shotType: taskType === 'video' ? normalizeShotType(shotType) : undefined, durationSeconds: taskType === 'video' ? normalizeDurationSeconds(durationSeconds) : undefined, frameRate: taskType === 'video' ? normalizeFrameRate(frameRate) : undefined } });
+      const output = await callLocalModelClient(built, { taskType, options: { tone, detail, format, language: language || undefined, temperature, stylePreset: taskType === 'image' ? normalizeStylePreset(stylePreset) : (taskType === 'video' ? normalizeVideoStylePreset(videoStylePreset) : undefined), aspectRatio: (taskType === 'image' || taskType === 'video') ? normalizeAspectRatio(aspectRatio) : undefined, includeTests: taskType === 'coding' ? includeTests : undefined, requireCitations: taskType === 'research' ? requireCitations : undefined, cameraMovement: taskType === 'video' ? normalizeCameraMovement(cameraMovement) : undefined, shotType: taskType === 'video' ? normalizeShotType(shotType) : undefined, durationSeconds: taskType === 'video' ? normalizeDurationSeconds(durationSeconds) : undefined, frameRate: taskType === 'video' ? normalizeFrameRate(frameRate) : undefined, useDelimiters, includeVerification, reasoningStyle, endOfPromptToken: endOfPromptToken || undefined, outputXMLSchema: format === 'xml' ? (outputXMLSchema || undefined) : undefined, additionalContext: additionalContext || undefined, examplesText: examplesText || undefined } });
       const assistant: MessageItem = { id: crypto.randomUUID(), role: 'assistant', content: output };
       setMessages((m) => [...m, assistant]);
       try {
@@ -1299,13 +1240,19 @@ type FrameRate = 24 | 30 | 60;
                   return (
                     <div
                       key={key}
-                      ref={registerRecentPresetItem(key)}
+                      ref={(el) => {
+                        const map = recentListItemRefs.current;
+                        if (el) map.set(key, el);
+                        else map.delete(key);
+                      }}
                       className="md-card"
                       title={`Use preset "${p.name}"`}
                       style={{
                         padding: 12,
                         borderRadius: 10,
                         position: 'relative',
+                        zIndex: key === recentElevatedKey ? 3 : 1,
+                        willChange: 'transform',
                         ...(currentTheme === 'earth'
                           ? {
                               border: `2px solid ${isActive ? 'var(--color-on-surface)' : 'var(--color-outline)'}`,
@@ -1322,6 +1269,14 @@ type FrameRate = 24 | 30 | 60;
                         cursor: 'pointer'
                       }}
                       onClick={() => {
+                        if (key !== selectedPresetKey) {
+                          setRecentElevatedKey(key);
+                          if (recentElevateTimerRef.current) window.clearTimeout(recentElevateTimerRef.current);
+                          recentElevateTimerRef.current = window.setTimeout(() => {
+                            setRecentElevatedKey(null);
+                            recentElevateTimerRef.current = null;
+                          }, 540); // a bit longer than the 500ms transform
+                        }
                         setSelectedPresetKey(key);
                         try { localStorage.setItem('last-selected-preset', key); } catch {}
                         applyPreset(p);
@@ -1338,8 +1293,8 @@ type FrameRate = 24 | 30 | 60;
                         const o = p.options || {};
                         const parts: string[] = [];
                         const capitalize = (str: string) => {
-                          if (str.toLowerCase() === 'json') return 'JSON';
-                          return str.charAt(0).toUpperCase() + str.slice(1);
+                          if ((str || '').toLowerCase() === 'xml') return 'XML';
+                          return (str || '').charAt(0).toUpperCase() + (str || '').slice(1);
                         };
                         if (o.tone) parts.push(`${capitalize(o.tone)} Tone`);
                         if (o.detail) parts.push(`${capitalize(o.detail)} Detail`);
@@ -1365,7 +1320,7 @@ type FrameRate = 24 | 30 | 60;
             </div>
 
             <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-              <button className="md-btn md-btn--primary" onClick={() => setPresetSelectorOpen(true)} style={{ padding: '10px 13px', fontSize: 13 }}>Preset Settings</button>
+              <button className="md-btn md-btn--primary" onClick={() => router.push('/studio')} style={{ padding: '10px 13px', fontSize: 13 }}>Preset Studio</button>
             </div>
           </>
         )}
@@ -1801,360 +1756,6 @@ type FrameRate = 24 | 30 | 60;
                   </div>
                     </div>
                     </div>
-    )}
-    {/* Removed separate preset manage menu; Manage opens the editor directly */}
-
-    {/* Preset Editor Modal */}
-    {presetEditorOpen && (
-      <div className="modal-container" aria-modal="true" role="dialog" onClick={() => setPresetEditorOpen(false)}>
-        <div className="modal-backdrop-blur" />
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <div className="modal-title">Edit Preset</div>
-            <button className="md-btn" onClick={() => setPresetEditorOpen(false)} style={{ padding: '6px 10px' }}><Icon name="close" /></button>
-                    </div>
-          <div className="modal-body">
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <label className="text-secondary" style={{ fontSize: 12 }}>Preset Name&emsp;</label>
-              <input className="md-input" value={presetName} onChange={(e) => setPresetName(e.target.value)} placeholder="Preset name" />
-                    </div>
-            <div>
-              <label className="text-secondary" style={{ fontSize: 12 }}>Type</label>
-              <CustomSelect value={taskType} onChange={(v) => setTaskType(v as any)} options={[{value:'general',label:'General'},{value:'coding',label:'Coding'},{value:'image',label:'Image'},{value:'video',label:'Video'},{value:'research',label:'Research'},{value:'writing',label:'Writing'},{value:'marketing',label:'Marketing'}]} />
-                    </div>
-            <div>
-              <label className="text-secondary" style={{ fontSize: 12 }}>Tone</label>
-              <CustomSelect value={tone} onChange={(v) => setTone(v as any)} options={[{value:'neutral',label:'Neutral'},{value:'friendly',label:'Friendly'},{value:'formal',label:'Formal'},{value:'technical',label:'Technical'},{value:'persuasive',label:'Persuasive'}]} />
-                    </div>
-            <div>
-              <label className="text-secondary" style={{ fontSize: 12 }}>Detail</label>
-              <CustomSelect value={detail} onChange={(v) => setDetail(v as any)} options={[{value:'brief',label:'Brief'},{value:'normal',label:'Normal'},{value:'detailed',label:'Detailed'}]} />
-                  </div>
-            <div>
-              <label className="text-secondary" style={{ fontSize: 12 }}>Format</label>
-              <CustomSelect value={format} onChange={(v) => setFormat(v as any)} options={[{value:'plain',label:'Plain'},{value:'markdown',label:'Markdown'},{value:'json',label:'JSON'}]} />
-                </div>
-            <div>
-              <label className="text-secondary" style={{ fontSize: 12 }}>Language</label>
-              <CustomSelect value={language} onChange={(v) => setLanguage(v)} options={[{value:'English',label:'English'},{value:'Dutch',label:'Dutch'},{value:'Arabic',label:'Arabic'},{value:'Mandarin Chinese',label:'Mandarin Chinese'},{value:'Spanish',label:'Spanish'},{value:'French',label:'French'},{value:'Russian',label:'Russian'},{value:'Urdu',label:'Urdu'}]} />
-                    </div>
-            <div style={{ gridColumn: '1 / -1' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <label className="text-secondary" style={{ fontSize: 12 }}>Temperature</label>
-                <button
-                  type="button"
-                  onClick={async () => {
-                    await showInfo({
-                      title: 'Temperature',
-                      message: 'Temperature controls randomness. Lower values (e.g., 0.2) are more focused and deterministic; higher values (e.g., 0.8) are more creative and diverse. Range: 0.0–1.0.',
-                      okText: 'Got it'
-                    });
-                  }}
-                  title="Controls randomness: lower = focused/deterministic, higher = creative/diverse (0–1)"
-                  aria-label="What does temperature do?"
-                  style={{ background: 'transparent', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--color-on-surface-variant)', display: 'inline-flex', alignItems: 'center' }}
-                >
-                  <Icon name="info" className="text-[13px]" />
-                </button>
-              </div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <input
-                  type="range"
-                  min={0}
-                  max={1}
-                  step={0.1}
-                  value={temperature}
-                  onChange={(e) => setTemperature(parseFloat(e.target.value))}
-                  className="w-full"
-                />
-                <span className="text-secondary" style={{ fontSize: 12, width: 28, textAlign: 'right' }}>{temperature.toFixed(1)}</span>
-              </div>
-            </div>
-            {taskType === 'image' && (
-              <>
-                <div>
-                  <label className="text-secondary" style={{ fontSize: 12 }}>Image Style</label>
-                  <CustomSelect value={stylePreset} onChange={(v) => setStylePreset(v)} options={[{value:'photorealistic',label:'Photorealistic'},{value:'illustration',label:'Illustration'},{value:'3d',label:'3D'},{value:'anime',label:'Anime'},{value:'watercolor',label:'Watercolor'}]} />
-                  </div>
-                <div>
-                  <label className="text-secondary" style={{ fontSize: 12 }}>Aspect Ratio</label>
-                  <CustomSelect value={aspectRatio} onChange={(v) => setAspectRatio(v)} options={[{value:'1:1',label:'1:1'},{value:'16:9',label:'16:9'},{value:'9:16',label:'9:16'},{value:'4:3',label:'4:3'}]} />
-                  </div>
-              </>
-              )}
-            {taskType === 'video' && (
-              <>
-                <div>
-                  <label className="text-secondary" style={{ fontSize: 12 }}>Video Style</label>
-                  <CustomSelect value={videoStylePreset} onChange={(v) => setVideoStylePreset(v as VideoStylePreset)} options={[{value:'cinematic',label:'Cinematic'},{value:'documentary',label:'Documentary'},{value:'animation',label:'Animation'},{value:'timelapse',label:'Timelapse'},{value:'vlog',label:'Vlog'},{value:'commercial',label:'Commercial'},{value:'anime',label:'Anime'}]} />
-                </div>
-                <div>
-                  <label className="text-secondary" style={{ fontSize: 12 }}>Aspect Ratio</label>
-                  <CustomSelect value={aspectRatio} onChange={(v) => setAspectRatio(v)} options={[{value:'1:1',label:'1:1'},{value:'16:9',label:'16:9'},{value:'9:16',label:'9:16'},{value:'4:3',label:'4:3'}]} />
-                </div>
-                <div>
-                  <label className="text-secondary" style={{ fontSize: 12 }}>Camera Movement</label>
-                  <CustomSelect value={cameraMovement} onChange={(v) => setCameraMovement(v as CameraMovement)} options={[{value:'static',label:'Static'},{value:'pan',label:'Pan'},{value:'tilt',label:'Tilt'},{value:'dolly',label:'Dolly'},{value:'zoom',label:'Zoom'},{value:'handheld',label:'Handheld'},{value:'tracking',label:'Tracking'}]} />
-                </div>
-                <div>
-                  <label className="text-secondary" style={{ fontSize: 12 }}>Shot Type</label>
-                  <CustomSelect value={shotType} onChange={(v) => setShotType(v as ShotType)} options={[{value:'wide',label:'Wide'},{value:'medium',label:'Medium'},{value:'close_up',label:'Close-up'},{value:'over_the_shoulder',label:'Over-the-shoulder'},{value:'first_person',label:'First-person'}]} />
-                </div>
-                <div>
-                  <label className="text-secondary" style={{ fontSize: 12 }}>Duration (seconds)</label>
-                  <input
-                    className="md-input"
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={durationSeconds}
-                    onChange={(e) => setDurationSeconds(Math.max(1, Math.min(60, Math.round(Number(e.target.value) || 0))))}
-                    style={{
-                      width: '100%',
-                      background: 'var(--color-surface-variant)',
-                      color: 'var(--color-on-surface)',
-                      border: '1px solid var(--color-outline)',
-                      borderRadius: 8,
-                      padding: '8px 12px',
-                      fontSize: 14,
-                      boxShadow: 'var(--shadow-1)'
-                    }}
-                  />
-                </div>
-                <div>
-                  <label className="text-secondary" style={{ fontSize: 12 }}>Frame Rate</label>
-                  <CustomSelect value={String(frameRate)} onChange={(v) => setFrameRate(Number(v) as FrameRate)} options={[{value:'24',label:'24 fps'},{value:'30',label:'30 fps'},{value:'60',label:'60 fps'}]} />
-                </div>
-              </>
-            )}
-            {taskType === 'coding' && (
-              <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                <input type="checkbox" checked={includeTests} onChange={(e) => setIncludeTests(e.target.checked)} />
-                <label className="text-secondary" style={{ fontSize: 12 }}>Include tests</label>
-              </div>
-            )}
-            {taskType === 'research' && (
-              <div style={{ gridColumn: '1 / -1', display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
-                <input type="checkbox" checked={requireCitations} onChange={(e) => setRequireCitations(e.target.checked)} />
-                <label className="text-secondary" style={{ fontSize: 12 }}>Require citations</label>
-              </div>
-            )}
-                  </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 16 }}>
-              <button className="md-btn" onClick={() => { setEditingPresetId(null); setEditingPresetOriginalName(null); setPresetEditorOpen(false); }}>Cancel</button>
-              <button className="md-btn md-btn--primary" onClick={async () => {
-                const name = (presetName || "").trim();
-                await savePreset();
-                await reloadPresets();
-                try {
-                  const list = getPresets();
-                  const found = list.find((p: any) => p.name === name);
-                  if (found) {
-                    const key = found.id ?? found.name;
-                    setSelectedPresetKey(key);
-                    try { localStorage.setItem('last-selected-preset', key); } catch {}
-                    try { applyPreset(found); } catch {}
-                  }
-                } catch {/* noop */}
-                setEditingPresetId(null);
-                setEditingPresetOriginalName(null);
-                setPresetEditorOpen(false);
-              }}>Save</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    )}
-
-
-    {/* Preset Selector Modal */}
-    {presetSelectorOpen && (
-      <div className="modal-container" aria-modal="true" role="dialog" onClick={() => setPresetSelectorOpen(false)}>
-        <div className="modal-backdrop-blur" />
-        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-          <div className="modal-header">
-            <div className="modal-title">Preset Settings</div>
-            <div style={{ display: 'flex', gap: 8 }}>
-              <button className="md-btn" onClick={() => setPresetSelectorOpen(false)} style={{ padding: '6px 10px' }}><Icon name="close" /></button>
-            </div>
-          </div>
-          <div className="modal-body">
-            <div style={{ display: 'grid', gap: 12 }}>
-              {/* Create New Preset button at top */}
-                    <button
-                className="md-btn md-btn--primary" 
-                      onClick={() => {
-                  // Don't change selectedPresetKey - keep current selection
-                  setPresetName("");
-                  // Reset form to defaults for new preset creation
-                  setTaskType("general");
-                  setTone("neutral");
-                  setDetail("normal");
-                  setFormat("markdown");
-                  setLanguage("English");
-                  setTemperature(0.7);
-                  setStylePreset("photorealistic");
-                  setAspectRatio("1:1");
-                  setVideoStylePreset("cinematic");
-                  setCameraMovement("static");
-                  setShotType("medium");
-                  setDurationSeconds(5);
-                  setFrameRate(24);
-                  setIncludeTests(true);
-                  setRequireCitations(true);
-                  setEditingPresetId(null);
-                  setEditingPresetOriginalName(null);
-                  setPresetEditorOpen(true);
-                  setPresetSelectorOpen(false);
-                }}
-                style={{ padding: '12px 16px' }}
-              >
-                Create Preset
-                    </button>
-
-              {presets.length > 0 ? (
-                presets.map((p) => {
-                  const isSel = (p.id ?? p.name) === selectedPresetKey;
-                  const presetId = p.id ?? p.name;
-                  const isDeleting = deletingPresetId === presetId;
-                  
-                  return (
-                    <div key={presetId} className="md-card" style={{ 
-                      padding: 16, 
-                      borderRadius: 12, 
-                      position: 'relative',
-                      ...(currentTheme === 'earth'
-                        ? {
-                            border: `2px solid ${isSel ? 'var(--color-on-surface)' : 'var(--color-outline)'}`,
-                            background: isSel ? 'rgba(238,232,213,0.06)' : 'transparent'
-                          }
-                        : currentTheme === 'light'
-                        ? {
-                            border: `2px solid ${isSel ? 'var(--color-primary)' : 'var(--color-outline)'}`
-                          }
-                        : {
-                            borderColor: isSel ? 'var(--color-primary)' : 'var(--color-outline)',
-                            borderWidth: isSel ? '2px' : '1px'
-                          })
-                    }}>
-                      <div
-                        style={{
-                          textAlign: 'left',
-                          cursor: 'pointer',
-                          background: 'transparent',
-                          // Ensure readable text across all themes (Earth primary matches surface)
-                          color: 'var(--color-on-surface)',
-                          padding: 0,
-                          border: 'none'
-                        }}
-                        onClick={() => { 
-                          setSelectedPresetKey(presetId);
-                          try { localStorage.setItem('last-selected-preset', presetId); } catch {}
-                          applyPreset(p);
-                          setPresetSelectorOpen(false);
-                        }}
-                      >
-                        <div style={{ fontWeight: 600, marginBottom: 4 }}>
-                          {isSel && <Icon name="star" className="text-[13px]" style={{ color: 'var(--color-on-surface)', marginRight: 6 }} />}
-                          {p.name}
-                        </div>
-                        <div style={{ fontSize: 12, opacity: 0.8 }}>{p.taskType.charAt(0).toUpperCase() + p.taskType.slice(1)}</div>
-                        {(() => {
-                          const o = p.options || {};
-                          const parts: string[] = [];
-                          const capitalize = (str: string) => {
-                            if ((str || '').toLowerCase() === 'json') return 'JSON';
-                            return (str || '').charAt(0).toUpperCase() + (str || '').slice(1);
-                          };
-                          if (o.tone) parts.push(`${capitalize(o.tone)} Tone`);
-                          if (o.detail) parts.push(`${capitalize(o.detail)} Detail`);
-                          if (o.format) parts.push(capitalize(o.format));
-                          if (o.stylePreset) parts.push(capitalize(o.stylePreset));
-                          if (o.aspectRatio) parts.push(capitalize(o.aspectRatio));
-                          if (o.durationSeconds) parts.push(`${o.durationSeconds}s`);
-                          if (o.frameRate) parts.push(`${o.frameRate}fps`);
-                          if (o.cameraMovement) parts.push(`Cam ${capitalize(String(o.cameraMovement))}`);
-                          if (o.shotType) parts.push(`${String(o.shotType).replace(/_/g, '-').split('-').map(capitalize).join('-')}`);
-                          return parts.length ? (
-                            <div className="text-secondary" style={{ fontSize: 11, marginTop: 2 }}>
-                              {parts.join(' • ')}
-                            </div>
-                          ) : null;
-                        })()}
-            </div>
-                      
-                      {/* Action buttons (top-right): trash (if not Default) + cog (always) */}
-                      <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', gap: 6 }}>
-                        {(p.name || '').trim().toLowerCase() !== 'default' && (
-                          <button
-                            type="button"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deletePreset(presetId, p.name);
-                            }}
-                            disabled={isDeleting}
-                            className="md-btn md-btn--destructive"
-                            style={{ 
-                              padding: 8,
-                              opacity: isDeleting ? 0.6 : 1,
-                              color: '#ef4444'
-                            }}
-                            title={`Delete preset "${p.name}"`}
-                            aria-label={`Delete preset ${p.name}`}
-                          >
-                            {isDeleting ? '...' : <Icon name="trash" className="text-[13px]" />}
-                          </button>
-                        )}
-                        {(p.name || '').trim().toLowerCase() !== 'default' && (
-                          <button
-                            type="button"
-                            className="md-btn"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              // Prefill and open editor for this preset
-                              setPresetName(p.name);
-                            setEditingPresetId(p.id ?? null);
-                            setEditingPresetOriginalName(p.name);
-                              setTaskType(p.taskType as any);
-                              const o = p.options || {};
-                              setTone(o.tone ?? 'neutral');
-                              setDetail(o.detail ?? 'normal');
-                              setFormat(o.format ?? 'markdown');
-                              setLanguage(o.language ?? 'English');
-                              setTemperature(typeof o.temperature === 'number' ? o.temperature : 0.7);
-                              setStylePreset(o.stylePreset ?? 'photorealistic');
-                              setAspectRatio(o.aspectRatio ?? '1:1');
-                              setVideoStylePreset(o.stylePreset ?? 'cinematic');
-                              setCameraMovement(o.cameraMovement ?? 'static');
-                              setShotType(o.shotType ?? 'medium');
-                              setDurationSeconds(typeof o.durationSeconds === 'number' ? o.durationSeconds : 5);
-                              setFrameRate(typeof o.frameRate === 'number' ? (o.frameRate as FrameRate) : 24);
-                              setIncludeTests(!!o.includeTests);
-                              setRequireCitations(!!o.requireCitations);
-                              setPresetEditorOpen(true);
-                              setPresetSelectorOpen(false);
-                            }}
-                            title={`Edit preset "${p.name}"`}
-                            aria-label={`Edit preset ${p.name}`}
-                            style={{ padding: 8 }}
-                          >
-                            <Icon name={'edit' as any} className="text-[13px]" />
-                          </button>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })
-              ) : (
-                <div className="text-secondary" style={{ textAlign: 'center', padding: 24 }}>
-                  No presets available. Create your first preset to get started.
-          </div>
-        )}
-      </div>
-    </div>
-        </div>
-      </div>
     )}
     </>
   );
