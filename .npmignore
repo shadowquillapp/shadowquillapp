@@ -1,0 +1,17 @@
+node_modules/
+**.DS_Store
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+dist/
+build/
+.next/
+out/
+coverage/
+.vscode/
+.idea/
+*.tsbuildinfo
+*.map
+*.local
