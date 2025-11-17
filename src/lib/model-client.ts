@@ -39,19 +39,13 @@ export async function callLocalModelClient(prompt: string, opts?: { taskType?: T
 			return `\`\`\`markdown\n${content}\n\`\`\``;
 		}
 
-		if (requestedFormat === "json") {
+		if (requestedFormat === "xml") {
 			// Try to unwrap if it already came fenced
 			let candidate = rawText.trim();
 			const unwrapped = unwrapOuterFence(candidate);
 			if (unwrapped.stripped) candidate = unwrapped.inner.trim();
-			// Try to pretty-print valid JSON; otherwise keep as-is
-			try {
-				const parsed = JSON.parse(candidate);
-				candidate = JSON.stringify(parsed, null, 2);
-			} catch {
-				// leave candidate as-is if not valid JSON
-			}
-			return `\`\`\`json\n${candidate}\n\`\`\``;
+			// No XML pretty-print; just wrap
+			return `\`\`\`xml\n${candidate}\n\`\`\``;
 		}
 
 		// Plain text: return raw

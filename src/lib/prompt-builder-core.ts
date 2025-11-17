@@ -163,62 +163,70 @@ export function buildOptionDirectives(taskType: TaskType, options?: GenerationOp
   }
   // Writing directives
   if (taskType === "writing") {
-    if (options.writingStyle) {
-      const map: Record<NonNullable<GenerationOptions["writingStyle"]>, string> = {
+    const writingStyle = (options as any)?.writingStyle;
+    if (writingStyle) {
+      const map: Record<string, string> = {
         narrative: "Use a narrative style with clear progression and engaging voice.",
         expository: "Use an expository style: explain and inform with clarity and structure.",
         technical: "Use a technical writing style with precise terminology and unambiguous language.",
         descriptive: "Use a descriptive style with vivid sensory details while staying concise.",
       };
-      directives.push(map[options.writingStyle] ?? `Use a ${options.writingStyle} writing style.`);
+      directives.push(map[writingStyle] ?? `Use a ${writingStyle} writing style.`);
     }
-    if (options.pointOfView) {
-      const povMap: Record<NonNullable<GenerationOptions["pointOfView"]>, string> = {
+    const pointOfView = (options as any)?.pointOfView;
+    if (pointOfView) {
+      const povMap: Record<string, string> = {
         first: "Write in first person (I/we).",
         second: "Write in second person (you).",
         third: "Write in third person (he/she/they).",
       };
-      directives.push(povMap[options.pointOfView]);
+      if (povMap[pointOfView]) directives.push(povMap[pointOfView]);
     }
-    if (options.readingLevel) {
-      const rlMap: Record<NonNullable<GenerationOptions["readingLevel"]>, string> = {
+    const readingLevel = (options as any)?.readingLevel;
+    if (readingLevel) {
+      const rlMap: Record<string, string> = {
         basic: "Target a basic reading level with simple vocabulary and short sentences.",
         intermediate: "Target an intermediate reading level with balanced complexity.",
         expert: "Target an expert reading level with advanced terminology and nuance.",
       };
-      directives.push(rlMap[options.readingLevel]);
+      if (rlMap[readingLevel]) directives.push(rlMap[readingLevel]);
     }
-    if (typeof options.targetWordCount === "number") {
-      directives.push(`Aim for approximately ${options.targetWordCount} words (±10%).`);
+    const targetWordCount = (options as any)?.targetWordCount;
+    if (typeof targetWordCount === "number") {
+      directives.push(`Aim for approximately ${targetWordCount} words (±10%).`);
     }
-    if (options.includeHeadings) {
+    if ((options as any)?.includeHeadings) {
       directives.push("Include section headings to organize the content.");
     }
   }
   // Marketing directives
   if (taskType === "marketing") {
-    if (options.marketingChannel) {
-      const chMap: Record<NonNullable<GenerationOptions["marketingChannel"]>, string> = {
+    const marketingChannel = (options as any)?.marketingChannel;
+    if (marketingChannel) {
+      const chMap: Record<string, string> = {
         email: "Tailor copy for email: strong subject, compelling preview text, skimmable body.",
         landing_page: "Tailor copy for a landing page: benefit-led headline, proof points, sections, final CTA.",
         social: "Tailor copy for social: short hooks, scannable lines, platform-friendly style.",
         ad: "Tailor copy for ads: concise headline and body within typical ad limits.",
       };
-      directives.push(chMap[options.marketingChannel]);
+      if (chMap[marketingChannel]) directives.push(chMap[marketingChannel]);
     }
-    if (options.ctaStyle) {
-      const ctaMap: Record<NonNullable<GenerationOptions["ctaStyle"]>, string> = {
+    const ctaStyle = (options as any)?.ctaStyle;
+    if (ctaStyle) {
+      const ctaMap: Record<string, string> = {
         soft: "Use a soft call to action focused on low-friction engagement.",
         standard: "Use a clear call to action with balanced urgency.",
         strong: "Use a strong, urgent call to action near the end.",
       };
-      directives.push(ctaMap[options.ctaStyle]);
+      if (ctaMap[ctaStyle]) directives.push(ctaMap[ctaStyle]);
     }
-    if (options.valueProps) {
-      directives.push(`Emphasize these value propositions and proof points: ${options.valueProps}`);
+    const valueProps = (options as any)?.valueProps;
+    if (valueProps) {
+      directives.push(`Emphasize these value propositions and proof points: ${valueProps}`);
     }
-    if (options.complianceNotes) {
-      directives.push(`Comply with the following constraints exactly: ${options.complianceNotes}`);
+    const complianceNotes = (options as any)?.complianceNotes;
+    if (complianceNotes) {
+      directives.push(`Comply with the following constraints exactly: ${complianceNotes}`);
     }
   }
   if (taskType === "coding") {
@@ -295,12 +303,16 @@ export function buildUnifiedPromptCore(params: {
     if (hasCitationPref) constraintParts.push(`citations=${options?.requireCitations ? "yes" : "no"}`);
   }
   if (taskType === "writing") {
-    if (options?.pointOfView) constraintParts.push(`pov=${options.pointOfView}`);
-    if (typeof options?.targetWordCount === "number") constraintParts.push(`words≈${options.targetWordCount}`);
+    const pointOfView = (options as any)?.pointOfView;
+    if (pointOfView) constraintParts.push(`pov=${pointOfView}`);
+    const targetWordCount = (options as any)?.targetWordCount;
+    if (typeof targetWordCount === "number") constraintParts.push(`words≈${targetWordCount}`);
   }
   if (taskType === "marketing") {
-    if (options?.marketingChannel) constraintParts.push(`channel=${options.marketingChannel}`);
-    if (options?.ctaStyle) constraintParts.push(`cta=${options.ctaStyle}`);
+    const marketingChannel = (options as any)?.marketingChannel;
+    if (marketingChannel) constraintParts.push(`channel=${marketingChannel}`);
+    const ctaStyle = (options as any)?.ctaStyle;
+    if (ctaStyle) constraintParts.push(`cta=${ctaStyle}`);
   }
 
   const typeGuidelines = TYPE_GUIDELINES[taskType];
