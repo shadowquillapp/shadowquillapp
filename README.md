@@ -3,245 +3,100 @@
   
 # ShadowQuill
   
-**Fully localized AI prompt generator app focused on privacy first architecture**
+**Privacy-First AI Prompt Studio**
   
   [![Website](https://img.shields.io/badge/Website-shadowquill.org-8b7cf6)](https://shadowquill.org)
   [![Stars](https://img.shields.io/github/stars/shadowquillapp/shadowquillapp)](https://github.com/shadowquillapp/shadowquillapp/stargazers)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 </div>
 
-## What Is ShadowQuill?
+## Overview
 
-ShadowQuill is a desktop application for crafting AI prompts with complete priva`cy. All processing happens locally on your machine using Ollama with Gemma 3 models.
+ShadowQuill is a desktop application for crafting high-quality AI prompts with complete privacy. It runs entirely locally on your machine using **Ollama** and **Gemma 3** models. No data ever leaves your device.
 
-### Complete Privacy
+## Key Features
 
-No data ever leaves your computer. All AI processing runs locally through Ollama.
-
-### Local Storage
-
-Your chats, presets, system prompts, and settings are stored locally in the app's user data directory using localStorage and JSON files. You can view the exact paths and factory‑reset from Settings → Data Location.
-
-### Modern Interface
-
-Clean, beautiful design with four themes and responsive layout that works on any screen size.
-
-## Features
-
-### Chat Interface
-
-- **Natural Conversation**: Chat directly with AI to generate and refine prompts
-- **Task Types**: Choose from general, coding, image, video, research, writing, or marketing tasks
-- **Customization**: Adjust tone, detail level, output format, language, and creativity
-- **Chat History**: All conversations are saved locally and easy to access
-
-### Preset Studio
-
-- **Visual Preset Manager**: Dedicated studio interface for creating and managing prompt presets
-- **Rich Configuration**: Configure all prompt parameters including task type, tone, detail, format, and task-specific options
-- **Apply to Chat**: Load presets directly into your chat sessions
-- **Import/Export**: Duplicate and organize your preset library
-
-### AI Integration
-
-- **Provider: Ollama (local only)** — no cloud providers
-- **Gemma 3 only (1B, 4B, 12B, 27B)** — explicitly supported and auto‑detected
-- **Auto‑Detection**: Finds your installed Gemma 3 models from the local Ollama daemon
-- **Easy Switching**: Pick a Gemma 3 size from the model selector in chat
-- **No Internet Required**: All AI processing happens entirely on your machine
-
-### User Experience
-
-- **Four Beautiful Themes**: Earth (warm), Purple Dark, Dark, and Light
-- **Code Highlighting**: Syntax-highlighted code blocks (JSON, Markdown) with copy button
-- **System Prompt Editor**: Customize the AI's behavior with your own system prompts
-- **Responsive Design**: Works great on desktop, with mobile-friendly sidebar
-- **Keyboard Friendly**: Navigate and interact efficiently
-- **Data Management**: View storage locations and reset app data from settings
-
-## Download
-
-Pre-built installers are available for download:
-
-- **GitHub Releases**: <https://github.com/shadowquillapp/shadowquillapp/releases>
-- **Website**: <https://shadowquill.org>
+-   **100% Local & Private**: All processing happens on your machine via Ollama. Data is stored in your local user profile.
+-   **Specialized Prompt Building**: Dedicated modes for **Coding**, **Writing**, **Marketing**, **Research**, **Image**, and **Video** prompts.
+-   **Gemma 3 Optimized**: Native support for Gemma 3 models (1B, 4B, 12B, 27B) with auto-detection.
+-   **Preset Studio**: Create, manage, and share reusable prompt templates with granular configuration.
+-   **Modern UI**: Clean interface with multiple themes, syntax highlighting, and responsive design.
 
 ## Getting Started
 
-### What You Need
+### 1. Prerequisites
 
-Before using ShadowQuill, you need:
+You need **Ollama** installed and at least one **Gemma 3** model.
 
-1. **Ollama** installed and running on your computer
-2. At least one **Gemma 3 model** downloaded through Ollama
-
-### Install Ollama
-
-**Windows, macOS & Linux:**
-
-Download the installer from <https://ollama.ai/download>
-
-Or you can download using CLI:
-
+**Install Ollama:**
+Download from [ollama.ai](https://ollama.ai) or run:
 ```bash
 curl -fsSL https://ollama.ai/install.sh | sh
 ```
 
-### Download a Gemma 3 Model
-
-1. Start Ollama and open your terminal
-2. Run these commands based on what model, or models, you would like integrated:
-
+**Get a Model:**
 ```bash
-ollama pull gemma3:1b   # Smallest, fastest (good for testing)
-ollama pull gemma3:4b   # Recommended model for most use-cases
-ollama pull gemma3:12b  # Better quality, needs more RAM
-ollama pull gemma3:27b  # Best quality, but needs very powerful hardware
+ollama pull gemma3:4b   # Recommended balance
+# or
+ollama pull gemma3:1b   # Fastest
+ollama pull gemma3:12b  # High quality
+ollama pull gemma3:27b  # Max quality (requires high RAM)
 ```
 
-We recommend starting with `gemma3:4b` by running `ollama pull gemma3:4b` for the best balance of speed and quality.
+### 2. Install ShadowQuill
 
-### Start Using ShadowQuill
+Download the latest installer for Windows, macOS, or Linux from:
+-   **Website**: [shadowquill.org](https://shadowquill.org)
+-   **GitHub Releases**: [Latest Release](https://github.com/shadowquillapp/shadowquillapp/releases)
 
-1. **Launch the app** from your applications folder or desktop shortcut
-2. **Configure Gemma 3 (Ollama) connection** when the dialog appears
-   - Keep the default base Ollama port `11434` unless you changed it yourself manually
-   - Click “Check for models” to detect available `gemma3` models
-3. **Start crafting** and creating prompts!
+### 3. Usage
 
-The app automatically detects when Ollama is running and which Gemma 3 models are available.
+**Chat Interface**:
+-   Select a task type (e.g., Coding, Writing).
+-   Configure tone, detail level, and output format.
+-   Chat with the AI to refine your prompt.
 
-## Using the App
+**Preset Studio**:
+-   Create and save custom prompt configurations.
+-   Apply presets instantly to new chat sessions.
 
-### 1. Chat Interface
+**Data Management**:
+-   All chats and settings are stored locally.
+-   View storage paths or reset data in **Settings > Data Location**.
 
-The main chat interface is where you interact with AI:
+## Development
 
-1. **Start a conversation**: Type your request in the chat input at the bottom
-2. **Adjust settings**: Use the sidebar to configure:
-   - Task type (general, coding, image, video, research, writing, marketing)
-   - Tone (neutral, friendly, formal, technical, persuasive)
-   - Detail level (brief, normal, detailed)
-   - Output format (plain, markdown, XML)
-   - Temperature and other advanced options
-3. **Send**: Click Send or press Enter to generate the AI response
-4. **Continue**: Keep chatting to refine your prompts or ask follow-up questions
-5. **History**: Access previous chats from the chat list in the sidebar
-
-### 2. Managing Presets
-
-**Loading Presets in Chat:**
-
-- Click the preset dropdown in the sidebar
-- Select from your saved presets or recently used ones
-- Settings are automatically applied to your current session
-
-**Preset Studio:**
-
-1. Navigate to the Preset Studio from the header menu
-2. Browse your preset library at the top of the screen
-3. Click a preset to edit its configuration
-4. Adjust all settings: task type, tone, detail, format, and task-specific options
-5. Save changes or create new presets
-6. Use "Apply to Chat" to load a preset and return to the chat interface
-
-## Privacy & Data
-
-**Everything is local.** ShadowQuill:
-
-- Never connects to external services (only your local Ollama at `http://localhost:11434`)
-- Stores chats, presets, system prompts, and settings in your OS profile under the app's user data directory using localStorage and JSON files
-- All data is FULLY localized to your computer's hard drive
-- No sign up EVER required. This is a local application that runs on your computer
-- Doesn't collect telemetry or usage data, and never will. Feel free to review the source code
-- Gives you complete control over your privacy with a fully offline AI toolkit
-
-**Data Management:**
-
-- View exact storage paths: Settings → Data Location
-- Reset app data: Settings → Data Location → Reset Application
-- Customize AI behavior: Settings → System Prompts
-- All data can be manually accessed or deleted from the user data directory shown in settings
-
-## Building from Source
-
-If you want to modify ShadowQuill or build it yourself:
-
-**Quick start:**
+Build from source:
 
 ```bash
 # Install dependencies
 npm install
 
-# Run the desktop app in development mode
+# Run in development mode
 npm run dev
-```
 
-**Build installers:**
-
-```bash
-# Windows installer and portable
-npm run dist:win
-
-# All platforms (requires platform-specific build tools)
+# Build for production
 npm run dist:electron
 ```
 
-**Other commands:**
+**Tech Stack**: Electron, Next.js, React, Tailwind CSS, TypeScript.
 
-```bash
-# Type checking
-npm run typecheck
+## Privacy & Security
 
-# Code linting and formatting (Biome)
-npm run check
-npm run check:write
+-   **Offline Capable**: Works without an internet connection (after downloading models).
+-   **No Telemetry**: We do not track your usage.
+-   **Local Storage**: Chats and settings are saved to your OS user data directory (via strictly local storage).
 
-# Run tests
-npm run test
-```
+## Contributing
 
-**Tech-stack:**
+Contributions are welcome! Please read our contribution guidelines before submitting a Pull Request.
 
-- Desktop: Electron
-- Frontend: Next.js with React
-- Styling: Tailwind CSS
-- Language: TypeScript
-- Storage: localStorage and locations given with paths in ShadowQuill settings menu
-
-### Project Structure
-
-- `electron/` — Electron main process, preload scripts, and dev/start scripts
-- `src/app/` — Next.js App Router pages:
-  - `chat/` — Main chat interface
-  - `studio/` — Preset Studio for managing presets
-- `src/components/` — Shared UI components (dialogs, settings, titlebar, etc.)
-- `src/lib/` — Core client-side libraries:
-  - Local storage, config, and database helpers
-  - Prompt builder logic
-  - Model client for Ollama communication
-  - Preset management
-- `src/server/` — Server-side utilities (types, storage layer, logging)
-- `src/styles/` — Global CSS with theme definitions
-- `public/` — Static assets and branding
-
-## Contribution
-
-We welcome and appreciate all contributions to ShadowQuill app. Help us grow and improve by joining our contributor list.
-
-### ShadowQuill Contributors
+1.  [Open an issue](https://github.com/shadowquillapp/shadowquillapp/issues) to discuss changes.
+2.  Keep PRs focused on a single task.
+3.  Preserve the offline/local-first architecture.
 
 <p align="left">
   <a href="https://github.com/shadowquillapp/shadowquillapp/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=shadowquillapp/shadowquillapp" alt="A table of avatars from the project's contributors" />
+    <img src="https://contrib.rocks/image?repo=shadowquillapp/shadowquillapp" alt="Contributors" />
   </a>
 </p>
-
-### Before You Contribute
-
-To ensure a smooth collaboration, please follow these simple steps:
-
-1.  [**Create an issue**](https://github.com/shadowquillapp/shadowquillapp/issues/new) to discuss the feature, fix, or change you plan to implement. This helps prevent duplicated effort and ensures alignment with the project's goals.
-2.  Keep your changes **focused and concise**. Ideally, each Pull Request (PR) addresses a single, structured task.
-3.  Follow the **existing code style** of the repository as closely as possible.
-4.  Your changes **must always preserve** the core values of the application: **offline**, **privacy-first**, and **local-only data storage**.
