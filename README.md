@@ -13,13 +13,19 @@
 
 ## What Is ShadowQuill?
 
-ShadowQuill is a desktop application for crafting AI prompts with complete privacy. All processing happens locally on your machine using Ollama with Gemma 3 models.
+ShadowQuill is a desktop application for crafting AI prompts with complete priva`cy. All processing happens locally on your machine using Ollama with Gemma 3 models.
 
-**Complete Privacy**: No data ever leaves your computer. All AI processing runs locally through Ollama.
+### Complete Privacy
 
-**Local Storage**: Your chats, presets, system prompts, and settings are stored locally in the app's user data directory using localStorage and JSON files. You can view the exact paths and factory‑reset from Settings → Data Location.
+No data ever leaves your computer. All AI processing runs locally through Ollama.
 
-**Modern Interface**: Clean, beautiful design with four themes and responsive layout that works on any screen size.
+### Local Storage
+
+Your chats, presets, system prompts, and settings are stored locally in the app's user data directory using localStorage and JSON files. You can view the exact paths and factory‑reset from Settings → Data Location.
+
+### Modern Interface
+
+Clean, beautiful design with four themes and responsive layout that works on any screen size.
 
 ## Features
 
