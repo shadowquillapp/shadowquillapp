@@ -111,7 +111,7 @@ export default function TemperatureControl({ value, onChange }: TemperatureContr
       </div>
       
       {/* Semantic markers */}
-      <div className="flex justify-between text-xs text-secondary px-1 mt-3" style={{ opacity: 0.7 }}>
+      <div className="flex justify-between text-xs text-secondary px-1 mt-8" style={{ opacity: 0.7 }}>
         <span>Precise</span>
         <span>Balanced</span>
         <span>Creative</span>

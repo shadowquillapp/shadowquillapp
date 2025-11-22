@@ -30,8 +30,8 @@ export default function PresetCard({
 
   return (
     <div
-      className="relative flex flex-col p-3 rounded-lg border transition-all
-                 hover:shadow-lg cursor-pointer min-w-[220px] max-w-[220px] h-[136px] group"
+      className="relative flex flex-col p-2.5 rounded-lg border transition-all
+                 hover:shadow-lg cursor-pointer w-full group"
       style={{
         borderColor: isSelected ? 'var(--color-primary)' : 'var(--color-outline)',
         background: isSelected ? 'var(--color-surface)' : 'var(--color-surface-variant)',
@@ -49,16 +49,20 @@ export default function PresetCard({
       aria-label={`Select preset: ${preset.name}`}
       aria-pressed={isSelected}
     >
-      {/* Kebab for actions on small screens (optional future) */}
-
       {/* Preset info */}
-      <div className="flex-1 mb-2">
-        <h3 className="font-semibold text-sm mb-0.5 pr-6 line-clamp-2" style={{ color: 'var(--color-on-surface)' }}>
-          {preset.name}
-        </h3>
-        <div className="text-xs text-secondary">{taskTypeLabel}</div>
-        <div className="mt-0.5 text-[11px] text-secondary flex items-center flex-wrap gap-x-2">
-          <span>{toneLabel} Tone • {detailLabel} Detail • {formatLabel}</span>
+      <div className="flex flex-col gap-0.5">
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-medium text-sm leading-tight line-clamp-1" style={{ color: 'var(--color-on-surface)' }}>
+            {preset.name}
+          </h3>
+          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-surface-variant)] border border-[var(--color-outline)] text-secondary shrink-0">
+            {taskTypeLabel}
+          </span>
+        </div>
+        <div className="text-[11px] text-secondary flex items-center gap-1.5 opacity-80 flex-wrap leading-tight">
+          <span className="truncate">
+            {toneLabel} • {detailLabel} • {formatLabel} • Temp: {temperature.toFixed(1)}
+          </span>
         </div>
       </div>
     </div>

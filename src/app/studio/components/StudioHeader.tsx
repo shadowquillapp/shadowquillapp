@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Icon } from '@/components/Icon';
+import { Logo } from '@/components/Logo';
 
 interface StudioHeaderProps {
   onNewPreset: () => void;
@@ -39,7 +40,8 @@ export default function StudioHeader({ onNewPreset, onBack, isDirty }: StudioHea
           <span className="text-sm font-medium">Back</span>
         </button>
         
-        <h1 className="text-xl font-semibold" style={{ color: 'var(--color-on-surface)' }}>
+        <h1 className="text-xl font-semibold flex items-center gap-3" style={{ color: 'var(--color-on-surface)' }}>
+          <Logo className="w-8 h-8 text-[var(--color-primary)]" />
           Preset Studio
           {isDirty && (
             <span className="ml-2 w-2 h-2 rounded-full inline-block" 

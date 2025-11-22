@@ -34,6 +34,23 @@ export default function PresetStudioPage() {
     loadPresets();
   }, [loadPresets]);
 
+  // Auto-select the currently active preset when presets are loaded
+  useEffect(() => {
+    // Only auto-select if we don't already have an editing preset
+    // (to avoid overwriting a new preset being created)
+    if (presets.length > 0 && !selectedPresetId && !editingPreset) {
+      const lastSelectedPresetKey = localStorage.getItem('last-selected-preset');
+      if (lastSelectedPresetKey) {
+        const preset = presets.find((p: PresetLite) => p.id === lastSelectedPresetKey);
+        if (preset) {
+          setSelectedPresetId(preset.id || null);
+          setEditingPreset({ ...preset });
+          setIsDirty(false);
+        }
+      }
+    }
+  }, [presets, selectedPresetId, editingPreset]);
+
   // Load and apply saved theme
   useEffect(() => {
     let savedTheme = localStorage.getItem('theme-preference') as 'earth' | 'purpledark' | 'dark' | 'light' | 'default' | null;
@@ -215,28 +232,31 @@ export default function PresetStudioPage() {
           isDirty={isDirty}
         />
         
-        <main className="flex-1 flex flex-col overflow-hidden">
-          {/* Row 1: Preset Library */}
-          <PresetLibrary
-            presets={presets}
-            selectedPresetId={selectedPresetId}
-            onSelectPreset={handleSelectPreset}
-            onCreateNew={handleNewPreset}
-            className="min-h-[14rem] max-h-[40vh] flex-shrink-0 overflow-y-auto"
-            style={{ borderBottom: '1px solid var(--color-outline)' }}
-          />
+        <main className="flex-1 flex flex-col md:flex-row overflow-hidden">
+          {/* Row 1 / Col 1: Preset Library */}
+          <div className="flex-shrink-0 w-full h-[35vh] md:h-auto md:w-80 lg:w-96 flex flex-col border-b md:border-b-0 md:border-r border-[var(--color-outline)] bg-[var(--color-surface-variant)] transition-all duration-300">
+            <PresetLibrary
+              presets={presets}
+              selectedPresetId={selectedPresetId}
+              onSelectPreset={handleSelectPreset}
+              onCreateNew={handleNewPreset}
+              className="flex-1 overflow-hidden"
+            />
+          </div>
           
-          {/* Row 2: Preset Editor */}
-          <PresetEditor
-            preset={editingPreset}
-            isDirty={isDirty}
-            onFieldChange={handleFieldChange}
-            onSave={handleSave}
-            onApplyToChat={() => editingPreset && handleApplyToChat(editingPreset)}
-            onDuplicate={(id, name) => handleDuplicate(id, name)}
-            onDelete={(id) => handleDelete(id)}
-            className="flex-1 overflow-y-auto min-h-0"
-          />
+          {/* Row 2 / Col 2: Preset Editor */}
+          <div className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[var(--color-surface-variant)]">
+            <PresetEditor
+              preset={editingPreset}
+              isDirty={isDirty}
+              onFieldChange={handleFieldChange}
+              onSave={handleSave}
+              onApplyToChat={() => editingPreset && handleApplyToChat(editingPreset)}
+              onDuplicate={(id, name) => handleDuplicate(id, name)}
+              onDelete={(id) => handleDelete(id)}
+              className="flex-1 h-full overflow-hidden flex flex-col"
+            />
+          </div>
         </main>
       </div>
     </>

@@ -61,7 +61,7 @@ export default function PresetEditor({
         <div className="flex-1 overflow-y-auto px-6 py-4">
           <div className="max-w-5xl mx-auto">
             {/* Tabs */}
-            <div className="flex items-center gap-2 border-b" style={{ borderColor: 'var(--color-outline)' }}>
+            <div className="flex flex-wrap items-center gap-2 border-b" style={{ borderColor: 'var(--color-outline)' }}>
               <button
                 className="px-4 py-2 text-sm font-medium rounded-t-md"
                 style={{
@@ -86,7 +86,7 @@ export default function PresetEditor({
                 aria-selected={activeTab === 'advanced'}
                 onClick={() => setActiveTab('advanced')}
               >
-                Advanced Settings<span className="ml-1 text-xs" style={{ opacity: 0.6 }}>(Optional)</span>
+                Advanced Settings<span className="ml-1 text-xs hidden sm:inline" style={{ opacity: 0.6 }}>(Optional)</span>
               </button>
               {preset.taskType !== 'general' && (
                 <button
@@ -114,7 +114,7 @@ export default function PresetEditor({
                 aria-selected={activeTab === 'output'}
                 onClick={() => setActiveTab('output')}
               >
-                Output Settings<span className="ml-1 text-xs" style={{ opacity: 0.6 }}>(Optional)</span>
+                Output Settings<span className="ml-1 text-xs hidden sm:inline" style={{ opacity: 0.6 }}>(Optional)</span>
               </button>
             </div>
 
