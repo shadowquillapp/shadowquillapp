@@ -9,10 +9,12 @@ import { callLocalModelClient } from "@/lib/model-client";
 import { readLocalModelConfig as readLocalModelConfigClient, listAvailableModels, writeLocalModelConfig as writeLocalModelConfigClient } from "@/lib/local-config";
 import { getPresets } from "@/lib/presets";
 import { Icon } from "@/components/Icon";
+import { Logo } from "@/components/Logo";
 import { isElectronRuntime } from '@/lib/runtime';
 import Titlebar from "@/components/Titlebar";
 import { useDialog } from "@/components/DialogProvider";
 import SettingsDialog from "@/components/SettingsDialog";
+import FeatherLoader from "@/components/FeatherLoader";
 
 type MessageRole = "user" | "assistant";
 interface MessageItem { id: string; role: MessageRole; content: string; }
@@ -987,6 +989,142 @@ type FrameRate = 24 | 30 | 60;
     });
   }, []);
 
+  // Syntax highlighting for XML/HTML
+  const highlightXML = useCallback((code: string) => {
+    const tokens: ReactNode[] = [];
+    let i = 0;
+    // Safety valve for infinite loops
+    const MAX_ITERATIONS = 50000;
+    let iterations = 0;
+
+    while (i < code.length && iterations < MAX_ITERATIONS) {
+      iterations++;
+      
+      // Check for comments: <!-- ... -->
+      if (code.startsWith("<!--", i)) {
+        const closeIndex = code.indexOf("-->", i);
+        const end = closeIndex === -1 ? code.length : closeIndex + 3;
+        const comment = code.slice(i, end);
+        tokens.push(<span key={`xml-comment-${i}`} className="token-comment">{comment}</span>);
+        i = end;
+        continue;
+      }
+
+      // Check for tags: <tag ... > or </tag>
+      if (code[i] === "<") {
+        const tagStart = i;
+        let j = i + 1;
+        // Handle </
+        let isClosing = false;
+        if (code[j] === "/") {
+          isClosing = true;
+          j++;
+        }
+
+        // Read tag name
+        const nameStart = j;
+        while (j < code.length && /[a-zA-Z0-9_\-:]/.test(code[j] ?? "")) {
+          j++;
+        }
+        const tagName = code.slice(nameStart, j);
+
+        // Push opening bracket and slash if present
+        tokens.push(<span key={`xml-tag-open-${tagStart}`} className="token-punctuation">&lt;{isClosing ? "/" : ""}</span>);
+        // Push tag name
+        if (tagName) {
+           tokens.push(<span key={`xml-tag-name-${nameStart}`} className="token-key">{tagName}</span>);
+        }
+        
+        i = j;
+
+        // Parse attributes until > or />
+        let attrIterations = 0;
+        while (i < code.length && attrIterations < 1000) {
+            attrIterations++;
+            // Skip whitespace
+            const whitespaceMatch = code.slice(i).match(/^\s+/);
+            if (whitespaceMatch) {
+                tokens.push(<span key={`xml-ws-${i}`}>{whitespaceMatch[0]}</span>);
+                i += whitespaceMatch[0].length;
+                continue;
+            }
+
+            // Check for end of tag
+            if (code[i] === ">") {
+                tokens.push(<span key={`xml-tag-close-${i}`} className="token-punctuation">&gt;</span>);
+                i++;
+                break;
+            }
+            if (code.startsWith("/>", i)) {
+                 tokens.push(<span key={`xml-tag-close-${i}`} className="token-punctuation">/&gt;</span>);
+                 i += 2;
+                 break;
+            }
+
+            // Attribute name
+            const attrMatch = code.slice(i).match(/^[a-zA-Z0-9_\-:]+/);
+            if (attrMatch) {
+                tokens.push(<span key={`xml-attr-name-${i}`} className="token-attribute">{attrMatch[0]}</span>);
+                i += attrMatch[0].length;
+                
+                // Check for =
+                 const eqMatch = code.slice(i).match(/^\s*=/);
+                 if (eqMatch) {
+                     tokens.push(<span key={`xml-eq-${i}`} className="token-punctuation">{eqMatch[0]}</span>);
+                     i += eqMatch[0].length;
+
+                     // Attribute value
+                     // Skip whitespace after =
+                      const wsAfterEq = code.slice(i).match(/^\s+/);
+                      if (wsAfterEq) {
+                          tokens.push(<span key={`xml-ws-val-${i}`}>{wsAfterEq[0]}</span>);
+                          i += wsAfterEq[0].length;
+                      }
+
+                     if (code[i] === '"' || code[i] === "'") {
+                         const quote = code[i];
+                         tokens.push(<span key={`xml-quote-${i}`} className="token-string">{quote}</span>);
+                         i++;
+                         const valContentStart = i;
+                         while(i < code.length && code[i] !== quote) {
+                             // handle escapes? minimal support
+                             i++;
+                         }
+                         tokens.push(<span key={`xml-attr-val-${valContentStart}`} className="token-string">{code.slice(valContentStart, i)}</span>);
+                         if (i < code.length && code[i] === quote) {
+                            tokens.push(<span key={`xml-quote-end-${i}`} className="token-string">{quote}</span>);
+                            i++;
+                         }
+                     } else {
+                         // unquoted value (rare in valid XML but possible in lenient HTML)
+                         const unquotedMatch = code.slice(i).match(/^[^\s>]+/);
+                         if (unquotedMatch) {
+                             tokens.push(<span key={`xml-attr-val-unquoted-${i}`} className="token-string">{unquotedMatch[0]}</span>);
+                             i += unquotedMatch[0].length;
+                         }
+                     }
+                 }
+                 continue;
+            }
+            
+            // If we get here inside a tag but didn't match end, ws, or attr, just consume one char
+            tokens.push(<span key={`xml-unexpected-${i}`}>{code[i]}</span>);
+            i++;
+        }
+        continue;
+      }
+
+      // Plain text content
+      const nextTag = code.indexOf("<", i);
+      const textEnd = nextTag === -1 ? code.length : nextTag;
+      const text = code.slice(i, textEnd);
+      tokens.push(<span key={`xml-text-${i}`}>{text}</span>);
+      i = textEnd;
+    }
+
+    return tokens;
+  }, []);
+
   // Syntax highlighting for Markdown
   const highlightMarkdown = useCallback((code: string) => {
     const inlinePattern =
@@ -1155,6 +1293,8 @@ type FrameRate = 24 | 30 | 60;
         highlightedCode = highlightJSON(code || '');
       } else if (lang === 'markdown' || lang === 'md') {
         highlightedCode = highlightMarkdown(code || '');
+      } else if (lang === 'xml' || lang === 'html' || lang === 'svg') {
+        highlightedCode = highlightXML(code || '');
       } else {
         highlightedCode = code;
       }
@@ -1192,7 +1332,7 @@ type FrameRate = 24 | 30 | 60;
     }
 
     return parts.length > 0 ? <>{parts}</> : <span style={{ whiteSpace: 'pre-wrap' }}>{content}</span>;
-  }, [copyMessage, copiedMessageId, highlightJSON, highlightMarkdown]);
+  }, [copyMessage, copiedMessageId, highlightJSON, highlightMarkdown, highlightXML]);
 
   const railClassName = isSmallScreen
     ? `app-rail--mobile ${sidebarOpen ? 'open' : ''}`
@@ -1214,6 +1354,7 @@ type FrameRate = 24 | 30 | 60;
       
       {/* Left rail (Material list of presets + chat history) */}
       <aside className={railClassName} style={{ display: 'flex', flexDirection: 'column', gap: 16, padding: 20, paddingTop: !isSmallScreen && isElectronRuntime() ? 60 : 20, top: isSmallScreen && isElectronRuntime() ? 32 : 0, height: isSmallScreen && isElectronRuntime() ? 'calc(100vh - 32px)' : undefined, fontSize: 15 }}>
+        
         <button
           type="button"
           className="md-btn md-btn--primary"
@@ -1229,7 +1370,7 @@ type FrameRate = 24 | 30 | 60;
         ) : (
           <>
             {/* Recently used presets (up to 3) */}
-            <div style={{ display: 'grid', gap: 12 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
               {recentPresetKeys
                 .map((key) => presets.find((p) => (p.id ?? p.name) === key))
                 .filter((p): p is { id?: string; name: string; taskType: TaskType; options?: any } => !!p)
@@ -1237,6 +1378,14 @@ type FrameRate = 24 | 30 | 60;
                 .map((p) => {
                   const key = p.id ?? p.name;
                   const isActive = key === selectedPresetKey;
+                  const capitalize = (s: string | undefined) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : '');
+                  const taskTypeLabel = capitalize(p.taskType);
+                  const toneLabel = capitalize(p.options?.tone || 'neutral');
+                  const detailLabel = capitalize(p.options?.detail || 'normal');
+                  const formatMap: Record<string, string> = { markdown: 'Markdown', plain: 'Plain Text', xml: 'XML' };
+                  const formatLabel = formatMap[p.options?.format || 'plain'] || capitalize(p.options?.format || 'plain');
+                  const temperature = typeof p.options?.temperature === "number" ? p.options.temperature : 0.7;
+
                   return (
                     <div
                       key={key}
@@ -1245,28 +1394,14 @@ type FrameRate = 24 | 30 | 60;
                         if (el) map.set(key, el);
                         else map.delete(key);
                       }}
-                      className="md-card"
+                      className="relative flex flex-col p-2.5 rounded-lg border transition-all hover:shadow-lg cursor-pointer w-full group"
                       title={`Use preset "${p.name}"`}
                       style={{
-                        padding: 12,
-                        borderRadius: 10,
-                        position: 'relative',
+                        borderColor: isActive ? 'var(--color-primary)' : 'var(--color-outline)',
+                        background: isActive ? 'var(--color-surface)' : 'var(--color-surface-variant)',
+                        boxShadow: isActive ? 'var(--shadow-1)' : 'none',
                         zIndex: key === recentElevatedKey ? 3 : 1,
                         willChange: 'transform',
-                        ...(currentTheme === 'earth'
-                          ? {
-                              border: `2px solid ${isActive ? 'var(--color-on-surface)' : 'var(--color-outline)'}`,
-                              background: isActive ? 'rgba(238,232,213,0.06)' : 'transparent'
-                            }
-                          : currentTheme === 'light'
-                          ? {
-                              border: `2px solid ${isActive ? 'var(--color-primary)' : 'var(--color-outline)'}`
-                            }
-                          : {
-                              borderColor: isActive ? 'var(--color-primary)' : 'var(--color-outline)'
-                            }),
-                        boxShadow: 'var(--shadow-2)',
-                        cursor: 'pointer'
                       }}
                       onClick={() => {
                         if (key !== selectedPresetKey) {
@@ -1275,42 +1410,29 @@ type FrameRate = 24 | 30 | 60;
                           recentElevateTimerRef.current = window.setTimeout(() => {
                             setRecentElevatedKey(null);
                             recentElevateTimerRef.current = null;
-                          }, 540); // a bit longer than the 500ms transform
+                          }, 540);
                         }
                         setSelectedPresetKey(key);
                         try { localStorage.setItem('last-selected-preset', key); } catch {}
                         applyPreset(p);
                       }}
                     >
-                      <div style={{ fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                        <span>{p.name}</span>
-                        {isActive && <Icon name="check" className="text-[13px]" style={{ color: 'var(--color-on-surface)', marginLeft: 6 }} />}
+                      {/* Preset info */}
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-start justify-between gap-2">
+                          <h3 className="font-medium text-sm leading-tight line-clamp-1" style={{ color: 'var(--color-on-surface)' }}>
+                            {p.name}
+                          </h3>
+                          <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-[var(--color-surface-variant)] border border-[var(--color-outline)] text-secondary shrink-0">
+                            {taskTypeLabel}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-secondary flex items-center gap-1.5 opacity-80 flex-wrap leading-tight">
+                          <span className="truncate">
+                            {toneLabel} • {detailLabel} • {formatLabel} • Temp: {temperature.toFixed(1)}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-secondary" style={{ fontSize: 13, marginTop: 4 }}>
-                        {p.taskType.charAt(0).toUpperCase() + p.taskType.slice(1)}
-                      </div>
-                      {(() => {
-                        const o = p.options || {};
-                        const parts: string[] = [];
-                        const capitalize = (str: string) => {
-                          if ((str || '').toLowerCase() === 'xml') return 'XML';
-                          return (str || '').charAt(0).toUpperCase() + (str || '').slice(1);
-                        };
-                        if (o.tone) parts.push(`${capitalize(o.tone)} Tone`);
-                        if (o.detail) parts.push(`${capitalize(o.detail)} Detail`);
-                        if (o.format) parts.push(capitalize(o.format));
-                        if (o.stylePreset) parts.push(capitalize(o.stylePreset));
-                        if (o.aspectRatio) parts.push(capitalize(o.aspectRatio));
-                        if (o.durationSeconds) parts.push(`${o.durationSeconds}s`);
-                        if (o.frameRate) parts.push(`${o.frameRate}fps`);
-                        if (o.cameraMovement) parts.push(`Cam ${capitalize(String(o.cameraMovement))}`);
-                        if (o.shotType) parts.push(`${String(o.shotType).replace(/_/g, '-').split('-').map(capitalize).join('-')}`);
-                        return parts.length ? (
-                          <div className="text-secondary" style={{ fontSize: 12, marginTop: 4, lineHeight: 1.4 }}>
-                            {parts.join(' • ')}
-                          </div>
-                        ) : null;
-                      })()}
                     </div>
                   );
                 })}
@@ -1319,16 +1441,22 @@ type FrameRate = 24 | 30 | 60;
               )}
             </div>
 
-            <div style={{ display: 'flex', gap: 12, marginTop: 12 }}>
-              <button className="md-btn md-btn--primary" onClick={() => router.push('/studio')} style={{ padding: '10px 13px', fontSize: 13 }}>Preset Studio</button>
+            <div style={{ display: 'flex', gap: 12, marginTop: 12, justifyContent: 'center' }}>
+              <button 
+                className="md-btn preset-studio-btn" 
+                onClick={() => router.push('/studio')} 
+              >
+                <Icon name="sliders" />
+                Preset Studio
+              </button>
             </div>
           </>
         )}
 
         {/* Recent chats pinned to bottom */}
         <div style={{ marginTop: 'auto' }}>
-          <div className="text-secondary" style={{ fontSize: 13, letterSpacing: 0.4, marginBottom: 12 }}><b>RECENT CRAFT CHATS</b></div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <div className="text-secondary" style={{ fontSize: 12, letterSpacing: 0.4, marginBottom: 8 }}><b>RECENT CRAFT CHATS</b></div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
             {recentThree.map((c: any) => {
               const isActive = currentChatId === c.id;
               return (
@@ -1340,17 +1468,17 @@ type FrameRate = 24 | 30 | 60;
                   style={{
                     textAlign: 'left',
                     background: 'transparent',
-                    border: '1px solid var(--color-outline)',
-                    borderRadius: 12,
-                    padding: '10px 14px',
+                    border: isActive ? '2px solid var(--color-primary)' : '1px solid var(--color-outline)',
+                    borderRadius: 8,
+                    padding: isActive ? '7px 11px' : '8px 12px',
                     cursor: 'pointer',
                     color: isActive ? 'var(--color-on-surface)' : 'var(--color-on-surface-variant)',
-                    fontSize: 14,
+                    fontSize: 13,
                     fontWeight: isActive ? 600 : 500,
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
-                    transition: 'color 120ms ease'
+                    transition: 'color 120ms ease, border 120ms ease'
                   }}
                 >
                   {(c.title ?? 'Untitled') + ' ...'}
@@ -1358,11 +1486,11 @@ type FrameRate = 24 | 30 | 60;
               );
             })}
             {recentThree.length === 0 && (
-              <div className="text-secondary" style={{ fontSize: 14, padding: '6px 0' }}>No chats yet</div>
+              <div className="text-secondary" style={{ fontSize: 13, padding: '4px 0' }}>No chats yet</div>
             )}
             </div>
-          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 12 }}>
-            <button className="md-btn md-btn--primary" style={{ padding: '10px 13px', fontSize: 13, marginTop: 8}} onClick={() => setShowAllChatsOpen(true)}>Show All Chats</button>
+          <div style={{ display: 'flex', justifyContent: 'flex-start', marginTop: 8 }}>
+            <button className="md-btn md-btn--primary" style={{ padding: '8px 12px', fontSize: 13, marginTop: 4}} onClick={() => setShowAllChatsOpen(true)}>Show All Chats</button>
           </div>
             </div>
       </aside>
@@ -1390,6 +1518,7 @@ type FrameRate = 24 | 30 | 60;
               ☰
               </button>
           )}
+
           <div style={{ marginLeft: 'auto', display: 'flex', gap: 16, alignItems: 'center' }}>
             <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
               <button className="md-btn md-btn--primary" style={{ padding: '8px 12px', minHeight: 40, display: 'flex', alignItems: 'center', gap: 6 }} onClick={cycleTheme} disabled={themeSwitchCooldown} title={`Current theme: ${currentTheme.charAt(0).toUpperCase() + currentTheme.slice(1)} (click to cycle)`}>
@@ -1449,7 +1578,8 @@ type FrameRate = 24 | 30 | 60;
           <div style={{ width: '100%', maxWidth: '1400px', margin: '0 auto', minHeight: '100%', display: 'flex', flexDirection: 'column' }}>
             <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
               {!hasMessages ? (
-                <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+                  <Logo className="w-20 h-20 mb-6 text-[var(--color-primary)]" style={{ opacity: 0.9 }} />
                   <h1 style={{ fontSize: 28, fontWeight: 700, marginBottom: 24, textAlign: 'center' }}>How can I help you craft prompts today?</h1>
                 </div>
               ) : (
@@ -1474,11 +1604,8 @@ type FrameRate = 24 | 30 | 60;
                     </div>
                   ))}
                   {sending && (
-                    <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 12 }}>
-                      <div className="bubble bubble--assistant" style={{ opacity: .95, display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <span>Generating prompt... </span>
-                        <div style={{ width: 14, height: 14, border: '2px solid var(--color-on-surface-variant)', borderTopColor: 'var(--color-primary)', borderRadius: '50%' }} className="md-spin" />
-                      </div>
+                    <div style={{ display: 'flex', justifyContent: 'flex-start', marginBottom: 12, paddingLeft: 16 }}>
+                       <FeatherLoader text="Crafting prompt..." />
                     </div>
                   )}
                   <div ref={endRef} style={{ marginBottom: 32 }} />

@@ -139,6 +139,8 @@ to{transform:rotate(360deg)}
 .token-md-hr{color:#5c6370}
 .token-md-strike{color:#e06c75}
 .token-md-strike-text{color:#a8a8bd;text-decoration:line-through}
+.token-attribute{color:#d19a66}
+.token-comment{color:#5c6370;font-style:italic}
 [data-theme="earth"] .token-key{color:#88c0d0}
 [data-theme="earth"] .token-string{color:#87c095}
 [data-theme="earth"] .token-number{color:#d4a574}
@@ -163,6 +165,8 @@ to{transform:rotate(360deg)}
 [data-theme="earth"] .token-md-quote-text{color:#b8a882}
 [data-theme="earth"] .token-md-strike{color:#d08770}
 [data-theme="earth"] .token-md-strike-text{color:#b8a882}
+[data-theme="earth"] .token-attribute{color:#d4a574}
+[data-theme="earth"] .token-comment{color:#65737e}
 [data-theme="dark"] .token-key{color:#61afef}
 [data-theme="dark"] .token-string{color:#98c379}
 [data-theme="dark"] .token-number{color:#d19a66}
@@ -187,6 +191,8 @@ to{transform:rotate(360deg)}
 [data-theme="dark"] .token-md-quote-text{color:#9e9e9e}
 [data-theme="dark"] .token-md-strike{color:#e06c75}
 [data-theme="dark"] .token-md-strike-text{color:#9e9e9e}
+[data-theme="dark"] .token-attribute{color:#d19a66}
+[data-theme="dark"] .token-comment{color:#5c6370}
 [data-theme="light"] .token-key{color:#4078f2}
 [data-theme="light"] .token-string{color:#50a14f}
 [data-theme="light"] .token-number{color:#c18401}
@@ -211,6 +217,8 @@ to{transform:rotate(360deg)}
 [data-theme="light"] .token-md-quote-text{color:#696c77}
 [data-theme="light"] .token-md-strike{color:#e45649}
 [data-theme="light"] .token-md-strike-text{color:#696c77}
+[data-theme="light"] .token-attribute{color:#c18401}
+[data-theme="light"] .token-comment{color:#a0a1a7}
 .bubble-container{position:relative;display:inline-block;max-width:800px}
 .bubble-copy{position:absolute;top:8px;background:var(--color-surface-variant);border:1px solid var(--color-outline);border-radius:6px;padding:6px;cursor:pointer;opacity:0;transition:opacity 200ms ease;box-shadow:var(--shadow-1)}
 .bubble-copy--user{left:-40px}
@@ -226,8 +234,68 @@ to{transform:rotate(360deg)}
 .chat-composer-shell{transition:left 200ms ease,right 200ms ease,bottom 200ms ease}
 .chat-composer-card{padding:18px;border-radius:28px;background:var(--chat-composer-background);border:1px solid var(--color-outline);box-shadow:0 25px 70px #00000059 0 6px 20px #00000040;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);transition:box-shadow 200ms ease,transform 200ms ease}
 .chat-composer-card:hover{box-shadow:0 28px 80px #00000073 0 10px 24px #00000040;transform:translateY(-1px)}
-@media (max-width: 768px) {
-.chat-composer-card{padding:14px;border-radius:20px;box-shadow:0 18px 40px #00000059}
-}
 @keyframes theme-toast{0%{opacity:0;transform:translateY(10px) scale(.98)}10%{opacity:1;transform:translateY(0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translateY(-6px) scale(.98)}}
 .theme-toast{animation:theme-toast 900ms ease forwards}
+
+/* Preset Studio Button Special Styling */
+.preset-studio-btn {
+  width: 80%;
+  padding: 12px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-variant) 100%);
+  color: var(--color-on-primary);
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 24px;
+  transition: all 0.2s ease;
+}
+.preset-studio-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  filter: brightness(1.1);
+}
+.preset-studio-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Luxury Feather Loader */
+.luxury-loader {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+.luxury-loader__icon {
+  width: 32px;
+  height: 32px;
+  color: var(--color-primary);
+  animation: luxury-float 3.5s ease-in-out infinite;
+  filter: drop-shadow(0 0 12px var(--color-primary-variant));
+}
+.luxury-loader__text {
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: 0.5px;
+  background: linear-gradient(90deg, var(--color-on-surface-variant) 0%, var(--color-primary) 50%, var(--color-on-surface-variant) 100%);
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: luxury-shimmer 3s linear infinite;
+}
+
+@keyframes luxury-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); opacity: 0.85; }
+  50% { transform: translateY(-5px) rotate(8deg); opacity: 1; }
+}
+
+@keyframes luxury-shimmer {
+  0% { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
