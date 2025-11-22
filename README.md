@@ -225,18 +225,23 @@ npm run test
 - `src/styles/` — Global CSS with theme definitions
 - `public/` — Static assets and branding
 
-## Contributing
+## Contribution
 
-We 💖 our contributors!
-<a href="https://github.com/shadowquillapp/shadowquillapp/graphs/contributors">
-  <p align="left">
-    <img width="100" src="https://contrib.rocks/image?repo=shadowquillapp/shadowquillapp" alt="A table of avatars from the project's contributors" />
-  </p>
-</a>
+We welcome and appreciate all contributions to ShadowQuill app. Help us grow and improve by joining our contributor list.
 
-Before contributing:
+### ShadowQuill Contributors
 
-- Check existing Issues or create one to discuss what you would like to contribute/fix
-- Keep changes focused and small
-- Follow the existing code style if possible
-- Maintain the privacy-first, local-only approach
+<p align="left">
+  <a href="https://github.com/shadowquillapp/shadowquillapp/graphs/contributors">
+    <img src="https://contrib.rocks/image?repo=shadowquillapp/shadowquillapp" alt="A table of avatars from the project's contributors" />
+  </a>
+</p>
+
+### Before You Contribute
+
+To ensure a smooth collaboration, please follow these simple steps:
+
+1.  [**Create an issue**](https://github.com/shadowquillapp/shadowquillapp/issues/new) to discuss the feature, fix, or change you plan to implement. This helps prevent duplicated effort and ensures alignment with the project's goals.
+2.  Keep your changes **focused and concise**. Ideally, each Pull Request (PR) addresses a single, structured task.
+3.  Follow the **existing code style** of the repository as closely as possible.
+4.  Your changes **must always preserve** the core values of the application: **offline**, **privacy-first**, and **local-only data storage**.
