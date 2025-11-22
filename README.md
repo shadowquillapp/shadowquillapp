@@ -6,8 +6,7 @@
 **Fully localized AI prompt generator app focused on privacy first architecture**
   
   [![Website](https://img.shields.io/badge/Website-shadowquill.org-8b7cf6)](https://shadowquill.org)
-  [![GitHub](https://img.shields.io/badge/GitHub-shadowquillapp-181717?logo=github)](https://github.com/shadowquillapp/shadowquillapp)
-  [![Issues](https://img.shields.io/github/issues/shadowquillapp/shadowquillapp)](https://github.com/shadowquillapp/shadowquillapp/issues)
+  [![Stars](https://img.shields.io/github/stars/shadowquillapp/shadowquillapp)](https://github.com/shadowquillapp/shadowquillapp/stargazers)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 </div>
 
@@ -228,13 +227,16 @@ npm run test
 
 ## Contributing
 
-Contributions are welcome! Before contributing:
+We 💖 our contributors!
+<a href="https://github.com/shadowquillapp/shadowquillapp/graphs/contributors">
+  <p align="left">
+    <img width="100" src="https://contrib.rocks/image?repo=shadowquillapp/shadowquillapp" alt="A table of avatars from the project's contributors" />
+  </p>
+</a>
+
+Before contributing:
 
 - Check existing Issues or create one to discuss what you would like to contribute/fix
 - Keep changes focused and small
 - Follow the existing code style if possible
-- Maintain the privacy-first, local-only approach (important)
-
-## License
-
-MIT © [ShadowQuill](https://github.com/shadowquillapp)
+- Maintain the privacy-first, local-only approach
