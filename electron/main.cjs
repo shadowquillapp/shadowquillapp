@@ -42,6 +42,8 @@ try {
   try { fs.mkdirSync(userDataDir, { recursive: true }); } catch (_) { /* ignore */ }
   app.setPath('appData', appDataRoot);
   app.setPath('userData', userDataDir);
+  // Set userData path as env var for Logger to use
+  process.env.SHADOWQUILL_USER_DATA = userDataDir;
 } catch (_) { /* ignore */ }
 
 // Treat anything not packaged as dev. Rely on app.isPackaged instead of NODE_ENV

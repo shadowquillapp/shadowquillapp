@@ -34,8 +34,13 @@ export class Logger {
       this.logLevel = LogLevel[envLogLevel as keyof typeof LogLevel];
     }
 
-    // File logging disabled - logs go to console only
-    this.logFile = undefined;
+    // Enable file logging in Electron mode
+    if (this.isElectron) {
+      const userDataPath = process.env.SHADOWQUILL_USER_DATA;
+      if (userDataPath) {
+        this.logFile = path.join(userDataPath, 'logs', 'app.log');
+      }
+    }
   }
 
   static getInstance(): Logger {
