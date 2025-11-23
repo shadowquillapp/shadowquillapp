@@ -1,6 +1,7 @@
 "use client";
 
 import type { PresetLite } from "@/app/studio/types";
+import { Icon } from "@/components/Icon";
 import React from "react";
 
 interface PresetCardProps {
@@ -14,73 +15,98 @@ export default function PresetCard({
 	isSelected,
 	onSelect,
 }: PresetCardProps) {
-	const isDefault = preset.name === "Default";
 	const temperature = preset.options?.temperature ?? 0.7;
-	const band =
-		temperature <= 0.3
-			? { name: "Precise", color: "#3b82f6" }
-			: temperature <= 0.7
-				? { name: "Balanced", color: "#eab308" }
-				: { name: "Creative", color: "#a855f7" };
 
 	const capitalize = (s: string | undefined) =>
 		s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
-	const taskTypeLabel = capitalize(preset.taskType);
-	const toneLabel = capitalize(preset.options?.tone || "neutral");
+
+	const taskType = preset.taskType || "general";
 	const detailLabel = capitalize(preset.options?.detail || "normal");
 	const formatMap: Record<string, string> = {
-		markdown: "Markdown",
-		plain: "Plain Text",
+		markdown: "MD",
+		plain: "TXT",
 		xml: "XML",
 	};
 	const formatLabel =
 		formatMap[preset.options?.format || "plain"] ||
 		capitalize(preset.options?.format || "plain");
 
+	// Map task types to icons
+	const getIconForType = (type: string) => {
+		switch (type) {
+			case "coding":
+				return "git-compare";
+			case "image":
+				return "palette";
+			case "video":
+				return "eye";
+			case "research":
+				return "search";
+			case "writing":
+				return "edit";
+			case "marketing":
+				return "thumbsUp";
+			default:
+				return "folder-open";
+		}
+	};
+
+	const iconName = getIconForType(taskType);
+
 	return (
-		<div
-			className="group relative flex w-full cursor-pointer flex-col rounded-lg border p-2.5 transition-all hover:shadow-lg"
-			style={{
-				borderColor: isSelected
-					? "var(--color-primary)"
-					: "var(--color-outline)",
-				background: isSelected
-					? "var(--color-surface)"
-					: "var(--color-surface-variant)",
-				boxShadow: isSelected ? "var(--shadow-1)" : "none",
-			}}
+		<button
+			type="button"
+			className={`group relative flex w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-left transition-all duration-200 ${
+				isSelected
+					? "border-primary bg-[var(--color-outline)] shadow-md"
+					: "border-[var(--color-outline)] bg-transparent text-secondary hover:bg-[var(--color-outline)] hover:text-light hover:border-primary hover:shadow-md"
+			}`}
 			onClick={onSelect}
-			role="button"
-			tabIndex={0}
-			onKeyDown={(e) => {
-				if (e.key === "Enter" || e.key === " ") {
-					e.preventDefault();
-					onSelect();
-				}
-			}}
 			aria-label={`Select preset: ${preset.name}`}
 			aria-pressed={isSelected}
 		>
-			{/* Preset info */}
-			<div className="flex flex-col gap-0.5">
-				<div className="flex items-start justify-between gap-2">
-					<h3
-						className="line-clamp-1 font-medium text-sm leading-tight"
-						style={{ color: "var(--color-on-surface)" }}
+			{/* Icon */}
+			<div
+				className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+					isSelected
+						? "bg-primary text-on-primary shadow-sm"
+						: "bg-surface-0 text-secondary group-hover:bg-[var(--color-outline)] group-hover:text-light"
+				}`}
+			>
+				<Icon name={iconName as any} className="text-xs" />
+			</div>
+
+			{/* Content */}
+			<div className="flex min-w-0 flex-1 flex-col">
+				<div className="flex items-center justify-between gap-2 pb-1">
+					<span
+						className={`truncate font-medium text-sm leading-tight ${
+							isSelected ? "text-light" : "text-secondary group-hover:text-light"
+						}`}
 					>
 						{preset.name}
-					</h3>
-					<span className="shrink-0 rounded-full border border-[var(--color-outline)] bg-[var(--color-surface-variant)] px-1.5 py-0.5 text-[10px] text-secondary">
-						{taskTypeLabel}
 					</span>
 				</div>
-				<div className="flex flex-wrap items-center gap-1.5 text-[11px] text-secondary leading-tight opacity-80">
-					<span className="truncate">
-						{toneLabel} • {detailLabel} • {formatLabel} • Temp:{" "}
-						{temperature.toFixed(1)}
+
+				<div className="flex items-center gap-2 text-[10px] text-secondary opacity-80 leading-tight">
+					<span className="capitalize">{taskType}</span>
+					<span className="text-[var(--color-outline)]">•</span>
+					<span title={`Detail: ${preset.options?.detail || "Normal"}`}>
+						{detailLabel}
 					</span>
+					<span className="text-[var(--color-outline)]">•</span>
+					<span title={`Format: ${preset.options?.format || "Plain"}`}>
+						{formatLabel}
+					</span>
+					<span className="text-[var(--color-outline)]">•</span>
+					<span>{temperature.toFixed(1)}</span>
 				</div>
 			</div>
-		</div>
+
+			{/* Selected Indicator (Subtle Dot) */}
+			{isSelected && (
+				<div className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_4px_var(--color-primary)]" />
+			)}
+		</button>
 	);
 }
