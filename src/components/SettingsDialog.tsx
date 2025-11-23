@@ -16,7 +16,7 @@ interface Props {
 export default function SettingsDialog({
 	open,
 	onClose,
-	initialTab = "system",
+	initialTab = "ollama",
 }: Props) {
 	const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
 	const contentRef = React.useRef<HTMLDivElement | null>(null);
@@ -152,9 +152,9 @@ export default function SettingsDialog({
 								overflow: "hidden",
 							}}
 						>
-							<TabItem tab="system" label="System Prompt" />
-							<TabItem tab="ollama" label="Ollama Setup" />
-							<TabItem tab="data" label="Data Management" />
+						<TabItem tab="ollama" label="Ollama Setup" />
+						<TabItem tab="system" label="System Prompt" />
+						<TabItem tab="data" label="Data Management" />
 						</nav>
 						{/* Right content */}
 						<div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
