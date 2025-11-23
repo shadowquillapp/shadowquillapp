@@ -55,56 +55,32 @@ export default function TemperatureControl({
 							onMouseEnter={() => setShowTooltip(true)}
 							onMouseLeave={() => setShowTooltip(false)}
 							onClick={() => setShowTooltip(!showTooltip)}
-							className="p-0.5 transition-colors"
-							style={{ color: "var(--color-on-surface-variant)" }}
-							onMouseOver={(e) =>
-								(e.currentTarget.style.color = "var(--color-on-surface)")
-							}
-							onMouseOut={(e) =>
-								(e.currentTarget.style.color =
-									"var(--color-on-surface-variant)")
-							}
+							className="p-0.5 text-secondary transition-colors hover:text-light"
 							aria-label="Temperature information"
 						>
 							<Icon name="info" className="text-xs" />
 						</button>
 						{showTooltip && (
-							<div
-								className="-translate-x-1/2 absolute bottom-full left-1/2 z-20 mb-2 w-64 rounded-lg p-3 shadow-xl"
-								style={{
-									background: "var(--color-surface)",
-									border: "1px solid var(--color-outline)",
-								}}
-							>
-								<div
-									className="space-y-1 text-xs"
-									style={{ color: "var(--color-on-surface)" }}
-								>
+							<div className="-translate-x-1/2 absolute bottom-full left-1/2 z-20 mb-2 w-64 rounded-lg border border-[var(--color-outline)] bg-surface p-3 shadow-xl">
+								<div className="space-y-1 text-xs text-light">
 									<p className="font-medium">
 										Temperature controls randomness:
 									</p>
 									<p>
-										<span style={{ color: "#3b82f6" }}>0.0-0.3</span>: Focused,
+										<span className="text-blue-500">0.0-0.3</span>: Focused,
 										deterministic responses
 									</p>
 									<p>
-										<span style={{ color: "#eab308" }}>0.4-0.7</span>: Balanced
+										<span className="text-yellow-500">0.4-0.7</span>: Balanced
 										creativity and consistency
 									</p>
 									<p>
-										<span style={{ color: "#a855f7" }}>0.8-1.0</span>: Creative,
+										<span className="text-purple-500">0.8-1.0</span>: Creative,
 										diverse outputs
 									</p>
 								</div>
 								<div className="-translate-x-1/2 -mt-px absolute top-full left-1/2">
-									<div
-										className="h-2 w-2 rotate-45 transform"
-										style={{
-											background: "var(--color-surface)",
-											borderBottom: "1px solid var(--color-outline)",
-											borderRight: "1px solid var(--color-outline)",
-										}}
-									/>
+									<div className="h-2 w-2 rotate-45 transform border-r border-b border-[var(--color-outline)] bg-surface" />
 								</div>
 							</div>
 						)}
@@ -150,10 +126,7 @@ export default function TemperatureControl({
 			</div>
 
 			{/* Semantic markers */}
-			<div
-				className="mt-8 flex justify-between px-1 text-secondary text-xs"
-				style={{ opacity: 0.7 }}
-			>
+			<div className="mt-8 flex justify-between px-1 text-secondary text-xs opacity-70">
 				<span>Precise</span>
 				<span>Balanced</span>
 				<span>Creative</span>

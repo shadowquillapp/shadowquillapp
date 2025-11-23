@@ -24,13 +24,9 @@ export default function AdvancedSettings({
 						type="checkbox"
 						checked={options.useDelimiters ?? true}
 						onChange={(e) => onFieldChange("useDelimiters", e.target.checked)}
-						className="h-4 w-4 rounded"
-						style={{ accentColor: "var(--color-primary)" }}
+						className="h-4 w-4 rounded accent-primary"
 					/>
-					<span
-						className="text-sm"
-						style={{ color: "var(--color-on-surface)" }}
-					>
+					<span className="text-sm text-light">
 						Use explicit section delimiters
 					</span>
 				</label>
@@ -42,13 +38,9 @@ export default function AdvancedSettings({
 						onChange={(e) =>
 							onFieldChange("includeVerification", e.target.checked)
 						}
-						className="h-4 w-4 rounded"
-						style={{ accentColor: "var(--color-primary)" }}
+						className="h-4 w-4 rounded accent-primary"
 					/>
-					<span
-						className="text-sm"
-						style={{ color: "var(--color-on-surface)" }}
-					>
+					<span className="text-sm text-light">
 						Include verification checklist
 					</span>
 				</label>
@@ -71,7 +63,7 @@ export default function AdvancedSettings({
 							{ value: "tree_of_thought", label: "Tree-of-Thought" },
 						]}
 					/>
-					<p className="mt-1 text-secondary text-xs" style={{ opacity: 0.8 }}>
+					<p className="mt-1 text-xs text-secondary opacity-80">
 						{options.reasoningStyle === "cot" &&
 							"Step-by-step thinking with concise result"}
 						{options.reasoningStyle === "plan_then_solve" &&
@@ -91,13 +83,12 @@ export default function AdvancedSettings({
 						value={options.endOfPromptToken || ""}
 						onChange={(e) => onFieldChange("endOfPromptToken", e.target.value)}
 						placeholder="<|endofprompt|>"
-						className="md-input w-full font-mono text-sm"
+						className="md-input w-full py-2 px-3 font-mono text-sm"
 						style={{
-							padding: "8px 12px",
 							fontFamily: "var(--font-mono, monospace)",
 						}}
 					/>
-					<p className="mt-1 text-secondary text-xs" style={{ opacity: 0.8 }}>
+					<p className="mt-1 text-xs text-secondary opacity-80">
 						Special token to mark prompt end
 					</p>
 				</div>

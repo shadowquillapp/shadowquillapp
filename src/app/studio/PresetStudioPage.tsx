@@ -252,10 +252,8 @@ export default function PresetStudioPage() {
 			{isElectron && <Titlebar />}
 
 			<div
-				className="flex flex-col"
+				className="flex flex-col bg-surface-0 text-light"
 				style={{
-					background: "var(--color-surface)",
-					color: "var(--color-on-surface)",
 					height: isElectron ? "calc(100vh - 32px)" : "100vh",
 					marginTop: isElectron ? "32px" : "0",
 				}}
@@ -268,7 +266,7 @@ export default function PresetStudioPage() {
 
 				<main className="flex flex-1 flex-col overflow-hidden md:flex-row">
 					{/* Row 1 / Col 1: Preset Library */}
-					<div className="flex h-[35vh] w-full flex-shrink-0 flex-col border-[var(--color-outline)] border-b bg-[var(--color-surface-variant)] transition-all duration-300 md:h-auto md:w-80 md:border-r md:border-b-0 lg:w-96">
+					<div className="flex h-[35vh] w-full flex-shrink-0 flex-col border-b border-[var(--color-outline)] bg-surface transition-all duration-300 md:h-auto md:w-96 md:border-r md:border-b-0 lg:w-[400px]">
 						<PresetLibrary
 							presets={presets}
 							selectedPresetId={selectedPresetId}
@@ -279,7 +277,7 @@ export default function PresetStudioPage() {
 					</div>
 
 					{/* Row 2 / Col 2: Preset Editor */}
-					<div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-[var(--color-surface-variant)]">
+					<div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface">
 						<PresetEditor
 							preset={editingPreset}
 							isDirty={isDirty}

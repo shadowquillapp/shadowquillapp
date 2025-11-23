@@ -44,16 +44,14 @@ export default function PresetEditor({
 	if (!preset) {
 		return (
 			<section
-				className={className}
-				style={{ background: "var(--color-surface-variant)" }}
+				className={`${className} bg-surface`}
 				aria-label="Preset Editor"
 			>
 				<div className="flex h-full items-center justify-center">
 					<div className="text-center">
 						<Icon
 							name="edit"
-							className="mb-2 text-4xl"
-							style={{ color: "var(--color-on-surface-variant)", opacity: 0.5 }}
+							className="mb-2 text-4xl text-secondary opacity-50"
 						/>
 						<p className="text-secondary text-sm">
 							Select a preset to edit or create a new one
@@ -66,8 +64,7 @@ export default function PresetEditor({
 
 	return (
 		<section
-			className={className}
-			style={{ background: "var(--color-surface-variant)" }}
+			className={`${className} bg-surface`}
 			aria-label="Preset Editor"
 		>
 			<div className="flex h-full flex-col">
@@ -75,60 +72,39 @@ export default function PresetEditor({
 				<div className="flex-1 overflow-y-auto px-6 py-4">
 					<div className="mx-auto max-w-5xl">
 						{/* Tabs */}
-						<div
-							className="flex flex-wrap items-center gap-2 border-b"
-							style={{ borderColor: "var(--color-outline)" }}
-						>
+						<div className="flex flex-wrap items-center border-b border-[var(--color-outline)]">
 							<button
-								className="rounded-t-md px-4 py-2 font-medium text-sm"
-								style={{
-									background:
-										activeTab === "basic"
-											? "var(--color-surface)"
-											: "transparent",
-									color: "var(--color-on-surface)",
-									borderTopLeftRadius: "8px",
-									borderTopRightRadius: "8px",
-								}}
+								className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
+									activeTab === "basic"
+										? "bg-surface-0 text-light border-b-surface-0"
+										: "bg-transparent text-secondary hover:bg-surface-0/50 hover:text-light border-transparent"
+								}`}
 								aria-selected={activeTab === "basic"}
 								onClick={() => setActiveTab("basic")}
 							>
 								Basic Settings
 							</button>
 							<button
-								className="rounded-t-md px-4 py-2 font-medium text-sm"
-								style={{
-									background:
-										activeTab === "advanced"
-											? "var(--color-surface)"
-											: "transparent",
-									color: "var(--color-on-surface)",
-									borderTopLeftRadius: "8px",
-									borderTopRightRadius: "8px",
-								}}
+								className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
+									activeTab === "advanced"
+										? "bg-surface-0 text-light border-b-surface-0"
+										: "bg-transparent text-secondary hover:bg-surface-0/50 hover:text-light border-transparent"
+								}`}
 								aria-selected={activeTab === "advanced"}
 								onClick={() => setActiveTab("advanced")}
 							>
 								Advanced Settings
-								<span
-									className="ml-1 hidden text-xs sm:inline"
-									style={{ opacity: 0.6 }}
-								>
+								<span className="ml-1 hidden text-xs opacity-60 sm:inline">
 									(Optional)
 								</span>
 							</button>
 							{preset.taskType !== "general" && (
 								<button
-									className="rounded-t-md px-4 py-2 font-medium text-sm"
-									style={{
-										background:
-											activeTab === "type"
-												? "var(--color-surface)"
-												: "transparent",
-										color: "var(--color-on-surface)",
-										borderTopLeftRadius: "8px",
-										borderTopRightRadius: "8px",
-									}}
+									className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
+										activeTab === "type"
+											? "bg-surface-0 text-light border-b-surface-0"
+											: "bg-transparent text-secondary hover:bg-surface-0/50 hover:text-light border-transparent"
+									}`}
 									aria-selected={activeTab === "type"}
 									onClick={() => setActiveTab("type")}
 								>
@@ -138,24 +114,16 @@ export default function PresetEditor({
 								</button>
 							)}
 							<button
-								className="rounded-t-md px-4 py-2 font-medium text-sm"
-								style={{
-									background:
-										activeTab === "output"
-											? "var(--color-surface)"
-											: "transparent",
-									color: "var(--color-on-surface)",
-									borderTopLeftRadius: "8px",
-									borderTopRightRadius: "8px",
-								}}
+								className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
+									activeTab === "output"
+										? "bg-surface-0 text-light border-b-surface-0"
+										: "bg-transparent text-secondary hover:bg-surface-0/50 hover:text-light border-transparent"
+								}`}
 								aria-selected={activeTab === "output"}
 								onClick={() => setActiveTab("output")}
 							>
 								Output Settings
-								<span
-									className="ml-1 hidden text-xs sm:inline"
-									style={{ opacity: 0.6 }}
-								>
+								<span className="ml-1 hidden text-xs opacity-60 sm:inline">
 									(Optional)
 								</span>
 							</button>
@@ -199,8 +167,7 @@ export default function PresetEditor({
 														onFieldChange("outputXMLSchema", e.target.value)
 													}
 													placeholder="<root><title/><summary/><tags><tag/></tags></root>"
-													className="md-input w-full resize-none text-sm"
-													style={{ padding: "8px 12px" }}
+													className="md-input w-full resize-none py-2 px-3 text-sm"
 													rows={3}
 												/>
 											</div>
@@ -216,8 +183,7 @@ export default function PresetEditor({
 													onFieldChange("additionalContext", e.target.value)
 												}
 												placeholder="Background info, definitions, constraints to include in the prompt."
-												className="md-input w-full resize-none text-sm"
-												style={{ padding: "8px 12px" }}
+												className="md-input w-full resize-none py-2 px-3 text-sm"
 												rows={3}
 											/>
 										</div>
@@ -236,7 +202,6 @@ Q: [task]
 A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 												className="md-input w-full resize-none font-mono text-sm"
 												style={{
-													padding: "8px 12px",
 													fontFamily: "var(--font-mono, monospace)",
 												}}
 												rows={4}
@@ -249,14 +214,8 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 
 						{/* Unsaved changes indicator below settings */}
 						{isDirty && (
-							<div
-								className="mt-4 flex items-center gap-2 font-semibold text-base"
-								style={{ color: "var(--color-attention)" }}
-							>
-								<span
-									className="h-2.5 w-2.5 rounded-full"
-									style={{ background: "var(--color-attention)" }}
-								/>
+							<div className="mt-4 flex items-center gap-2 font-semibold text-base text-[var(--color-attention)]">
+								<span className="h-2.5 w-2.5 rounded-full bg-[var(--color-attention)]" />
 								{`Unsaved Changes to (${preset.name})`}
 							</div>
 						)}
@@ -264,13 +223,7 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 				</div>
 
 				{/* Action bar */}
-				<div
-					className="px-6 py-4"
-					style={{
-						borderTop: "1px solid var(--color-outline)",
-						background: "var(--color-surface)",
-					}}
-				>
+				<div className="border-t border-[var(--color-outline)] bg-surface-0 px-6 py-4">
 					<div className="mx-auto flex max-w-5xl items-center justify-between">
 						<div className="flex items-center gap-3">
 							<button
@@ -293,7 +246,7 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 
 							<button
 								onClick={() => preset?.id && onDelete(preset.id)}
-								className="md-btn md-btn--destructive font-medium text-sm"
+								className="md-btn md-btn--destructive font-medium text-sm text-red-500"
 								disabled={!preset?.id || preset?.name === "Default"}
 								title="Delete preset"
 								style={{ color: "#ef4444" }}
@@ -304,8 +257,7 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 							<button
 								onClick={onSave}
 								disabled={!isDirty}
-								className="md-btn md-btn--primary font-medium text-sm"
-								style={{ display: "flex", alignItems: "center", gap: "8px" }}
+								className="md-btn md-btn--primary flex items-center gap-2 font-medium text-sm"
 							>
 								<Icon name="save" className="text-base" />
 								Save Preset

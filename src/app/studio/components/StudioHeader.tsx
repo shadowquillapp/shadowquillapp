@@ -16,29 +16,11 @@ export default function StudioHeader({
 	isDirty,
 }: StudioHeaderProps) {
 	return (
-		<header
-			className="flex items-center justify-between px-6 py-4"
-			style={{
-				borderBottom: "1px solid var(--color-outline)",
-				background: "var(--color-surface-variant)",
-			}}
-		>
+		<header className="flex items-center justify-between border-b border-[var(--color-outline)] bg-surface px-6 py-4">
 			<div className="flex items-center gap-4">
 				<button
 					onClick={onBack}
-					className="md-btn"
-					style={{
-						color: "var(--color-on-surface-variant)",
-						background: "transparent",
-					}}
-					onMouseEnter={(e) => {
-						e.currentTarget.style.background = "var(--color-outline)";
-						e.currentTarget.style.color = "var(--color-on-surface)";
-					}}
-					onMouseLeave={(e) => {
-						e.currentTarget.style.background = "transparent";
-						e.currentTarget.style.color = "var(--color-on-surface-variant)";
-					}}
+					className="md-btn bg-transparent text-secondary transition-colors hover:bg-[var(--color-outline)] hover:text-light"
 					aria-label="Back to Chat"
 					title="Back to Chat"
 				>
@@ -46,16 +28,12 @@ export default function StudioHeader({
 					<span className="font-medium text-sm">Back</span>
 				</button>
 
-				<h1
-					className="flex items-center gap-3 font-semibold text-xl"
-					style={{ color: "var(--color-on-surface)" }}
-				>
-					<Logo className="h-8 w-8 text-[var(--color-primary)]" />
+				<h1 className="flex items-center gap-3 font-semibold text-xl text-light">
+					<Logo className="h-8 w-8 text-primary" />
 					Preset Studio
 					{isDirty && (
 						<span
-							className="ml-2 inline-block h-2 w-2 rounded-full"
-							style={{ background: "var(--color-attention)" }}
+							className="ml-2 inline-block h-2 w-2 rounded-full bg-[var(--color-attention)]"
 							title="Unsaved changes"
 						/>
 					)}
