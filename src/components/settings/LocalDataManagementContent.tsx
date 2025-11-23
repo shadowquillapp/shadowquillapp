@@ -56,94 +56,147 @@ export default function LocalDataManagementContent() {
 	}, []);
 
 	return (
-		<div className="space-y-3">
-			{loading ? (
-				<div className="text-sm">Loading…</div>
-			) : (
-				<>
+		<div className="ollama-setup">
+			<section className="ollama-panel">
+				<header className="ollama-panel__head">
+					<div>
+						<p className="ollama-panel__eyebrow">Application Storage</p>
+						<h3>Data Management</h3>
+						<p className="ollama-panel__subtitle">
+							View storage locations and manage your local application data.
+						</p>
+					</div>
+					<span className="ollama-status-chip ollama-status-chip--idle">
+						{loading ? "Loading…" : "Local"}
+					</span>
+				</header>
+
+				<div className="ollama-panel__body">
 					{error && (
-						<div
-							className="md-card"
-							style={{ padding: 12, borderLeft: "4px solid #ef4444" }}
-						>
-							<div style={{ fontSize: 12 }}>{error}</div>
+						<div className="ollama-error-banner" role="alert">
+							{error}
 						</div>
 					)}
-					<div className="md-card" style={{ padding: 12 }}>
-						<div className="text-secondary text-sm" style={{ marginBottom: 8 }}>
-							Electron Profile (userData)
-						</div>
-						<code style={{ fontSize: 12, wordBreak: "break-all" }}>
+
+					<div className="ollama-field">
+						<label className="ollama-label">
+							Application Data Directory
+							<span>Main storage location for settings and configurations</span>
+						</label>
+						<div
+							className="md-input"
+							style={{
+								fontFamily: "var(--font-mono, monospace)",
+								fontSize: "11px",
+								wordBreak: "break-all",
+								background: "var(--color-surface)",
+								padding: "10px 12px",
+							}}
+						>
 							{paths?.userData || "Unknown"}
-						</code>
-					</div>
-					<div className="md-card" style={{ padding: 12 }}>
-						<div className="text-secondary text-sm" style={{ marginBottom: 8 }}>
-							Local Storage (LevelDB)
 						</div>
-						<code style={{ fontSize: 12, wordBreak: "break-all" }}>
+					</div>
+
+					<div className="ollama-field">
+						<label className="ollama-label">
+							Local Storage Database
+							<span>LevelDB storage for conversations and workspace data</span>
+						</label>
+						<div
+							className="md-input"
+							style={{
+								fontFamily: "var(--font-mono, monospace)",
+								fontSize: "11px",
+								wordBreak: "break-all",
+								background: "var(--color-surface)",
+								padding: "10px 12px",
+							}}
+						>
 							{paths?.localStorageLevelDb ||
 								paths?.localStorageDir ||
 								"Unknown"}
-						</code>
+						</div>
 					</div>
+
 					<div
-						className="md-card"
-						style={{ padding: 12, borderLeft: "4px solid #ef4444" }}
+						className="ollama-status-card ollama-status-card--error"
+						style={{ marginTop: "8px" }}
 					>
-						<div
-							className="text-sm"
-							style={{ marginBottom: 8, color: "#ef4444" }}
-						>
-							<b>Reset Application</b>
+						<div className="ollama-status-card__icon">
+							⚠
 						</div>
-						<div
-							className="text-secondary text-xs"
-							style={{ marginBottom: 10 }}
-						>
-							This will delete all local data (settings, chats, presets)
-							PERMANENTLY. Only use this if you want to start fresh.
+						<div className="ollama-status-card__content">
+							<p className="ollama-status-card__title">Danger Zone</p>
+							<p className="ollama-status-card__body">
+								Factory reset will permanently delete all local data including settings,
+								conversations, and presets. This action cannot be undone.
+							</p>
+							<div className="ollama-status-card__actions">
+								<button
+									className="md-btn"
+									style={{
+										background: "rgba(239, 68, 68, 0.15)",
+										borderColor: "#ef4444",
+										color: "#ef4444",
+									}}
+									onClick={async () => {
+										const ok = await confirm({
+											title: "Factory Reset",
+											message: "Delete ALL local data and restart?",
+											confirmText: "Delete & Restart",
+											cancelText: "Cancel",
+											tone: "destructive",
+										});
+										if (!ok) return;
+										setLoading(true);
+										setError(null);
+										try {
+											const api = (window as any).shadowquill;
+											const res = await api?.factoryReset?.();
+											if (!res?.ok) {
+												setError(res?.error || "Reset failed");
+												setLoading(false);
+												return;
+											}
+											// Give the factory reset a moment to fully complete
+											await new Promise(resolve => setTimeout(resolve, 500));
+											// Restart the app
+											await api?.restartApp?.();
+										} catch (e: any) {
+											setError(e?.message || "Reset failed");
+											setLoading(false);
+										}
+									}}
+									disabled={loading}
+								>
+									Factory Reset
+								</button>
+							</div>
 						</div>
-						<button
-							className="md-btn md-btn--destructive"
-							onClick={async () => {
-								const ok = await confirm({
-									title: "Factory Reset",
-									message: "Delete ALL local data and restart?",
-									confirmText: "Delete & Restart",
-									cancelText: "Cancel",
-									tone: "destructive",
-								});
-								if (!ok) return;
-								setLoading(true);
-								setError(null);
-								try {
-									const api = (window as any).shadowquill;
-									const res = await api?.factoryReset?.();
-									if (!res?.ok) {
-										setError(res?.error || "Reset failed");
-										setLoading(false);
-										return;
-									}
-									await api?.restartApp?.();
-								} catch (e: any) {
-									setError(e?.message || "Reset failed");
-								} finally {
-									setLoading(false);
-								}
-							}}
-							style={{
-								padding: "6px 10px",
-								color: "#ef4444",
-								marginRight: 30,
-								borderColor: "#ef4444",
-							}}
-						>
-							<b>DELETE ALL LOCAL DATA</b>
-						</button>
 					</div>
-				</>
-			)}
+				</div>
+			</section>
+
+			<aside className="ollama-guide">
+				<div className="ollama-guide-card">
+					<p className="ollama-panel__eyebrow">About Storage</p>
+					<h4>What's stored locally?</h4>
+					<ul>
+						<li>All conversation history and sessions</li>
+						<li>Custom presets and configurations</li>
+						<li>Application settings and preferences</li>
+						<li>System prompt modifications</li>
+					</ul>
+				</div>
+				<div className="ollama-guide-card">
+					<p className="ollama-panel__eyebrow">Privacy Note</p>
+					<ul>
+						<li>All data is stored locally on your device</li>
+						<li>No cloud sync or external backups</li>
+						<li>Complete control over your information</li>
+					</ul>
+				</div>
+			</aside>
 		</div>
 	);
 }

@@ -212,12 +212,48 @@ ipcMain.handle("shadowquill:openOllama", async () => {
 });
 
 // Restart the Electron application (used after DB reset)
-ipcMain.handle("shadowquill:restartApp", () => {
+ipcMain.handle("shadowquill:restartApp", async () => {
 	try {
+		console.log("[Restart] Initiating app restart...");
+		
+		// Close HTTP server if running
+		if (httpServer) {
+			console.log("[Restart] Closing HTTP server...");
+			try {
+				httpServer.close();
+				httpServer = null;
+			} catch (_) {}
+		}
+		
+		// Close all windows and clean up
+		const windows = BrowserWindow.getAllWindows();
+		console.log(`[Restart] Closing ${windows.length} window(s)...`);
+		for (const win of windows) {
+			try {
+				// Close dev tools if open
+				if (win.webContents.isDevToolsOpened()) {
+					win.webContents.closeDevTools();
+				}
+				// Stop any ongoing loads
+				win.webContents.stop();
+				// Destroy the window
+				win.destroy();
+			} catch (e) {
+				console.warn("[Restart] Error closing window:", e);
+			}
+		}
+		
+		// Give a moment for cleanup to complete
+		await new Promise(resolve => setTimeout(resolve, 500));
+		
+		// Relaunch with fresh state
+		console.log("[Restart] Relaunching application...");
 		app.relaunch();
 		app.exit(0);
+		
 		return { ok: true };
 	} catch (e) {
+		console.error("[Restart] Failed:", e);
 		return { ok: false, error: e?.message || "Failed to restart" };
 	}
 });
@@ -263,12 +299,15 @@ function registerDataIPCHandlers() {
 	// Factory reset: clear Chromium storage (localStorage, IndexedDB, etc)
 	ipcMain.handle("shadowquill:factoryReset", async () => {
 		try {
+			console.log("[Factory Reset] Starting factory reset...");
+			
 			// Clear all persistent storage for the default session (localStorage, IndexedDB, Cache, etc.)
 			try {
 				await session.defaultSession.clearStorageData({});
 				await session.defaultSession.clearCache();
-			} catch (_) {
-				/* ignore */
+				console.log("[Factory Reset] Cleared session storage and cache");
+			} catch (e) {
+				console.warn("[Factory Reset] Error clearing session storage:", e);
 			}
 
 			// Remove common subfolders inside userData that can hold remnants
@@ -285,18 +324,29 @@ function registerDataIPCHandlers() {
 				];
 				for (const name of maybeDirs) {
 					try {
-						fs.rmSync(path.join(userData, name), {
-							recursive: true,
-							force: true,
-						});
-					} catch (_) {}
+						const dirPath = path.join(userData, name);
+						if (fs.existsSync(dirPath)) {
+							fs.rmSync(dirPath, {
+								recursive: true,
+								force: true,
+							});
+							console.log(`[Factory Reset] Removed ${name}`);
+						}
+					} catch (e) {
+						console.warn(`[Factory Reset] Could not remove ${name}:`, e);
+					}
 				}
-			} catch (_) {
-				/* ignore */
+			} catch (e) {
+				console.warn("[Factory Reset] Error removing directories:", e);
 			}
+
+			// Wait a bit to ensure all operations complete
+			await new Promise(resolve => setTimeout(resolve, 500));
+			console.log("[Factory Reset] Complete");
 
 			return { ok: true };
 		} catch (e) {
+			console.error("[Factory Reset] Failed:", e);
 			return { ok: false, error: e?.message || "Factory reset failed" };
 		}
 	});
@@ -332,7 +382,7 @@ function createWindow() {
 	const win = new BrowserWindow({
 		width: 1280,
 		height: 850,
-		minWidth: 950,
+			minWidth: 1045,
 		minHeight: 850,
 		// Use a frameless window on macOS and Windows so only our custom titlebar is visible.
 		...(process.platform === "darwin" || process.platform === "win32"
@@ -350,7 +400,7 @@ function createWindow() {
 
 	// Hard guard against programmatic or edge-case resize attempts below limits
 	win.on("will-resize", (event, newBounds) => {
-		if (newBounds.width < 950 || newBounds.height < 850) {
+		if (newBounds.width < 1045 || newBounds.height < 850) {
 			event.preventDefault();
 		}
 	});
