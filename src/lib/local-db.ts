@@ -1,6 +1,8 @@
+import type { Chat, ChatMessage } from "@/types";
 import { getJSON, setJSON } from "./local-storage";
 
-export interface Message {
+// Legacy storage interface with number timestamps
+interface StoredMessage {
 	id: string;
 	chatId: string;
 	role: "user" | "assistant";
@@ -8,7 +10,7 @@ export interface Message {
 	createdAt: number;
 }
 
-export interface Chat {
+interface StoredChat {
 	id: string;
 	userId: string;
 	title: string | null;
@@ -20,50 +22,72 @@ const CHATS_KEY = "PC_CHATS";
 const MESSAGES_KEY = "PC_MESSAGES";
 const LOCAL_USER_ID = "local-user";
 
-function readChats(): Record<string, Chat> {
-	return getJSON<Record<string, Chat>>(CHATS_KEY, {});
+function readChats(): Record<string, StoredChat> {
+	return getJSON<Record<string, StoredChat>>(CHATS_KEY, {});
 }
-function writeChats(map: Record<string, Chat>) {
+function writeChats(map: Record<string, StoredChat>) {
 	setJSON(CHATS_KEY, map);
 }
-function readMessages(): Record<string, Message> {
-	return getJSON<Record<string, Message>>(MESSAGES_KEY, {});
+function readMessages(): Record<string, StoredMessage> {
+	return getJSON<Record<string, StoredMessage>>(MESSAGES_KEY, {});
 }
-function writeMessages(map: Record<string, Message>) {
+function writeMessages(map: Record<string, StoredMessage>) {
 	setJSON(MESSAGES_KEY, map);
 }
 
-export async function listChatsByUser(userId: string = LOCAL_USER_ID): Promise<Array<Chat & { messageCount: number }>> {
+export async function listChatsByUser(
+	userId: string = LOCAL_USER_ID,
+): Promise<Array<Chat & { messageCount: number }>> {
 	const chats = Object.values(readChats()).filter((c) => c.userId === userId);
 	const messages = Object.values(readMessages());
 	return chats
-		.map((c) => ({ ...c, messageCount: messages.filter((m) => m.chatId === c.id).length }))
-		.sort((a, b) => b.updatedAt - a.updatedAt);
+		.map((c) => ({
+			...c,
+			createdAt: new Date(c.createdAt),
+			updatedAt: new Date(c.updatedAt),
+			messageCount: messages.filter((m) => m.chatId === c.id).length,
+		}))
+		.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
 
-export async function createChat(title?: string | null, userId: string = LOCAL_USER_ID): Promise<Chat> {
+export async function createChat(
+	title?: string | null,
+	userId: string = LOCAL_USER_ID,
+): Promise<Chat> {
 	const id = `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 	const now = Date.now();
-	const chat: Chat = { id, userId, title: title ?? null, createdAt: now, updatedAt: now };
+	const chat: StoredChat = {
+		id,
+		userId,
+		title: title ?? null,
+		createdAt: now,
+		updatedAt: now,
+	};
 	const map = readChats();
 	map[id] = chat;
 	writeChats(map);
-	return chat;
+	return { ...chat, createdAt: new Date(now), updatedAt: new Date(now) };
 }
 
 export async function appendMessagesWithCap(
 	chatId: string,
 	items: Array<{ role: "user" | "assistant"; content: string }>,
 	cap: number,
-): Promise<{ created: Message[]; deletedIds: string[] }> {
+): Promise<{ created: ChatMessage[]; deletedIds: string[] }> {
 	const now = Date.now();
 	const messagesMap = readMessages();
-	const created: Message[] = [];
+	const created: ChatMessage[] = [];
 	for (const it of items) {
 		const id = cryptoRandomId();
-		const m: Message = { id, chatId, role: it.role, content: it.content, createdAt: now };
+		const m: StoredMessage = {
+			id,
+			chatId,
+			role: it.role,
+			content: it.content,
+			createdAt: now,
+		};
 		messagesMap[id] = m;
-		created.push(m);
+		created.push({ ...m, createdAt: new Date(m.createdAt) });
 	}
 	// enforce cap per chat
 	const chatMessages = Object.values(messagesMap)
@@ -89,13 +113,17 @@ export async function appendMessagesWithCap(
 	return { created, deletedIds };
 }
 
-export async function getChat(chatId: string, limit: number = 50): Promise<{ id: string; title: string | null; messages: Message[] }> {
+export async function getChat(
+	chatId: string,
+	limit = 50,
+): Promise<{ id: string; title: string | null; messages: ChatMessage[] }> {
 	const chats = readChats();
 	const c = chats[chatId];
 	const messages = Object.values(readMessages())
 		.filter((m) => m.chatId === chatId)
 		.sort((a, b) => a.createdAt - b.createdAt)
-		.slice(-limit);
+		.slice(-limit)
+		.map((m) => ({ ...m, createdAt: new Date(m.createdAt) }));
 	return { id: chatId, title: c?.title ?? "Untitled", messages };
 }
 
@@ -124,5 +152,3 @@ function cryptoRandomId(): string {
 		return `msg-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 	}
 }
-
-

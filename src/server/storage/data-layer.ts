@@ -1,5 +1,7 @@
 import { JSONStore } from './json-store';
 import crypto from 'crypto';
+import type { AppSetting, Chat, ChatMessage, PromptPreset } from '@/types';
+import { logger } from '../logging';
 
 // Data models
 export interface User {
@@ -11,41 +13,6 @@ export interface User {
   createdAt: Date;
   updatedAt: Date;
 }
-
-export interface AppSetting {
-  id: string;
-  key: string;
-  value: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface PromptPreset {
-  id: string;
-  userId: string;
-  name: string;
-  taskType: string;
-  options: any;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface Chat {
-  id: string;
-  userId: string;
-  title: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
-
-export interface ChatMessage {
-  id: string;
-  chatId: string;
-  role: string;
-  content: string;
-  createdAt: Date;
-}
-
 
 // Storage instances (users are in-memory only; no users.json persisted)
 const inMemoryUsers = new Map<string, User>();
@@ -96,21 +63,21 @@ export class DataLayer {
 
   // App Settings operations
   async findAppSetting(key: string): Promise<AppSetting | null> {
-    console.log(`[data-layer] Finding app setting: ${key}`);
+    logger.debug(`[data-layer] Finding app setting: ${key}`);
     const settings = await appSettingStore.findMany(setting => setting.key === key);
-    console.log(`[data-layer] Found setting for ${key}:`, settings[0] || null);
+    logger.debug(`[data-layer] Found setting for ${key}:`, { setting: settings[0] || null });
     return settings[0] || null;
   }
 
   async findManyAppSettings(keys: string[]): Promise<AppSetting[]> {
-    console.log(`[data-layer] Finding multiple app settings:`, keys);
+    logger.debug(`[data-layer] Finding multiple app settings:`, { keys });
     const results = await appSettingStore.findMany(setting => keys.includes(setting.key));
-    console.log(`[data-layer] Found ${results.length} settings`);
+    logger.debug(`[data-layer] Found ${results.length} settings`);
     return results;
   }
 
   async upsertAppSetting(key: string, value: string | null): Promise<AppSetting> {
-    console.log(`[data-layer] Upserting app setting: ${key} = ${value}`);
+    logger.debug(`[data-layer] Upserting app setting: ${key} = ${value}`);
     const existing = await this.findAppSetting(key);
     const now = new Date();
     
@@ -122,9 +89,9 @@ export class DataLayer {
       updatedAt: now,
     };
     
-    console.log(`[data-layer] Upserting setting with id: ${setting.id}`);
+    logger.debug(`[data-layer] Upserting setting with id: ${setting.id}`);
     await appSettingStore.upsert(setting.id, setting);
-    console.log(`[data-layer] Successfully upserted setting: ${key}`);
+    logger.info(`[data-layer] Successfully upserted setting: ${key}`);
     return setting;
   }
 
@@ -146,10 +113,10 @@ export class DataLayer {
         updatedAt: now,
       };
       await chatStore.upsert(chat.id, chat);
-      console.log(`Created chat ${chat.id} for user ${chat.userId}`);
+      logger.info(`Created chat ${chat.id} for user ${chat.userId}`);
       return chat;
     } catch (error) {
-      console.error('Failed to create chat:', error);
+      logger.error('Failed to create chat:', undefined, error as Error);
       throw error;
     }
   }
@@ -158,7 +125,7 @@ export class DataLayer {
     try {
       return await chatStore.findById(id);
     } catch (error) {
-      console.error(`Failed to find chat ${id}:`, error);
+      logger.error(`Failed to find chat ${id}:`, undefined, error as Error);
       return null;
     }
   }
@@ -174,10 +141,10 @@ export class DataLayer {
       );
       
       const sorted = chatsWithCounts.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-      console.log(`Found ${sorted.length} chats for user ${userId}`);
+      logger.debug(`Found ${sorted.length} chats for user ${userId}`);
       return sorted;
     } catch (error) {
-      console.error(`Failed to find chats for user ${userId}:`, error);
+      logger.error(`Failed to find chats for user ${userId}:`, undefined, error as Error);
       return [];
     }
   }
@@ -186,11 +153,11 @@ export class DataLayer {
     try {
       const updated = await chatStore.update(id, { ...data, updatedAt: new Date() });
       if (updated) {
-        console.log(`Updated chat ${id}`);
+        logger.info(`Updated chat ${id}`);
       }
       return updated;
     } catch (error) {
-      console.error(`Failed to update chat ${id}:`, error);
+      logger.error(`Failed to update chat ${id}:`, undefined, error as Error);
       return null;
     }
   }
@@ -205,11 +172,11 @@ export class DataLayer {
       
       const deleted = await chatStore.delete(id);
       if (deleted) {
-        console.log(`Deleted chat ${id} and ${messages.length} messages`);
+        logger.info(`Deleted chat ${id} and ${messages.length} messages`);
       }
       return deleted;
     } catch (error) {
-      console.error(`Failed to delete chat ${id}:`, error);
+      logger.error(`Failed to delete chat ${id}:`, undefined, error as Error);
       return false;
     }
   }
@@ -232,10 +199,10 @@ export class DataLayer {
         createdMessages.push(message);
       }
       
-      console.log(`Created ${createdMessages.length} messages for chat ${messages[0]?.chatId}`);
+      logger.info(`Created ${createdMessages.length} messages for chat ${messages[0]?.chatId}`);
       return createdMessages;
     } catch (error) {
-      console.error('Failed to create chat messages:', error);
+      logger.error('Failed to create chat messages:', undefined, error as Error);
       throw error;
     }
   }
@@ -285,10 +252,10 @@ export class DataLayer {
         .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
         .slice(-limit);
       
-      console.log(`Found ${sorted.length} messages for chat ${chatId}`);
+      logger.debug(`Found ${sorted.length} messages for chat ${chatId}`);
       return sorted;
     } catch (error) {
-      console.error(`Failed to find messages for chat ${chatId}:`, error);
+      logger.error(`Failed to find messages for chat ${chatId}:`, undefined, error as Error);
       return [];
     }
   }
@@ -297,7 +264,7 @@ export class DataLayer {
     try {
       return await chatMessageStore.count(msg => msg.chatId === chatId);
     } catch (error) {
-      console.error(`Failed to count messages for chat ${chatId}:`, error);
+      logger.error(`Failed to count messages for chat ${chatId}:`, undefined, error as Error);
       return 0;
     }
   }
@@ -307,9 +274,9 @@ export class DataLayer {
       for (const id of messageIds) {
         await chatMessageStore.delete(id);
       }
-      console.log(`Deleted ${messageIds.length} messages`);
+      logger.info(`Deleted ${messageIds.length} messages`);
     } catch (error) {
-      console.error('Failed to delete chat messages:', error);
+      logger.error('Failed to delete chat messages:', undefined, error as Error);
       throw error;
     }
   }

@@ -1,7 +1,15 @@
 "use client";
 
+import type React from "react";
+import {
+	createContext,
+	useCallback,
+	useContext,
+	useEffect,
+	useMemo,
+	useState,
+} from "react";
 import { Icon } from "./Icon";
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 
 type DialogTone = "default" | "destructive" | "primary";
 
@@ -23,7 +31,11 @@ export interface ConfirmDialogOptions extends BaseDialogOptions {
 
 type EnqueuedDialog =
 	| { kind: "info"; options: InfoDialogOptions; resolve: () => void }
-	| { kind: "confirm"; options: ConfirmDialogOptions; resolve: (accepted: boolean) => void };
+	| {
+			kind: "confirm";
+			options: ConfirmDialogOptions;
+			resolve: (accepted: boolean) => void;
+	  };
 
 interface DialogContextValue {
 	showInfo: (options: InfoDialogOptions) => Promise<void>;
@@ -39,7 +51,9 @@ export function useDialog(): DialogContextValue {
 	return useContext(DialogContext);
 }
 
-export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
+	children,
+}) => {
 	const [queue, setQueue] = useState<EnqueuedDialog[]>([]);
 
 	const active = queue[0] || null;
@@ -60,7 +74,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 				return rest;
 			});
 		},
-		[setQueue]
+		[setQueue],
 	);
 
 	const showInfo = useCallback((options: InfoDialogOptions) => {
@@ -96,9 +110,14 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 		const handler = (evt: any) => {
 			try {
 				const detail = (evt as CustomEvent)?.detail || {};
-				const title = typeof detail.title === "string" ? detail.title : "Information";
+				const title =
+					typeof detail.title === "string" ? detail.title : "Information";
 				const message = detail.message ?? "";
-				void showInfo({ title, message, okText: typeof detail.okText === "string" ? detail.okText : "OK" });
+				void showInfo({
+					title,
+					message,
+					okText: typeof detail.okText === "string" ? detail.okText : "OK",
+				});
 			} catch {}
 		};
 		try {
@@ -114,33 +133,58 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 			showInfo,
 			confirm,
 		}),
-		[showInfo, confirm]
+		[showInfo, confirm],
 	);
 
 	return (
 		<DialogContext.Provider value={value}>
 			{children}
 			{active && (
-				<div className="modal-container" aria-modal="true" role="dialog" onClick={() => closeActive(false)}>
+				<div
+					className="modal-container"
+					aria-modal="true"
+					role="dialog"
+					onClick={() => closeActive(false)}
+				>
 					<div className="modal-backdrop-blur" />
 					<div className="modal-content" onClick={(e) => e.stopPropagation()}>
 						<div className="modal-header">
-							<div className="modal-title">{active.options.title || (active.kind === "info" ? "Information" : "Confirm Action")}</div>
+							<div className="modal-title">
+								{active.options.title ||
+									(active.kind === "info" ? "Information" : "Confirm Action")}
+							</div>
 						</div>
 						<div className="modal-body">
 							<div style={{ color: "var(--color-on-surface)" }}>
 								{active.options.message}
 							</div>
-							<div style={{ display: "flex", justifyContent: "flex-end", gap: 8, marginTop: 16 }}>
+							<div
+								style={{
+									display: "flex",
+									justifyContent: "flex-end",
+									gap: 8,
+									marginTop: 16,
+								}}
+							>
 								{active.kind === "confirm" ? (
 									<>
-										<button className="md-btn" onClick={() => closeActive(false)}>
-											{(active.options as ConfirmDialogOptions).cancelText || "Cancel"}
+										<button
+											className="md-btn"
+											onClick={() => closeActive(false)}
+										>
+											{(active.options as ConfirmDialogOptions).cancelText ||
+												"Cancel"}
 										</button>
-										{renderConfirmButton(active.options as ConfirmDialogOptions, () => closeActive(true))}
+										{renderConfirmButton(
+											active.options as ConfirmDialogOptions,
+											() => closeActive(true),
+										)}
 									</>
 								) : (
-									<button className="md-btn md-btn--primary" onClick={() => closeActive(true)}>
+									<button
+										className="md-btn md-btn--primary"
+										onClick={() => closeActive(true)}
+									>
 										{(active.options as InfoDialogOptions).okText || "OK"}
 									</button>
 								)}
@@ -153,7 +197,10 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 	);
 };
 
-function renderConfirmButton(options: ConfirmDialogOptions, onClick: () => void) {
+function renderConfirmButton(
+	options: ConfirmDialogOptions,
+	onClick: () => void,
+) {
 	const label = options.confirmText || "Confirm";
 	const tone = options.tone || "primary";
 	if (tone === "destructive") {
@@ -178,5 +225,3 @@ function renderConfirmButton(options: ConfirmDialogOptions, onClick: () => void)
 }
 
 export default DialogProvider;
-
-

@@ -21,16 +21,16 @@ const geist = Geist({
 	variable: "--font-geist-sans",
 });
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default function RootLayout({
+	children,
+}: Readonly<{ children: React.ReactNode }>) {
 	return (
 		<html lang="en" className={`${geist.variable}`}>
 			<head>{/* No external CDN links to allow full offline operation */}</head>
-			<body className="overflow-hidden h-screen flex flex-col">
+			<body className="flex h-screen flex-col overflow-hidden">
 				<DialogProvider>
-					<div className="flex-1 flex flex-col overflow-hidden">
-						<DatabaseSetupGate>
-							{children}
-						</DatabaseSetupGate>
+					<div className="flex flex-1 flex-col overflow-hidden">
+						<DatabaseSetupGate>{children}</DatabaseSetupGate>
 					</div>
 					<OllamaConnectionMonitor />
 				</DialogProvider>
