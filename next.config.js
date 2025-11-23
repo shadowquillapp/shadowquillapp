@@ -19,7 +19,6 @@ const isElectron = Boolean(process.env.ELECTRON);
 const config = {
 	output: undefined,
 	basePath: process.env.NEXT_BASE_PATH || "",
-	eslint: { ignoreDuringBuilds: true },
 	typescript: { ignoreBuildErrors: true },
 	images: { unoptimized: true },
 	turbopack: {
