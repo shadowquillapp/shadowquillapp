@@ -181,7 +181,7 @@ export default function TypeSpecificFields({
 						type="checkbox"
 						checked={options.includeTests ?? true}
 						onChange={(e) => onFieldChange("includeTests", e.target.checked)}
-						className="h-4 w-4 rounded accent-primary"
+						className="md-checkbox"
 					/>
 					<span className="text-sm text-light">Include unit tests</span>
 				</label>
@@ -203,7 +203,7 @@ export default function TypeSpecificFields({
 						onChange={(e) =>
 							onFieldChange("requireCitations", e.target.checked)
 						}
-						className="h-4 w-4 rounded accent-primary"
+						className="md-checkbox"
 					/>
 					<span className="text-sm text-light">Require citations</span>
 				</label>
@@ -289,17 +289,17 @@ export default function TypeSpecificFields({
 					</div>
 				</div>
 
-				<label className="flex cursor-pointer items-center gap-2">
-					<input
-						type="checkbox"
-						checked={options.includeHeadings ?? true}
-						onChange={(e) => onFieldChange("includeHeadings", e.target.checked)}
-						className="h-4 w-4 rounded accent-primary"
-					/>
-					<span className="text-sm text-light">
-						Include section headings
-					</span>
-				</label>
+			<label className="flex cursor-pointer items-center gap-2">
+				<input
+					type="checkbox"
+					checked={options.includeHeadings ?? true}
+					onChange={(e) => onFieldChange("includeHeadings", e.target.checked)}
+					className="md-checkbox"
+				/>
+				<span className="text-sm text-light">
+					Include section headings
+				</span>
+			</label>
 			</div>
 		);
 	}
