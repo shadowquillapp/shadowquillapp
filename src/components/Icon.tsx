@@ -1,6 +1,7 @@
 "use client";
 import {
 	faBars,
+	faBrush,
 	faCheck,
 	faChevronDown,
 	faChevronLeft,
@@ -11,8 +12,12 @@ import {
 	faCopy,
 	faDatabase,
 	faEye,
+	faFileLines,
 	faFolderOpen,
 	faGear,
+	faImage,
+	faLayerGroup,
+	faMicrochip,
 	faMinus,
 	faPalette,
 	faPenToSquare,
@@ -28,7 +33,9 @@ import {
 	faThumbsDown,
 	faThumbsUp,
 	faTrash,
+	faTriangleExclamation,
 	faUpRightAndDownLeftFromCenter,
+	faWandMagicSparkles,
 	faXmark,
 } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
@@ -37,6 +44,7 @@ import type React from "react";
 const icons = {
 	gear: faGear,
 	sliders: faSliders,
+	brush: faBrush,
 	info: faCircleInfo,
 	comments: faComments,
 	tools: faScrewdriverWrench,
@@ -66,6 +74,13 @@ const icons = {
 	"folder-open": faFolderOpen,
 	save: faSave,
 	"git-compare": faCodeCompare,
+	sparkles: faWandMagicSparkles,
+	warning: faTriangleExclamation,
+	cpu: faMicrochip,
+	layout: faLayerGroup,
+	image: faImage,
+	"file-text": faFileLines,
+	settings: faGear,
 } as const;
 
 export type _IconNameForceInclude = "edit";
