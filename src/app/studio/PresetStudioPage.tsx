@@ -24,6 +24,15 @@ export default function PresetStudioPage() {
 	const [editingPreset, setEditingPreset] = useState<PresetLite | null>(null);
 	const [isDirty, setIsDirty] = useState(false);
 
+	// Sidebar state - initialize based on window size to prevent flicker
+	const [sidebarOpen, setSidebarOpen] = useState(false);
+	const [isSmallScreen, setIsSmallScreen] = useState(() => {
+		if (typeof window !== 'undefined') {
+			return window.innerWidth < 1280;
+		}
+		return false;
+	});
+
 	// Load presets on mount
 	useEffect(() => {
 		loadPresets();
@@ -244,6 +253,27 @@ export default function PresetStudioPage() {
 		return () => window.removeEventListener("beforeunload", handleBeforeUnload);
 	}, [isDirty]);
 
+	// Handle responsive sidebar
+	useEffect(() => {
+		const checkScreenSize = () => {
+			const isSmall = window.innerWidth < 1280; // xl breakpoint
+			setIsSmallScreen((prev) => {
+				// Only update if the value actually changed to prevent unnecessary re-renders
+				if (prev !== isSmall) {
+					if (!isSmall) setSidebarOpen(false); // Auto-close sidebar when switching to large screen
+					return isSmall;
+				}
+				return prev;
+			});
+		};
+		
+		// Only add resize listener, don't call checkScreenSize on mount since state is already initialized
+		window.addEventListener("resize", checkScreenSize);
+		return () => {
+			window.removeEventListener("resize", checkScreenSize);
+		};
+	}, []);
+
 	const isElectron = isElectronRuntime();
 
 	return (
@@ -258,27 +288,54 @@ export default function PresetStudioPage() {
 					marginTop: isElectron ? "32px" : "0",
 				}}
 			>
-				<StudioHeader
-					onNewPreset={handleNewPreset}
-					onBack={() => router.push("/chat")}
-					isDirty={isDirty}
+			<StudioHeader
+				onNewPreset={handleNewPreset}
+				onBack={() => router.push("/chat")}
+				isDirty={isDirty}
+				isSmallScreen={isSmallScreen}
+				onToggleSidebar={() => setSidebarOpen((v) => !v)}
+			/>
+
+			{/* Sidebar backdrop for mobile */}
+			{isSmallScreen && sidebarOpen && (
+				<div
+					style={{
+						position: "fixed",
+						inset: 0,
+						background: "rgba(0,0,0,0.5)",
+						zIndex: 25,
+					}}
+					onClick={() => setSidebarOpen(false)}
 				/>
+			)}
 
-				<main className="flex flex-1 flex-col overflow-hidden md:flex-row">
-					{/* Row 1 / Col 1: Preset Library */}
-					<div className="flex h-[35vh] w-full flex-shrink-0 flex-col border-b border-[var(--color-outline)] bg-surface transition-all duration-300 md:h-auto md:w-96 md:border-r md:border-b-0 lg:w-[400px]">
-						<PresetLibrary
-							presets={presets}
-							selectedPresetId={selectedPresetId}
-							onSelectPreset={handleSelectPreset}
-							onCreateNew={handleNewPreset}
-							className="flex-1 overflow-hidden"
-						/>
-					</div>
+			<main className="flex flex-1 flex-col overflow-hidden xl:flex-row" style={{ position: "relative" }}>
+				{/* Row 1 / Col 1: Preset Library */}
+				<aside
+					className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
+						isSmallScreen
+							? `fixed top-0 left-0 h-full w-[min(90vw,400px)] z-30 border-r ${
+									sidebarOpen ? "translate-x-0" : "-translate-x-full"
+							  }`
+							: "flex-shrink-0 w-[400px] border-r"
+					}`}
+					style={{ 
+						background: 'var(--surfacea20)',
+						marginTop: isSmallScreen ? (isElectronRuntime() ? "32px" : "0") : "0"
+					}}
+				>
+					<PresetLibrary
+						presets={presets}
+						selectedPresetId={selectedPresetId}
+						onSelectPreset={handleSelectPreset}
+						onCreateNew={handleNewPreset}
+						className="flex-1 overflow-hidden"
+					/>
+				</aside>
 
-					{/* Row 2 / Col 2: Preset Editor */}
-					<div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface">
-						<PresetEditor
+			{/* Row 2 / Col 2: Preset Editor */}
+			<div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface">
+				<PresetEditor
 							preset={editingPreset}
 							isDirty={isDirty}
 							onFieldChange={handleFieldChange}

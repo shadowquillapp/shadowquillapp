@@ -8,16 +8,40 @@ interface StudioHeaderProps {
 	onNewPreset: () => void;
 	onBack: () => void;
 	isDirty?: boolean;
+	isSmallScreen?: boolean;
+	onToggleSidebar?: () => void;
 }
 
 export default function StudioHeader({
 	onNewPreset,
 	onBack,
 	isDirty,
+	isSmallScreen,
+	onToggleSidebar,
 }: StudioHeaderProps) {
 	return (
-		<header className="flex items-center justify-between border-b border-[var(--color-outline)] bg-surface px-6 py-4">
+		<header className="flex items-center justify-between border-b border-[var(--color-outline)] px-6 py-4" style={{ background: 'var(--surfacea20)' }}>
 			<div className="flex items-center gap-4">
+				{/* Hamburger menu for mobile */}
+				{isSmallScreen && (
+					<button
+						className="md-btn"
+						style={{
+							width: 40,
+							height: 40,
+							padding: 0,
+							borderRadius: 8,
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+						onClick={onToggleSidebar}
+						title="Toggle sidebar"
+					>
+						☰
+					</button>
+				)}
+
 				<button
 					onClick={onBack}
 					className="md-btn bg-transparent text-secondary transition-colors hover:bg-[var(--color-outline)] hover:text-light"
@@ -27,18 +51,18 @@ export default function StudioHeader({
 					<Icon name="chevron-left" className="text-base" />
 					<span className="font-medium text-sm">Back</span>
 				</button>
-
-				<h1 className="flex items-center gap-3 font-semibold text-xl text-light">
-					<Logo className="h-8 w-8 text-primary" />
-					Preset Studio
-					{isDirty && (
-						<span
-							className="ml-2 inline-block h-2 w-2 rounded-full bg-[var(--color-attention)]"
-							title="Unsaved changes"
-						/>
-					)}
-				</h1>
 			</div>
+
+			<h1 className="flex items-center gap-3 font-semibold text-xl text-light">
+				Preset Studio
+				<Logo className="h-8 w-8 text-primary" />
+				{isDirty && (
+					<span
+						className="ml-2 inline-block h-2 w-2 rounded-full bg-[var(--color-attention)]"
+						title="Unsaved changes"
+					/>
+				)}
+			</h1>
 		</header>
 	);
 }
