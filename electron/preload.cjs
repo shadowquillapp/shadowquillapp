@@ -9,6 +9,7 @@ contextBridge.exposeInMainWorld("shadowquill", {
 	checkOllamaInstalled: () =>
 		ipcRenderer.invoke("shadowquill:checkOllamaInstalled"),
 	openOllama: () => ipcRenderer.invoke("shadowquill:openOllama"),
+	getPlatform: () => ipcRenderer.invoke("shadowquill:getPlatform"),
 	window: {
 		minimize: () => ipcRenderer.invoke("shadowquill:window:minimize"),
 		maximizeToggle: () =>
