@@ -6,6 +6,10 @@ const path = require("node:path");
 
 const isProd = process.argv.includes("--prod");
 
+// Store references to child processes for cleanup
+let nextDevServer = null;
+let prodServer = null;
+
 /** Start Next.js (dev or prod) without relying on spawning npm directly. */
 /** @returns {Promise<void>} */
 function startNext() {
@@ -20,11 +24,11 @@ function startNext() {
 				const err = /** @type {any} */ (e);
 				return reject(new Error(`Cannot resolve next binary: ${err.message}`));
 			}
-			const child = spawn(process.execPath, [nextBin, "dev", "--turbo"], {
+			nextDevServer = spawn(process.execPath, [nextBin, "dev", "--turbo"], {
 				stdio: "inherit",
 				env,
 			});
-			child.on("error", reject);
+			nextDevServer.on("error", reject);
 			const http = require("node:http");
 			const start = Date.now();
 			const timeoutMs = 25000;
@@ -39,7 +43,7 @@ function startNext() {
 					setTimeout(check, 600);
 				});
 			}
-			child.once("spawn", () => setTimeout(check, 1200));
+			nextDevServer.once("spawn", () => setTimeout(check, 1200));
 		} else {
 			// Prod: assume `next build` already run; start Next server programmatically.
 			(async () => {
@@ -52,9 +56,9 @@ function startNext() {
 					await nextApp.prepare();
 					const http = require("node:http");
 					const handle = nextApp.getRequestHandler();
-					const server = http.createServer((req, res) => handle(req, res));
+					prodServer = http.createServer((req, res) => handle(req, res));
 					await new Promise((r, rej) =>
-						server
+						prodServer
 							.listen(3000)
 							.once("error", rej)
 							.once("listening", () => r(undefined)),
@@ -68,14 +72,74 @@ function startNext() {
 	});
 }
 
+/** Cleanup function to kill all child processes and servers */
+function cleanup() {
+	console.log("[start-electron] Cleaning up...");
+	
+	// Kill Next.js dev server if running
+	if (nextDevServer && !nextDevServer.killed) {
+		console.log("[start-electron] Killing Next.js dev server...");
+		try {
+			nextDevServer.kill("SIGTERM");
+			// Force kill if it doesn't stop
+			setTimeout(() => {
+				if (nextDevServer && !nextDevServer.killed) {
+					nextDevServer.kill("SIGKILL");
+				}
+			}, 2000);
+		} catch (e) {
+			console.error("[start-electron] Error killing Next.js dev server:", e);
+		}
+	}
+	
+	// Close prod server if running
+	if (prodServer) {
+		console.log("[start-electron] Closing production server...");
+		try {
+			prodServer.close();
+		} catch (e) {
+			console.error("[start-electron] Error closing production server:", e);
+		}
+	}
+}
+
 (async () => {
-	await startNext();
-	const electronModule = require("electron");
-	const electronCmd =
-		typeof electronModule === "string" ? electronModule : "electron";
-	const proc = spawn(electronCmd, [path.join(__dirname, "main.cjs")], {
-		stdio: "inherit",
-		env: { ...process.env, ELECTRON: "1", NEXT_PUBLIC_ELECTRON: "1" },
-	});
-	proc.on("exit", (code) => process.exit(code ?? 0));
+	try {
+		await startNext();
+		const electronModule = require("electron");
+		const electronCmd =
+			typeof electronModule === "string" ? electronModule : "electron";
+		const proc = spawn(electronCmd, [path.join(__dirname, "main.cjs")], {
+			stdio: "inherit",
+			env: { ...process.env, ELECTRON: "1", NEXT_PUBLIC_ELECTRON: "1" },
+		});
+		
+		// Clean up when Electron exits
+		proc.on("exit", (code) => {
+			cleanup();
+			process.exit(code ?? 0);
+		});
+		
+		// Clean up when this process is killed
+		process.on("SIGINT", () => {
+			cleanup();
+			process.exit(0);
+		});
+		
+		process.on("SIGTERM", () => {
+			cleanup();
+			process.exit(0);
+		});
+		
+		// Ensure cleanup happens on process exit
+		process.on("exit", () => {
+			if (nextDevServer && !nextDevServer.killed) {
+				nextDevServer.kill("SIGKILL");
+			}
+		});
+	} catch (error) {
+		console.error("[start-electron] Error:", error);
+		cleanup();
+		process.exit(1);
+	}
 })();

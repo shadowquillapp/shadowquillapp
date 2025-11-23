@@ -14,6 +14,8 @@ const fs = require("node:fs");
 const http = require("node:http");
 /** @type {number|null} */
 let nextServerPort = null;
+/** @type {import('http').Server|null} */
+let httpServer = null;
 
 // Ensure a stable LOCAL-ONLY userData path labeled "ShadowQuill" in dev and prod.
 // Never rely on roaming or synced folders—everything must stay on-device.
@@ -315,9 +317,15 @@ ipcMain.handle("shadowquill:window:maximizeToggle", (e) => {
 	if (w.isMaximized()) w.unmaximize();
 	else w.maximize();
 });
-ipcMain.handle("shadowquill:window:close", (e) => {
-	const w = BrowserWindow.fromWebContents(e.sender);
-	if (w) w.close();
+ipcMain.handle("shadowquill:window:close", () => {
+	// Force full app quit - terminates all processes and background tasks
+	// This works in both dev and production mode
+	app.quit();
+});
+
+// Expose platform information for UI customization
+ipcMain.handle("shadowquill:getPlatform", () => {
+	return process.platform;
 });
 
 function createWindow() {
@@ -720,11 +728,11 @@ app.whenReady().then(async () => {
 			await nextApp.prepare();
 			console.log("[Electron] Next.js prepared. Creating HTTP server...");
 			const handle = nextApp.getRequestHandler();
-			const server = http.createServer((req, res) => handle(req, res));
+			httpServer = http.createServer((req, res) => handle(req, res));
 			await new Promise((resolve) =>
-				server.listen(0, () => resolve(undefined)),
+				httpServer.listen(0, () => resolve(undefined)),
 			);
-			const addr = server.address();
+			const addr = httpServer.address();
 			console.log("[Electron] Server listening on", addr);
 			if (addr && typeof addr === "object") nextServerPort = addr.port;
 			createWindow();
@@ -754,11 +762,11 @@ app.whenReady().then(async () => {
 				});
 				if (fallbackHtml) {
 					console.log("[Electron] Using static fallback HTML");
-					const staticServer = http.createServer((req, res) => {
+					httpServer = http.createServer((req, res) => {
 						fs.createReadStream(fallbackHtml).pipe(res);
 					});
-					await new Promise((r) => staticServer.listen(0, () => r(undefined)));
-					const addr = staticServer.address();
+					await new Promise((r) => httpServer.listen(0, () => r(undefined)));
+					const addr = httpServer.address();
 					if (addr && typeof addr === "object") nextServerPort = addr.port;
 					createWindow();
 					return;
@@ -783,4 +791,18 @@ app.whenReady().then(async () => {
 
 app.on("window-all-closed", () => {
 	app.quit();
+});
+
+// Cleanup before quitting - close HTTP servers and any background tasks
+app.on("before-quit", (event) => {
+	try {
+		// Close HTTP server if it exists
+		if (httpServer) {
+			console.log("[Electron] Closing HTTP server...");
+			httpServer.close();
+			httpServer = null;
+		}
+	} catch (e) {
+		console.error("[Electron] Error during cleanup:", e);
+	}
 });
