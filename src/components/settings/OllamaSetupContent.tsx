@@ -6,6 +6,7 @@ import {
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
 import React, { useEffect, useMemo, useState } from "react";
+import { CustomSelect } from "../CustomSelect";
 import { Icon } from "../Icon";
 
 type TestResult = null | {
@@ -172,6 +173,63 @@ export default function OllamaSetupContent() {
 		return !saving && !validating && model.trim() !== "";
 	}, [saving, validating, model]);
 
+	const hasModels = availableModels.length > 0;
+	const normalizedBaseUrl = normalizeToBaseUrl(localPort);
+	const portInvalid = Boolean(localPort) && !isValidPort(localPort);
+	const statusTone: "success" | "error" | "loading" | "idle" = testingLocal
+		? "loading"
+		: localTestResult
+				? localTestResult.success
+					? "success"
+					: "error"
+				: connectionError
+					? "error"
+					: "idle";
+	const statusLabelMap = {
+		success:
+			statusTone === "success" && availableModels.length > 0
+				? `Connected (${availableModels.length} model${availableModels.length > 1 ? "s" : ""})`
+				: "Connected",
+		error: "Needs attention",
+		loading: "Checking…",
+		idle: "Awaiting test",
+	} as const;
+	const statusIconMap = {
+		success: "check",
+		error: "warning",
+		loading: "refresh",
+		idle: "info",
+	} as const;
+	const statusDetails =
+		statusTone === "error"
+			? {
+					title: "Connection failed",
+					body:
+						connectionError ||
+						localTestResult?.error ||
+						"Could not reach the Ollama runtime. Make sure it is running locally.",
+				}
+			: statusTone === "loading"
+				? {
+						title: "Checking local Ollama endpoint",
+						body: "Hang tight while we verify the connection and discover Gemma builds.",
+					}
+			: statusTone === "success"
+				? {
+						title: "Gemma 3 connection successful",
+						body: "Found compatible Gemma 3 models ready for use.",
+					}
+				: {
+						title: "",
+						body: "",
+					};
+	const selectedModelMetadata = localTestResult?.models?.find(
+		(m) => m.name === model,
+	);
+	const formattedModelSize = selectedModelMetadata
+		? (selectedModelMetadata.size / (1024 * 1024 * 1024)).toFixed(1)
+		: null;
+
 	return (
 		<form
 			data-provider-form="true"
@@ -215,282 +273,239 @@ export default function OllamaSetupContent() {
 					setSaving(false);
 				}
 			}}
-			className="space-y-4"
+			className="ollama-setup"
 		>
-			<div style={{ paddingTop: 16, paddingBottom: 16 }}>
-				<label className="data-location-label" htmlFor="port">
-					Local Ollama port{" "}
-					<i>
-						(Default: <b>11434</b>)
-					</i>
-				</label>
-				<div style={{ display: "flex", gap: 8 }}>
-					<input
-						id="port"
-						type="text"
-						inputMode="numeric"
-						pattern="[0-9]*"
-						maxLength={5}
-						value={localPort}
-						onChange={(e) => {
-							const raw = (e.target.value || "").replace(/\D/g, "").slice(0, 5);
-							setLocalPort(raw);
-							setLocalTestResult(null);
-						}}
-						required
-						className="md-input"
-						placeholder="11434"
-						autoComplete="off"
-						style={{ flex: 1 }}
-					/>
-					<button
-						type="button"
-						onClick={() => testLocalConnection()}
-						disabled={testingLocal || !isValidPort(localPort)}
-						className="md-btn md-btn--primary"
-						title="Check for available Ollama models"
-						style={{
-							whiteSpace: "nowrap",
-							padding: 0,
-							aspectRatio: "1",
-							height: "100%",
-							minWidth: "46px",
-							borderRadius: "12px",
-						}}
-						aria-label="Check for available Ollama models"
+			<section className="ollama-panel">
+				<header className="ollama-panel__head">
+					<div>
+						<p className="ollama-panel__eyebrow">Local inference (Gemma 3)</p>
+						<h3>Secure Ollama bridge</h3>
+						<p className="ollama-panel__subtitle">
+							Run ShadowQuill fully offline by pointing to your local Ollama
+							instance.
+						</p>
+					</div>
+					<span
+						className={`ollama-status-chip ollama-status-chip--${statusTone}`}
 					>
-						<Icon name="refresh" />
-					</button>
-				</div>
-				{localTestResult && (
-					<div
-						className="md-card"
-						style={{
-							marginTop: 12,
-							padding: 0,
-							overflow: "hidden",
-							borderLeft: localTestResult.success
-								? "3px solid #10b981"
-								: "3px solid #ef4444",
-						}}
-					>
-						<div
-							style={{
-								padding: "12px 16px",
-								background: localTestResult.success
-									? "rgba(16, 185, 129, 0.08)"
-									: "rgba(239, 68, 68, 0.08)",
-								borderBottom:
-									localTestResult.success && localTestResult.models?.length
-										? "1px solid rgba(255, 255, 255, 0.05)"
-										: "none",
-							}}
+						{statusLabelMap[statusTone]}
+					</span>
+				</header>
+
+				<div className="ollama-panel__body">
+					<div className="ollama-field">
+						<label className="ollama-label" htmlFor="port">
+							Ollama localhost Port
+						</label>
+						<div className="ollama-input-row">
+							<input
+								id="port"
+								type="text"
+								inputMode="numeric"
+								pattern="[0-9]*"
+								maxLength={5}
+								value={localPort}
+								onChange={(e) => {
+									const raw = (e.target.value || "").replace(/\D/g, "").slice(
+										0,
+										5,
+									);
+									setLocalPort(raw);
+									setLocalTestResult(null);
+								}}
+								required
+								className="md-input"
+								placeholder="11434"
+								autoComplete="off"
+							/>
+						<button
+							type="button"
+							onClick={() => testLocalConnection()}
+							disabled={testingLocal || !isValidPort(localPort)}
+							className="md-btn md-btn--primary ollama-field__action"
+							title="Check for available Ollama models"
+							aria-label="Check for available Ollama models"
 						>
-							<div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-								<span
-									style={{
-										fontSize: 16,
-										color: localTestResult.success ? "#10b981" : "#ef4444",
-										fontWeight: "bold",
-									}}
-								>
-									{localTestResult.success ? "" : "✕"}
-								</span>
-								<div style={{ flex: 1 }}>
-									<div
-										style={{
-											fontSize: 13,
-											fontWeight: 600,
-											color: localTestResult.success ? "#10b981" : "#ef4444",
-											marginBottom: 2,
-										}}
-									>
-										{localTestResult.success
-											? "Gemma 3 Connection Successful!"
-											: "Connection Failed!"}
-									</div>
-								</div>
-								{!localTestResult.success && (
-									<button
-										type="button"
-										onClick={handleOpenOrInstallOllama}
-										disabled={isOpeningOllama}
-										className="md-btn md-btn--primary"
-										style={{
-											fontSize: 12,
-											padding: "6px 12px",
-											opacity: isOpeningOllama ? 0.5 : 1,
-											whiteSpace: "nowrap",
-										}}
-										title={
-											ollamaInstalled === false
-												? "Install Ollama from ollama.com"
-												: "Launch Ollama application"
-										}
-									>
-										{isOpeningOllama
-											? "Opening..."
-											: ollamaInstalled === false
-												? "Install Ollama"
-												: "Open Ollama"}
-									</button>
-								)}
-							</div>
-							{openOllamaError && (
-								<div
-									style={{
-										marginTop: 8,
-										padding: 8,
-										background: "rgba(239, 68, 68, 0.1)",
-										borderRadius: 4,
-										fontSize: 12,
-										color: "#ef4444",
-									}}
-								>
-									{openOllamaError}
-								</div>
-							)}
+							<Icon
+								name="refresh"
+								{...(testingLocal && { className: "md-spin" })}
+							/>
+							</button>
 						</div>
-						{localTestResult.success &&
-							localTestResult.models &&
-							localTestResult.models.length > 0 && (
-								<div
-									style={{
-										padding: "8px 12px",
-										overflow: "hidden",
-										display: "flex",
-										flexDirection: "column",
-										gap: 6,
-									}}
-								>
+						<p className="ollama-field-hint" aria-live="polite">
+							{portInvalid
+								? "Enter a valid port (2-5 digits)."
+								: normalizedBaseUrl || "Waiting for a port value."}
+						</p>
+					</div>
+
+					<div
+						className={`ollama-status-card ollama-status-card--${statusTone}`}
+						aria-live="polite"
+					>
+					<div className="ollama-status-card__icon">
+						<Icon
+							name={statusIconMap[statusTone]}
+							{...(statusTone === "loading" && { className: "md-spin" })}
+						/>
+					</div>
+						<div className="ollama-status-card__content">
+							<div>
+								<p className="ollama-status-card__title">{statusDetails.title}</p>
+								<p className="ollama-status-card__body">{statusDetails.body}</p>
+							</div>
+							{statusTone === "success" &&
+								localTestResult?.models &&
+								localTestResult.models.length > 0 && (
+								<div className="ollama-models-list">
 									{localTestResult.models.map((m) => {
 										const size = (m.name.split(":")[1] || "").toUpperCase();
-										const displayName = size ? `Gemma 3 ${size}` : "Gemma 3";
-										const sizeInGB = (m.size / (1024 * 1024 * 1024)).toFixed(1);
+										const readable = size ? `Gemma 3 ${size}` : m.name;
+										const sizeInGB = (
+											m.size /
+											(1024 * 1024 * 1024)
+										).toFixed(1);
 										return (
-											<div
-												key={m.name}
-												style={{
-													display: "flex",
-													alignItems: "center",
-													gap: 10,
-													padding: "8px 12px",
-													borderRadius: 6,
-													background: "rgba(255, 255, 255, 0.02)",
-													border: "1px solid rgba(255, 255, 255, 0.05)",
-													transition: "all 0.2s ease",
-													cursor: "default",
-												}}
-												onMouseEnter={(e) => {
-													e.currentTarget.style.background =
-														"rgba(16, 185, 129, 0.1)";
-													e.currentTarget.style.borderColor =
-														"rgba(16, 185, 129, 0.3)";
-												}}
-												onMouseLeave={(e) => {
-													e.currentTarget.style.background =
-														"rgba(255, 255, 255, 0.02)";
-													e.currentTarget.style.borderColor =
-														"rgba(255, 255, 255, 0.05)";
-												}}
-											>
-												<span
-													style={{
-														color: "#10b981",
-														fontSize: 14,
-														fontWeight: "bold",
-														lineHeight: 1,
-													}}
-												>
-													✓
-												</span>
-												<span
-													style={{ fontSize: 13, fontWeight: 500, flex: 1 }}
-													className="truncate"
-												>
-													{displayName}{" "}
-													<code
-														style={{
-															fontFamily: "var(--font-mono, monospace)",
-															opacity: 0.7,
-															fontSize: 11,
-															background: "rgba(255, 255, 255, 0.05)",
-															padding: "2px 4px",
-															borderRadius: 3,
-														}}
-													>
-														{m.name} ({sizeInGB}GB)
-													</code>
-												</span>
-												<span
-													style={{
-														fontSize: 10,
-														padding: "2px 6px",
-														borderRadius: 4,
-														background: "rgba(16, 185, 129, 0.15)",
-														color: "#10b981",
-														fontWeight: 600,
-														textTransform: "uppercase",
-														letterSpacing: "0.5px",
-													}}
-												>
-													Ready
-												</span>
+											<div key={m.name} className="ollama-model-item">
+												<Icon name="check" />
+												<span className="ollama-model-name">{readable}</span>
+												<span className="ollama-model-size">{sizeInGB}GB</span>
 											</div>
 										);
 									})}
 								</div>
 							)}
-						{localTestResult.success &&
-							localTestResult.models &&
-							localTestResult.models.length === 0 && (
-								<div
-									style={{
-										padding: "12px 16px",
-										fontSize: 12,
-										opacity: 0.6,
-										textAlign: "center",
-									}}
-								>
-									No Gemma models found
+							{statusTone === "success" &&
+								localTestResult?.models &&
+								localTestResult.models.length === 0 && (
+									<p className="ollama-empty-note">
+										Connected, but Gemma 3 models have not been pulled yet.
+									</p>
+								)}
+							{statusTone === "error" && (
+								<div className="ollama-status-card__actions">
+									<button
+										type="button"
+										onClick={handleOpenOrInstallOllama}
+										disabled={isOpeningOllama}
+										className="md-btn md-btn--primary"
+										title={
+											ollamaInstalled === false
+												? "Install Ollama from ollama.com"
+												: "Launch the Ollama desktop application"
+										}
+									>
+										{isOpeningOllama
+											? "Opening…"
+											: ollamaInstalled === false
+												? "Install Ollama"
+												: "Open Ollama"}
+									</button>
+									<button
+										type="button"
+										className="md-btn"
+										onClick={() => testLocalConnection()}
+										disabled={testingLocal}
+									>
+										Retry check
+									</button>
 								</div>
 							)}
+							{openOllamaError && (
+								<p className="ollama-error-inline">{openOllamaError}</p>
+							)}
+						</div>
 					</div>
-				)}
-			</div>
-			<div
-				className="text-secondary"
-				style={{ fontSize: 14, lineHeight: "18px" }}
-			>
-				{availableModels.length === 0 ? (
-					<>
-						ShadowQuill requires a local Ollama installation with Gemma 3 models
-						for complete privacy.
-						<br />
-						<br />
-						Click “Check for models” to find available Gemma 3 models in Ollama.{" "}
-						<br />
-						<br />
-						If none are found, install Ollama and pull a compatible Gemma 3
-						model.
-					</>
-				) : (
-					<>
-						Found{" "}
-						<b>
-							{availableModels.length} usable model
-							{availableModels.length !== 1 ? "s" : ""}
-						</b>
-					</>
-				)}
-			</div>
-			<div
-				style={{ paddingTop: 8, display: "flex", justifyContent: "flex-end" }}
-			>
-				<button disabled={!canSave} className="md-btn md-btn--primary">
-					{saving || validating ? "Validating…" : "Save"}
-				</button>
-			</div>
+
+					{hasModels && (
+						<div className="ollama-field">
+							<label className="ollama-label">
+								Choose a Gemma build
+								<span>
+									ShadowQuill will default to the first model if none is chosen.
+								</span>
+							</label>
+							<div style={{ maxWidth: "280px" }}>
+								<CustomSelect
+									value={model}
+									onChange={setModel}
+									options={availableModels.map((m) => ({
+										value: m,
+										label: m,
+									}))}
+									placeholder="Select model"
+									aria-label="Choose Gemma model"
+								/>
+							</div>
+							{selectedModelMetadata && (
+								<p className="ollama-field-hint">
+									Approx. download size: {formattedModelSize}GB · Path:{" "}
+									{selectedModelMetadata.name}
+								</p>
+							)}
+						</div>
+					)}
+
+					{!hasModels && statusTone === "success" && (
+						<div className="ollama-availability" aria-live="polite">
+							No Gemma 3 models detected yet. After installing Ollama, run{" "}
+							<code>ollama pull gemma3:4b</code> (or your preferred size) and
+							retest.
+						</div>
+					)}
+
+					{error && (
+						<div className="ollama-error-banner" role="alert">
+							{error}
+						</div>
+					)}
+					{connectionError && (
+						<div className="ollama-error-banner" role="alert">
+							{connectionError}
+						</div>
+					)}
+				</div>
+
+				<footer className="ollama-panel__footer">
+					<span>
+						{saving || validating
+							? "Validating secure connection…"
+							: "Save to apply this Ollama endpoint globally."}
+					</span>
+					<button disabled={!canSave} className="md-btn md-btn--primary">
+						{saving || validating ? "Validating…" : "Save changes"}
+					</button>
+				</footer>
+			</section>
+
+			<aside className="ollama-guide">
+				<div className="ollama-guide-card">
+					<p className="ollama-panel__eyebrow">Quick checklist</p>
+					<h4>Ready your workstation</h4>
+					<ol>
+						<li>Install Ollama and launch the desktop app.</li>
+						<li>Pull a Gemma 3 build (4B fits most laptops).</li>
+						<li>Keep Ollama running, then press “Check” above.</li>
+					</ol>
+				</div>
+				<div className="ollama-guide-card">
+					<p className="ollama-panel__eyebrow">Power tips</p>
+					<ul>
+						<li>
+							Ollama defaults to <code>http://localhost:11434</code>, but any
+							HTTP host/port works.
+						</li>
+						<li>
+							Need to reset quickly? Run <code>ollama rm gemma3:*</code> to clear
+							old downloads.
+						</li>
+						<li>
+							If you prefer CPU-only inference, pick the smallest Gemma variant
+							for smoother runs.
+						</li>
+					</ul>
+				</div>
+			</aside>
 		</form>
 	);
 }
