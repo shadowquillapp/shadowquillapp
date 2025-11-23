@@ -129,88 +129,86 @@ export default function PresetEditor({
 							</button>
 						</div>
 
-						{/* Tab Content */}
-						<div className="md-card mt-4">
-							<div className="px-5 py-5">
-								{activeTab === "basic" && (
-									<BasicSettings
-										preset={preset}
-										onFieldChange={onFieldChange}
-									/>
-								)}
+					{/* Tab Content */}
+					<div className="mt-6 space-y-4">
+						{activeTab === "basic" && (
+							<BasicSettings
+								preset={preset}
+								onFieldChange={onFieldChange}
+							/>
+						)}
 
-								{activeTab === "advanced" && (
-									<AdvancedSettings
-										preset={preset}
-										onFieldChange={onFieldChange}
-									/>
-								)}
+						{activeTab === "advanced" && (
+							<AdvancedSettings
+								preset={preset}
+								onFieldChange={onFieldChange}
+							/>
+						)}
 
-								{activeTab === "type" && preset.taskType !== "general" && (
-									<TypeSpecificFields
-										taskType={preset.taskType}
-										options={preset.options || {}}
-										onFieldChange={onFieldChange}
-									/>
-								)}
+						{activeTab === "type" && preset.taskType !== "general" && (
+							<TypeSpecificFields
+								taskType={preset.taskType}
+								options={preset.options || {}}
+								onFieldChange={onFieldChange}
+							/>
+						)}
 
-								{activeTab === "output" && (
-									<div className="space-y-4">
-										{preset.options?.format === "xml" && (
-											<div>
-												<label className="mb-1 block font-medium text-secondary text-xs">
-													XML Output Schema / Tags
-												</label>
-												<textarea
-													value={preset.options?.outputXMLSchema || ""}
-													onChange={(e) =>
-														onFieldChange("outputXMLSchema", e.target.value)
-													}
-													placeholder="<root><title/><summary/><tags><tag/></tags></root>"
-													className="md-input w-full resize-none py-2 px-3 text-sm"
-													rows={3}
-												/>
-											</div>
-										)}
-
-										<div>
-											<label className="mb-1 block font-medium text-secondary text-xs">
-												Additional Context
-											</label>
-											<textarea
-												value={preset.options?.additionalContext || ""}
-												onChange={(e) =>
-													onFieldChange("additionalContext", e.target.value)
-												}
-												placeholder="Background info, definitions, constraints to include in the prompt."
-												className="md-input w-full resize-none py-2 px-3 text-sm"
-												rows={3}
-											/>
-										</div>
-
-										<div>
-											<label className="mb-1 block font-medium text-secondary text-xs">
-												Few-shot Examples
-											</label>
-											<textarea
-												value={preset.options?.examplesText || ""}
-												onChange={(e) =>
-													onFieldChange("examplesText", e.target.value)
-												}
-												placeholder={`Example:
-Q: [task]
-A: Let's think step by step... [reasoning]. Therefore, [answer].`}
-												className="md-input w-full resize-none font-mono text-sm"
-												style={{
-													fontFamily: "var(--font-mono, monospace)",
-												}}
-												rows={4}
-											/>
-										</div>
+						{activeTab === "output" && (
+							<div className="space-y-4">
+								{preset.options?.format === "xml" && (
+									<div>
+										<label className="mb-1 block font-medium text-secondary text-xs">
+											XML Output Schema / Tags
+										</label>
+										<textarea
+											value={preset.options?.outputXMLSchema || ""}
+											onChange={(e) =>
+												onFieldChange("outputXMLSchema", e.target.value)
+											}
+											placeholder="<root><title/><summary/><tags><tag/></tags></root>"
+											className="md-input w-full resize-none py-2 px-3 text-sm"
+											rows={3}
+										/>
 									</div>
 								)}
+
+								<div>
+									<label className="mb-1 block font-medium text-secondary text-xs">
+										Additional Context
+									</label>
+									<textarea
+										value={preset.options?.additionalContext || ""}
+										onChange={(e) =>
+											onFieldChange("additionalContext", e.target.value)
+										}
+										placeholder="Background info, definitions, constraints to include in the prompt."
+										className="md-input w-full resize-none py-2 px-3 text-sm"
+										rows={3}
+									/>
+								</div>
+
+								<div>
+									<label className="mb-1 block font-medium text-secondary text-xs">
+										Few-shot Examples
+									</label>
+									<textarea
+										value={preset.options?.examplesText || ""}
+										onChange={(e) =>
+											onFieldChange("examplesText", e.target.value)
+										}
+										placeholder={`Example:
+Q: [task]
+A: Let's think step by step... [reasoning]. Therefore, [answer].`}
+										className="md-input w-full resize-none font-mono text-sm"
+										style={{
+											fontFamily: "var(--font-mono, monospace)",
+										}}
+										rows={4}
+									/>
+								</div>
 							</div>
-						</div>
+						)}
+					</div>
 
 						{/* Unsaved changes indicator below settings */}
 						{isDirty && (

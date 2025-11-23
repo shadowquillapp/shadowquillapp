@@ -58,23 +58,40 @@ export default function PresetCard({
 			type="button"
 			className={`group relative flex w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-left transition-all duration-200 ${
 				isSelected
-					? "border-primary bg-[var(--color-outline)] shadow-md"
-					: "border-[var(--color-outline)] bg-transparent text-secondary hover:bg-[var(--color-outline)] hover:text-light hover:border-primary hover:shadow-md"
+					? "border-primary shadow-md"
+					: "border-[var(--color-outline)] text-secondary hover:border-primary hover:shadow-md"
 			}`}
+			style={{
+				background: isSelected ? 'var(--color-surface-variant)' : 'var(--surfacea10)'
+			}}
+			onMouseEnter={(e) => {
+				if (!isSelected) {
+					(e.currentTarget as HTMLElement).style.background = 'var(--color-surface-variant)';
+				}
+			}}
+			onMouseLeave={(e) => {
+				if (!isSelected) {
+					(e.currentTarget as HTMLElement).style.background = 'var(--surfacea10)';
+				}
+			}}
 			onClick={onSelect}
 			aria-label={`Select preset: ${preset.name}`}
 			aria-pressed={isSelected}
 		>
-			{/* Icon */}
-			<div
-				className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
-					isSelected
-						? "bg-primary text-on-primary shadow-sm"
-						: "bg-surface-0 text-secondary group-hover:bg-[var(--color-outline)] group-hover:text-light"
-				}`}
-			>
-				<Icon name={iconName as any} className="text-xs" />
-			</div>
+		{/* Icon */}
+		<div
+			className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+				isSelected
+					? "shadow-sm"
+					: "text-secondary group-hover:text-light"
+			}`}
+			style={{
+				background: isSelected ? 'var(--color-primary)' : 'var(--surfacea30)',
+				color: isSelected ? 'var(--color-on-primary)' : undefined
+			}}
+		>
+			<Icon name={iconName as any} className="text-xs" />
+		</div>
 
 			{/* Content */}
 			<div className="flex min-w-0 flex-1 flex-col">

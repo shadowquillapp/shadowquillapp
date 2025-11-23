@@ -59,23 +59,23 @@ export default function PresetLibrary({
 
 	return (
 		<section
-			className={`${className} bg-surface`}
+			className={className}
 			style={style}
 			aria-label="Preset Library"
 		>
 			<div className="flex h-full flex-col">
-				{/* Fixed Header - Material Design Top App Bar style */}
-				<div className="z-10 flex flex-col gap-4 border-b border-[var(--color-outline)] bg-surface px-6 py-5">
-					{/* Title & Action */}
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-3">
-							<h2 className="font-semibold text-lg text-light tracking-tight">
-								Library
-							</h2>
-							<span className="flex h-6 min-w-[24px] items-center justify-center rounded-full bg-surface-0 px-2 font-medium text-secondary text-xs">
-								{filteredPresets.length}
-							</span>
-						</div>
+			{/* Fixed Header - Material Design Top App Bar style */}
+			<div className="z-10 flex flex-col gap-4 border-b border-[var(--color-outline)] px-6 py-5" style={{ background: 'var(--surfacea20)' }}>
+				{/* Title & Action */}
+				<div className="flex items-center justify-between">
+			<div className="flex items-center gap-3">
+				<h2 className="font-semibold text-lg text-light tracking-tight">
+					Preset Library
+				</h2>
+				<span className="flex h-6 min-w-[24px] items-center justify-center rounded-full border border-[var(--color-outline)] px-2.5 font-semibold text-light text-xs shadow-sm" style={{ background: 'var(--surfacea10)' }}>
+					{filteredPresets.length}
+				</span>
+			</div>
 						{onCreateNew && (
 							<button
 								onClick={onCreateNew}
@@ -88,34 +88,34 @@ export default function PresetLibrary({
 						)}
 					</div>
 
-					{/* Search Bar - Material Filled Input style */}
-					<div className="relative">
-						<div className="relative flex items-center rounded-2xl bg-surface-0 transition-colors hover:bg-[var(--color-surface-variant)]">
-							<Icon
-								name="search"
-								className="absolute left-4 text-secondary text-sm"
-							/>
-							<input
-								type="search"
-								placeholder="Search presets..."
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								className="h-11 w-full bg-transparent py-2 pl-11 pr-11 text-light text-sm placeholder:text-secondary/60 focus:outline-none"
-								aria-label="Search presets"
-							/>
-							<button
-								onClick={() => setShowFilters(!showFilters)}
-								className={`absolute right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl transition-colors ${
-									showFilters
-										? "bg-primary text-on-primary"
-										: "text-secondary hover:bg-[var(--color-outline)] hover:text-light"
-								}`}
-								title="Filter & Sort"
-							>
-								<Icon name="sliders" className="text-xs" />
-							</button>
-						</div>
-					</div>
+		{/* Search Bar - Material Filled Input style */}
+		<div className="relative">
+			<div className="relative flex items-center rounded-2xl border border-[var(--color-outline)] transition-colors hover:bg-[var(--color-surface-variant)]" style={{ background: 'var(--surfacea10)' }}>
+				<Icon
+					name="search"
+					className="absolute left-4 text-secondary text-sm"
+				/>
+				<input
+					type="search"
+					placeholder="Search presets..."
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+					className="h-11 w-full bg-transparent py-2 pl-11 pr-11 text-light text-sm placeholder:text-secondary/60 focus:outline-none"
+					aria-label="Search presets"
+				/>
+				<button
+					onClick={() => setShowFilters(!showFilters)}
+					className={`absolute right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl transition-colors ${
+						showFilters
+							? "bg-primary text-on-primary"
+							: "text-secondary hover:bg-[var(--color-outline)] hover:text-light"
+					}`}
+					title="Filter & Sort"
+				>
+					<Icon name="sliders" className="text-xs" />
+				</button>
+			</div>
+		</div>
 
 					{/* Expandable Filters Area */}
 					{showFilters && (
@@ -165,7 +165,7 @@ export default function PresetLibrary({
 							<p className="mt-1 text-secondary text-xs">
 								{searchQuery
 									? "Try adjusting your search"
-									: "Create your first preset"}
+									: "Create a preset to get started"}
 							</p>
 						</div>
 					) : (
