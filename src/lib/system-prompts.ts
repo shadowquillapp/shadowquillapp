@@ -41,8 +41,8 @@ Formatting:
 Rules:
 
 - Output the prompt only (no code fences, no rationale, no extra commentary).
-- Never use phrases like "You are tasked with", "Generate a", "Create a", or similar meta-instructions.
-- WORD COUNT IS CRITICAL: When a word count is specified (Brief: 100-150 words, Normal: 200-300 words, Detailed: 350-500 words), this is your PRIMARY constraint. Count EVERY word. If your draft doesn't fit, REVISE it until it does. Going over or under the word count range is a FAILURE.
+- Do NOT include explicit word-count statements or meta lines (e.g., "Word Count: 387 words"); ensure any length requirements are met silently.
+- WORD COUNT IS CRITICAL: When a word count is specified (Brief: 100-150 words, Normal: 200-300 words, Detailed: 350-500 words)
 - Ensure the result is ready for direct copy-paste to accomplish the task.
 `;
 
