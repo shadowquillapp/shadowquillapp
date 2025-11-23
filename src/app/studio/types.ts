@@ -100,6 +100,9 @@ export interface PresetOptions {
 
 	// Coding
 	includeTests?: boolean;
+	techStack?: string;
+	projectContext?: string;
+	codingConstraints?: string;
 
 	// Research
 	requireCitations?: boolean;

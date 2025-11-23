@@ -25,26 +25,22 @@ export default function StudioHeader({
 				{/* Hamburger menu for mobile */}
 				{isSmallScreen && (
 					<button
-						className="md-btn"
+						className="md-btn flex items-center justify-center bg-transparent text-secondary transition-colors hover:bg-[var(--color-outline)] hover:text-light"
 						style={{
-							width: 40,
-							height: 40,
+							width: 36,
+							height: 36,
 							padding: 0,
-							borderRadius: 8,
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
 						}}
 						onClick={onToggleSidebar}
 						title="Toggle sidebar"
 					>
-						☰
+						<Icon name="bars" className="text-lg" />
 					</button>
 				)}
 
 				<button
 					onClick={onBack}
-					className="md-btn bg-transparent text-secondary transition-colors hover:bg-[var(--color-outline)] hover:text-light"
+					className="md-btn flex h-[36px] items-center gap-2 bg-transparent px-3 text-secondary transition-colors hover:bg-[var(--color-outline)] hover:text-light"
 					aria-label="Back to Chat"
 					title="Back to Chat"
 				>

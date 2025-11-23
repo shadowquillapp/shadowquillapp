@@ -83,7 +83,7 @@ export default function AdvancedSettings({
 						value={options.endOfPromptToken || ""}
 						onChange={(e) => onFieldChange("endOfPromptToken", e.target.value)}
 						placeholder="<|endofprompt|>"
-						className="md-input w-full py-2 px-3 font-mono text-sm"
+						className="md-input w-full h-10 !rounded-lg py-2 px-3 font-mono text-sm"
 						style={{
 							fontFamily: "var(--font-mono, monospace)",
 						}}

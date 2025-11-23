@@ -6,8 +6,6 @@ import StudioHeader from "@/app/studio/components/StudioHeader";
 import { usePresetManager } from "@/app/studio/hooks/usePresetManager";
 import type { PresetLite } from "@/app/studio/types";
 import { useDialog } from "@/components/DialogProvider";
-import Titlebar from "@/components/Titlebar";
-import { isElectronRuntime } from "@/lib/runtime";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 
@@ -274,21 +272,12 @@ export default function PresetStudioPage() {
 		};
 	}, []);
 
-	const isElectron = isElectronRuntime();
-
 	return (
-		<>
-			{/* Electron Titlebar */}
-			{isElectron && <Titlebar />}
-
-			<div
-				className="flex flex-col bg-surface-0 text-light"
-				style={{
-					height: isElectron ? "calc(100vh - 32px)" : "100vh",
-					marginTop: isElectron ? "32px" : "0",
-				}}
-			>
-			<StudioHeader
+	<>
+		<div
+			className="flex flex-col bg-surface-0 text-light h-full"
+		>
+		<StudioHeader
 				onNewPreset={handleNewPreset}
 				onBack={() => router.push("/chat")}
 				isDirty={isDirty}
@@ -312,17 +301,16 @@ export default function PresetStudioPage() {
 			<main className="flex flex-1 flex-col overflow-hidden xl:flex-row" style={{ position: "relative" }}>
 				{/* Row 1 / Col 1: Preset Library */}
 				<aside
-					className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
-						isSmallScreen
-							? `fixed top-0 left-0 h-full w-[min(90vw,400px)] z-30 border-r ${
-									sidebarOpen ? "translate-x-0" : "-translate-x-full"
-							  }`
-							: "flex-shrink-0 w-[400px] border-r"
-					}`}
-					style={{ 
-						background: 'var(--surfacea20)',
-						marginTop: isSmallScreen ? (isElectronRuntime() ? "32px" : "0") : "0"
-					}}
+				className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
+					isSmallScreen
+						? `fixed top-8 left-0 h-[calc(100vh-2rem)] w-[min(90vw,320px)] z-30 border-r ${
+								sidebarOpen ? "translate-x-0" : "-translate-x-full"
+						  }`
+						: "flex-shrink-0 w-[320px] border-r"
+				}`}
+				style={{ 
+					background: 'var(--surfacea20)',
+				}}
 				>
 					<PresetLibrary
 						presets={presets}

@@ -81,9 +81,9 @@ export default function PresetLibrary({
 								onClick={onCreateNew}
 								className="md-btn md-btn--primary flex h-9 items-center gap-2 rounded-full px-4 font-medium text-sm shadow-md hover:shadow-lg"
 								aria-label="Create new preset"
+								title="Create new preset"
 							>
 								<Icon name="plus" className="text-xs" />
-								<span>New</span>
 							</button>
 						)}
 					</div>

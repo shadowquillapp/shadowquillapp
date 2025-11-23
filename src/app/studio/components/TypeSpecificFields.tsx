@@ -149,7 +149,7 @@ export default function TypeSpecificFields({
 								);
 								onFieldChange("durationSeconds", val);
 							}}
-							className="md-input w-full py-2 px-3 text-sm"
+							className="md-input w-full h-10 !rounded-lg py-2 px-3 text-sm"
 						/>
 					</div>
 
@@ -175,7 +175,55 @@ export default function TypeSpecificFields({
 	// Coding-specific fields
 	if (taskType === "coding") {
 		return (
-			<div className="mt-4">
+			<div className="mt-4 space-y-4">
+				<div>
+					<label className="mb-1 block font-medium text-secondary text-xs">
+						Tech Stack (Required) <span className="text-red-500">*</span>
+					</label>
+					<textarea
+						value={(options as any).techStack || ""}
+						onChange={(e) => onFieldChange("techStack", e.target.value)}
+						placeholder="e.g., 'React, TypeScript, Node.js, PostgreSQL'. MUST specify the technologies to be used."
+						className="md-input w-full resize-none py-2 px-3 text-sm"
+						rows={2}
+					/>
+					<p className="mt-1 text-xs text-secondary opacity-80">
+						Specify technologies/frameworks. The prompt will STRICTLY restrict itself to this stack.
+					</p>
+				</div>
+
+				<div>
+					<label className="mb-1 block font-medium text-secondary text-xs">
+						Project Context (Optional)
+					</label>
+					<textarea
+						value={(options as any).projectContext || ""}
+						onChange={(e) => onFieldChange("projectContext", e.target.value)}
+						placeholder="Optional context: existing architecture, coding standards, design patterns you want followed, etc."
+						className="md-input w-full resize-none py-2 px-3 text-sm"
+						rows={3}
+					/>
+					<p className="mt-1 text-xs text-secondary opacity-80">
+						Additional project-specific context to guide the implementation.
+					</p>
+				</div>
+
+				<div>
+					<label className="mb-1 block font-medium text-secondary text-xs">
+						Specific Constraints (Optional)
+					</label>
+					<textarea
+						value={(options as any).codingConstraints || ""}
+						onChange={(e) => onFieldChange("codingConstraints", e.target.value)}
+						placeholder="Performance requirements, security considerations, accessibility needs, etc."
+						className="md-input w-full resize-none py-2 px-3 text-sm"
+						rows={2}
+					/>
+					<p className="mt-1 text-xs text-secondary opacity-80">
+						Specific technical constraints or requirements.
+					</p>
+				</div>
+
 				<label className="flex cursor-pointer items-center gap-2">
 					<input
 						type="checkbox"
@@ -183,10 +231,10 @@ export default function TypeSpecificFields({
 						onChange={(e) => onFieldChange("includeTests", e.target.checked)}
 						className="md-checkbox"
 					/>
-					<span className="text-sm text-light">Include unit tests</span>
+					<span className="text-sm text-light">Include test requirements</span>
 				</label>
 				<p className="mt-1 ml-6 text-xs text-secondary opacity-80">
-					Generate test cases along with the code implementation
+					Add testing requirements to the prompt
 				</p>
 			</div>
 		);
@@ -284,7 +332,7 @@ export default function TypeSpecificFields({
 									),
 								)
 							}
-							className="md-input w-full py-2 px-3 text-sm"
+							className="md-input w-full h-10 !rounded-lg py-2 px-3 text-sm"
 						/>
 					</div>
 				</div>

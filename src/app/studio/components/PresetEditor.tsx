@@ -228,7 +228,7 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 								onClick={onApplyToChat}
 								className="md-btn md-btn--primary font-medium text-sm"
 							>
-								Apply to Chat
+								Apply to Session
 							</button>
 						</div>
 

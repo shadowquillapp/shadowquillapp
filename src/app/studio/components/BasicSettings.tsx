@@ -28,7 +28,7 @@ export default function BasicSettings({
 					value={preset.name}
 					onChange={(e) => onFieldChange("name", e.target.value)}
 					placeholder="Enter preset name"
-					className="md-input w-full py-2 px-3 text-sm"
+					className="md-input w-full h-10 !rounded-lg py-2 px-3 text-sm"
 				/>
 			</div>
 

@@ -26,19 +26,19 @@ export default function TemperatureControl({
 	// Band colors for styling
 	const bandStyles: Record<string, { bg: string; text: string; border: string }> = {
 		blue: {
-			bg: "rgba(59, 130, 246, 0.15)",
-			text: "#3b82f6",
-			border: "#3b82f6",
+			bg: "var(--color-surface-variant)",
+			text: "var(--color-primary)",
+			border: "var(--color-primary)",
 		},
 		yellow: {
-			bg: "rgba(234, 179, 8, 0.15)",
-			text: "#eab308",
-			border: "#eab308",
+			bg: "var(--color-surface-variant)",
+			text: "var(--color-attention)",
+			border: "var(--color-attention)",
 		},
 		purple: {
-			bg: "rgba(168, 85, 247, 0.15)",
-			text: "#a855f7",
-			border: "#a855f7",
+			bg: "var(--color-surface-variant)",
+			text: "var(--color-save)",
+			border: "var(--color-save)",
 		},
 	};
 
@@ -110,9 +110,8 @@ export default function TemperatureControl({
 						className="h-2 w-full cursor-pointer appearance-none rounded-lg"
 						style={{
 							background: `linear-gradient(to right, 
-                #3b82f6 0%, #3b82f6 30%, 
-                #eab308 30%, #eab308 70%, 
-                #a855f7 70%, #a855f7 100%)`,
+                var(--color-primary) 0%, var(--color-primary) ${value * 100}%, 
+                var(--color-outline) ${value * 100}%, var(--color-outline) 100%)`,
 						}}
 					/>
 					{/* Value indicator */}
