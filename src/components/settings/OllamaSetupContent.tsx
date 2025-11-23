@@ -1,8 +1,16 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
 import { readLocalModelConfig as readLocalModelConfigClient, writeLocalModelConfig as writeLocalModelConfigClient, validateLocalModelConnection as validateLocalModelConnectionClient, listAvailableModels } from "@/lib/local-config";
+import { Icon } from "../Icon";
 
 type TestResult = null | { success: boolean; url: string; models?: Array<{ name: string; size: number }>; error?: string; duration?: number };
+
+interface WindowWithShadowQuill extends Window {
+  shadowquill?: {
+    checkOllamaInstalled?: () => Promise<{ installed: boolean }>;
+    openOllama?: () => Promise<{ ok: boolean; error?: string }>;
+  };
+}
 
 export default function OllamaSetupContent() {
   const [localPort, setLocalPort] = useState<string>("11434");
@@ -14,10 +22,14 @@ export default function OllamaSetupContent() {
   const [testingLocal, setTestingLocal] = useState(false);
   const [localTestResult, setLocalTestResult] = useState<TestResult>(null);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [isOpeningOllama, setIsOpeningOllama] = useState(false);
+  const [openOllamaError, setOpenOllamaError] = useState<string | null>(null);
+  const [ollamaInstalled, setOllamaInstalled] = useState<boolean | null>(null);
 
   useEffect(() => {
     const load = async () => {
       try {
+        await checkOllamaInstalled();
         const cfg = readLocalModelConfigClient();
         if (cfg?.provider === "ollama") {
           const base = String(cfg.baseUrl || "http://localhost:11434");
@@ -59,6 +71,7 @@ export default function OllamaSetupContent() {
       const gemmaModelNames = gemmaModels.map((m) => m.name);
       setLocalTestResult({ success: true, url, models: gemmaModels, duration });
       setAvailableModels(gemmaModelNames);
+      setConnectionError(null); // Clear connection error on success
       if (configuredModel && gemmaModelNames.includes(configuredModel)) {
         setModel(configuredModel as string);
       } else if (gemmaModelNames.length > 0) {
@@ -72,6 +85,61 @@ export default function OllamaSetupContent() {
       setAvailableModels([]);
     } finally {
       setTestingLocal(false);
+    }
+  };
+
+  const checkOllamaInstalled = async () => {
+    try {
+      const win = window as WindowWithShadowQuill;
+      if (!win.shadowquill?.checkOllamaInstalled) {
+        return;
+      }
+      const result = await win.shadowquill.checkOllamaInstalled();
+      setOllamaInstalled(result.installed);
+    } catch (e) {
+      console.error("Failed to check Ollama installation:", e);
+    }
+  };
+
+  const handleOpenOrInstallOllama = async () => {
+    setIsOpeningOllama(true);
+    setOpenOllamaError(null);
+
+    try {
+      const win = window as WindowWithShadowQuill;
+      
+      // Check if installed first
+      if (ollamaInstalled === null) {
+        await checkOllamaInstalled();
+      }
+
+      if (ollamaInstalled === false) {
+        // Open download page
+        window.open("https://ollama.com/download", "_blank");
+        setIsOpeningOllama(false);
+        return;
+      }
+
+      if (!win.shadowquill?.openOllama) {
+        setOpenOllamaError("This feature is only available in the desktop app.");
+        return;
+      }
+
+      const result = await win.shadowquill.openOllama();
+
+      if (result.ok) {
+        // Wait 3 seconds then retest the connection
+        setTimeout(() => {
+          setOpenOllamaError(null);
+          void testLocalConnection();
+        }, 3000);
+      } else {
+        setOpenOllamaError(result.error || "Failed to open Ollama");
+      }
+    } catch (e: unknown) {
+      setOpenOllamaError(e instanceof Error ? e.message : "Failed to open Ollama");
+    } finally {
+      setIsOpeningOllama(false);
     }
   };
 
@@ -143,11 +211,19 @@ export default function OllamaSetupContent() {
             type="button"
             onClick={() => testLocalConnection()}
             disabled={testingLocal || !isValidPort(localPort)}
-            className="md-btn md-btn--attention"
+            className="md-btn md-btn--primary"
             title="Check for available Ollama models"
-            style={{ whiteSpace: "nowrap" }}
+            style={{ 
+              whiteSpace: "nowrap", 
+              padding: 0, 
+              aspectRatio: "1",
+              height: "100%",
+              minWidth: "46px",
+              borderRadius: "12px"
+            }}
+            aria-label="Check for available Ollama models"
           >
-            {testingLocal ? "Checking…" : "Check for models"}
+            <Icon name="refresh" />
           </button>
         </div>
         {localTestResult && (
@@ -189,7 +265,36 @@ export default function OllamaSetupContent() {
                     {localTestResult.success ? "Gemma 3 Connection Successful!" : "Connection Failed!"}
                   </div>
                 </div>
+                {!localTestResult.success && (
+                  <button
+                    type="button"
+                    onClick={handleOpenOrInstallOllama}
+                    disabled={isOpeningOllama}
+                    className="md-btn md-btn--primary"
+                    style={{ 
+                      fontSize: 12, 
+                      padding: "6px 12px",
+                      opacity: isOpeningOllama ? 0.5 : 1,
+                      whiteSpace: "nowrap"
+                    }}
+                    title={ollamaInstalled === false ? "Install Ollama from ollama.com" : "Launch Ollama application"}
+                  >
+                    {isOpeningOllama ? "Opening..." : (ollamaInstalled === false ? "Install Ollama" : "Open Ollama")}
+                  </button>
+                )}
               </div>
+              {openOllamaError && (
+                <div style={{ 
+                  marginTop: 8, 
+                  padding: 8, 
+                  background: "rgba(239, 68, 68, 0.1)", 
+                  borderRadius: 4,
+                  fontSize: 12,
+                  color: "#ef4444"
+                }}>
+                  {openOllamaError}
+                </div>
+              )}
             </div>
             {localTestResult.success && localTestResult.models && localTestResult.models.length > 0 && (
               <div
@@ -287,11 +392,6 @@ export default function OllamaSetupContent() {
           </>
         )}
       </div>
-      {(error || connectionError) && (
-        <div className="md-card" style={{ padding: 12, borderLeft: "4px solid #ef4444" }}>
-          <div style={{ fontSize: 12 }}>{error || connectionError}</div>
-        </div>
-      )}
       <div style={{ paddingTop: 8, display: "flex", justifyContent: "flex-end" }}>
         <button disabled={!canSave} className="md-btn md-btn--primary">
           {saving || validating ? "Validating…" : "Save"}

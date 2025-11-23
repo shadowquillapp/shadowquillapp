@@ -10,6 +10,13 @@ import Titlebar from './Titlebar';
 
 interface Props { children: React.ReactNode }
 
+interface WindowWithShadowQuill extends Window {
+  shadowquill?: {
+    checkOllamaInstalled?: () => Promise<{ installed: boolean }>;
+    openOllama?: () => Promise<{ ok: boolean; error?: string }>;
+  };
+}
+
 export default function ModelConfigGate({ children }: Props) {
   // Detect Electron at build/SSR via env; fall back to client runtime detection.
   const initialElectron = typeof process !== 'undefined' && (process.env.NEXT_PUBLIC_ELECTRON === '1' || process.env.ELECTRON === '1');
@@ -33,6 +40,9 @@ export default function ModelConfigGate({ children }: Props) {
   const [testingLocal, setTestingLocal] = useState(false);
   const [localTestResult, setLocalTestResult] = useState<null | { success: boolean; url: string; models?: Array<{ name: string; size: number }>; error?: string; duration?: number }>(null);
   const [availableModels, setAvailableModels] = useState<string[]>([]);
+  const [isOpeningOllama, setIsOpeningOllama] = useState(false);
+  const [openOllamaError, setOpenOllamaError] = useState<string | null>(null);
+  const [ollamaInstalled, setOllamaInstalled] = useState<boolean | null>(null);
 
   // Client side enhancement
   useEffect(() => {
@@ -54,6 +64,9 @@ export default function ModelConfigGate({ children }: Props) {
     const load = async () => {
       setFetching(true);
       try {
+        // Check if Ollama is installed
+        await checkOllamaInstalled();
+        
         // Load config from local storage
         const cfg = readLocalModelConfigClient();
         if (cancelled) return;
@@ -180,6 +193,61 @@ export default function ModelConfigGate({ children }: Props) {
     return raw;
   };
 
+  const checkOllamaInstalled = async () => {
+    try {
+      const win = window as WindowWithShadowQuill;
+      if (!win.shadowquill?.checkOllamaInstalled) {
+        return;
+      }
+      const result = await win.shadowquill.checkOllamaInstalled();
+      setOllamaInstalled(result.installed);
+    } catch (e) {
+      console.error("Failed to check Ollama installation:", e);
+    }
+  };
+
+  const handleOpenOrInstallOllama = async () => {
+    setIsOpeningOllama(true);
+    setOpenOllamaError(null);
+
+    try {
+      const win = window as WindowWithShadowQuill;
+      
+      // Check if installed first
+      if (ollamaInstalled === null) {
+        await checkOllamaInstalled();
+      }
+
+      if (ollamaInstalled === false) {
+        // Open download page
+        window.open("https://ollama.com/download", "_blank");
+        setIsOpeningOllama(false);
+        return;
+      }
+
+      if (!win.shadowquill?.openOllama) {
+        setOpenOllamaError("This feature is only available in the desktop app.");
+        return;
+      }
+
+      const result = await win.shadowquill.openOllama();
+
+      if (result.ok) {
+        // Wait 3 seconds then retest the connection
+        setTimeout(() => {
+          setOpenOllamaError(null);
+          void testLocalConnection();
+        }, 3000);
+      } else {
+        setOpenOllamaError(result.error || "Failed to open Ollama");
+      }
+    } catch (e: unknown) {
+      setOpenOllamaError(e instanceof Error ? e.message : "Failed to open Ollama");
+    } finally {
+      setIsOpeningOllama(false);
+    }
+  };
+
   // Test connection to local Ollama server using specified baseUrl (or current localBaseUrl if not provided)
   // If configuredModel is provided, it will be selected if found in available models
   const testLocalConnection = async (baseUrlParam?: string, configuredModel?: string) => {
@@ -198,6 +266,7 @@ export default function ModelConfigGate({ children }: Props) {
       const gemmaModelNames = gemmaModels.map((m) => m.name);
       setLocalTestResult({ success: true, url, models: gemmaModels, duration });
       setAvailableModels(gemmaModelNames);
+      setConnectionError(null); // Clear connection error on success
       if (configuredModel && gemmaModelNames.includes(configuredModel)) {
         setModel(configuredModel as string);
       } else if (gemmaModelNames.length > 0) {
@@ -304,10 +373,18 @@ export default function ModelConfigGate({ children }: Props) {
                           type="button"
                           onClick={() => testLocalConnection()}
                           disabled={testingLocal || !isValidPort(localPort)}
-                          className="md-btn md-btn--attention"
+                          className="md-btn md-btn--primary"
                           title="Check for available Ollama models"
-                          style={{ whiteSpace: 'nowrap' }}
-                        >{testingLocal ? 'Checking…' : 'Check for models'}</button>
+                          style={{ 
+                            whiteSpace: 'nowrap', 
+                            padding: 0, 
+                            aspectRatio: '1',
+                            height: '100%',
+                            minWidth: '46px',
+                            borderRadius: '12px'
+                          }}
+                          aria-label="Check for available Ollama models"
+                        ><Icon name="refresh" /></button>
                       </div>
                       {localTestResult && (
                         <div className="md-card" style={{ 
@@ -339,7 +416,36 @@ export default function ModelConfigGate({ children }: Props) {
                                   {localTestResult.success ? 'Gemma 3 Connection Successful!' : 'Connection Failed!'}
                                 </div>
                               </div>
+                              {!localTestResult.success && (
+                                <button
+                                  type="button"
+                                  onClick={handleOpenOrInstallOllama}
+                                  disabled={isOpeningOllama}
+                                  className="md-btn md-btn--primary"
+                                  style={{ 
+                                    fontSize: 12, 
+                                    padding: "6px 12px",
+                                    opacity: isOpeningOllama ? 0.5 : 1,
+                                    whiteSpace: "nowrap"
+                                  }}
+                                  title={ollamaInstalled === false ? "Install Ollama from ollama.com" : "Launch Ollama application"}
+                                >
+                                  {isOpeningOllama ? "Opening..." : (ollamaInstalled === false ? "Install Ollama" : "Open Ollama")}
+                                </button>
+                              )}
                             </div>
+                            {openOllamaError && (
+                              <div style={{ 
+                                marginTop: 8, 
+                                padding: 8, 
+                                background: "rgba(239, 68, 68, 0.1)", 
+                                borderRadius: 4,
+                                fontSize: 12,
+                                color: "#ef4444"
+                              }}>
+                                {openOllamaError}
+                              </div>
+                            )}
                           </div>
                           {localTestResult.success && localTestResult.models && localTestResult.models.length > 0 && (
                             <div style={{ 
@@ -424,23 +530,35 @@ export default function ModelConfigGate({ children }: Props) {
                       {availableModels.length === 0 ? (
                         <>ShadowQuill requires a local Ollama installation with Gemma 3 models for complete privacy.<br/><br/>Click “Check for models” to find available Gemma 3 models in Ollama. <br/><br/>If none are found, install Ollama and pull a compatible Gemma 3 model.</>
                       ) : (
-                        <>Found <b><u>{availableModels.length} usable model{availableModels.length !== 1 ? 's' : ''}</u></b>. Auto selecting: <code style={{ fontSize: 13 }}>{model}</code> <code style={{ fontSize: 11 }}>(You can change this later from within the app)</code></>
+                        <>Found <b>{availableModels.length} usable model{availableModels.length !== 1 ? 's' : ''}</b>. Auto selecting: <code style={{ fontSize: 13 }}>{model}</code> <code style={{ fontSize: 11 }}>(You can change this later from within the app)</code></>
                       )}
                     </div>
-                    {(error || connectionError) && (
-                      <div className="md-card" style={{ padding: 12, borderLeft: '4px solid #ef4444' }}>
-                        <div style={{ fontSize: 12 }}>{error || connectionError}</div>
-                      </div>
-                    )}
                 
-                    <div style={{ paddingTop: 8 }}>
+                    <div style={{ paddingTop: 16 }}>
                       <button 
                         disabled={saving || validating || (!model || model.trim() === '')}
                         className="md-btn md-btn--primary"
-                        style={{ width: '100%' }}
+                        style={{ 
+                          width: '100%',
+                          padding: '16px 24px',
+                          fontSize: '15px',
+                          fontWeight: 600,
+                          letterSpacing: '0.02em',
+                          boxShadow: 'var(--shadow-2)',
+                          transition: 'all 150ms ease',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '10px'
+                        }}
                         title={(!model || model.trim() === '') ? 'Please check for models first' : undefined}
                       >
-                        {saving || validating ? 'Validating…' : 'Start ShadowQuill'}
+                        {saving || validating ? 'Validating…' : (
+                          <>
+                            Start ShadowQuill
+                            <Icon name="chevron-right" />
+                          </>
+                        )}
                       </button>
                     </div>
                   </form>

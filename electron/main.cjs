@@ -69,6 +69,101 @@ function checkAndOptionallyClearZoneIdentifier() {
 
 // Register IPC handlers early - before app.whenReady() to ensure they're available immediately
 
+// Check if Ollama is installed
+ipcMain.handle('shadowquill:checkOllamaInstalled', async () => {
+  try {
+    if (process.platform === 'darwin') {
+      // macOS: Check if Ollama.app exists
+      const { execSync } = require('child_process');
+      try {
+        execSync('mdfind "kMDItemKind == Application && kMDItemFSName == Ollama.app"', { timeout: 3000 });
+        return { installed: true };
+      } catch (_) {
+        return { installed: false };
+      }
+    } else if (process.platform === 'win32') {
+      // Windows: Check common installation paths
+      const possiblePaths = [
+        path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Ollama', 'ollama app.exe'),
+        path.join(process.env.PROGRAMFILES || '', 'Ollama', 'ollama app.exe'),
+      ];
+      
+      for (const ollamaPath of possiblePaths) {
+        if (fs.existsSync(ollamaPath)) {
+          return { installed: true };
+        }
+      }
+      return { installed: false };
+    } else {
+      // Linux: Check if ollama command exists
+      const { execSync } = require('child_process');
+      try {
+        execSync('which ollama', { timeout: 3000 });
+        return { installed: true };
+      } catch (_) {
+        try {
+          execSync('command -v ollama', { timeout: 3000 });
+          return { installed: true };
+        } catch (_) {
+          return { installed: false };
+        }
+      }
+    }
+  } catch (e) {
+    return { installed: false };
+  }
+});
+
+// Open Ollama application
+ipcMain.handle('shadowquill:openOllama', async () => {
+  try {
+    const { spawn } = require('child_process');
+    
+    if (process.platform === 'darwin') {
+      // macOS: Open Ollama.app
+      spawn('open', ['-a', 'Ollama']);
+      return { ok: true };
+    } else if (process.platform === 'win32') {
+      // Windows: Try to launch Ollama from common locations
+      const possiblePaths = [
+        path.join(process.env.LOCALAPPDATA || '', 'Programs', 'Ollama', 'ollama app.exe'),
+        path.join(process.env.PROGRAMFILES || '', 'Ollama', 'ollama app.exe'),
+        'ollama' // Try from PATH
+      ];
+      
+      let launched = false;
+      for (const ollamaPath of possiblePaths) {
+        try {
+          if (ollamaPath !== 'ollama' && !fs.existsSync(ollamaPath)) continue;
+          spawn(ollamaPath, [], { detached: true, stdio: 'ignore' });
+          launched = true;
+          break;
+        } catch (_) { /* try next path */ }
+      }
+      
+      if (!launched) {
+        return { ok: false, error: 'Ollama not found. Please install from https://ollama.com' };
+      }
+      return { ok: true };
+    } else {
+      // Linux: Try systemctl or direct command
+      try {
+        spawn('systemctl', ['--user', 'start', 'ollama'], { detached: true, stdio: 'ignore' });
+        return { ok: true };
+      } catch (_) {
+        try {
+          spawn('ollama', ['serve'], { detached: true, stdio: 'ignore' });
+          return { ok: true };
+        } catch (_) {
+          return { ok: false, error: 'Could not start Ollama. Please start it manually or install from https://ollama.com' };
+        }
+      }
+    }
+  } catch (e) {
+    return { ok: false, error: e?.message || 'Failed to open Ollama' };
+  }
+});
+
 // Restart the Electron application (used after DB reset)
 ipcMain.handle('shadowquill:restartApp', () => {
   try {

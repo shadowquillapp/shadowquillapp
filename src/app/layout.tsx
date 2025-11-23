@@ -8,6 +8,7 @@ import { Geist } from "next/font/google";
 
 import DatabaseSetupGate from "@/components/DatabaseSetupGate";
 import { DialogProvider } from "@/components/DialogProvider";
+import OllamaConnectionMonitor from "@/components/OllamaConnectionMonitor";
 
 export const metadata: Metadata = {
 	title: "ShadowQuill",
@@ -31,6 +32,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
 							{children}
 						</DatabaseSetupGate>
 					</div>
+					<OllamaConnectionMonitor />
 				</DialogProvider>
 			</body>
 		</html>
