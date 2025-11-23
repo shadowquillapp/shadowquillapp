@@ -5,6 +5,21 @@ export async function callLocalModelClient(
 	prompt: string,
 	opts?: { taskType?: TaskType; options?: GenerationOptions },
 ): Promise<string> {
+	// Remove any meta "Word Count" lines that some models add to their output
+	const stripMetaWordCount = (text: string): string => {
+		if (!text) return text;
+		const patterns: RegExp[] = [
+			/^\s*(?:\*\*|__)?\s*word\s*count\s*(?:\*\*|__)?\s*:\s*\d+(?:\s+words?)?\s*$/i,
+			/^\s*word\s*count\s*:\s*~?\s*\d+(?:\s+words?)?\s*$/i,
+			/^\s*total\s*words\s*:\s*\d+\s*$/i,
+			/^\s*length\s*:\s*\d+\s+words\s*$/i,
+		];
+		return text
+			.split(/\r?\n/)
+			.filter((line) => !patterns.some((re) => re.test(line)))
+			.join("\n");
+	};
+
 	const cfg = readLocalModelConfig();
 	if (!cfg) throw new Error("Model not configured");
 	if (cfg.provider !== "ollama")
@@ -51,7 +66,7 @@ export async function callLocalModelClient(
 
 		if (requestedFormat === "markdown") {
 			const { inner } = unwrapOuterFence(rawText);
-			const content = inner.trim();
+			const content = stripMetaWordCount(inner).trim();
 			return `\`\`\`markdown\n${content}\n\`\`\``;
 		}
 
@@ -61,11 +76,12 @@ export async function callLocalModelClient(
 			const unwrapped = unwrapOuterFence(candidate);
 			if (unwrapped.stripped) candidate = unwrapped.inner.trim();
 			// No XML pretty-print; just wrap
+			candidate = stripMetaWordCount(candidate);
 			return `\`\`\`xml\n${candidate}\n\`\`\``;
 		}
 
 		// Plain text: return raw
-		return rawText;
+		return stripMetaWordCount(rawText);
 	} finally {
 		clearTimeout(to);
 	}
