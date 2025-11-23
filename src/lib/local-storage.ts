@@ -1,6 +1,7 @@
 export function getJSON<T>(key: string, defaultValue: T): T {
 	try {
-		const raw = typeof window !== "undefined" ? localStorage.getItem(key) : null;
+		const raw =
+			typeof window !== "undefined" ? localStorage.getItem(key) : null;
 		if (!raw) return defaultValue;
 		return JSON.parse(raw) as T;
 	} catch {

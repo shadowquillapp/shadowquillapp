@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { validateLocalModelConnection, readLocalModelConfig } from "@/lib/local-config";
+import {
+	readLocalModelConfig,
+	validateLocalModelConnection,
+} from "@/lib/local-config";
+import { useCallback, useEffect, useState } from "react";
 import { useDialog } from "./DialogProvider";
 
 interface WindowWithShadowQuill extends Window {
@@ -41,7 +44,7 @@ export default function OllamaConnectionMonitor() {
 
 		setIsMonitoring(true);
 		const result = await validateLocalModelConnection(config);
-		
+
 		// If we had a connection and now we don't, alert the user
 		if (lastKnownStatus === true && !result.ok) {
 			// Check if Ollama is installed
@@ -49,13 +52,15 @@ export default function OllamaConnectionMonitor() {
 				await checkOllamaInstalled();
 			}
 
-			const buttonText = ollamaInstalled === false ? "Install Ollama" : "Open Ollama";
+			const buttonText =
+				ollamaInstalled === false ? "Install Ollama" : "Open Ollama";
 			const shouldOpen = await confirm({
 				title: "Ollama Connection Lost",
-				message: "Ollama has stopped or become unreachable. ShadowQuill needs Ollama to be running to generate AI responses.",
+				message:
+					"Ollama has stopped or become unreachable. ShadowQuill needs Ollama to be running to generate AI responses.",
 				confirmText: buttonText,
 				cancelText: "Dismiss",
-				tone: "primary"
+				tone: "primary",
 			});
 
 			if (shouldOpen) {
@@ -71,7 +76,7 @@ export default function OllamaConnectionMonitor() {
 
 		try {
 			const win = window as WindowWithShadowQuill;
-			
+
 			// Check if installed first
 			if (ollamaInstalled === null) {
 				await checkOllamaInstalled();
@@ -136,4 +141,3 @@ export default function OllamaConnectionMonitor() {
 
 	return null; // This component doesn't render anything
 }
-

@@ -1,6 +1,8 @@
 "use client";
-import React from "react";
+import type React from "react";
 
-export default function DatabaseSetupGate({ children }: { children: React.ReactNode }) {
-  return <>{children}</>;
+export default function DatabaseSetupGate({
+	children,
+}: { children: React.ReactNode }) {
+	return <>{children}</>;
 }

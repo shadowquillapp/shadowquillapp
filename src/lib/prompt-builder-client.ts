@@ -1,6 +1,12 @@
+import {
+	buildUnifiedPromptCore,
+	validateBuilderInput,
+} from "@/lib/prompt-builder-core";
 import type { GenerationOptions, TaskType } from "@/server/googleai";
-import { DEFAULT_BUILD_PROMPT, ensureSystemPromptBuild } from "./system-prompts";
-import { buildUnifiedPromptCore, validateBuilderInput } from "@/lib/prompt-builder-core";
+import {
+	DEFAULT_BUILD_PROMPT,
+	ensureSystemPromptBuild,
+} from "./system-prompts";
 
 function resolveSystemPrompt(stored?: string | null): string {
 	const trimmed = (stored ?? "").trim();
@@ -22,7 +28,12 @@ export async function buildUnifiedPrompt({
 	if (validationError) return validationError;
 	const storedSystemPrompt = ensureSystemPromptBuild();
 	const systemPrompt = resolveSystemPrompt(storedSystemPrompt);
-	const coreParams: { input: string; taskType: TaskType; systemPrompt: string; options?: GenerationOptions } = {
+	const coreParams: {
+		input: string;
+		taskType: TaskType;
+		systemPrompt: string;
+		options?: GenerationOptions;
+	} = {
 		input: rawUserInput,
 		taskType,
 		systemPrompt,
