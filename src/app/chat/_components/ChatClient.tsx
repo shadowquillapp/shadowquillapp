@@ -54,7 +54,12 @@ export default function ChatClient() {
 	const modelBtnRef = useRef<HTMLButtonElement | null>(null);
 	const modelMenuRef = useRef<HTMLDivElement | null>(null);
 	const [sidebarOpen, setSidebarOpen] = useState(false);
-	const [isSmallScreen, setIsSmallScreen] = useState(false);
+	const [isSmallScreen, setIsSmallScreen] = useState(() => {
+		if (typeof window !== 'undefined') {
+			return window.innerWidth < 1280;
+		}
+		return false;
+	});
 	const [desktopRailEntering, setDesktopRailEntering] = useState(false);
 	const desktopRailEnterTimerRef = useRef<number | null>(null);
 	const [currentChatId, setCurrentChatId] = useState<string | null>(null);
@@ -788,22 +793,26 @@ export default function ChatClient() {
 		const checkScreenSize = () => {
 			const isSmall = window.innerWidth < 1280; // xl breakpoint
 			setIsSmallScreen((prev) => {
-				if (prev && !isSmall) {
-					setSidebarOpen(false);
-					setDesktopRailEntering(true);
-					if (desktopRailEnterTimerRef.current) {
-						clearTimeout(desktopRailEnterTimerRef.current);
+				// Only update if the value actually changed
+				if (prev !== isSmall) {
+					if (prev && !isSmall) {
+						setSidebarOpen(false);
+						setDesktopRailEntering(true);
+						if (desktopRailEnterTimerRef.current) {
+							clearTimeout(desktopRailEnterTimerRef.current);
+						}
+						desktopRailEnterTimerRef.current = window.setTimeout(() => {
+							setDesktopRailEntering(false);
+							desktopRailEnterTimerRef.current = null;
+						}, 320);
 					}
-					desktopRailEnterTimerRef.current = window.setTimeout(() => {
-						setDesktopRailEntering(false);
-						desktopRailEnterTimerRef.current = null;
-					}, 320);
+					return isSmall;
 				}
-				return isSmall;
+				return prev;
 			});
-			if (!isSmall) setSidebarOpen(false); // Auto-close sidebar on large screens
 		};
-		checkScreenSize();
+		
+		// Only add resize listener, don't call checkScreenSize on mount since state is already initialized
 		window.addEventListener("resize", checkScreenSize);
 		return () => {
 			window.removeEventListener("resize", checkScreenSize);
