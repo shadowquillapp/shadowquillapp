@@ -113,7 +113,7 @@ export default function Titlebar() {
 
 	return (
 		<div
-			className="app-region-drag fixed top-0 right-0 left-0 flex h-8 select-none items-center"
+			className="app-region-drag flex h-8 select-none items-center"
 			style={{
 				background: "var(--color-titlebar-background)",
 				borderBottom: "1px solid var(--color-outline)",

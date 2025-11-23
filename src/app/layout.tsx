@@ -9,6 +9,7 @@ import { Geist } from "next/font/google";
 import DatabaseSetupGate from "@/components/DatabaseSetupGate";
 import { DialogProvider } from "@/components/DialogProvider";
 import OllamaConnectionMonitor from "@/components/OllamaConnectionMonitor";
+import Titlebar from "@/components/Titlebar";
 
 export const metadata: Metadata = {
 	title: "ShadowQuill",
@@ -29,6 +30,7 @@ export default function RootLayout({
 			<head>{/* No external CDN links to allow full offline operation */}</head>
 			<body className="flex h-screen flex-col overflow-hidden">
 				<DialogProvider>
+					<Titlebar />
 					<div className="flex flex-1 flex-col overflow-hidden">
 						<DatabaseSetupGate>{children}</DatabaseSetupGate>
 					</div>
