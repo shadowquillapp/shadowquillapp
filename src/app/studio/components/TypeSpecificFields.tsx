@@ -149,8 +149,7 @@ export default function TypeSpecificFields({
 								);
 								onFieldChange("durationSeconds", val);
 							}}
-							className="md-input w-full text-sm"
-							style={{ padding: "8px 12px" }}
+							className="md-input w-full py-2 px-3 text-sm"
 						/>
 					</div>
 
@@ -182,20 +181,11 @@ export default function TypeSpecificFields({
 						type="checkbox"
 						checked={options.includeTests ?? true}
 						onChange={(e) => onFieldChange("includeTests", e.target.checked)}
-						className="h-4 w-4 rounded"
-						style={{ accentColor: "var(--color-primary)" }}
+						className="h-4 w-4 rounded accent-primary"
 					/>
-					<span
-						className="text-sm"
-						style={{ color: "var(--color-on-surface)" }}
-					>
-						Include unit tests
-					</span>
+					<span className="text-sm text-light">Include unit tests</span>
 				</label>
-				<p
-					className="mt-1 ml-6 text-secondary text-xs"
-					style={{ opacity: 0.8 }}
-				>
+				<p className="mt-1 ml-6 text-xs text-secondary opacity-80">
 					Generate test cases along with the code implementation
 				</p>
 			</div>
@@ -213,20 +203,11 @@ export default function TypeSpecificFields({
 						onChange={(e) =>
 							onFieldChange("requireCitations", e.target.checked)
 						}
-						className="h-4 w-4 rounded"
-						style={{ accentColor: "var(--color-primary)" }}
+						className="h-4 w-4 rounded accent-primary"
 					/>
-					<span
-						className="text-sm"
-						style={{ color: "var(--color-on-surface)" }}
-					>
-						Require citations
-					</span>
+					<span className="text-sm text-light">Require citations</span>
 				</label>
-				<p
-					className="mt-1 ml-6 text-secondary text-xs"
-					style={{ opacity: 0.8 }}
-				>
+				<p className="mt-1 ml-6 text-xs text-secondary opacity-80">
 					Include source references and citations in the response
 				</p>
 			</div>
@@ -303,8 +284,7 @@ export default function TypeSpecificFields({
 									),
 								)
 							}
-							className="md-input w-full text-sm"
-							style={{ padding: "8px 12px" }}
+							className="md-input w-full py-2 px-3 text-sm"
 						/>
 					</div>
 				</div>
@@ -314,13 +294,9 @@ export default function TypeSpecificFields({
 						type="checkbox"
 						checked={options.includeHeadings ?? true}
 						onChange={(e) => onFieldChange("includeHeadings", e.target.checked)}
-						className="h-4 w-4 rounded"
-						style={{ accentColor: "var(--color-primary)" }}
+						className="h-4 w-4 rounded accent-primary"
 					/>
-					<span
-						className="text-sm"
-						style={{ color: "var(--color-on-surface)" }}
-					>
+					<span className="text-sm text-light">
 						Include section headings
 					</span>
 				</label>
@@ -373,8 +349,7 @@ export default function TypeSpecificFields({
 						value={options.valueProps || ""}
 						onChange={(e) => onFieldChange("valueProps", e.target.value)}
 						placeholder="List key value props, proof points, differentiators."
-						className="md-input w-full resize-none text-sm"
-						style={{ padding: "8px 12px" }}
+						className="md-input w-full resize-none py-2 px-3 text-sm"
 						rows={3}
 					/>
 				</div>
@@ -387,8 +362,7 @@ export default function TypeSpecificFields({
 						value={options.complianceNotes || ""}
 						onChange={(e) => onFieldChange("complianceNotes", e.target.value)}
 						placeholder="Disclaimers or constraints to follow precisely."
-						className="md-input w-full resize-none text-sm"
-						style={{ padding: "8px 12px" }}
+						className="md-input w-full resize-none py-2 px-3 text-sm"
 						rows={3}
 					/>
 				</div>

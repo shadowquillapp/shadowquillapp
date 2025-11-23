@@ -76,14 +76,7 @@ export default function SaveAsDialog({
 
 				<form onSubmit={handleSubmit}>
 					<div className="modal-body">
-						{message && (
-							<p
-								className="mb-3 text-sm"
-								style={{ color: "var(--color-on-surface)" }}
-							>
-								{message}
-							</p>
-						)}
+						{message && <p className="mb-3 text-sm text-light">{message}</p>}
 						<div>
 							<label className="mb-2 block font-medium text-secondary text-xs">
 								Preset Name
@@ -94,23 +87,13 @@ export default function SaveAsDialog({
 								value={name}
 								onChange={(e) => setName(e.target.value)}
 								placeholder="Enter preset name"
-								className="md-input w-full text-sm"
-								style={{ padding: "10px 14px" }}
+								className="md-input w-full py-2.5 px-3.5 text-sm"
 								required
 							/>
 						</div>
 					</div>
 
-					<div
-						className="modal-body"
-						style={{
-							borderTop: "1px solid var(--color-outline)",
-							display: "flex",
-							justifyContent: "flex-end",
-							gap: "12px",
-							paddingTop: "12px",
-						}}
-					>
+					<div className="modal-body flex justify-end gap-3 border-t border-[var(--color-outline)] pt-3">
 						<button type="button" onClick={onCancel} className="md-btn">
 							Cancel
 						</button>
