@@ -25,6 +25,7 @@ export default function PresetLibrary({
 	style,
 }: PresetLibraryProps) {
 	const [searchQuery, setSearchQuery] = useState("");
+	const [showFilters, setShowFilters] = useState(false);
 	const [typeFilter, setTypeFilter] = useState<
 		| "all"
 		| "general"
@@ -58,56 +59,71 @@ export default function PresetLibrary({
 
 	return (
 		<section
-			className={className}
-			style={{ background: "var(--color-surface-variant)", ...style }}
+			className={`${className} bg-surface`}
+			style={style}
 			aria-label="Preset Library"
 		>
 			<div className="flex h-full flex-col">
-				{/* Sticky Header */}
-				<div
-					className="sticky top-0 z-10 px-4 py-3"
-					style={{
-						background: "var(--color-surface-variant)",
-						borderBottom: "1px solid var(--color-outline)",
-					}}
-				>
-					<div className="flex flex-col gap-3">
-						<div className="flex items-center justify-between">
-							<h2
-								className="font-semibold text-sm"
-								style={{ color: "var(--color-on-surface)" }}
-							>
-								Your Presets
+				{/* Fixed Header - Material Design Top App Bar style */}
+				<div className="z-10 flex flex-col gap-4 border-b border-[var(--color-outline)] bg-surface px-6 py-5">
+					{/* Title & Action */}
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<h2 className="font-semibold text-lg text-light tracking-tight">
+								Library
 							</h2>
-							<span
-								className="rounded-full px-2 py-0.5 text-xs"
-								style={{
-									background: "var(--color-surface)",
-									border: "1px solid var(--color-outline)",
-									color: "var(--color-on-surface-variant)",
-								}}
-							>
+							<span className="flex h-6 min-w-[24px] items-center justify-center rounded-full bg-surface-0 px-2 font-medium text-secondary text-xs">
 								{filteredPresets.length}
 							</span>
 						</div>
-						<div className="flex flex-col gap-2">
-							<div className="relative">
-								<input
-									type="search"
-									placeholder="Search presets..."
-									value={searchQuery}
-									onChange={(e) => setSearchQuery(e.target.value)}
-									className="md-input w-full px-3 py-1.5 pr-8 text-sm"
-									style={{ padding: "6px 12px", paddingRight: "32px" }}
-									aria-label="Search presets"
-								/>
-								<Icon
-									name="search"
-									className="-translate-y-1/2 absolute top-1/2 right-2.5 text-sm"
-									style={{ color: "var(--color-on-surface-variant)" }}
-								/>
-							</div>
-							<div className="grid grid-cols-2 gap-2">
+						{onCreateNew && (
+							<button
+								onClick={onCreateNew}
+								className="md-btn md-btn--primary flex h-9 items-center gap-2 rounded-full px-4 font-medium text-sm shadow-md hover:shadow-lg"
+								aria-label="Create new preset"
+							>
+								<Icon name="plus" className="text-xs" />
+								<span>New</span>
+							</button>
+						)}
+					</div>
+
+					{/* Search Bar - Material Filled Input style */}
+					<div className="relative">
+						<div className="relative flex items-center rounded-2xl bg-surface-0 transition-colors hover:bg-[var(--color-surface-variant)]">
+							<Icon
+								name="search"
+								className="absolute left-4 text-secondary text-sm"
+							/>
+							<input
+								type="search"
+								placeholder="Search presets..."
+								value={searchQuery}
+								onChange={(e) => setSearchQuery(e.target.value)}
+								className="h-11 w-full bg-transparent py-2 pl-11 pr-11 text-light text-sm placeholder:text-secondary/60 focus:outline-none"
+								aria-label="Search presets"
+							/>
+							<button
+								onClick={() => setShowFilters(!showFilters)}
+								className={`absolute right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl transition-colors ${
+									showFilters
+										? "bg-primary text-on-primary"
+										: "text-secondary hover:bg-[var(--color-outline)] hover:text-light"
+								}`}
+								title="Filter & Sort"
+							>
+								<Icon name="sliders" className="text-xs" />
+							</button>
+						</div>
+					</div>
+
+					{/* Expandable Filters Area */}
+					{showFilters && (
+						<div className="grid grid-cols-2 gap-3 animate-in slide-in-from-top-2 fade-in duration-200">
+							<div className="space-y-1">
+								<label className="ml-1 text-[10px] text-secondary uppercase tracking-wider font-semibold">
+									Type
+								</label>
 								<CustomSelect
 									value={typeFilter}
 									onChange={(v) => setTypeFilter(v as any)}
@@ -122,68 +138,38 @@ export default function PresetLibrary({
 										{ value: "marketing", label: "Marketing" },
 									]}
 								/>
+							</div>
+							<div className="space-y-1">
+								<label className="ml-1 text-[10px] text-secondary uppercase tracking-wider font-semibold">
+									Sort By
+								</label>
 								<CustomSelect
 									value={sortBy}
 									onChange={(v) => setSortBy(v as any)}
 									options={[
-										{ value: "name", label: "Sort: Name" },
-										{ value: "temperature", label: "Sort: Temperature" },
+										{ value: "name", label: "Name" },
+										{ value: "temperature", label: "Temp" },
 									]}
 								/>
 							</div>
 						</div>
-					</div>
+					)}
 				</div>
 
-				{/* Preset Cards Container */}
-				<div className="flex-1 overflow-y-auto px-2 pb-4">
+				{/* List Container */}
+				<div className="flex-1 overflow-y-auto p-4">
 					{filteredPresets.length === 0 ? (
-						<div className="flex h-full items-center justify-center">
-							<div className="text-center">
-								<Icon
-									name="folder-open"
-									className="mb-2 text-4xl"
-									style={{
-										color: "var(--color-on-surface-variant)",
-										opacity: 0.5,
-									}}
-								/>
-								<p className="text-secondary text-sm">
-									{searchQuery
-										? "No presets match your search"
-										: "No presets yet"}
-								</p>
-								{!searchQuery && onCreateNew && (
-									<p
-										className="mt-1 text-secondary text-xs"
-										style={{ opacity: 0.7 }}
-									>
-										Click "New Preset" to create your first preset
-									</p>
-								)}
-							</div>
+						<div className="flex h-full flex-col items-center justify-center p-6 text-center opacity-60">
+							<Icon name="folder-open" className="mb-3 text-4xl text-secondary" />
+							<p className="font-medium text-light text-sm">No presets found</p>
+							<p className="mt-1 text-secondary text-xs">
+								{searchQuery
+									? "Try adjusting your search"
+									: "Create your first preset"}
+							</p>
 						</div>
 					) : (
-						<div role="list" className="flex flex-col gap-2 py-2">
-							{onCreateNew && (
-								<button
-									onClick={onCreateNew}
-									className="relative flex min-h-[48px] w-full cursor-pointer items-center justify-center rounded-lg border p-2.5 transition-all hover:shadow-md"
-									style={{
-										borderColor: "var(--color-outline)",
-										background: "var(--color-surface)",
-									}}
-									aria-label="Create new preset"
-								>
-									<Icon name="plus" className="mr-2 text-base" />
-									<span
-										className="font-medium text-xs"
-										style={{ color: "var(--color-on-surface)" }}
-									>
-										New Preset
-									</span>
-								</button>
-							)}
+						<div role="list" className="space-y-3">
 							{filteredPresets.map((preset) => (
 								<PresetCard
 									key={preset.id || preset.name}
