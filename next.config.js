@@ -4,8 +4,6 @@
  */
 import "./src/env.js";
 
-const isElectron = Boolean(process.env.ELECTRON);
-
 /**
  * Minimal, stable Next config for both web and Electron builds.
  * We rely on the build script setting NEXT_DISABLE_FILE_TRACE=1 to avoid
@@ -13,7 +11,7 @@ const isElectron = Boolean(process.env.ELECTRON);
  * All custom webpack hacks were removed to eliminate schema / ESM issues.
  * @type {object}
  */
-// We attempted 'export' for Electron, but dynamic API routes (NextAuth) require a server.
+// We attempted 'export' for Electron, but dynamic API routes require a server.
 // So always build the normal server output. Standalone tracing is disabled via env (NEXT_DISABLE_FILE_TRACE=1)
 // to avoid EPERM on Windows junctions.
 const config = {
@@ -21,27 +19,6 @@ const config = {
 	basePath: process.env.NEXT_BASE_PATH || "",
 	typescript: { ignoreBuildErrors: true },
 	images: { unoptimized: true },
-	turbopack: {
-		rules: {
-			// Configure any specific rules for Turbopack here if needed
-		},
-	},
-	// Workaround: on some Windows build environments the native lightningcss binary
-	// fails to be present (Cannot find module '../lightningcss.win32-x64-msvc.node').
-	// We alias to the wasm fallback only on Windows to avoid performance hit elsewhere.
-	// Only apply webpack config when not using Turbopack
-	...(process.env.TURBOPACK ? {} : {
-		webpack: /** @param {any} cfg */ (cfg) => {
-			if (process.platform === 'win32') {
-				cfg.resolve = cfg.resolve || {};
-				cfg.resolve.alias = {
-					...(cfg.resolve.alias || {}),
-					lightningcss: 'lightningcss-wasm',
-				};
-			}
-			return cfg;
-		},
-	}),
 };
 
 export default config;
