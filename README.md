@@ -18,7 +18,7 @@ ShadowQuill is a desktop application for crafting high-quality AI prompts with c
 
 -   **100% Local & Private**: All processing happens on your machine via Ollama. Data is stored in your local user profile.
 -   **Specialized Prompt Building**: Dedicated modes for **Coding**, **Writing**, **Marketing**, **Research**, **Image**, and **Video** prompts.
--   **Gemma 3 Optimized**: Native support for Gemma 3 models (1B, 4B, 12B, 27B) with auto-detection.
+-   **Gemma 3 Optimized**: Native support for Gemma 3 models (4B, 12B, 27B) with auto-detection.
 -   **Preset Studio**: Create, manage, and share reusable prompt templates with granular configuration.
 -   **Modern UI**: Clean interface with multiple themes, syntax highlighting, and responsive design.
 
@@ -38,7 +38,6 @@ curl -fsSL https://ollama.ai/install.sh | sh
 ```bash
 ollama pull gemma3:4b   # Recommended balance
 # or
-ollama pull gemma3:1b   # Fastest
 ollama pull gemma3:12b  # High quality
 ollama pull gemma3:27b  # Max quality (requires high RAM)
 ```

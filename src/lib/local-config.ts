@@ -78,7 +78,7 @@ export async function listAvailableModels(
 		.filter((m: any) => !!m.name);
 	// Only allow the four supported Gemma 3 tags
 	// TODO: add more models to the list. Technically supported, but not tested.
-	const allowed = ["gemma3:1b", "gemma3:4b", "gemma3:12b", "gemma3:27b"];
+	const allowed = ["gemma3:4b", "gemma3:12b", "gemma3:27b"];
 	const allowedSet = new Set(allowed);
 	const filtered = mapped.filter((m) => allowedSet.has(m.name.toLowerCase()));
 	// Dedupe by name (Ollama tags list can contain duplicates)
@@ -89,7 +89,6 @@ export async function listAvailableModels(
 	}
 	// Stable order for dropdown
 	const order: Record<string, number> = {
-		"gemma3:1b": 0,
 		"gemma3:4b": 1,
 		"gemma3:12b": 2,
 		"gemma3:27b": 3,
