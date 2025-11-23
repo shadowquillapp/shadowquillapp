@@ -2228,74 +2228,74 @@ export default function ChatClient() {
 						</>
 					)}
 
-					{/* Recent chats pinned to bottom */}
-					<div style={{ marginTop: "auto" }}>
-						<div
-							className="text-secondary"
-							style={{ fontSize: 12, letterSpacing: 0.4, marginBottom: 8 }}
-						>
-							<b>RECENT CRAFT CHATS</b>
-						</div>
-						<div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-							{recentThree.map((c: any) => {
-								const isActive = currentChatId === c.id;
-								return (
-									<button
-										key={c.id}
-										type="button"
-										onClick={() => {
-											void selectChat(c.id);
-										}}
-										title={c.title ?? "Untitled"}
-										style={{
-											textAlign: "left",
-											background: "transparent",
-											border: isActive
-												? "2px solid var(--color-primary)"
-												: "1px solid var(--color-outline)",
-											borderRadius: 8,
-											padding: isActive ? "7px 11px" : "8px 12px",
-											cursor: "pointer",
-											color: isActive
-												? "var(--color-on-surface)"
-												: "var(--color-on-surface-variant)",
-											fontSize: 13,
-											fontWeight: isActive ? 600 : 500,
-											overflow: "hidden",
-											textOverflow: "ellipsis",
-											whiteSpace: "nowrap",
-											transition: "color 120ms ease, border 120ms ease",
-										}}
-									>
-										{`${c.title ?? "Untitled"} ...`}
-									</button>
-								);
-							})}
-							{recentThree.length === 0 && (
-								<div
-									className="text-secondary"
-									style={{ fontSize: 13, padding: "4px 0" }}
-								>
-									No chats yet
-								</div>
-							)}
-						</div>
-						<div
-							style={{
-								display: "flex",
-								justifyContent: "flex-start",
-								marginTop: 8,
-							}}
-						>
-							<button
-								className="md-btn md-btn--primary"
-								style={{ padding: "8px 12px", fontSize: 13, marginTop: 4 }}
-								onClick={() => setShowAllChatsOpen(true)}
-							>
-								Show All Chats
-							</button>
-						</div>
+				{/* Recent chats pinned to bottom */}
+				<div style={{ marginTop: "auto" }}>
+					<div
+						className="text-secondary"
+						style={{ fontSize: 10, letterSpacing: 0.3, marginBottom: 4 }}
+					>
+						<b>RECENT CHATS</b>
 					</div>
+					<div style={{ display: "flex", flexDirection: "column", gap: 3 }}>
+						{recentThree.map((c: any) => {
+							const isActive = currentChatId === c.id;
+							return (
+								<button
+									key={c.id}
+									type="button"
+									onClick={() => {
+										void selectChat(c.id);
+									}}
+									title={c.title ?? "Untitled"}
+									style={{
+										textAlign: "left",
+										background: "transparent",
+										border: isActive
+											? "2px solid var(--color-primary)"
+											: "1px solid var(--color-outline)",
+										borderRadius: 6,
+										padding: isActive ? "4px 8px" : "5px 8px",
+										cursor: "pointer",
+										color: isActive
+											? "var(--color-on-surface)"
+											: "var(--color-on-surface-variant)",
+										fontSize: 12,
+										fontWeight: isActive ? 600 : 500,
+										overflow: "hidden",
+										textOverflow: "ellipsis",
+										whiteSpace: "nowrap",
+										transition: "color 120ms ease, border 120ms ease",
+									}}
+								>
+									{`${c.title ?? "Untitled"} ...`}
+								</button>
+							);
+						})}
+						{recentThree.length === 0 && (
+							<div
+								className="text-secondary"
+								style={{ fontSize: 12, padding: "2px 0" }}
+							>
+								No chats yet
+							</div>
+						)}
+					</div>
+					<div
+						style={{
+							display: "flex",
+							justifyContent: "flex-start",
+							marginTop: 6,
+						}}
+					>
+						<button
+							className="md-btn md-btn--primary"
+							style={{ padding: "6px 10px", fontSize: 12 }}
+							onClick={() => setShowAllChatsOpen(true)}
+						>
+							Show All Chats
+						</button>
+					</div>
+				</div>
 				</aside>
 
 				{/* Main content */}
@@ -2828,13 +2828,13 @@ export default function ChatClient() {
 					<div className="modal-backdrop-blur" />
 					<div className="modal-content" onClick={(e) => e.stopPropagation()}>
 						<div className="modal-header">
-							<div className="modal-title">Craft Chat History</div>
+							<div className="modal-title">Chat History</div>
 							<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
 								<button
 									className="md-btn md-btn--destructive"
 									onClick={async () => {
 										const ok = await confirm({
-											title: "Craft Chat Deletion",
+											title: "Chat Deletion",
 											message:
 												"Delete ALL chats? This will permanently remove all chats.",
 											confirmText: "Confirm",
