@@ -22,6 +22,7 @@ export interface Chat {
 	title: string | null;
 	createdAt: Date;
 	updatedAt: Date;
+	versionGraph?: any;
 }
 
 export interface ChatMessage {

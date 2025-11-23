@@ -16,6 +16,7 @@ interface StoredChat {
 	title: string | null;
 	createdAt: number;
 	updatedAt: number;
+	versionGraph?: any;
 }
 
 const CHATS_KEY = "PC_CHATS";
@@ -106,8 +107,9 @@ export async function appendMessagesWithCap(
 	writeMessages(messagesMap);
 	// update chat timestamp
 	const chats = readChats();
-	if (chats[chatId]) {
-		chats[chatId].updatedAt = Date.now();
+	const chat = chats[chatId];
+	if (chat) {
+		chat.updatedAt = Date.now();
 		writeChats(chats);
 	}
 	return { created, deletedIds };
@@ -116,7 +118,7 @@ export async function appendMessagesWithCap(
 export async function getChat(
 	chatId: string,
 	limit = 50,
-): Promise<{ id: string; title: string | null; messages: ChatMessage[] }> {
+): Promise<{ id: string; title: string | null; messages: ChatMessage[]; versionGraph?: any }> {
 	const chats = readChats();
 	const c = chats[chatId];
 	const messages = Object.values(readMessages())
@@ -124,7 +126,20 @@ export async function getChat(
 		.sort((a, b) => a.createdAt - b.createdAt)
 		.slice(-limit)
 		.map((m) => ({ ...m, createdAt: new Date(m.createdAt) }));
-	return { id: chatId, title: c?.title ?? "Untitled", messages };
+	return { id: chatId, title: c?.title ?? "Untitled", messages, versionGraph: c?.versionGraph };
+}
+
+export async function updateChatVersionGraph(
+	chatId: string,
+	versionGraph: any,
+): Promise<void> {
+	const chats = readChats();
+	const chat = chats[chatId];
+	if (chat) {
+		chat.versionGraph = versionGraph;
+		chat.updatedAt = Date.now();
+		writeChats(chats);
+	}
 }
 
 export async function deleteChat(chatId: string): Promise<void> {
