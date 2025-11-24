@@ -10,6 +10,7 @@ const {
 	ipcMain,
 	Menu,
 } = require("electron");
+const si = require("systeminformation");
 const fs = require("node:fs");
 const http = require("node:http");
 /** @type {number|null} */
@@ -52,12 +53,40 @@ try {
 	try {
 		fs.mkdirSync(userDataDir, { recursive: true });
 	} catch (_) {
-		/* ignore */
+		/* rip */
 	}
 	app.setPath("appData", appDataRoot);
 	app.setPath("userData", userDataDir);
 	// Set userData path as env var for Logger to use
 	process.env.SHADOWQUILL_USER_DATA = userDataDir;
+
+	// Handle --factory-reset flag: Wipe data before app fully loads to avoid EBUSY locks
+	if (process.argv.includes("--factory-reset")) {
+		console.log("[Factory Reset] Clean start detected. Wiping user data...");
+		try {
+			// Synchronous delay to ensure previous instance locks are released
+			const end = Date.now() + 1500;
+			while (Date.now() < end) { /* busy wait */ }
+
+			if (fs.existsSync(userDataDir)) {
+				// Try rename-then-delete strategy
+				const trashPath = userDataDir + "-trash-" + Date.now();
+				try {
+					fs.renameSync(userDataDir, trashPath);
+					fs.rmSync(trashPath, { recursive: true, force: true });
+				} catch (e) {
+					// Fallback to direct delete if rename fails
+					console.warn("[Factory Reset] Rename failed, trying direct delete:", e.message);
+					fs.rmSync(userDataDir, { recursive: true, force: true });
+				}
+			}
+			console.log("[Factory Reset] Data wiped successfully. Shutting down.");
+		} catch (e) {
+			console.error("[Factory Reset] Wipe failed:", e);
+		}
+
+		app.exit(0);
+	}
 } catch (_) {
 	/* ignore */
 }
@@ -66,7 +95,12 @@ try {
 // because packaged builds often don't set NODE_ENV.
 const isDev = !app.isPackaged;
 
-// Attempt to detect Windows Mark-of-the-Web ADS (Zone.Identifier) and optionally remove
+// Suppress Electron security warnings in development (expected when using 'unsafe-eval' for Next.js HMR)
+// These warnings won't appear in production builds anyway, and suppressing them in dev keeps the console clean
+if (isDev) {
+	process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+}
+
 function checkAndOptionallyClearZoneIdentifier() {
 	const execPath = process.execPath;
 	if (process.platform !== "win32")
@@ -299,50 +333,22 @@ function registerDataIPCHandlers() {
 	// Factory reset: clear Chromium storage (localStorage, IndexedDB, etc)
 	ipcMain.handle("shadowquill:factoryReset", async () => {
 		try {
-			console.log("[Factory Reset] Starting factory reset...");
+			console.log("[Factory Reset] Triggered. Clearing session and restarting with cleanup flag...");
 			
-			// Clear all persistent storage for the default session (localStorage, IndexedDB, Cache, etc.)
+			// Clear all persistent storage for the default session
 			try {
-				await session.defaultSession.clearStorageData({});
+				await session.defaultSession.clearStorageData();
 				await session.defaultSession.clearCache();
-				console.log("[Factory Reset] Cleared session storage and cache");
 			} catch (e) {
-				console.warn("[Factory Reset] Error clearing session storage:", e);
+				console.warn("[Factory Reset] Soft clear warning:", e);
 			}
 
-			// Remove common subfolders inside userData that can hold remnants
-			try {
-				const userData = app.getPath("userData");
-				const maybeDirs = [
-					"IndexedDB",
-					"Local Storage",
-					"Service Worker",
-					"Cookies",
-					"GPUCache",
-					"Code Cache",
-					"Cache",
-				];
-				for (const name of maybeDirs) {
-					try {
-						const dirPath = path.join(userData, name);
-						if (fs.existsSync(dirPath)) {
-							fs.rmSync(dirPath, {
-								recursive: true,
-								force: true,
-							});
-							console.log(`[Factory Reset] Removed ${name}`);
-						}
-					} catch (e) {
-						console.warn(`[Factory Reset] Could not remove ${name}:`, e);
-					}
-				}
-			} catch (e) {
-				console.warn("[Factory Reset] Error removing directories:", e);
-			}
-
-			// Wait a bit to ensure all operations complete
-			await new Promise(resolve => setTimeout(resolve, 500));
-			console.log("[Factory Reset] Complete");
+			// Relaunch the app with a flag to perform file deletion on startup
+			// This avoids EBUSY errors because the new process handles deletion 
+			// before locking any files.
+			const args = process.argv.slice(1).concat(["--factory-reset"]);
+			app.relaunch({ args });
+			app.exit(0);
 
 			return { ok: true };
 		} catch (e) {
@@ -373,9 +379,100 @@ ipcMain.handle("shadowquill:window:close", () => {
 	app.quit();
 });
 
+// Display / View controls
+ipcMain.handle("shadowquill:view:getZoomFactor", (e) => {
+	try {
+		const w = BrowserWindow.fromWebContents(e.sender);
+		if (!w) return 1;
+		return w.webContents.getZoomFactor();
+	} catch (_) {
+		return 1;
+	}
+});
+ipcMain.handle("shadowquill:view:setZoomFactor", (e, factor) => {
+	try {
+		const w = BrowserWindow.fromWebContents(e.sender);
+		if (!w) return { ok: false, error: "No window" };
+		let f = Number(factor);
+		if (!Number.isFinite(f)) f = 1;
+		// Clamp to a sensible range
+		f = Math.max(0.5, Math.min(3, f));
+		w.webContents.setZoomFactor(f);
+		return { ok: true, zoomFactor: f };
+	} catch (err) {
+		return { ok: false, error: err?.message || "Failed to set zoom" };
+	}
+});
+ipcMain.handle("shadowquill:view:resetZoom", (e) => {
+	try {
+		const w = BrowserWindow.fromWebContents(e.sender);
+		if (!w) return { ok: false, error: "No window" };
+		w.webContents.setZoomFactor(1);
+		return { ok: true, zoomFactor: 1 };
+	} catch (err) {
+		return { ok: false, error: err?.message || "Failed to reset zoom" };
+	}
+});
+ipcMain.handle("shadowquill:window:getSize", (e) => {
+	try {
+		const w = BrowserWindow.fromWebContents(e.sender);
+		if (!w) return { ok: false, error: "No window" };
+		const windowSize = w.getSize();
+		const contentSize = w.getContentSize();
+		return {
+			ok: true,
+			windowSize, // [width, height]
+			contentSize, // [width, height]
+			isMaximized: w.isMaximized(),
+			isFullScreen: w.isFullScreen(),
+		};
+	} catch (err) {
+		return { ok: false, error: err?.message || "Failed to get size" };
+	}
+});
+
 // Expose platform information for UI customization
 ipcMain.handle("shadowquill:getPlatform", () => {
 	return process.platform;
+});
+
+ipcMain.handle("shadowquill:getSystemSpecs", async () => {
+	try {
+		const [cpu, mem, graphics] = await Promise.all([
+			si.cpu(),
+			si.mem(),
+			si.graphics(),
+		]);
+
+		let cpuBrand = cpu.brand;
+		// Clean up CPU string
+		cpuBrand = cpuBrand
+			.replace(/Gen\s+/i, "")
+			.replace(/Intel\s+/i, "")
+			.replace(/AMD\s+/i, "")
+			.replace(/Core\s+/i, "")
+			.replace(/\(R\)/g, "")
+			.replace(/\(TM\)/g, "")
+			.trim();
+
+		let gpuModel = graphics.controllers[0]?.model || "Unknown GPU";
+		// Clean up GPU string
+		gpuModel = gpuModel
+			.replace(/NVIDIA\s+/i, "")
+			.replace(/GeForce\s+/i, "")
+			.replace(/AMD\s+/i, "")
+			.replace(/Radeon\s+/i, "")
+			.trim();
+
+		return {
+			cpu: cpuBrand,
+			ram: mem.total,
+			gpu: gpuModel,
+		};
+	} catch (e) {
+		console.error("Failed to fetch system specs:", e);
+		return { cpu: "Unknown", ram: 0, gpu: "Unknown" };
+	}
 });
 
 function createWindow() {
@@ -405,7 +502,7 @@ function createWindow() {
 		}
 	});
 
-	// Simple fix: Override console after page loads to filter autofill errors
+	// Filter console messages to suppress harmless autofill errors
 	win.webContents.once("did-finish-load", () => {
 		win.webContents.executeJavaScript(`
       (function() {
@@ -636,10 +733,14 @@ app.whenReady().then(async () => {
 		console.warn("[Electron] Failed to set custom menu:", e);
 	}
 
-	// Secure CSP configuration for both dev and production
+	// Secure CSP configuration - only allow 'unsafe-eval' in development (required for Next.js HMR)
+	// In production, we use a stricter policy without 'unsafe-eval'
+	const scriptSrc = isDev
+		? "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* https://localhost:*"
+		: "script-src 'self' 'unsafe-inline' http://localhost:* https://localhost:*";
 	const cspPolicy = [
 		"default-src 'self'",
-		"script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:* https://localhost:*",
+		scriptSrc,
 		"style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
 		"font-src 'self' https://fonts.gstatic.com",
 		"img-src 'self' data: blob: https: http:",

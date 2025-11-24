@@ -10,11 +10,20 @@ contextBridge.exposeInMainWorld("shadowquill", {
 		ipcRenderer.invoke("shadowquill:checkOllamaInstalled"),
 	openOllama: () => ipcRenderer.invoke("shadowquill:openOllama"),
 	getPlatform: () => ipcRenderer.invoke("shadowquill:getPlatform"),
+	getSystemSpecs: () => ipcRenderer.invoke("shadowquill:getSystemSpecs"),
 	window: {
 		minimize: () => ipcRenderer.invoke("shadowquill:window:minimize"),
 		maximizeToggle: () =>
 			ipcRenderer.invoke("shadowquill:window:maximizeToggle"),
 		close: () => ipcRenderer.invoke("shadowquill:window:close"),
+		getSize: () => ipcRenderer.invoke("shadowquill:window:getSize"),
+	},
+	view: {
+		getZoomFactor: () =>
+			ipcRenderer.invoke("shadowquill:view:getZoomFactor"),
+		setZoomFactor: (factor) =>
+			ipcRenderer.invoke("shadowquill:view:setZoomFactor", factor),
+		resetZoom: () => ipcRenderer.invoke("shadowquill:view:resetZoom"),
 	},
 });
 

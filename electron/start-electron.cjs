@@ -110,9 +110,24 @@ function cleanup() {
 		const electronCmd =
 			typeof electronModule === "string" ? electronModule : "electron";
 		const proc = spawn(electronCmd, [path.join(__dirname, "main.cjs")], {
-			stdio: "inherit",
+			stdio: ["inherit", "inherit", "pipe"],
 			env: { ...process.env, ELECTRON: "1", NEXT_PUBLIC_ELECTRON: "1" },
 		});
+
+		// Filter out harmless DevTools/Electron noise from stderr
+		if (proc.stderr) {
+			proc.stderr.on("data", (data) => {
+				const str = data.toString();
+				if (
+					str.includes("Request Autofill.enable failed") ||
+					str.includes("Request Autofill.setAddresses failed") ||
+					str.includes("Refused to apply style from 'devtools://")
+				) {
+					return;
+				}
+				process.stderr.write(data);
+			});
+		}
 		
 		// Clean up when Electron exits
 		proc.on("exit", (code) => {

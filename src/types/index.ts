@@ -16,7 +16,7 @@ export interface PromptPreset {
 	updatedAt: Date;
 }
 
-export interface Chat {
+export interface PromptProject {
 	id: string;
 	userId: string;
 	title: string | null;
@@ -25,10 +25,35 @@ export interface Chat {
 	versionGraph?: any;
 }
 
-export interface ChatMessage {
+export interface TestMessage {
 	id: string;
-	chatId: string;
+	projectId: string;
 	role: "user" | "assistant";
 	content: string;
 	createdAt: Date;
+}
+
+export interface SystemSpecs {
+	cpu: string;
+	ram: number;
+	gpu: string;
+}
+
+declare global {
+	interface Window {
+		shadowquill?: {
+			getPlatform?: () => Promise<string>;
+			getSystemSpecs?: () => Promise<SystemSpecs>;
+			window?: {
+				minimize?: () => Promise<void>;
+				maximizeToggle?: () => Promise<void>;
+				close?: () => Promise<void>;
+			};
+			checkOllamaInstalled?: () => Promise<{ installed: boolean }>;
+			openOllama?: () => Promise<{ ok: boolean; error?: string }>;
+			getDataPaths?: () => Promise<any>;
+			factoryReset?: () => Promise<any>;
+			restartApp?: () => Promise<any>;
+		};
+	}
 }
