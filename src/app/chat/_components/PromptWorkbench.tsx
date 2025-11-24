@@ -88,10 +88,6 @@ export default function PromptWorkbench() {
 	const [settingsInitialTab, setSettingsInitialTab] = useState<
 		"system" | "ollama" | "data" | "display"
 	>("ollama");
-	const [controlsPosition, setControlsPosition] = useState({ x: 0, y: 0 });
-	const [isDragging, setIsDragging] = useState(false);
-	const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-	const controlsRef = useRef<HTMLDivElement | null>(null);
 	const textareaContainerRef = useRef<HTMLDivElement | null>(null);
 	const [taskType, setTaskType] = useState<TaskType>("general");
 	const [tone, setTone] = useState<Tone>("neutral");
@@ -210,69 +206,6 @@ export default function PromptWorkbench() {
 	}, []);
 
 	// Drag handlers for controls
-	const handleMouseDown = useCallback((e: React.MouseEvent) => {
-		// Don't start dragging if clicking on a button or interactive element
-		const target = e.target as HTMLElement;
-		if (target.tagName === 'BUTTON' || target.closest('button')) return;
-		
-		if (!controlsRef.current || !textareaContainerRef.current) return;
-		
-		// If this is the first drag (position is still 0,0), calculate the actual position from left/bottom
-		let currentX = controlsPosition.x;
-		let currentY = controlsPosition.y;
-		
-		if (currentX === 0 && currentY === 0) {
-			const containerRect = textareaContainerRef.current.getBoundingClientRect();
-			const controlsRect = controlsRef.current.getBoundingClientRect();
-			
-			// Calculate position from left/bottom (16px from edges) to left/top
-			currentX = 16;
-			currentY = containerRect.height - controlsRect.height - 16;
-			
-			setControlsPosition({ x: currentX, y: currentY });
-		}
-		
-		setIsDragging(true);
-		setDragStart({
-			x: e.clientX - currentX,
-			y: e.clientY - currentY,
-		});
-	}, [controlsPosition]);
-
-	const handleMouseMove = useCallback((e: MouseEvent) => {
-		if (!isDragging || !controlsRef.current || !textareaContainerRef.current) return;
-		
-		const containerRect = textareaContainerRef.current.getBoundingClientRect();
-		const controlsRect = controlsRef.current.getBoundingClientRect();
-		
-		let newX = e.clientX - dragStart.x;
-		let newY = e.clientY - dragStart.y;
-		
-		// Constrain to container bounds
-		const maxX = containerRect.width - controlsRect.width - 16; // 16px padding
-		const maxY = containerRect.height - controlsRect.height - 16;
-		
-		newX = Math.max(16, Math.min(newX, maxX));
-		newY = Math.max(16, Math.min(newY, maxY));
-		
-		setControlsPosition({ x: newX, y: newY });
-	}, [isDragging, dragStart]);
-
-	const handleMouseUp = useCallback(() => {
-		setIsDragging(false);
-	}, []);
-
-	useEffect(() => {
-		if (isDragging) {
-			document.addEventListener('mousemove', handleMouseMove);
-			document.addEventListener('mouseup', handleMouseUp);
-			return () => {
-				document.removeEventListener('mousemove', handleMouseMove);
-				document.removeEventListener('mouseup', handleMouseUp);
-			};
-		}
-		return undefined;
-	}, [isDragging, handleMouseMove, handleMouseUp]);
 
 	const modelIds = useMemo(
 		() => ["gemma3:4b", "gemma3:12b", "gemma3:27b"],
@@ -1026,6 +959,7 @@ export default function PromptWorkbench() {
 							maxTabs={tabManager.maxTabs}
 							onSwitchTab={tabManager.switchTab}
 							onCloseTab={tabManager.closeTab}
+							onReorderTabs={tabManager.reorderTabs}
 							onNewTab={() => {
 								setShowPresetPicker(true);
 								setPresetPickerForNewTab(true);
@@ -1148,155 +1082,132 @@ export default function PromptWorkbench() {
 									disabled={!activeTab}
 								/>
 
-								{/* Floating Footer Controls - Draggable */}
-								<div 
-									ref={controlsRef}
-									onMouseDown={handleMouseDown}
-									className="absolute flex items-center gap-2 md:gap-4 z-10 rounded-2xl border backdrop-blur-sm p-2 md:p-3 select-none"
-									title="Drag to reposition"
-									aria-label="Floating controls. Drag to reposition."
+							{/* Model Selector - Bottom Left */}
+							<div 
+								className="absolute z-10"
 								style={{
-									borderColor: "var(--color-outline)",
-									background: "color-mix(in srgb, var(--color-surface-variant) 30%, transparent)",
-									left: controlsPosition.x === 0 ? '20px' : `${controlsPosition.x}px`,
-									bottom: controlsPosition.y === 0 ? '20px' : 'auto',
-									top: controlsPosition.y !== 0 ? `${controlsPosition.y}px` : 'auto',
-									cursor: isDragging ? 'grabbing' : 'grab',
+									left: '20px',
+									bottom: '20px',
 								}}
+							>
+								{/* Vertical Slider Model Selector */}
+								<div
+									className="relative"
+									style={{
+										width: "min(64px, 12.75vw)",
+										height: "min(64px, 12.75vw)",
+										minWidth: "43px",
+										minHeight: "43px",
+									}}
 								>
-									{/* Vertical Slider Model Selector (same footprint as old dial) */}
+									{/* Slider container */}
 									<div
-										className="relative ml-1 md:ml-3"
+										className="absolute inset-0 rounded-[14px] border overflow-hidden"
 										style={{
-											width: "min(64px, 12.75vw)",
-											height: "min(64px, 12.75vw)",
-											minWidth: "43px",
-											minHeight: "43px",
+											borderColor: "var(--color-outline)",
+											background: "var(--color-surface)",
+											padding: "6px",
 										}}
 									>
-										{/* Slider container */}
-										<div
-											ref={(el) => {
-												// Lazy init container ref without changing existing refs
-												// We attach to a property on controlsRef to avoid new top-level refs.
-												(controlsRef as any)._modelSlider = el;
-											}}
-											className="absolute inset-0 rounded-[14px] border overflow-hidden"
-											style={{
-												borderColor: "var(--color-outline)",
-												background: "var(--color-surface)",
-												padding: "6px",
-											}}
-										>
-											{/* Stops */}
-											<div className="flex flex-col justify-between items-stretch h-full relative z-[1]">
-												{[
-													{ label: "4B", id: "gemma3:4b" },
-													{ label: "12B", id: "gemma3:12b" },
-													{ label: "27B", id: "gemma3:27b" },
-												].map((model, idx) => {
-													const isInstalled = availableModels.some((m) => m.name === model.id);
-													const isActive = currentModelId === model.id;
-													return (
-														<button
-															key={model.id}
-															type="button"
-															disabled={!isInstalled}
-															onClick={() => {
-																if (!isInstalled) return;
-																writeLocalModelConfigClient({
-																	provider: "ollama",
-																	baseUrl: "http://localhost:11434",
-																	model: model.id,
-																} as any);
-																setCurrentModelId(model.id);
-																setModelLabel(`Gemma 3 ${model.label}`);
-																try {
-																	window.dispatchEvent(
-																		new CustomEvent("sq-model-changed", {
-																			detail: { modelId: model.id },
-																		}) as any,
-																	);
-																} catch {}
-															}}
-															className={`w-full h-[18px] flex items-center justify-center text-[11px] font-bold rounded-[10px] transition-colors ${
-																!isInstalled ? "opacity-40 cursor-not-allowed" : ""
-															}`}
-															title={
-																isInstalled
-																	? `Switch to Gemma 3 ${model.label}`
-																	: `Gemma 3 ${model.label} is not installed`
-															}
-															aria-pressed={isActive}
-															style={{
-																lineHeight: 1,
-																color: "var(--color-on-surface)",
-																background: isActive
-																	? "color-mix(in srgb, var(--color-primary), var(--color-surface) 72%)"
-																	: "transparent",
-																border: isActive
-																	? "1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 55%)"
-																	: "1px solid transparent",
-															}}
-														>
-															{model.label}
-														</button>
-													);
-												})}
-											</div>
-										</div>
-										{/* Under-label */}
-										<div
-											className="absolute left-0 right-0 text-center select-none pointer-events-none"
-											style={{
-												bottom: "-22px",
-												fontSize: "8px",
-												fontWeight: "bold",
-												color: "var(--color-on-surface-variant)",
-												letterSpacing: "0.2px",
-											}}
-										>
-											Gemma 3
+										{/* Stops */}
+										<div className="flex flex-col justify-between items-stretch h-full relative z-[1]">
+											{[
+												{ label: "4B", id: "gemma3:4b" },
+												{ label: "12B", id: "gemma3:12b" },
+												{ label: "27B", id: "gemma3:27b" },
+											].map((model, idx) => {
+												const isInstalled = availableModels.some((m) => m.name === model.id);
+												const isActive = currentModelId === model.id;
+												return (
+													<button
+														key={model.id}
+														type="button"
+														disabled={!isInstalled}
+														onClick={() => {
+															if (!isInstalled) return;
+															writeLocalModelConfigClient({
+																provider: "ollama",
+																baseUrl: "http://localhost:11434",
+																model: model.id,
+															} as any);
+															setCurrentModelId(model.id);
+															setModelLabel(`Gemma 3 ${model.label}`);
+															try {
+																window.dispatchEvent(
+																	new CustomEvent("sq-model-changed", {
+																		detail: { modelId: model.id },
+																	}) as any,
+																);
+															} catch {}
+														}}
+														className={`w-full h-[18px] flex items-center justify-center text-[11px] font-bold rounded-[10px] transition-colors ${
+															!isInstalled ? "opacity-40 cursor-not-allowed" : ""
+														}`}
+														title={
+															isInstalled
+																? `Switch to Gemma 3 ${model.label}`
+																: `Gemma 3 ${model.label} is not installed`
+														}
+														aria-pressed={isActive}
+														style={{
+															lineHeight: 1,
+															color: "var(--color-on-surface)",
+															background: isActive
+																? "color-mix(in srgb, var(--color-primary), var(--color-surface) 72%)"
+																: "transparent",
+															border: isActive
+																? "1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 55%)"
+																: "1px solid transparent",
+														}}
+													>
+														{model.label}
+													</button>
+												);
+											})}
 										</div>
 									</div>
-
-								<button
-									type="button"
-									onClick={() => (activeTab?.sending ? stopGenerating() : void send())}
-									disabled={!activeTab || !activeTab.draft.trim()}
-									className={`group relative flex ml-2 md:ml-5 mt-2 md:mt-3 mb-2 md:mb-3 mr-2 md:mr-3 items-center justify-center rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden ${
-										activeTab?.sending
-											? "text-on-attention"
-											: "text-on-primary"
-									}`}
-									style={{ 
-										width: 'min(64px, 12.75vw)', 
-										height: 'min(64px, 12.75vw)',
-										minWidth: '43px',
-										minHeight: '43px',
-										border: '1px solid var(--color-outline)',
-										background: activeTab?.sending ? "var(--color-attention)" : "var(--color-primary)",
-									}}
-									title={activeTab?.sending ? "Stop Generation" : "Run Prompt"}
-								>
-									{/* Subtle shimmer effect */}
-									<div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out pointer-events-none rounded-full" />
-
-								{activeTab?.sending ? (
-									<Icon 
-										name="stop" 
-										className="relative z-10" 
-										style={{ width: '28px', height: '28px', fontSize: '28px' }}
-									/>
-								) : (
-									<Icon
-										name="chevron-right"
-										className="relative z-10 transition-transform group-hover:translate-x-0.5"
-										style={{ width: '28px', height: '28px', fontSize: '28px' }}
-									/>
-								)}
-								</button>
 								</div>
+							</div>
+
+							{/* Run Button - Bottom Right */}
+							<button
+								type="button"
+								onClick={() => (activeTab?.sending ? stopGenerating() : void send())}
+								disabled={!activeTab || !activeTab.draft.trim()}
+								className={`group absolute z-10 rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden flex items-center justify-center ${
+									activeTab?.sending
+										? "text-on-attention"
+										: "text-on-primary"
+								}`}
+								style={{ 
+									width: 'min(48px, 10vw)', 
+									height: 'min(48px, 10vw)',
+									minWidth: '36px',
+									minHeight: '36px',
+									right: '20px',
+									bottom: '20px',
+									border: '1px solid var(--color-outline)',
+									background: activeTab?.sending ? "var(--color-attention)" : "var(--color-primary)",
+								}}
+								title={activeTab?.sending ? "Stop Generation" : "Run Prompt"}
+							>
+								{/* Subtle shimmer effect */}
+								<div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out pointer-events-none rounded-full" />
+
+							{activeTab?.sending ? (
+								<Icon 
+									name="stop" 
+									className="relative z-10" 
+									style={{ width: '22px', height: '22px', fontSize: '22px' }}
+								/>
+							) : (
+								<Icon
+									name="chevron-right"
+									className="relative z-10 transition-transform group-hover:translate-x-0.5"
+									style={{ width: '22px', height: '22px', fontSize: '22px' }}
+								/>
+							)}
+							</button>
 							</div>
 						</div>
 
