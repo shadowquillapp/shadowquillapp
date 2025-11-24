@@ -1,6 +1,7 @@
 /** @jsxImportSource react */
 "use client";
 import React from "react";
+import { Icon, type IconName } from "../Icon";
 
 export default function DisplayContent() {
 	const [available, setAvailable] = React.useState(false);
@@ -17,6 +18,9 @@ export default function DisplayContent() {
 		isMaximized?: boolean;
 		isFullScreen?: boolean;
 	} | null>(null);
+	const [currentTheme, setCurrentTheme] = React.useState<
+		"earth" | "purpledark" | "dark" | "light"
+	>("earth");
 
 	React.useEffect(() => {
 		const api = (window as any).shadowquill;
@@ -26,6 +30,29 @@ export default function DisplayContent() {
 			w: window.innerWidth,
 			h: window.innerHeight,
 		});
+
+		// Load saved theme
+		let savedTheme = localStorage.getItem("theme-preference") as
+			| "earth"
+			| "purpledark"
+			| "dark"
+			| "light"
+			| "default"
+			| null;
+		// Migrate old 'default' theme to 'purpledark'
+		if (savedTheme === "default") {
+			savedTheme = "purpledark";
+			localStorage.setItem("theme-preference", "purpledark");
+		}
+		if (
+			savedTheme &&
+			(savedTheme === "earth" ||
+				savedTheme === "purpledark" ||
+				savedTheme === "dark" ||
+				savedTheme === "light")
+		) {
+			setCurrentTheme(savedTheme);
+		}
 
 		const init = async () => {
 			if (!hasApi) return;
@@ -81,51 +108,100 @@ export default function DisplayContent() {
 		void applyZoom(1);
 	};
 
+	const handleThemeChange = (theme: "earth" | "purpledark" | "dark" | "light") => {
+		setCurrentTheme(theme);
+		document.documentElement.setAttribute(
+			"data-theme",
+			theme === "earth" ? "" : theme,
+		);
+		localStorage.setItem("theme-preference", theme);
+	};
+
 	const percent = Math.round(zoomFactor * 100);
+
+	const themeOptions = [
+		{ value: "earth" as const, label: "Default", icon: "sun" },
+		{ value: "purpledark" as const, label: "Dark Purple", icon: "moon" },
+		{ value: "dark" as const, label: "Dark", icon: "moon" },
+		{ value: "light" as const, label: "Light", icon: "sun" },
+	];
+
+	const [showStats, setShowStats] = React.useState(false);
 
 	return (
 		<div className="ollama-setup">
 			<section className="ollama-panel">
 				<header className="ollama-panel__head">
 					<div>
-						<p className="ollama-panel__eyebrow">Display & Zoom</p>
+						<p className="ollama-panel__eyebrow">Display & Theme</p>
 						<h3>Display</h3>
-						<p className="ollama-panel__subtitle">
-							Adjust the interface zoom level and view window size details.
-						</p>
 					</div>
-					<span className="ollama-status-chip ollama-status-chip--idle">
-						{available ? `${percent}%` : "Unavailable"}
-					</span>
 				</header>
 
-				<div className="ollama-panel__body">
+				<div className="ollama-panel__body" style={{ paddingTop: "16px" }}>
 					{!available && (
-						<div className="ollama-error-banner" role="alert">
+						<div className="ollama-error-banner" role="alert" style={{ marginBottom: "16px" }}>
 							Not available outside the desktop app.
 						</div>
 					)}
 					{error && (
-						<div className="ollama-error-banner" role="alert">
+						<div className="ollama-error-banner" role="alert" style={{ marginBottom: "16px" }}>
 							{error}
 						</div>
 					)}
 
-					<div className="ollama-field">
-						<label className="ollama-label">
-							Zoom
-							<span>Scale the UI to your preference (50% - 200%)</span>
+					{/* Theme Selection - More Compact */}
+					<div className="ollama-field" style={{ marginBottom: "20px" }}>
+						<label className="ollama-label" style={{ marginBottom: "8px" }}>
+							Theme
 						</label>
-						<div
-							className="flex items-center gap-3"
-							style={{ alignItems: "center" }}
-						>
+						<div className="grid grid-cols-4 gap-2">
+							{themeOptions.map((option) => (
+								<button
+									key={option.value}
+									type="button"
+									onClick={() => handleThemeChange(option.value)}
+									className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all ${
+										currentTheme === option.value
+											? "border-primary bg-primary/10"
+											: "border-[var(--color-outline)] bg-[var(--color-surface-variant)] hover:border-primary/50"
+									}`}
+									aria-label={`Select ${option.label} theme`}
+									title={option.label}
+								>
+									<Icon 
+										name={option.icon as any} 
+										className={`w-5 h-5 ${
+											currentTheme === option.value
+												? "text-primary"
+												: "text-on-surface-variant"
+										}`}
+									/>
+									<span className={`text-xs font-medium ${
+										currentTheme === option.value
+											? "text-primary"
+											: "text-on-surface"
+									}`}>
+										{option.label}
+									</span>
+								</button>
+							))}
+						</div>
+					</div>
+
+					{/* Zoom Controls - More Compact */}
+					<div className="ollama-field" style={{ marginBottom: "20px" }}>
+						<label className="ollama-label" style={{ marginBottom: "8px" }}>
+							Zoom
+						</label>
+						<div className="flex items-center gap-2">
 							<button
 								className="md-btn"
 								onClick={() => changeBy(-10)}
 								disabled={!available}
 								aria-label="Zoom out"
 								title="Zoom out"
+								style={{ minWidth: "36px", padding: "6px 8px" }}
 							>
 								−
 							</button>
@@ -150,91 +226,115 @@ export default function DisplayContent() {
 								disabled={!available}
 								aria-label="Zoom in"
 								title="Zoom in"
+								style={{ minWidth: "36px", padding: "6px 8px" }}
 							>
 								+
 							</button>
+							<div
+								className="md-input"
+								style={{
+									minWidth: "60px",
+									textAlign: "center",
+									fontFamily: "var(--font-mono, monospace)",
+									padding: "6px 10px",
+									fontSize: "13px",
+								}}
+								aria-live="polite"
+							>
+								{percent}%
+							</div>
 							<button
 								className="md-btn"
 								onClick={resetZoom}
 								disabled={!available || percent === 100}
 								aria-label="Reset zoom"
 								title="Reset to 100%"
+								style={{ padding: "6px 12px", fontSize: "12px" }}
 							>
 								Reset
 							</button>
-							<div
-								className="md-input"
-								style={{
-									width: 72,
-									textAlign: "center",
-									fontFamily: "var(--font-mono, monospace)",
-								}}
-								aria-live="polite"
-							>
-								{percent}%
-							</div>
 						</div>
 					</div>
 
-					<div className="ollama-field">
-						<label className="ollama-label">
-							Display Stats
-							<span>Current sizes in pixels</span>
-						</label>
-						<div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-							<div className="md-input" style={{ padding: "10px 12px" }}>
-								<div className="text-xs text-on-surface-variant">Content Area</div>
-								<div
-									className="text-sm font-mono"
-									style={{ fontFamily: "var(--font-mono, monospace)" }}
-								>
-									{contentSize.w} × {contentSize.h} px
+					{/* Display Stats - Collapsible and Compact */}
+					<div className="ollama-field" style={{ marginBottom: "0" }}>
+						<button
+							type="button"
+							onClick={() => setShowStats(!showStats)}
+							className="flex items-center justify-between w-full p-2 rounded hover:bg-[var(--color-surface-variant)] transition-colors"
+							style={{ 
+								background: "transparent",
+								border: "none",
+								cursor: "pointer",
+								marginBottom: showStats ? "8px" : "0",
+							}}
+						>
+							<label className="ollama-label" style={{ marginBottom: "0", cursor: "pointer" }}>
+								Display Stats
+							</label>
+							<Icon 
+								name={(showStats ? "chevron-up" : "chevron-down") as IconName} 
+								className="w-4 h-4 text-on-surface-variant"
+							/>
+						</button>
+						{showStats && (
+							<div className="grid grid-cols-2 gap-2 mt-2">
+								<div className="md-input" style={{ padding: "8px 10px" }}>
+									<div className="text-xs text-on-surface-variant mb-1">Content Area</div>
+									<div
+										className="text-xs font-mono"
+										style={{ fontFamily: "var(--font-mono, monospace)" }}
+									>
+										{contentSize.w} × {contentSize.h} px
+									</div>
+								</div>
+								<div className="md-input" style={{ padding: "8px 10px" }}>
+									<div className="text-xs text-on-surface-variant mb-1">OS Window</div>
+									<div
+										className="text-xs font-mono"
+										style={{ fontFamily: "var(--font-mono, monospace)" }}
+									>
+										{windowInfo?.windowSize
+											? `${windowInfo.windowSize[0]} × ${windowInfo.windowSize[1]} px`
+											: "—"}
+									</div>
+								</div>
+								<div className="md-input" style={{ padding: "8px 10px" }}>
+									<div className="text-xs text-on-surface-variant mb-1">Chromium Content</div>
+									<div
+										className="text-xs font-mono"
+										style={{ fontFamily: "var(--font-mono, monospace)" }}
+									>
+										{windowInfo?.contentSize
+											? `${windowInfo.contentSize[0]} × ${windowInfo.contentSize[1]} px`
+											: "—"}
+									</div>
+								</div>
+								<div className="md-input" style={{ padding: "8px 10px" }}>
+									<div className="text-xs text-on-surface-variant mb-1">State</div>
+									<div className="text-xs font-mono">
+										{windowInfo?.isFullScreen
+											? "Fullscreen"
+											: windowInfo?.isMaximized
+											? "Maximized"
+											: "Windowed"}
+									</div>
 								</div>
 							</div>
-							<div className="md-input" style={{ padding: "10px 12px" }}>
-								<div className="text-xs text-on-surface-variant">OS Window</div>
-								<div
-									className="text-sm font-mono"
-									style={{ fontFamily: "var(--font-mono, monospace)" }}
-								>
-									{windowInfo?.windowSize
-										? `${windowInfo.windowSize[0]} × ${windowInfo.windowSize[1]} px`
-										: "—"}
-								</div>
-							</div>
-							<div className="md-input" style={{ padding: "10px 12px" }}>
-								<div className="text-xs text-on-surface-variant">Chromium Content</div>
-								<div
-									className="text-sm font-mono"
-									style={{ fontFamily: "var(--font-mono, monospace)" }}
-								>
-									{windowInfo?.contentSize
-										? `${windowInfo.contentSize[0]} × ${windowInfo.contentSize[1]} px`
-										: "—"}
-								</div>
-							</div>
-							<div className="md-input" style={{ padding: "10px 12px" }}>
-								<div className="text-xs text-on-surface-variant">State</div>
-								<div className="text-sm font-mono">
-									{windowInfo?.isFullScreen
-										? "Fullscreen"
-										: windowInfo?.isMaximized
-										? "Maximized"
-										: "Windowed"}
-								</div>
-							</div>
-						</div>
+						)}
 					</div>
 				</div>
 			</section>
 
 			<aside className="ollama-guide">
 				<div className="ollama-guide-card">
-					<p className="ollama-panel__eyebrow">About Zoom</p>
+					<p className="ollama-panel__eyebrow">About Theme</p>
 					<ul>
-						<li>Applies to the entire app UI</li>
-						<li>Range 50% to 200% (default 100%)</li>
-						<li>Use Reset to quickly return to 100%</li>
+						<li>Choose from 4 color schemes</li>
+						<li>Default (Earth) - warm, natural colors</li>
+						<li>Dark Purple - rich purple dark theme</li>
+						<li>Dark - pure dark theme</li>
+						<li>Light - bright light theme</li>
 					</ul>
 				</div>
 			</aside>
