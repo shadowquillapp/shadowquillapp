@@ -43,8 +43,8 @@ export function SavedSessionsModal({
 
 	const handleDeleteAll = async () => {
 		const ok = await confirm({
-			title: "Delete All Sessions",
-			message: "Delete ALL saved sessions? This cannot be undone.",
+			title: "Delete All Projects",
+			message: "Delete ALL saved projects? This cannot be undone.",
 			confirmText: "Delete All",
 			cancelText: "Cancel",
 			tone: "destructive",
@@ -56,8 +56,8 @@ export function SavedSessionsModal({
 	const handleDeleteSingle = async (e: React.MouseEvent, id: string) => {
 		e.stopPropagation();
 		const ok = await confirm({
-			title: "Delete Session",
-			message: "Delete this session? This cannot be undone.",
+			title: "Delete Project",
+			message: "Delete this project? This cannot be undone.",
 			confirmText: "Delete",
 			cancelText: "Cancel",
 			tone: "destructive",
@@ -76,7 +76,7 @@ export function SavedSessionsModal({
 			<div className="modal-backdrop-blur" />
 			<div className="modal-content" onClick={(e) => e.stopPropagation()}>
 				<div className="modal-header">
-					<div className="modal-title">Saved Sessions</div>
+					<div className="modal-title">Saved Projects</div>
 					<div style={{ display: "flex", gap: 8, alignItems: "center" }}>
 						<button
 							className="md-btn md-btn--destructive"
@@ -87,7 +87,7 @@ export function SavedSessionsModal({
 								marginRight: 10,
 								height: 32,
 							}}
-							title="Delete all sessions"
+							title="Delete all projects"
 						>
 							<b>Delete All</b>
 						</button>
@@ -107,7 +107,7 @@ export function SavedSessionsModal({
 							className="text-secondary"
 							style={{ fontSize: 13, padding: 12, textAlign: "center" }}
 						>
-							No saved sessions yet.
+							No saved projects yet.
 						</div>
 					) : (
 						<ul
@@ -170,7 +170,7 @@ export function SavedSessionsModal({
 										<button
 											type="button"
 											className="md-btn md-btn--destructive"
-											title="Delete session"
+											title="Delete project"
 											style={{
 												width: 32,
 												height: 32,
@@ -179,7 +179,7 @@ export function SavedSessionsModal({
 												color: "#ef4444",
 											}}
 											onClick={(e) => handleDeleteSingle(e, c.id)}
-											aria-label="Delete session"
+											aria-label="Delete project"
 										>
 											<Icon name="trash" className="text-[13px]" />
 										</button>
@@ -193,4 +193,3 @@ export function SavedSessionsModal({
 		</div>
 	);
 }
-

@@ -32,7 +32,7 @@ interface PromptSessionState {
 	error: string | null;
 	preset: PromptPresetSummary | null;
 	versionGraph: VersionGraph;
-	chatId: string | null;
+	projectId: string | null;
 }
 
 type Action =
@@ -47,7 +47,7 @@ type Action =
 	| { type: "UPDATE_MESSAGE"; payload: { messageId: string; patch: Partial<MessageItem> } }
 	| { type: "SET_SENDING"; payload: { sending: boolean } }
 	| { type: "SET_ERROR"; payload: { error: string | null } }
-	| { type: "ATTACH_CHAT"; payload: { chatId: string | null } }
+	| { type: "ATTACH_PROJECT"; payload: { projectId: string | null } }
 	| { type: "SET_VERSION_GRAPH"; payload: { versionGraph: VersionGraph; draft?: string } };
 
 const initialState: PromptSessionState = {
@@ -57,7 +57,7 @@ const initialState: PromptSessionState = {
 	error: null,
 	preset: null,
 	versionGraph: createVersionGraph("", "Start"),
-	chatId: null,
+	projectId: null,
 };
 
 const countVersions = (graph: VersionGraph) => {
@@ -159,8 +159,8 @@ const reducer = (state: PromptSessionState, action: Action): PromptSessionState 
 		case "SET_ERROR": {
 			return { ...state, error: action.payload.error };
 		}
-		case "ATTACH_CHAT": {
-			return { ...state, chatId: action.payload.chatId };
+		case "ATTACH_PROJECT": {
+			return { ...state, projectId: action.payload.projectId };
 		}
 		case "SET_VERSION_GRAPH": {
 			const { versionGraph, draft } = action.payload;
@@ -237,8 +237,8 @@ export function usePromptWorkspace() {
 		dispatch({ type: "SET_ERROR", payload: { error } });
 	}, []);
 
-	const attachChat = useCallback((chatId: string | null) => {
-		dispatch({ type: "ATTACH_CHAT", payload: { chatId } });
+	const attachProject = useCallback((projectId: string | null) => {
+		dispatch({ type: "ATTACH_PROJECT", payload: { projectId } });
 	}, []);
 
 	const setVersionGraph = useCallback(
@@ -261,7 +261,7 @@ export function usePromptWorkspace() {
 		updateMessage,
 		setSending,
 		setError,
-		attachChat,
+		attachProject,
 		setVersionGraph,
 		hasUndo: hasUndo(state.versionGraph),
 		hasRedo: hasRedo(state.versionGraph),

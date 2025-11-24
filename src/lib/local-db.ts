@@ -1,16 +1,16 @@
-import type { Chat, ChatMessage } from "@/types";
+import type { PromptProject, TestMessage } from "@/types";
 import { getJSON, setJSON } from "./local-storage";
 
 // Legacy storage interface with number timestamps
-interface StoredMessage {
+interface StoredTestMessage {
 	id: string;
-	chatId: string;
+	projectId: string;
 	role: "user" | "assistant";
 	content: string;
 	createdAt: number;
 }
 
-interface StoredChat {
+interface StoredProject {
 	id: string;
 	userId: string;
 	title: string | null;
@@ -19,70 +19,70 @@ interface StoredChat {
 	versionGraph?: any;
 }
 
-const CHATS_KEY = "PC_CHATS";
-const MESSAGES_KEY = "PC_MESSAGES";
+const PROJECTS_KEY = "PC_PROJECTS";
+const TEST_MESSAGES_KEY = "PC_TEST_MESSAGES";
 const LOCAL_USER_ID = "local-user";
 
-function readChats(): Record<string, StoredChat> {
-	return getJSON<Record<string, StoredChat>>(CHATS_KEY, {});
+function readProjects(): Record<string, StoredProject> {
+	return getJSON<Record<string, StoredProject>>(PROJECTS_KEY, {});
 }
-function writeChats(map: Record<string, StoredChat>) {
-	setJSON(CHATS_KEY, map);
+function writeProjects(map: Record<string, StoredProject>) {
+	setJSON(PROJECTS_KEY, map);
 }
-function readMessages(): Record<string, StoredMessage> {
-	return getJSON<Record<string, StoredMessage>>(MESSAGES_KEY, {});
+function readTestMessages(): Record<string, StoredTestMessage> {
+	return getJSON<Record<string, StoredTestMessage>>(TEST_MESSAGES_KEY, {});
 }
-function writeMessages(map: Record<string, StoredMessage>) {
-	setJSON(MESSAGES_KEY, map);
+function writeTestMessages(map: Record<string, StoredTestMessage>) {
+	setJSON(TEST_MESSAGES_KEY, map);
 }
 
-export async function listChatsByUser(
+export async function listProjectsByUser(
 	userId: string = LOCAL_USER_ID,
-): Promise<Array<Chat & { messageCount: number }>> {
-	const chats = Object.values(readChats()).filter((c) => c.userId === userId);
-	const messages = Object.values(readMessages());
-	return chats
+): Promise<Array<PromptProject & { messageCount: number }>> {
+	const projects = Object.values(readProjects()).filter((c) => c.userId === userId);
+	const messages = Object.values(readTestMessages());
+	return projects
 		.map((c) => ({
 			...c,
 			createdAt: new Date(c.createdAt),
 			updatedAt: new Date(c.updatedAt),
-			messageCount: messages.filter((m) => m.chatId === c.id).length,
+			messageCount: messages.filter((m) => m.projectId === c.id).length,
 		}))
 		.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
 }
 
-export async function createChat(
+export async function createProject(
 	title?: string | null,
 	userId: string = LOCAL_USER_ID,
-): Promise<Chat> {
-	const id = `chat-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+): Promise<PromptProject> {
+	const id = `project-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 	const now = Date.now();
-	const chat: StoredChat = {
+	const project: StoredProject = {
 		id,
 		userId,
 		title: title ?? null,
 		createdAt: now,
 		updatedAt: now,
 	};
-	const map = readChats();
-	map[id] = chat;
-	writeChats(map);
-	return { ...chat, createdAt: new Date(now), updatedAt: new Date(now) };
+	const map = readProjects();
+	map[id] = project;
+	writeProjects(map);
+	return { ...project, createdAt: new Date(now), updatedAt: new Date(now) };
 }
 
 export async function appendMessagesWithCap(
-	chatId: string,
+	projectId: string,
 	items: Array<{ role: "user" | "assistant"; content: string }>,
 	cap: number,
-): Promise<{ created: ChatMessage[]; deletedIds: string[] }> {
+): Promise<{ created: TestMessage[]; deletedIds: string[] }> {
 	const now = Date.now();
-	const messagesMap = readMessages();
-	const created: ChatMessage[] = [];
+	const messagesMap = readTestMessages();
+	const created: TestMessage[] = [];
 	for (const it of items) {
 		const id = cryptoRandomId();
-		const m: StoredMessage = {
+		const m: StoredTestMessage = {
 			id,
-			chatId,
+			projectId,
 			role: it.role,
 			content: it.content,
 			createdAt: now,
@@ -90,71 +90,71 @@ export async function appendMessagesWithCap(
 		messagesMap[id] = m;
 		created.push({ ...m, createdAt: new Date(m.createdAt) });
 	}
-	// enforce cap per chat
-	const chatMessages = Object.values(messagesMap)
-		.filter((m) => m.chatId === chatId)
+	// enforce cap per project
+	const projectMessages = Object.values(messagesMap)
+		.filter((m) => m.projectId === projectId)
 		.sort((a, b) => a.createdAt - b.createdAt);
-	const over = chatMessages.length - cap;
+	const over = projectMessages.length - cap;
 	const deletedIds: string[] = [];
 	if (over > 0) {
 		for (let i = 0; i < over; i++) {
-			const toDelete = chatMessages[i];
+			const toDelete = projectMessages[i];
 			if (!toDelete) continue;
 			delete messagesMap[toDelete.id];
 			deletedIds.push(toDelete.id);
 		}
 	}
-	writeMessages(messagesMap);
-	// update chat timestamp
-	const chats = readChats();
-	const chat = chats[chatId];
-	if (chat) {
-		chat.updatedAt = Date.now();
-		writeChats(chats);
+	writeTestMessages(messagesMap);
+	// update project timestamp
+	const projects = readProjects();
+	const project = projects[projectId];
+	if (project) {
+		project.updatedAt = Date.now();
+		writeProjects(projects);
 	}
 	return { created, deletedIds };
 }
 
-export async function getChat(
-	chatId: string,
+export async function getProject(
+	projectId: string,
 	limit = 50,
-): Promise<{ id: string; title: string | null; messages: ChatMessage[]; versionGraph?: any }> {
-	const chats = readChats();
-	const c = chats[chatId];
-	const messages = Object.values(readMessages())
-		.filter((m) => m.chatId === chatId)
+): Promise<{ id: string; title: string | null; messages: TestMessage[]; versionGraph?: any }> {
+	const projects = readProjects();
+	const c = projects[projectId];
+	const messages = Object.values(readTestMessages())
+		.filter((m) => m.projectId === projectId)
 		.sort((a, b) => a.createdAt - b.createdAt)
 		.slice(-limit)
 		.map((m) => ({ ...m, createdAt: new Date(m.createdAt) }));
-	return { id: chatId, title: c?.title ?? "Untitled", messages, versionGraph: c?.versionGraph };
+	return { id: projectId, title: c?.title ?? "Untitled", messages, versionGraph: c?.versionGraph };
 }
 
-export async function updateChatVersionGraph(
-	chatId: string,
+export async function updateProjectVersionGraph(
+	projectId: string,
 	versionGraph: any,
 ): Promise<void> {
-	const chats = readChats();
-	const chat = chats[chatId];
-	if (chat) {
-		chat.versionGraph = versionGraph;
-		chat.updatedAt = Date.now();
-		writeChats(chats);
+	const projects = readProjects();
+	const project = projects[projectId];
+	if (project) {
+		project.versionGraph = versionGraph;
+		project.updatedAt = Date.now();
+		writeProjects(projects);
 	}
 }
 
-export async function deleteChat(chatId: string): Promise<void> {
-	const chats = readChats();
-	delete chats[chatId];
-	writeChats(chats);
-	const messages = readMessages();
+export async function deleteProject(projectId: string): Promise<void> {
+	const projects = readProjects();
+	delete projects[projectId];
+	writeProjects(projects);
+	const messages = readTestMessages();
 	for (const m of Object.values(messages)) {
-		if (m.chatId === chatId) delete messages[m.id];
+		if (m.projectId === projectId) delete messages[m.id];
 	}
-	writeMessages(messages);
+	writeTestMessages(messages);
 }
 
-export async function deleteChats(ids: string[]): Promise<void> {
-	for (const id of ids) await deleteChat(id);
+export async function deleteProjects(ids: string[]): Promise<void> {
+	for (const id of ids) await deleteProject(id);
 }
 
 function cryptoRandomId(): string {

@@ -1,7 +1,7 @@
 import type { PresetOptions, TaskType } from "@/app/studio/types";
-import type { ChatMessage } from "@/types";
+import type { TestMessage } from "@/types";
 
-export type MessageItem = Pick<ChatMessage, "id" | "role" | "content">;
+export type MessageItem = Pick<TestMessage, "id" | "role" | "content">;
 
 export interface PromptPresetSummary {
 	id?: string;
@@ -30,7 +30,7 @@ export interface PromptTabState {
 	id: string;
 	title: string;
 	preset: PromptPresetSummary;
-	chatId: string | null;
+	projectId: string | null;
 	messages: MessageItem[];
 	versionGraph: VersionGraph;
 	draft: string;
@@ -44,4 +44,3 @@ export interface PromptWorkspaceState {
 	tabs: PromptTabState[];
 	activeTabId: string | null;
 }
-

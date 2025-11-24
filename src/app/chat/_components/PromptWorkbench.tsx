@@ -12,11 +12,11 @@ import {
 } from "@/lib/local-config";
 import {
 	appendMessagesWithCap as localAppendMessages,
-	createChat as localCreateChat,
-	deleteChat as localDeleteChat,
-	getChat as localGetChat,
-	listChatsByUser as localListChats,
-	updateChatVersionGraph,
+	createProject as localCreateProject,
+	deleteProject as localDeleteProject,
+	getProject as localGetProject,
+	listProjectsByUser as localListProjects,
+	updateProjectVersionGraph,
 } from "@/lib/local-db";
 import { callLocalModelClient } from "@/lib/model-client";
 import { getPresets } from "@/lib/presets";
@@ -73,7 +73,7 @@ export default function PromptWorkbench() {
 	const [modelMenuUp, setModelMenuUp] = useState(false);
 	const modelBtnRef = useRef<HTMLButtonElement | null>(null);
 	const modelMenuRef = useRef<HTMLDivElement | null>(null);
-	const [showAllChatsOpen, setShowAllChatsOpen] = useState(false);
+	const [showAllProjectsOpen, setShowAllProjectsOpen] = useState(false);
 	const [showVersionHistory, setShowVersionHistory] = useState(false);
 	const [showPresetInfo, setShowPresetInfo] = useState(false);
 	const [currentTheme, setCurrentTheme] = useState<
@@ -93,6 +93,13 @@ export default function PromptWorkbench() {
 	const [settingsInitialTab, setSettingsInitialTab] = useState<
 		"system" | "ollama" | "data"
 	>("ollama");
+
+	// Draggable controls state
+	const [controlsPosition, setControlsPosition] = useState({ x: 0, y: 0 });
+	const [isDragging, setIsDragging] = useState(false);
+	const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+	const controlsRef = useRef<HTMLDivElement | null>(null);
+	const textareaContainerRef = useRef<HTMLDivElement | null>(null);
 
 	const [taskType, setTaskType] = useState<TaskType>("general");
 	const [tone, setTone] = useState<Tone>("neutral");
@@ -139,15 +146,15 @@ export default function PromptWorkbench() {
 		updateMessage,
 		setSending,
 		setError: setSessionError,
-		attachChat,
+		attachProject,
 		hasUndo,
 		hasRedo,
 		activeContent,
 		setVersionGraph,
 	} = usePromptWorkspace();
 
-	// Local chat list state
-	const [chatList, setChatList] = useState<
+	// Local project list state
+	const [projectList, setProjectList] = useState<
 		Array<{
 			id: string;
 			title: string | null;
@@ -157,13 +164,13 @@ export default function PromptWorkbench() {
 	>([]);
 	useEffect(() => {
 		void (async () => {
-			const list = await localListChats();
-			setChatList(list);
+			const list = await localListProjects();
+			setProjectList(list);
 		})();
 	}, []);
-	const refreshChatList = useCallback(async () => {
-		const list = await localListChats();
-		setChatList(list);
+	const refreshProjectList = useCallback(async () => {
+		const list = await localListProjects();
+		setProjectList(list);
 	}, []);
 
 	// Load local Ollama models only
@@ -280,6 +287,80 @@ export default function PromptWorkbench() {
 		};
 	}, []);
 
+	// Drag handlers for controls
+	const handleMouseDown = useCallback((e: React.MouseEvent) => {
+		// Don't start dragging if clicking on a button or interactive element
+		const target = e.target as HTMLElement;
+		if (target.tagName === 'BUTTON' || target.closest('button')) return;
+		
+		if (!controlsRef.current || !textareaContainerRef.current) return;
+		
+		// If this is the first drag (position is still 0,0), calculate the actual position from right/bottom
+		let currentX = controlsPosition.x;
+		let currentY = controlsPosition.y;
+		
+		if (currentX === 0 && currentY === 0) {
+			const containerRect = textareaContainerRef.current.getBoundingClientRect();
+			const controlsRect = controlsRef.current.getBoundingClientRect();
+			
+			// Calculate position from right/bottom (16px from edges) to left/top
+			currentX = containerRect.width - controlsRect.width - 16;
+			currentY = containerRect.height - controlsRect.height - 16;
+			
+			setControlsPosition({ x: currentX, y: currentY });
+		}
+		
+		setIsDragging(true);
+		setDragStart({
+			x: e.clientX - currentX,
+			y: e.clientY - currentY,
+		});
+	}, [controlsPosition]);
+
+	const handleMouseMove = useCallback((e: MouseEvent) => {
+		if (!isDragging || !controlsRef.current || !textareaContainerRef.current) return;
+		
+		const containerRect = textareaContainerRef.current.getBoundingClientRect();
+		const controlsRect = controlsRef.current.getBoundingClientRect();
+		
+		let newX = e.clientX - dragStart.x;
+		let newY = e.clientY - dragStart.y;
+		
+		// Constrain to container bounds
+		const maxX = containerRect.width - controlsRect.width - 16; // 16px padding
+		const maxY = containerRect.height - controlsRect.height - 16;
+		
+		newX = Math.max(16, Math.min(newX, maxX));
+		newY = Math.max(16, Math.min(newY, maxY));
+		
+		setControlsPosition({ x: newX, y: newY });
+	}, [isDragging, dragStart]);
+
+	const handleMouseUp = useCallback(() => {
+		setIsDragging(false);
+	}, []);
+
+	useEffect(() => {
+		if (isDragging) {
+			document.addEventListener('mousemove', handleMouseMove);
+			document.addEventListener('mouseup', handleMouseUp);
+			return () => {
+				document.removeEventListener('mousemove', handleMouseMove);
+				document.removeEventListener('mouseup', handleMouseUp);
+			};
+		}
+		return undefined;
+	}, [isDragging, handleMouseMove, handleMouseUp]);
+
+	const modelIds = useMemo(
+		() => ["gemma3:4b", "gemma3:12b", "gemma3:27b"],
+		[],
+	);
+	const activeIndex = useMemo(
+		() => Math.max(0, modelIds.indexOf(currentModelId ?? "")),
+		[currentModelId, modelIds],
+	);
+
 	// Refresh available models
 	const refreshModels = useCallback(async () => {
 		try {
@@ -343,19 +424,19 @@ export default function PromptWorkbench() {
 			window.removeEventListener("open-app-settings", handler as any);
 	}, []);
 
-	// Ensure chat exists or create one
-	const ensureChat = useCallback(
+	// Ensure project exists or create one
+	const ensureProject = useCallback(
 		async (firstLine: string) => {
-			if (session.chatId) return session.chatId;
+			if (session.projectId) return session.projectId;
 			const title =
-				(firstLine || session.preset?.name || "New chat").slice(0, 40) ||
-				"New chat";
-			const created = await localCreateChat(title);
-			attachChat(created.id);
-			await refreshChatList();
+				(firstLine || session.preset?.name || "New project").slice(0, 40) ||
+				"New project";
+			const created = await localCreateProject(title);
+			attachProject(created.id);
+			await refreshProjectList();
 			return created.id;
 		},
-		[attachChat, session.chatId, session.preset, refreshChatList],
+		[attachProject, session.projectId, session.preset, refreshProjectList],
 	);
 
 	const applyPreset = useCallback(
@@ -527,7 +608,7 @@ export default function PromptWorkbench() {
 		setSessionError(null);
 		const controller = new AbortController();
 		abortRef.current = controller;
-		const chatId = await ensureChat(text);
+		const projectId = await ensureProject(text);
 		const user: MessageItem = {
 			id: crypto.randomUUID(),
 			role: "user",
@@ -537,7 +618,7 @@ export default function PromptWorkbench() {
 		try {
 			try {
 				const result = await localAppendMessages(
-					chatId,
+					projectId,
 					[{ role: user.role, content: user.content }],
 					50,
 				);
@@ -602,14 +683,14 @@ export default function PromptWorkbench() {
 			pushMessage(assistant);
 			try {
 				const result = await localAppendMessages(
-					chatId,
+					projectId,
 					[{ role: assistant.role, content: assistant.content }],
 					50,
 				);
 				const createdAssistantId = result?.created?.[0]?.id;
 				if (createdAssistantId)
 					updateMessage(assistant.id, { id: createdAssistantId });
-				await refreshChatList();
+				await refreshProjectList();
 			} catch {}
 		} catch (e: any) {
 			if (e?.name === "AbortError" || e?.message?.includes("aborted")) {
@@ -624,9 +705,9 @@ export default function PromptWorkbench() {
 	}, [
 		session.draft,
 		session.sending,
-		ensureChat,
+		ensureProject,
 		pushMessage,
-		refreshChatList,
+		refreshProjectList,
 		setSessionError,
 		setSending,
 		taskType,
@@ -685,19 +766,19 @@ export default function PromptWorkbench() {
 
 	const activeMessages = session.messages;
 	const hasMessages = activeMessages.length > 0;
-	const recentChats = useMemo(
+	const recentProjects = useMemo(
 		() =>
-			(chatList ?? [])
+			(projectList ?? [])
 				.slice()
 				.sort((a: any, b: any) => (b.updatedAt as any) - (a.updatedAt as any)),
-		[chatList],
+		[projectList],
 	);
 
-	// Chat selection & deletion
-	const loadChat = useCallback(
+	// Project selection & deletion
+	const loadProject = useCallback(
 		async (id: string) => {
 			try {
-				const data = await localGetChat(id, 50);
+				const data = await localGetProject(id, 50);
 				const loaded: MessageItem[] = (data.messages ?? []).map((m: any) => ({
 					id: m.id,
 					role: m.role,
@@ -719,43 +800,43 @@ export default function PromptWorkbench() {
 					setVersionGraph(graph);
 				}
 
-				attachChat(id);
+				attachProject(id);
 			} catch {
-				setSessionError("Failed to load chat");
+				setSessionError("Failed to load project");
 			}
 		},
-		[attachChat, setSessionError, setMessages, setVersionGraph],
+		[attachProject, setSessionError, setMessages, setVersionGraph],
 	);
 
 	// Auto-save version graph
 	useEffect(() => {
-		if (!session.chatId || !session.versionGraph) return;
+		if (!session.projectId || !session.versionGraph) return;
 		const timer = setTimeout(() => {
-			updateChatVersionGraph(session.chatId!, session.versionGraph);
+			updateProjectVersionGraph(session.projectId!, session.versionGraph);
 		}, 1000);
 		return () => clearTimeout(timer);
-	}, [session.chatId, session.versionGraph]);
+	}, [session.projectId, session.versionGraph]);
 
-	const deleteChat = useCallback(
+	const deleteProject = useCallback(
 		async (id: string) => {
 			try {
-				await localDeleteChat(id);
-				await refreshChatList();
+				await localDeleteProject(id);
+				await refreshProjectList();
 			} catch {}
-			if (session.chatId === id) {
-				attachChat(null);
+			if (session.projectId === id) {
+				attachProject(null);
 				setMessages([]);
 			}
 		},
-		[attachChat, refreshChatList, setMessages, session.chatId],
+		[attachProject, refreshProjectList, setMessages, session.projectId],
 	);
 
-	const deleteAllSessions = useCallback(async () => {
-		const ids = recentChats.map((c) => c.id);
+	const deleteAllProjects = useCallback(async () => {
+		const ids = recentProjects.map((c) => c.id);
 		try {
-			await Promise.allSettled(ids.map((id) => deleteChat(id)));
+			await Promise.allSettled(ids.map((id) => deleteProject(id)));
 		} catch {}
-	}, [recentChats, deleteChat]);
+	}, [recentProjects, deleteProject]);
 
 	// Copy message content
 	const copyMessage = useCallback(
@@ -832,9 +913,9 @@ export default function PromptWorkbench() {
 						</button>
 						<button
 							type="button"
-							onClick={() => setShowAllChatsOpen(true)}
+							onClick={() => setShowAllProjectsOpen(true)}
 							className="md-btn"
-							title="View saved sessions"
+							title="View saved projects"
 						>
 							<Icon name="folder-open" />
 						</button>
@@ -911,17 +992,21 @@ export default function PromptWorkbench() {
 								</div>
 							</div>
 
-							<div className="relative flex-1 min-h-0 w-full">
+							<div ref={textareaContainerRef} className="relative flex-1 min-h-0 w-full">
 								<textarea
-									className="absolute inset-0 w-full h-full p-6 pt-4 pb-20 rounded-b-2xl resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-outline)] focus:border-[var(--color-outline)] transition-all duration-200 ease-out font-mono text-[11px] leading-[24px] text-on-surface placeholder:text-on-surface-variant/50 shadow-none"
+									className="absolute inset-0 w-full h-full p-6 pt-4 pb-24 rounded-b-2xl resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-outline)] focus:border-[var(--color-outline)] transition-all duration-200 ease-out font-mono text-[11px] leading-[24px] text-on-surface placeholder:text-on-surface-variant/50 shadow-none"
 									style={{
 										// Lighter background that respects theme - lighter in light mode, slightly lighter in dark mode
 										backgroundColor: "color-mix(in srgb, var(--color-surface-variant), var(--color-surface) 55%)",
 										// Subtle ruled-paper lines to signal this is a text input area
 										backgroundImage:
-											"repeating-linear-gradient(0deg, transparent, transparent 23px, color-mix(in srgb, var(--color-outline), transparent 80%) 23px, color-mix(in srgb, var(--color-outline), transparent 80%) 24px)",
-										backgroundSize: "100% 24px",
-										backgroundPosition: "0 40px", // align after header (pt-4 ≈ 16px + header height)
+											currentTheme === "light"
+												? "none"
+												: "repeating-linear-gradient(0deg, transparent, transparent 23px, color-mix(in srgb, var(--color-outline), transparent 80%) 23px, color-mix(in srgb, var(--color-outline), transparent 80%) 24px)",
+										backgroundSize:
+											currentTheme === "light" ? undefined : "100% 24px",
+										backgroundPosition:
+											currentTheme === "light" ? undefined : "0 40px", // align after header (pt-4 ≈ 16px + header height)
 										caretColor: "var(--color-primary)",
 										boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--color-outline), white 18%)",
 									}}
@@ -930,123 +1015,149 @@ export default function PromptWorkbench() {
 									placeholder="Describe your prompt & intent..."
 								/>
 
-								{/* Floating Footer Controls */}
-								<div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-4 p-2 rounded-2xl bg-[var(--color-surface)] border border-[var(--color-outline)] shadow-xl z-10">
-									<div className="flex items-center gap-3">
-										<div className="relative prompt-input__model-select w-[220px]">
-											<button
-												ref={modelBtnRef}
-												type="button"
-												className={`group flex items-center justify-between w-full gap-3 px-4 py-2.5 rounded-xl border transition-all duration-200 text-sm font-medium focus:border-[var(--color-outline)] focus-visible:border-[var(--color-outline)] active:border-[var(--color-outline)] ${
-													modelMenuOpen
-														? "bg-[var(--color-surface-variant)] border-[var(--color-outline)] shadow-md text-on-surface"
-														: "bg-[var(--color-surface-variant)] border-[var(--color-outline)] hover:brightness-110 hover:shadow-sm text-on-surface"
-												}`}
-												onClick={() => {
-													const wasOpen = modelMenuOpen;
-													setModelMenuOpen((prev) => !prev);
-													if (!wasOpen) refreshModels();
-												}}
-											>
-												<div className="flex items-center gap-3 overflow-hidden">
-													<span className="truncate">{modelLabel}</span>
-												</div>
-												<Icon
-													name="chevronDown"
-													className={`w-4 h-4 transition-transform duration-200 text-on-surface-variant group-hover:text-on-surface ${
-														modelMenuOpen ? "rotate-180" : ""
-													}`}
-												/>
-											</button>
-
-											{modelMenuOpen && (
-												<div
-													ref={modelMenuRef}
-													className="absolute z-50 w-full bottom-full mb-2 p-1 flex flex-col gap-0.5 shadow-xl rounded-2xl border border-[var(--color-outline)] bg-[var(--color-surface)] backdrop-blur-md origin-bottom animate-in fade-in zoom-in-95 duration-150"
-												>
-													{availableModels.length > 0 ? (
-														<>
-															<div className="px-3 py-2 text-[10px] font-bold text-on-surface-variant/70 uppercase tracking-wider border-b border-[var(--color-outline)]/50 mb-1">
-																Local Models
-															</div>
-															{availableModels.map((m) => {
-																const label = `Gemma 3 ${(m.name.split(":")[1] || "").toUpperCase()}`;
-																const isSelected = currentModelId === m.name;
-																return (
-																	<button
-																		key={m.name}
-																		type="button"
-																		className={`group flex items-center justify-between px-3 py-2 rounded-xl transition-all duration-150 text-[11px] font-medium ${
-																			isSelected
-																				? "bg-primary/10 text-primary"
-																				: "text-on-surface hover:bg-[var(--color-surface-variant)]"
-																		}`}
-																		onClick={() => {
-																			writeLocalModelConfigClient({
-																				provider: "ollama",
-																				baseUrl: "http://localhost:11434",
-																				model: m.name,
-																			} as any);
-																			setCurrentModelId(m.name);
-																			setModelLabel(label);
-																			setModelMenuOpen(false);
-																		}}
-																	>
-																		<span className="truncate">{label}</span>
-																		{isSelected && (
-																			<Icon
-																				name="check"
-																				className="w-3 h-3 text-primary"
-																			/>
-																		)}
-																	</button>
-																);
-															})}
-														</>
-													) : (
-														<div className="flex flex-col items-center justify-center gap-2 p-6 text-center">
-															<Icon name="info" className="w-6 h-6 text-secondary opacity-50" />
-															<div className="text-[11px] text-on-surface-variant">
-																No local models found
-															</div>
-															<button
-																type="button"
-																onClick={refreshModels}
-																className="text-[10px] text-primary hover:underline mt-1 uppercase tracking-wide font-bold"
-															>
-																Refresh list
-															</button>
-														</div>
-													)}
-												</div>
-											)}
+								{/* Floating Footer Controls - Draggable */}
+								<div 
+									ref={controlsRef}
+									onMouseDown={handleMouseDown}
+									className="absolute flex items-center gap-4 z-10 rounded-2xl border backdrop-blur-sm p-3 select-none"
+									style={{
+										borderColor: "var(--color-outline)",
+										background: "color-mix(in srgb, var(--color-surface-variant) 30%, transparent)",
+										right: controlsPosition.x === 0 ? '16px' : 'auto',
+										bottom: controlsPosition.y === 0 ? '16px' : 'auto',
+										left: controlsPosition.x !== 0 ? `${controlsPosition.x}px` : 'auto',
+										top: controlsPosition.y !== 0 ? `${controlsPosition.y}px` : 'auto',
+										cursor: isDragging ? 'grabbing' : 'grab',
+									}}
+								>
+									{/* Minimal 3-Point Dial */}
+									<div 
+										className="relative flex items-center justify-center rounded-full"
+										style={{ 
+											width: "75px", 
+											height: "75px",
+											background: "var(--color-surface)",
+										}}
+									>
+										{/* Subtle circle outline */}
+										<div 
+											className="absolute inset-0 rounded-full border"
+											style={{
+												borderColor: "var(--color-outline)",
+												opacity: 0.3,
+											}}
+										/>
+										
+										{/* Center label - blended */}
+										<div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-center pointer-events-none select-none">
+											<div className="text-[8px] font-bold text-on-surface-variant uppercase tracking-wider" style={{ opacity: 0.15 }}>
+												Gemma
+											</div>
 										</div>
+										
+										{/* Model buttons in circle */}
+										{[
+											{ label: "4B", id: "gemma3:4b", angle: 0, color: "#e85d75", colorDark: "#b84555" },
+											{ label: "12B", id: "gemma3:12b", angle: 120, color: "#5eb3a6", colorDark: "#3d8a7e" },
+											{ label: "27B", id: "gemma3:27b", angle: 240, color: "#5b9ce8", colorDark: "#4070b8" },
+										].map((model) => {
+											const isInstalled = availableModels.some(
+												(m) => m.name === model.id,
+											);
+											const isActive = currentModelId === model.id;
+											const angleRad = (model.angle * Math.PI) / 180;
+											const radius = 32;
+											const x = Math.sin(angleRad) * radius;
+											const y = -Math.cos(angleRad) * radius;
+											
+											return (
+												<button
+													key={model.id}
+													type="button"
+													disabled={!isInstalled}
+													onClick={() => {
+														if (!isInstalled) return;
+														writeLocalModelConfigClient({
+															provider: "ollama",
+															baseUrl: "http://localhost:11434",
+															model: model.id,
+														} as any);
+														setCurrentModelId(model.id);
+														setModelLabel(`Gemma 3 ${model.label}`);
+													}}
+													className={`absolute group/model-btn transition-all duration-200 ${
+														isInstalled && !isActive ? "hover:scale-110" : ""
+													} ${!isInstalled ? "cursor-not-allowed opacity-40" : ""}`}
+													style={{
+														top: "50%",
+														left: "50%",
+														transform: `translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`,
+													}}
+													title={
+														isInstalled
+															? `Switch to Gemma 3 ${model.label}`
+															: `Gemma 3 ${model.label} is not installed`
+													}
+												>
+													<div 
+														className="flex items-center justify-center rounded-full font-bold text-xs transition-all duration-200"
+														style={{
+															width: "28px",
+															height: "28px",
+															background: isActive 
+																? model.color
+																: "var(--color-surface)",
+															color: isActive 
+																? "#fff"
+																: isInstalled
+																	? model.color
+																	: `${model.color}40`,
+															border: isActive 
+																? `2px solid ${model.colorDark}` 
+																: `1px solid ${isInstalled ? model.color + '60' : 'var(--color-outline)'}`,
+														}}
+													>
+														{model.label}
+														{!isInstalled && (
+															<div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface-inverse text-on-surface-inverse text-[10px] rounded opacity-0 group-hover/model-btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-md z-50 font-medium">
+																Not Installed
+															</div>
+														)}
+													</div>
+												</button>
+											);
+										})}
 									</div>
 
-									<button
-										type="button"
-										onClick={() => (session.sending ? stopGenerating() : void send())}
-										disabled={!session.draft.trim()}
-										className={`group relative flex items-center justify-center rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden ${
-											session.sending
-												? "w-10 h-10 bg-attention text-on-attention hover:bg-attention-variant shadow-lg hover:shadow-xl"
-												: "w-10 h-10 bg-[var(--color-surface-variant)] text-on-surface hover:bg-primary hover:text-on-primary hover:-translate-y-0.5 shadow-md hover:shadow-lg"
-										}`}
-										style={{ border: '1px solid var(--color-outline)' }}
-										title={session.sending ? "Stop Generation" : "Run Prompt"}
-									>
-										{/* Subtle shimmer effect */}
-										<div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out pointer-events-none rounded-full" />
+								<button
+									type="button"
+									onClick={() => (session.sending ? stopGenerating() : void send())}
+									disabled={!session.draft.trim()}
+									className={`group relative flex items-center justify-center rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden ${
+										session.sending
+											? "text-on-attention"
+											: "text-on-primary"
+									}`}
+									style={{ 
+										width: '75px', 
+										height: '75px', 
+										border: '1px solid var(--color-outline)',
+										background: session.sending ? "var(--color-attention)" : "var(--color-primary)",
+									}}
+									title={session.sending ? "Stop Generation" : "Run Prompt"}
+								>
+									{/* Subtle shimmer effect */}
+									<div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out pointer-events-none rounded-full" />
 
-										{session.sending ? (
-											<Icon name="stop" className="w-4 h-4 relative z-10" />
-										) : (
-											<Icon
-												name="chevron-right"
-												className="w-4 h-4 relative z-10 transition-transform group-hover:translate-x-0.5"
-											/>
-										)}
-									</button>
+									{session.sending ? (
+										<Icon name="stop" className="w-8 h-8 relative z-10" />
+									) : (
+										<Icon
+											name="chevron-right"
+											className="w-8 h-8 relative z-10 transition-transform group-hover:translate-x-0.5"
+										/>
+									)}
+								</button>
 								</div>
 							</div>
 						</div>
@@ -1142,7 +1253,7 @@ export default function PromptWorkbench() {
 					</section>
 
 					{/* RIGHT PANE: Output */}
-					<section className="prompt-output-pane flex flex-col gap-4 p-6 bg-surface-variant h-full overflow-hidden relative" style={{ backgroundColor: 'color-mix(in srgb, var(--color-surface), black 25%)' }}>
+					<section className="prompt-output-pane flex flex-col gap-4 p-6 h-full overflow-hidden relative">
 						{/* Content Body with Integrated Toolbar Style */}
 						<div 
 							className="relative flex-1 min-h-0 flex flex-col group rounded-2xl"
@@ -1197,38 +1308,38 @@ export default function PromptWorkbench() {
 										</span>
 									</button>
 
-									<div className="w-px h-4 bg-[var(--color-outline)]/50 mx-1" />
+								<div className="w-px h-4 bg-[var(--color-outline)]/50 mx-1" />
 
-									<button
-										type="button"
-										onClick={() => {
-											if (lastAssistantMessage?.content) {
-												copyMessage(lastAssistantMessage.id, lastAssistantMessage.content);
-											}
-										}}
-										disabled={!lastAssistantMessage}
-										className="w-8 h-8 p-0 hover:bg-surface rounded-md transition-all duration-150 text-on-surface-variant hover:text-on-surface flex items-center justify-center"
-										title="Copy response"
-										aria-label="Copy response"
-									>
-										<Icon
-											name={
-												copiedMessageId === lastAssistantMessage?.id ? "check" : "copy"
-											}
-											className="w-3.5 h-3.5"
-										/>
-									</button>
-									<div className="w-px h-4 bg-[var(--color-outline)]/50 mx-1" />
-									<button
-										type="button"
-										onClick={() => commitDraft()}
-										disabled={!isDraftDirty}
-										className="md-btn md-btn--primary w-8 h-8 p-0 rounded-full transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 shadow-sm hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed scale-90 origin-right"
-										title="Save snapshot (⌘S)"
-										aria-label="Save snapshot"
-									>
-										<Icon name="save" className="w-4 h-4" />
-									</button>
+								<button
+									type="button"
+									onClick={() => commitDraft()}
+									disabled={!isDraftDirty}
+									className="md-btn md-btn--primary w-8 h-8 p-0 rounded-full transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 shadow-sm hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed scale-90 origin-right"
+									title="Save snapshot (⌘S)"
+									aria-label="Save snapshot"
+								>
+									<Icon name="save" className="w-4 h-4" />
+								</button>
+								<div className="w-px h-4 bg-[var(--color-outline)]/50 mx-1" />
+								<button
+									type="button"
+									onClick={() => {
+										if (lastAssistantMessage?.content) {
+											copyMessage(lastAssistantMessage.id, lastAssistantMessage.content);
+										}
+									}}
+									disabled={!lastAssistantMessage}
+									className="w-8 h-8 p-0 hover:bg-surface rounded-md transition-all duration-150 text-on-surface-variant hover:text-on-surface flex items-center justify-center"
+									title="Copy response"
+									aria-label="Copy response"
+								>
+									<Icon
+										name={
+											copiedMessageId === lastAssistantMessage?.id ? "check" : "copy"
+										}
+										className="w-3.5 h-3.5"
+									/>
+								</button>
 								</div>
 							</div>
 
@@ -1322,15 +1433,15 @@ export default function PromptWorkbench() {
 				onJumpToVersion={jumpToVersion}
 			/>
 
-			{/* All Chats Modal */}
+			{/* All Projects Modal */}
 			<SavedSessionsModal
-				open={showAllChatsOpen}
-				onClose={() => setShowAllChatsOpen(false)}
-				sessions={recentChats}
-				activeSessionId={session.chatId}
-				onLoadSession={loadChat}
-				onDeleteSession={deleteChat}
-				onDeleteAllSessions={deleteAllSessions}
+				open={showAllProjectsOpen}
+				onClose={() => setShowAllProjectsOpen(false)}
+				sessions={recentProjects}
+				activeSessionId={session.projectId}
+				onLoadSession={loadProject}
+				onDeleteSession={deleteProject}
+				onDeleteAllSessions={deleteAllProjects}
 			/>
 
 			{/* Preset Info Dialog */}

@@ -1,6 +1,6 @@
 import { JSONStore } from './json-store';
 import crypto from 'crypto';
-import type { AppSetting, Chat, ChatMessage, PromptPreset } from '@/types';
+import type { AppSetting, PromptProject, TestMessage, PromptPreset } from '@/types';
 import { logger } from '../logging';
 
 // Data models
@@ -18,8 +18,8 @@ export interface User {
 const inMemoryUsers = new Map<string, User>();
 const appSettingStore = new JSONStore<AppSetting>('app-settings');
 const promptPresetStore = new JSONStore<PromptPreset>('prompt-presets');
-const chatStore = new JSONStore<Chat>('chats');
-const chatMessageStore = new JSONStore<ChatMessage>('chat-messages');
+const projectStore = new JSONStore<PromptProject>('projects');
+const testMessageStore = new JSONStore<TestMessage>('test-messages');
 
 // Repair corrupted app-settings.json file on initialization
 appSettingStore.repairCorruptedFile().catch(console.error);
@@ -102,123 +102,123 @@ export class DataLayer {
     }
   }
 
-  // Chat operations
-  async createChat(data: Omit<Chat, 'id' | 'createdAt' | 'updatedAt'>): Promise<Chat> {
+  // Prompt Project operations
+  async createProject(data: Omit<PromptProject, 'id' | 'createdAt' | 'updatedAt'>): Promise<PromptProject> {
     try {
       const now = new Date();
-      const chat: Chat = {
+      const project: PromptProject = {
         ...data,
-        id: `chat-${Date.now()}`,
+        id: `project-${Date.now()}`,
         createdAt: now,
         updatedAt: now,
       };
-      await chatStore.upsert(chat.id, chat);
-      logger.info(`Created chat ${chat.id} for user ${chat.userId}`);
-      return chat;
+      await projectStore.upsert(project.id, project);
+      logger.info(`Created project ${project.id} for user ${project.userId}`);
+      return project;
     } catch (error) {
-      logger.error('Failed to create chat:', undefined, error as Error);
+      logger.error('Failed to create project:', undefined, error as Error);
       throw error;
     }
   }
 
-  async findChatById(id: string): Promise<Chat | null> {
+  async findProjectById(id: string): Promise<PromptProject | null> {
     try {
-      return await chatStore.findById(id);
+      return await projectStore.findById(id);
     } catch (error) {
-      logger.error(`Failed to find chat ${id}:`, undefined, error as Error);
+      logger.error(`Failed to find project ${id}:`, undefined, error as Error);
       return null;
     }
   }
 
-  async findChatsByUserId(userId: string): Promise<Array<Chat & { messageCount: number }>> {
+  async findProjectsByUserId(userId: string): Promise<Array<PromptProject & { messageCount: number }>> {
     try {
-      const chats = await chatStore.findMany(chat => chat.userId === userId);
-      const chatsWithCounts = await Promise.all(
-        chats.map(async (chat) => {
-          const messageCount = await chatMessageStore.count(msg => msg.chatId === chat.id);
-          return { ...chat, messageCount };
+      const projects = await projectStore.findMany(project => project.userId === userId);
+      const projectsWithCounts = await Promise.all(
+        projects.map(async (project) => {
+          const messageCount = await testMessageStore.count(msg => msg.projectId === project.id);
+          return { ...project, messageCount };
         })
       );
       
-      const sorted = chatsWithCounts.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
-      logger.debug(`Found ${sorted.length} chats for user ${userId}`);
+      const sorted = projectsWithCounts.sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime());
+      logger.debug(`Found ${sorted.length} projects for user ${userId}`);
       return sorted;
     } catch (error) {
-      logger.error(`Failed to find chats for user ${userId}:`, undefined, error as Error);
+      logger.error(`Failed to find projects for user ${userId}:`, undefined, error as Error);
       return [];
     }
   }
 
-  async updateChat(id: string, data: Partial<Chat>): Promise<Chat | null> {
+  async updateProject(id: string, data: Partial<PromptProject>): Promise<PromptProject | null> {
     try {
-      const updated = await chatStore.update(id, { ...data, updatedAt: new Date() });
+      const updated = await projectStore.update(id, { ...data, updatedAt: new Date() });
       if (updated) {
-        logger.info(`Updated chat ${id}`);
+        logger.info(`Updated project ${id}`);
       }
       return updated;
     } catch (error) {
-      logger.error(`Failed to update chat ${id}:`, undefined, error as Error);
+      logger.error(`Failed to update project ${id}:`, undefined, error as Error);
       return null;
     }
   }
 
-  async deleteChat(id: string): Promise<boolean> {
+  async deleteProject(id: string): Promise<boolean> {
     try {
-      // Delete all messages in the chat first
-      const messages = await chatMessageStore.findMany(msg => msg.chatId === id);
+      // Delete all messages in the project first
+      const messages = await testMessageStore.findMany(msg => msg.projectId === id);
       for (const message of messages) {
-        await chatMessageStore.delete(message.id);
+        await testMessageStore.delete(message.id);
       }
       
-      const deleted = await chatStore.delete(id);
+      const deleted = await projectStore.delete(id);
       if (deleted) {
-        logger.info(`Deleted chat ${id} and ${messages.length} messages`);
+        logger.info(`Deleted project ${id} and ${messages.length} messages`);
       }
       return deleted;
     } catch (error) {
-      logger.error(`Failed to delete chat ${id}:`, undefined, error as Error);
+      logger.error(`Failed to delete project ${id}:`, undefined, error as Error);
       return false;
     }
   }
 
-  // Chat Message operations
-  async createChatMessages(messages: Array<Omit<ChatMessage, 'id' | 'createdAt'>>): Promise<ChatMessage[]> {
+  // Test Message operations
+  async createTestMessages(messages: Array<Omit<TestMessage, 'id' | 'createdAt'>>): Promise<TestMessage[]> {
     try {
       const now = new Date();
-      const createdMessages: ChatMessage[] = [];
+      const createdMessages: TestMessage[] = [];
       
       for (const msgData of messages) {
-        const message: ChatMessage = {
+        const message: TestMessage = {
           ...msgData,
           id: crypto.randomUUID(),
           createdAt: now,
         };
         
-        await chatMessageStore.upsert(message.id, message);
+        await testMessageStore.upsert(message.id, message);
         
         createdMessages.push(message);
       }
       
-      logger.info(`Created ${createdMessages.length} messages for chat ${messages[0]?.chatId}`);
+      logger.info(`Created ${createdMessages.length} messages for project ${messages[0]?.projectId}`);
       return createdMessages;
     } catch (error) {
-      logger.error('Failed to create chat messages:', undefined, error as Error);
+      logger.error('Failed to create test messages:', undefined, error as Error);
       throw error;
     }
   }
 
-  // Atomically append messages to a chat and trim to cap within a single critical section on the messages store
-  async appendMessagesWithCap(chatId: string, messages: Array<Omit<ChatMessage, 'id' | 'createdAt' | 'chatId'>>, cap: number): Promise<{ created: ChatMessage[]; deletedIds: string[] }> {
+  // Atomically append messages to a project and trim to cap within a single critical section on the messages store
+  async appendMessagesWithCap(projectId: string, messages: Array<Omit<TestMessage, 'id' | 'createdAt' | 'projectId'>>, cap: number): Promise<{ created: TestMessage[]; deletedIds: string[] }> {
     const now = new Date();
-    const created: ChatMessage[] = [];
+    const created: TestMessage[] = [];
     const deletedIds: string[] = [];
     // Perform all message mutations under a single file lock to avoid races
-    await (chatMessageStore as any).mutate(async (store: any) => {
+    await (testMessageStore as any).mutate(async (store: any) => {
       // Append
       for (const msgData of messages) {
-        const message: ChatMessage = {
+        const message: TestMessage = {
           id: crypto.randomUUID(),
-          chatId,
+          projectId,
           role: msgData.role,
           content: msgData.content,
           createdAt: now,
@@ -229,7 +229,7 @@ export class DataLayer {
       // Enforce cap by trimming oldest
       const all = Object.entries(store.data)
         .map(([id, m]: [string, any]) => ({ ...(m as any), id }))
-        .filter((m: any) => m.chatId === chatId)
+        .filter((m: any) => m.projectId === projectId)
         .sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
       const over = all.length - cap;
       if (over > 0) {
@@ -240,43 +240,43 @@ export class DataLayer {
         }
       }
     });
-    // Post-mutation: update chat timestamp (separate file, best-effort)
-    await this.updateChat(chatId, { updatedAt: new Date() });
+    // Post-mutation: update project timestamp (separate file, best-effort)
+    await this.updateProject(projectId, { updatedAt: new Date() });
     return { created, deletedIds };
   }
 
-  async findChatMessages(chatId: string, limit: number = 50): Promise<ChatMessage[]> {
+  async findTestMessages(projectId: string, limit: number = 50): Promise<TestMessage[]> {
     try {
-      const messages = await chatMessageStore.findMany(msg => msg.chatId === chatId);
+      const messages = await testMessageStore.findMany(msg => msg.projectId === projectId);
       const sorted = messages
         .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
         .slice(-limit);
       
-      logger.debug(`Found ${sorted.length} messages for chat ${chatId}`);
+      logger.debug(`Found ${sorted.length} messages for project ${projectId}`);
       return sorted;
     } catch (error) {
-      logger.error(`Failed to find messages for chat ${chatId}:`, undefined, error as Error);
+      logger.error(`Failed to find messages for project ${projectId}:`, undefined, error as Error);
       return [];
     }
   }
 
-  async countChatMessages(chatId: string): Promise<number> {
+  async countTestMessages(projectId: string): Promise<number> {
     try {
-      return await chatMessageStore.count(msg => msg.chatId === chatId);
+      return await testMessageStore.count(msg => msg.projectId === projectId);
     } catch (error) {
-      logger.error(`Failed to count messages for chat ${chatId}:`, undefined, error as Error);
+      logger.error(`Failed to count messages for project ${projectId}:`, undefined, error as Error);
       return 0;
     }
   }
 
-  async deleteChatMessages(messageIds: string[]): Promise<void> {
+  async deleteTestMessages(messageIds: string[]): Promise<void> {
     try {
       for (const id of messageIds) {
-        await chatMessageStore.delete(id);
+        await testMessageStore.delete(id);
       }
       logger.info(`Deleted ${messageIds.length} messages`);
     } catch (error) {
-      logger.error('Failed to delete chat messages:', undefined, error as Error);
+      logger.error('Failed to delete test messages:', undefined, error as Error);
       throw error;
     }
   }
@@ -350,26 +350,26 @@ export const db = {
     deleteMany: ({ where }: { where: { key: string } }) => 
       dataLayer.deleteAppSettings([where.key]),
   },
-  chat: {
-    create: ({ data }: { data: Omit<Chat, 'id' | 'createdAt' | 'updatedAt'> }) => 
-      dataLayer.createChat(data),
+  project: {
+    create: ({ data }: { data: Omit<PromptProject, 'id' | 'createdAt' | 'updatedAt'> }) => 
+      dataLayer.createProject(data),
     findFirst: ({ where }: { where: { id: string; userId?: string } }) =>
-      dataLayer.findChatById(where.id),
+      dataLayer.findProjectById(where.id),
     findMany: ({ where, orderBy }: any) => 
-      dataLayer.findChatsByUserId(where.userId),
-    update: ({ where, data }: { where: { id: string }, data: Partial<Chat> }) =>
-      dataLayer.updateChat(where.id, data),
+      dataLayer.findProjectsByUserId(where.userId),
+    update: ({ where, data }: { where: { id: string }, data: Partial<PromptProject> }) =>
+      dataLayer.updateProject(where.id, data),
     delete: ({ where }: { where: { id: string } }) =>
-      dataLayer.deleteChat(where.id),
+      dataLayer.deleteProject(where.id),
   },
-  chatMessage: {
-    createMany: ({ data }: { data: Array<Omit<ChatMessage, 'id' | 'createdAt'>> }) =>
-      dataLayer.createChatMessages(data),
+  testMessage: {
+    createMany: ({ data }: { data: Array<Omit<TestMessage, 'id' | 'createdAt'>> }) =>
+      dataLayer.createTestMessages(data),
     findMany: ({ where, orderBy, take }: any) =>
-      dataLayer.findChatMessages(where.chatId, take),
-    count: ({ where }: { where: { chatId: string } }) =>
-      dataLayer.countChatMessages(where.chatId),
+      dataLayer.findTestMessages(where.projectId, take),
+    count: ({ where }: { where: { projectId: string } }) =>
+      dataLayer.countTestMessages(where.projectId),
     deleteMany: ({ where }: { where: { id: { in: string[] } } }) =>
-      dataLayer.deleteChatMessages(where.id.in),
+      dataLayer.deleteTestMessages(where.id.in),
   },
 };

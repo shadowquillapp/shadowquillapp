@@ -122,14 +122,11 @@ export default function LocalDataManagementContent() {
 						className="ollama-status-card ollama-status-card--error"
 						style={{ marginTop: "8px" }}
 					>
-						<div className="ollama-status-card__icon">
-							⚠
-						</div>
 						<div className="ollama-status-card__content">
 							<p className="ollama-status-card__title">Danger Zone</p>
 							<p className="ollama-status-card__body">
 								Factory reset will permanently delete all local data including settings,
-								conversations, and presets. This action cannot be undone.
+								saved prompts, and presets. This action cannot be undone.
 							</p>
 							<div className="ollama-status-card__actions">
 								<button
