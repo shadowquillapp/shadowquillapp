@@ -1,5 +1,5 @@
 import { Icon } from "@/components/Icon";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import type { PromptPresetSummary } from "./types";
 
 export interface TabInfo {
@@ -16,6 +16,7 @@ interface TabBarProps {
 	onSwitchTab: (tabId: string) => void;
 	onCloseTab: (tabId: string) => void;
 	onNewTab: () => void;
+	onReorderTabs?: (fromIndex: number, toIndex: number) => void;
 	embedded?: boolean;
 }
 
@@ -26,12 +27,16 @@ export function TabBar({
 	onSwitchTab,
 	onCloseTab,
 	onNewTab,
+	onReorderTabs,
 	embedded = false,
 }: TabBarProps) {
 	const tabsContainerRef = useRef<HTMLDivElement>(null);
 	const [showLeftScroll, setShowLeftScroll] = useState(false);
 	const [showRightScroll, setShowRightScroll] = useState(false);
 	const [computedTabWidth, setComputedTabWidth] = useState<number | null>(null);
+	const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+	const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
+	const dropHandledRef = useRef(false);
 
 	// Check scroll position
 	const checkScroll = () => {
@@ -179,20 +184,115 @@ export function TabBar({
 				}}
 				className="hide-scrollbar"
 			>
-				{tabs.map((tab) => {
+				{tabs.map((tab, index) => {
 					const isActive = tab.id === activeTabId;
+					const isDragging = draggedIndex === index;
+					
 					return (
-						<div
-							key={tab.id}
-							role="tab"
-							aria-selected={isActive}
-							tabIndex={0}
-							className="md-btn"
+						<Fragment key={tab.id}>
+							{/* Drop zone before each tab (only show when dragging) */}
+							{onReorderTabs && draggedIndex !== null && draggedIndex !== index && (
+								<div
+									key={`drop-before-${tab.id}`}
+									className={`drop-zone ${dragOverIndex === index ? "drop-target" : ""}`}
+									onDragOver={(e) => {
+										if (draggedIndex === null || draggedIndex === index) return;
+										e.preventDefault();
+										e.dataTransfer.dropEffect = "move";
+										if (dragOverIndex !== index) {
+											setDragOverIndex(index);
+										}
+									}}
+									onDrop={(e) => {
+										if (draggedIndex === null || dropHandledRef.current) return;
+										e.preventDefault();
+										dropHandledRef.current = true;
+										
+										// Calculate correct target index
+										// When moving forward, we need to account for the removal shifting indices
+										let targetIndex = index;
+										if (draggedIndex < index) {
+											targetIndex = index - 1;
+										}
+										
+										if (draggedIndex !== targetIndex) {
+											onReorderTabs(draggedIndex, targetIndex);
+										}
+										
+										// Clear immediately
+										setDraggedIndex(null);
+										setDragOverIndex(null);
+									}}
+									style={{
+										width: 24,
+										height: 32,
+										flexShrink: 0,
+										borderRadius: "4px",
+										border: "1px dashed transparent",
+										transition: "all 0.15s ease",
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "center",
+									}}
+								/>
+							)}
+							
+							<div
+								key={tab.id}
+								role="tab"
+								aria-selected={isActive}
+								tabIndex={0}
+								className={`md-btn tab-item ${isDragging ? "dragging" : ""}`}
+								draggable={!!onReorderTabs}
 							onClick={() => onSwitchTab(tab.id)}
 							onKeyDown={(e) => {
 								if (e.key === "Enter" || e.key === " ") {
 									e.preventDefault();
 									onSwitchTab(tab.id);
+								}
+							}}
+							onDragStart={(e) => {
+								if (!onReorderTabs) return;
+								dropHandledRef.current = false;
+								setDraggedIndex(index);
+								e.dataTransfer.effectAllowed = "move";
+							}}
+							onDragEnd={() => {
+								// Cleanup if drop wasn't handled (dragged outside)
+								if (!dropHandledRef.current) {
+									setDraggedIndex(null);
+									setDragOverIndex(null);
+								}
+								dropHandledRef.current = false;
+							}}
+							onDragOver={(e) => {
+								// Prevent default to allow dropping, but don't set dragOverIndex for tabs
+								if (!onReorderTabs || draggedIndex === null || draggedIndex === index) return;
+								e.preventDefault();
+								e.dataTransfer.dropEffect = "move";
+							}}
+							onDrop={(e) => {
+								if (!onReorderTabs || draggedIndex === null || dropHandledRef.current) return;
+								// Use the last highlighted drop zone position if available
+								if (dragOverIndex !== null && dragOverIndex !== index) {
+									e.preventDefault();
+									dropHandledRef.current = true;
+									
+									// Calculate target based on dragOverIndex
+									let targetIndex = dragOverIndex;
+									if (dragOverIndex === tabs.length) {
+										// Drop at end
+										targetIndex = tabs.length - 1;
+									} else if (draggedIndex < dragOverIndex) {
+										targetIndex = dragOverIndex - 1;
+									}
+									
+									if (draggedIndex !== targetIndex) {
+										onReorderTabs(draggedIndex, targetIndex);
+									}
+									
+									setDraggedIndex(null);
+									setDragOverIndex(null);
 								}
 							}}
 							style={{
@@ -216,20 +316,15 @@ export function TabBar({
 								borderRadius: "8px 8px 0 0",
 								position: "relative",
 								flexShrink: 0,
-								transition: "all 0.15s ease",
-								cursor: "pointer",
+								cursor: onReorderTabs ? "grab" : "pointer",
 							}}
 							onMouseEnter={(e) => {
-								if (!isActive) {
-									e.currentTarget.style.background =
-										"var(--color-surface-variant)";
+								if (!isActive && !isDragging) {
 									e.currentTarget.style.borderColor = "var(--color-primary)";
 								}
 							}}
 							onMouseLeave={(e) => {
-								if (!isActive) {
-									e.currentTarget.style.background =
-										"var(--color-surface-variant)";
+								if (!isActive && !isDragging) {
 									e.currentTarget.style.borderColor = "var(--color-outline)";
 								}
 							}}
@@ -313,8 +408,48 @@ export function TabBar({
 								<Icon name="close" style={{ width: 10, height: 10 }} />
 							</button>
 						</div>
+						</Fragment>
 					);
 				})}
+				
+				{/* Drop zone after last tab */}
+				{onReorderTabs && draggedIndex !== null && (
+					<div
+						className={`drop-zone ${dragOverIndex === tabs.length ? "drop-target" : ""}`}
+						onDragOver={(e) => {
+							if (draggedIndex === null) return;
+							e.preventDefault();
+							e.dataTransfer.dropEffect = "move";
+							if (dragOverIndex !== tabs.length) {
+								setDragOverIndex(tabs.length);
+							}
+						}}
+						onDrop={(e) => {
+							if (draggedIndex === null || dropHandledRef.current) return;
+							e.preventDefault();
+							dropHandledRef.current = true;
+							
+							// Move to end
+							if (draggedIndex !== tabs.length - 1) {
+								onReorderTabs(draggedIndex, tabs.length - 1);
+							}
+							
+							setDraggedIndex(null);
+							setDragOverIndex(null);
+						}}
+						style={{
+							width: 24,
+							height: 32,
+							flexShrink: 0,
+							borderRadius: "4px",
+							border: "1px dashed transparent",
+							transition: "all 0.15s ease",
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+						}}
+					/>
+				)}
 				
 				{/* New tab button - positioned right after tabs */}
 				<button
@@ -397,6 +532,44 @@ export function TabBar({
 			<style jsx>{`
 				.hide-scrollbar::-webkit-scrollbar {
 					display: none;
+				}
+				
+				.tab-item {
+					transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+				}
+				
+				.tab-item:active {
+					cursor: grabbing !important;
+				}
+				
+				.tab-item.dragging {
+					opacity: 0.4;
+					cursor: grabbing !important;
+					z-index: 1000;
+					transition: opacity 0.15s ease;
+				}
+				
+				.drop-zone {
+					transition: all 0.15s ease;
+					position: relative;
+				}
+				
+				.drop-zone::before {
+					content: "";
+					position: absolute;
+					left: 50%;
+					transform: translateX(-50%);
+					width: 4px;
+					height: 100%;
+					border-radius: 2px;
+					background: transparent;
+					transition: all 0.15s ease;
+				}
+				
+				.drop-zone.drop-target::before {
+					width: 4px;
+					background: var(--color-primary);
+					box-shadow: 0 0 8px rgba(var(--color-primary-rgb, 99, 102, 241), 0.6);
 				}
 				
 				@keyframes glow-pulse {

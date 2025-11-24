@@ -42,7 +42,8 @@ type TabAction =
 	| { type: "SET_TAB_VERSION_GRAPH"; payload: { tabId: string; versionGraph: VersionGraph } }
 	| { type: "SET_TAB_PRESET"; payload: { tabId: string; preset: PromptPresetSummary } }
 	| { type: "MARK_TAB_DIRTY"; payload: { tabId: string; isDirty: boolean } }
-	| { type: "RESTORE_TABS"; payload: { tabs: Tab[]; activeTabId: string | null } };
+	| { type: "RESTORE_TABS"; payload: { tabs: Tab[]; activeTabId: string | null } }
+	| { type: "REORDER_TABS"; payload: { fromIndex: number; toIndex: number } };
 
 const initialState: TabManagerState = {
 	tabs: [],
@@ -243,6 +244,23 @@ const reducer = (state: TabManagerState, action: TabAction): TabManagerState => 
 			};
 		}
 
+		case "REORDER_TABS": {
+			const { fromIndex, toIndex } = action.payload;
+			if (fromIndex === toIndex || fromIndex < 0 || toIndex < 0 || 
+			    fromIndex >= state.tabs.length || toIndex >= state.tabs.length) {
+				return state;
+			}
+			
+			const newTabs = [...state.tabs];
+			const [movedTab] = newTabs.splice(fromIndex, 1);
+			newTabs.splice(toIndex, 0, movedTab);
+			
+			return {
+				...state,
+				tabs: newTabs,
+			};
+		}
+
 		default:
 			return state;
 	}
@@ -380,6 +398,10 @@ export function useTabManager() {
 		dispatch({ type: "UPDATE_TAB_LABEL", payload: { tabId, label } });
 	}, []);
 
+	const reorderTabs = useCallback((fromIndex: number, toIndex: number) => {
+		dispatch({ type: "REORDER_TABS", payload: { fromIndex, toIndex } });
+	}, []);
+
 	// Active tab operations
 	const updateDraft = useCallback(
 		(draft: string) => {
@@ -487,6 +509,7 @@ export function useTabManager() {
 		closeTab,
 		switchTab,
 		updateTabLabel,
+		reorderTabs,
 		findTabByProjectId,
 		
 		// Active tab operations
