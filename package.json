@@ -25,6 +25,8 @@
 		"@fortawesome/react-fontawesome": "^0.2.0",
 		"@t3-oss/env-nextjs": "^0.12.0",
 		"next": "^16.0.3",
+		"react": "^19.0.0",
+		"react-dom": "^19.0.0",
 		"systeminformation": "^5.25.11",
 		"zod": "^3.24.2"
 	},
@@ -93,17 +95,10 @@
 		}
 	},
 	"overrides": {
-		"glob": "^11.0.4",
-		"temp": {
-			"rimraf": "3.0.2"
-		}
+		"glob": "^11.0.4"
 	},
 	"packageManager": "npm@11.4.2",
 	"engines": {
 		"node": ">=18.18.0"
-	},
-	"peerDependencies": {
-		"react": "^19.2.0",
-		"react-dom": "^19.2.0"
 	}
 }
