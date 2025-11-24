@@ -4,6 +4,7 @@ import type React from "react";
 import { useState, useEffect } from "react";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
+import { readLocalModelConfig } from "@/lib/local-config";
 
 const TitlebarButton: React.FC<{
 	children: React.ReactNode;
@@ -49,6 +50,7 @@ export default function Titlebar() {
 		gpu: string;
 	} | null>(null);
 	const [recommendation, setRecommendation] = useState<string | null>(null);
+	const [currentModelId, setCurrentModelId] = useState<string | null>(null);
 
 	useEffect(() => {
 		// Detect platform on mount
@@ -81,6 +83,24 @@ export default function Titlebar() {
 			}
 		};
 		detectPlatform();
+
+		// Load currently selected model
+		try {
+			const cfg = readLocalModelConfig();
+			if (cfg && typeof cfg.model === "string") {
+				setCurrentModelId(cfg.model);
+			}
+		} catch {}
+
+		// Listen for model change broadcasts from elsewhere in the app
+		const onModelChanged = (e: Event) => {
+			try {
+				const modelId = (e as CustomEvent)?.detail?.modelId as string | undefined;
+				if (typeof modelId === "string") setCurrentModelId(modelId);
+			} catch {}
+		};
+		window.addEventListener("sq-model-changed", onModelChanged as any);
+		return () => window.removeEventListener("sq-model-changed", onModelChanged as any);
 	}, []);
 
 	const isMac = platform === "darwin";
@@ -146,36 +166,44 @@ export default function Titlebar() {
 		: [minimizeButton, maximizeButton, closeButton]; // Windows/Linux order
 
 	const specsDisplay = specs && (
-		<div
-			className={`flex items-center gap-3 px-3 text-xs font-medium ${isMac ? "mr-2" : "ml-2"}`}
-		>
-			<div className="flex items-center gap-3 rounded-full bg-white/5 border border-white/10 px-3 py-0.5 text-zinc-300 transition-colors hover:bg-white/10 hover:text-zinc-100">
-				<div className="flex items-center gap-1.5" title={`CPU: ${specs.cpu}`}>
-					<Icon name="cpu" className="h-3 w-3 opacity-90" />
-					<span className="max-w-[120px] truncate">{cleanCpuName(specs.cpu)}</span>
-				</div>
-				<div className="h-3 w-[1px] bg-white/20" />
-				<div
-					className="flex items-center gap-1.5"
-					title={`RAM: ${(specs.ram / 1024 ** 3).toFixed(1)} GB`}
-				>
-					<Icon name="db" className="h-3 w-3 opacity-90" />
-					<span>{(specs.ram / 1024 ** 3).toFixed(0)} GB</span>
-				</div>
-				<div className="h-3 w-[1px] bg-white/20" />
-				<div className="flex items-center gap-1.5" title={`GPU: ${specs.gpu}`}>
-					<Icon name="image" className="h-3 w-3 opacity-90" />
-					<span className="max-w-[120px] truncate">{specs.gpu}</span>
-				</div>
+	<div
+		className={`flex items-center gap-2 px-2 text-[10px] font-medium ${isMac ? "mr-2" : "ml-2"}`}
+	>
+		<div className="flex items-center gap-2 rounded-full bg-white/0 border border-transparent px-2 py-0.5 text-zinc-500 transition-all hover:bg-white/5 hover:border-white/10 hover:text-zinc-300">
+			
+			<div className="flex items-center gap-1" title={`CPU: ${specs.cpu}`}>
+				<span className="max-w-[100px] truncate">{cleanCpuName(specs.cpu)}</span>
 			</div>
-			{recommendation && (
-				<div
-				className="flex items-center gap-1.5"
-				title="Recommended Gemma 3 Model"
+			<div className="h-2.5 w-[1px] bg-white/10" />
+
+			<div
+				className="flex items-center gap-1"
+				title={`RAM: ${(specs.ram / 1024 ** 3).toFixed(1)} GB`}
 			>
-				<span style={{ color: "gray", fontFamily: "var(--font-mono)" }}><b>Rec: {recommendation}</b></span>
+				<span>{(specs.ram / 1024 ** 3).toFixed(0)} GB</span>
 			</div>
-			)}
+			<div className="h-2.5 w-[1px] bg-white/10" />
+			<div className="flex items-center gap-1" title={`GPU: ${specs.gpu}`}>
+				<span className="max-w-[100px] truncate">{specs.gpu}</span>
+			</div>
+		</div>
+	</div>
+	);
+
+	const modelChip = (
+		<div
+			className={`flex items-center px-1.5 py-0.5 text-[10px] font-bold rounded-md ml-1 mr-2`}
+			style={{
+				color: "var(--color-on-surface-variant)",
+				background: "transparent",
+			}}
+			title={currentModelId ? `Current model: ${currentModelId}` : "Model not configured"}
+		>
+			<span className="uppercase tracking-wide">
+				{currentModelId
+					? `Gemma 3 ${(currentModelId.split(':')[1] || '').toUpperCase()}`
+					: "Gemma 3 —"}
+			</span>
 		</div>
 	);
 
@@ -196,6 +224,7 @@ export default function Titlebar() {
 					</div>
 					<div className="flex-1" />
 					{specsDisplay}
+					<div className="app-region-no-drag">{modelChip}</div>
 				</>
 			)}
 
@@ -203,6 +232,7 @@ export default function Titlebar() {
 			{!isMac && (
 				<>
 					{specsDisplay}
+					<div className="app-region-no-drag">{modelChip}</div>
 					<div className="flex-1" />
 					<div className="app-region-no-drag ml-auto flex gap-2 px-2">
 						{buttons}

@@ -23,8 +23,8 @@ export default function PresetCard({
 	const taskType = preset.taskType || "general";
 	const detailLabel = capitalize(preset.options?.detail || "normal");
 	const formatMap: Record<string, string> = {
-		markdown: "MD",
-		plain: "TXT",
+		markdown: "Markdown",
+		plain: "Plain",
 		xml: "XML",
 	};
 	const formatLabel =

@@ -20,15 +20,24 @@ export default function StudioHeader({
 	onToggleSidebar,
 }: StudioHeaderProps) {
 	return (
-		<header className="flex items-center justify-between border-b border-[var(--color-outline)] px-6 py-4" style={{ background: 'var(--color-surface-variant)' }}>
-			<div className="flex items-center gap-4">
+		<header
+			className="flex items-center justify-between border-b border-[var(--color-outline)]"
+			style={{
+				background: "var(--color-surface-variant)",
+				padding: "8px 12px",
+				gap: "8px",
+				flexWrap: "nowrap",
+				minHeight: "48px",
+			}}
+		>
+			<div className="flex items-center" style={{ gap: 8 }}>
 				{/* Hamburger menu for mobile */}
 				{isSmallScreen && (
 					<button
 						className="md-btn flex items-center justify-center bg-transparent text-secondary transition-colors hover:bg-[var(--color-outline)] hover:text-light"
 						style={{
-							width: 36,
-							height: 36,
+							width: 32,
+							height: 32,
 							padding: 0,
 						}}
 						onClick={onToggleSidebar}
@@ -40,7 +49,8 @@ export default function StudioHeader({
 
 				<button
 					onClick={onBack}
-					className="md-btn flex h-[36px] items-center gap-2 bg-transparent px-3 text-secondary transition-colors hover:bg-[var(--color-outline)] hover:text-light"
+					className="md-btn flex items-center bg-transparent px-3 text-secondary transition-colors hover:bg-[var(--color-outline)] hover:text-light"
+					style={{ height: 32, gap: 8 }}
 					aria-label="Back to Chat"
 					title="Back to Chat"
 				>
@@ -49,9 +59,9 @@ export default function StudioHeader({
 				</button>
 			</div>
 
-			<h1 className="flex items-center gap-3 font-semibold text-xl text-light">
+			<h1 className="flex items-center font-semibold text-sm text-on-surface" style={{ gap: 8 }}>
 				Preset Studio
-				<Logo className="h-8 w-8 text-primary" />
+				<Logo className="h-6 w-6 text-primary" />
 				{isDirty && (
 					<span
 						className="ml-2 inline-block h-2 w-2 rounded-full bg-[var(--color-attention)]"

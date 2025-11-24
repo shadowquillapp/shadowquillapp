@@ -188,7 +188,7 @@ export default function OllamaSetupContent() {
 	const statusLabelMap = {
 		success:
 			statusTone === "success" && availableModels.length > 0
-				? `Connected (${availableModels.length} model${availableModels.length > 1 ? "s" : ""})`
+				? `Connected`
 				: "Connected",
 		error: "Needs attention",
 		loading: "Checking…",
