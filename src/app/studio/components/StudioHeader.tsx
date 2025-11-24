@@ -20,7 +20,7 @@ export default function StudioHeader({
 	onToggleSidebar,
 }: StudioHeaderProps) {
 	return (
-		<header className="flex items-center justify-between border-b border-[var(--color-outline)] px-6 py-4" style={{ background: 'var(--surfacea20)' }}>
+		<header className="flex items-center justify-between border-b border-[var(--color-outline)] px-6 py-4" style={{ background: 'var(--color-surface-variant)' }}>
 			<div className="flex items-center gap-4">
 				{/* Hamburger menu for mobile */}
 				{isSmallScreen && (

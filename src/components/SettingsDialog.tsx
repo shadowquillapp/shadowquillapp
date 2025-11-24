@@ -4,8 +4,9 @@ import { Icon } from "./Icon";
 import LocalDataManagementContent from "./settings/LocalDataManagementContent";
 import OllamaSetupContent from "./settings/OllamaSetupContent";
 import SystemPromptEditorContent from "./settings/SystemPromptEditorContent";
+import DisplayContent from "./settings/DisplayContent";
 
-export type SettingsTab = "system" | "ollama" | "data";
+export type SettingsTab = "system" | "ollama" | "data" | "display";
 
 interface Props {
 	open: boolean;
@@ -77,6 +78,8 @@ export default function SettingsDialog({
 				return <OllamaSetupContent />;
 			case "data":
 				return <LocalDataManagementContent />;
+			case "display":
+			 return <DisplayContent />;
 			default:
 				return null;
 		}
@@ -155,6 +158,7 @@ export default function SettingsDialog({
 						<TabItem tab="ollama" label="Ollama Setup" />
 						<TabItem tab="system" label="System Prompt" />
 						<TabItem tab="data" label="Data Management" />
+						<TabItem tab="display" label="Display" />
 						</nav>
 						{/* Right content */}
 						<div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
@@ -196,6 +200,15 @@ export default function SettingsDialog({
 									}}
 								>
 									{renderContentFor("data")}
+								</div>
+								<div
+									key={`display-${activeTab === "display" ? "active" : "hidden"}`}
+									className={activeTab === "display" ? "settings-tab-content" : ""}
+									style={{
+										display: activeTab === "display" ? "block" : "none",
+									}}
+								>
+									{renderContentFor("display")}
 								</div>
 							</div>
 						</div>

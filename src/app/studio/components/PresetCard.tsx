@@ -62,7 +62,7 @@ export default function PresetCard({
 					: "border-[var(--color-outline)] text-secondary hover:border-primary hover:shadow-md"
 			}`}
 			style={{
-				background: isSelected ? 'var(--color-surface-variant)' : 'var(--surfacea10)'
+				background: isSelected ? 'var(--color-surface-variant)' : 'var(--color-surface)'
 			}}
 			onMouseEnter={(e) => {
 				if (!isSelected) {
@@ -71,7 +71,7 @@ export default function PresetCard({
 			}}
 			onMouseLeave={(e) => {
 				if (!isSelected) {
-					(e.currentTarget as HTMLElement).style.background = 'var(--surfacea10)';
+					(e.currentTarget as HTMLElement).style.background = 'var(--color-surface)';
 				}
 			}}
 			onClick={onSelect}
@@ -86,7 +86,7 @@ export default function PresetCard({
 					: "text-secondary group-hover:text-light"
 			}`}
 			style={{
-				background: isSelected ? 'var(--color-primary)' : 'var(--surfacea30)',
+				background: isSelected ? 'var(--color-primary)' : 'var(--color-surface-variant)',
 				color: isSelected ? 'var(--color-on-primary)' : undefined
 			}}
 		>

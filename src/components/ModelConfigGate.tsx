@@ -454,7 +454,7 @@ export default function ModelConfigGate({ children }: Props) {
 
 											<div className="ollama-panel__body">
 												{previouslyConfigured && connectionError && (
-													<div className="ollama-error-banner" role="alert">
+													<div className="ollama-error-banner" role="alert" hidden>
 														Previous configuration failed: {connectionError}. Please update and save again.
 													</div>
 												)}
@@ -487,7 +487,7 @@ export default function ModelConfigGate({ children }: Props) {
 															type="button"
 															onClick={() => testLocalConnection()}
 															disabled={testingLocal || !isValidPort(localPort)}
-															className="md-btn md-btn--primary ollama-field__action"
+															className={`md-btn md-btn--primary ollama-field__action${!localTestResult?.success ? " pulse-glow" : ""}`}
 															title="Check for available Ollama models"
 															aria-label="Check for available Ollama models"
 														>
@@ -609,7 +609,7 @@ export default function ModelConfigGate({ children }: Props) {
 													disabled={
 														saving || validating || !model || model.trim() === ""
 													}
-													className="md-btn md-btn--primary"
+													className={`md-btn md-btn--primary${localTestResult?.success ? " pulse-glow" : ""}`}
 													style={{
 														display: "flex",
 														alignItems: "center",
