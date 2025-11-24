@@ -6,6 +6,7 @@ import {
 	faChevronDown,
 	faChevronLeft,
 	faChevronRight,
+	faChevronUp,
 	faCircleInfo,
 	faCodeCompare,
 	faComments,
@@ -35,6 +36,8 @@ import {
 	faTrash,
 	faTriangleExclamation,
 	faUpRightAndDownLeftFromCenter,
+	faSun,
+	faMoon,
 	faWandMagicSparkles,
 	faXmark,
 } from "@fortawesome/free-solid-svg-icons";
@@ -60,6 +63,8 @@ const icons = {
 	expand: faUpRightAndDownLeftFromCenter,
 	chevronDown: faChevronDown,
 	"chevron-down": faChevronDown,
+	chevronUp: faChevronUp,
+	"chevron-up": faChevronUp,
 	"chevron-left": faChevronLeft,
 	"chevron-right": faChevronRight,
 	refresh: faRotateRight,
@@ -81,6 +86,8 @@ const icons = {
 	image: faImage,
 	"file-text": faFileLines,
 	settings: faGear,
+	sun: faSun,
+	moon: faMoon,
 } as const;
 
 export type _IconNameForceInclude = "edit";
@@ -90,11 +97,18 @@ export const Icon: React.FC<{
 	className?: string;
 	title?: string;
 	style?: React.CSSProperties;
-}> = ({ name, className, title, style }) => (
-	<FontAwesomeIcon
-		icon={icons[name]}
-		className={className}
-		title={title}
-		style={style}
-	/>
-);
+}> = ({ name, className, title, style }) => {
+	const icon = icons[name];
+	if (!icon) {
+		console.error(`Icon "${name}" not found in icons object`);
+		return null;
+	}
+	return (
+		<FontAwesomeIcon
+			icon={icon}
+			className={className}
+			title={title}
+			style={style}
+		/>
+	);
+};
