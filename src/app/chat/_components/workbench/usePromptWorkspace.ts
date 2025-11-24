@@ -38,7 +38,7 @@ interface PromptSessionState {
 type Action =
 	| { type: "SET_PRESET"; payload: { preset: PromptPresetSummary; initialDraft?: string } }
 	| { type: "UPDATE_DRAFT"; payload: { draft: string } }
-	| { type: "COMMIT_VERSION"; payload: { label?: string } }
+	| { type: "COMMIT_VERSION"; payload: { label?: string; originalInput?: string; outputMessageId?: string | null; metadata?: any } }
 	| { type: "UNDO_VERSION" }
 	| { type: "REDO_VERSION" }
 	| { type: "JUMP_TO_VERSION"; payload: { versionId: string } }
@@ -90,53 +90,60 @@ const reducer = (state: PromptSessionState, action: Action): PromptSessionState 
 		case "UPDATE_DRAFT": {
 			return { ...state, draft: action.payload.draft };
 		}
-		case "COMMIT_VERSION": {
-			const versionCount = countVersions(state.versionGraph);
-			const currentActiveContent = getActiveContent(state.versionGraph);
-			const activeNode = state.versionGraph.nodes[state.versionGraph.activeId];
-			const isInitialState = activeNode?.label === "Start" && currentActiveContent === "";
+	case "COMMIT_VERSION": {
+		const versionCount = countVersions(state.versionGraph);
+		const currentActiveContent = getActiveContent(state.versionGraph);
+		const activeNode = state.versionGraph.nodes[state.versionGraph.activeId];
+		const isInitialState = activeNode?.label === "Start" && currentActiveContent === "";
 
-			const label =
-				action.payload.label?.trim() ||
-				`Version ${versionCount + 1}`;
-			
-			const graph = isInitialState
-				? createVersionGraph(state.draft, label)
-				: appendVersion(state.versionGraph, state.draft, label);
+		const label =
+			action.payload.label?.trim() ||
+			`Version ${versionCount + 1}`;
+		
+		const originalInput = action.payload.originalInput ?? state.draft;
+		const outputMessageId = action.payload.outputMessageId ?? null;
+		const metadata = action.payload.metadata;
+		
+		const graph = isInitialState
+			? createVersionGraph(state.draft, label, originalInput, outputMessageId)
+			: appendVersion(state.versionGraph, state.draft, label, originalInput, outputMessageId, metadata);
 
-			return {
-				...state,
-				versionGraph: graph,
-				draft: getActiveContent(graph),
-			};
-		}
-		case "UNDO_VERSION": {
-			const nextGraph = undoVersion(state.versionGraph);
-			if (!nextGraph) return state;
-			return {
-				...state,
-				versionGraph: nextGraph,
-				draft: getActiveContent(nextGraph),
-			};
-		}
-		case "REDO_VERSION": {
-			const nextGraph = redoVersion(state.versionGraph);
-			if (!nextGraph) return state;
-			return {
-				...state,
-				versionGraph: nextGraph,
-				draft: getActiveContent(nextGraph),
-			};
-		}
-		case "JUMP_TO_VERSION": {
-			const nextGraph = jumpToVersion(state.versionGraph, action.payload.versionId);
-			if (nextGraph === state.versionGraph) return state;
-			return {
-				...state,
-				versionGraph: nextGraph,
-				draft: getActiveContent(nextGraph),
-			};
-		}
+		return {
+			...state,
+			versionGraph: graph,
+			draft: getActiveContent(graph),
+		};
+	}
+	case "UNDO_VERSION": {
+		const nextGraph = undoVersion(state.versionGraph);
+		if (!nextGraph) return state;
+		const targetNode = nextGraph.nodes[nextGraph.activeId];
+		return {
+			...state,
+			versionGraph: nextGraph,
+			draft: targetNode?.originalInput ?? getActiveContent(nextGraph),
+		};
+	}
+	case "REDO_VERSION": {
+		const nextGraph = redoVersion(state.versionGraph);
+		if (!nextGraph) return state;
+		const targetNode = nextGraph.nodes[nextGraph.activeId];
+		return {
+			...state,
+			versionGraph: nextGraph,
+			draft: targetNode?.originalInput ?? getActiveContent(nextGraph),
+		};
+	}
+	case "JUMP_TO_VERSION": {
+		const nextGraph = jumpToVersion(state.versionGraph, action.payload.versionId);
+		if (nextGraph === state.versionGraph) return state;
+		const targetNode = nextGraph.nodes[nextGraph.activeId];
+		return {
+			...state,
+			versionGraph: nextGraph,
+			draft: targetNode?.originalInput ?? getActiveContent(nextGraph),
+		};
+	}
 		case "SET_MESSAGES": {
 			return { ...state, messages: action.payload.messages };
 		}
@@ -192,12 +199,18 @@ export function usePromptWorkspace() {
 		dispatch({ type: "UPDATE_DRAFT", payload: { draft } });
 	}, []);
 
-	const commitDraft = useCallback((label?: string) => {
-		dispatch({ 
-			type: "COMMIT_VERSION", 
-			payload: label !== undefined ? { label } : {} 
-		});
-	}, []);
+const commitDraft = useCallback((label?: string, options?: { originalInput?: string; outputMessageId?: string | null; metadata?: any }) => {
+	const payload: { label?: string; originalInput?: string; outputMessageId?: string | null; metadata?: any } = {};
+	if (label !== undefined) payload.label = label;
+	if (options?.originalInput !== undefined) payload.originalInput = options.originalInput;
+	if (options?.outputMessageId !== undefined) payload.outputMessageId = options.outputMessageId;
+	if (options?.metadata !== undefined) payload.metadata = options.metadata;
+	
+	dispatch({ 
+		type: "COMMIT_VERSION", 
+		payload 
+	});
+}, []);
 
 	const undo = useCallback(() => {
 		dispatch({ type: "UNDO_VERSION" });
@@ -241,12 +254,14 @@ export function usePromptWorkspace() {
 		dispatch({ type: "ATTACH_PROJECT", payload: { projectId } });
 	}, []);
 
-	const setVersionGraph = useCallback(
-		(versionGraph: VersionGraph, draft?: string) => {
-			dispatch({ type: "SET_VERSION_GRAPH", payload: { versionGraph, draft } });
-		},
-		[],
-	);
+const setVersionGraph = useCallback(
+	(versionGraph: VersionGraph, draft?: string) => {
+		const payload: { versionGraph: VersionGraph; draft?: string } = { versionGraph };
+		if (draft !== undefined) payload.draft = draft;
+		dispatch({ type: "SET_VERSION_GRAPH", payload });
+	},
+	[],
+);
 
 	return {
 		session: state,

@@ -5,6 +5,8 @@ interface Version {
 	id: string;
 	label: string;
 	content: string;
+	originalInput?: string;
+	outputMessageId?: string | null;
 	createdAt: number;
 }
 
@@ -45,7 +47,7 @@ export function VersionHistoryModal({
 			<div className="modal-backdrop-blur" />
 			<div className="modal-content" onClick={(e) => e.stopPropagation()}>
 				<div className="modal-header">
-					<div className="modal-title">Version History</div>
+					<div className="modal-title">Current Project's Version History</div>
 					<button
 						aria-label="Close version history"
 						className="md-btn"
@@ -77,20 +79,17 @@ export function VersionHistoryModal({
 											onClose();
 										}}
 									>
-										<div className="version-history-item__head">
-											<span className="version-history-item__label">
-												Step {index + 1}: {version.label}
-											</span>
-											<span className="text-secondary text-xs">
-												{new Date(version.createdAt).toLocaleString()}
-											</span>
-										</div>
+									<div className="version-history-item__head">
+										<span className="version-history-item__label">
+											v{index + 1}
+										</span>
+										<span className="text-primary text-xs">
+											<b>{new Date(version.createdAt).toLocaleString()}</b>
+										</span>
+									</div>
 										<p className="version-history-item__preview">
-											{version.content.slice(0, 200)}...
+											{(version.originalInput || version.content).slice(0, 200)}...
 										</p>
-										{isActive && (
-											<span className="version-history-item__badge">Active</span>
-										)}
 									</button>
 								);
 							})}

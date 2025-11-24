@@ -31,8 +31,10 @@ export function VersionTimeline({ tab, onJump }: VersionTimelineProps) {
 				{versions.map((node, index) => {
 					const prev = index > 0 ? versions[index - 1] : null;
 					const isActive = node.id === activeId;
+					const hasOutput = node.outputMessageId !== null;
 					const nodeClass = ["ide-timeline__item"];
 					if (isActive) nodeClass.push("ide-timeline__item--active");
+					if (!hasOutput) nodeClass.push("ide-timeline__item--no-output");
 					return (
 						<button
 							key={node.id}
@@ -43,16 +45,27 @@ export function VersionTimeline({ tab, onJump }: VersionTimelineProps) {
 							title={
 								isActive
 									? "Currently active version"
-									: "Jump to this version"
+									: hasOutput
+										? "Jump to this version"
+										: "Manual save (no output yet)"
 							}
 						>
 							<div className="ide-timeline__item-head">
-								<div>
+								<div className="flex items-center gap-2">
 									<div className="ide-timeline__step">
-										Step {String(index + 1).padStart(2, "0")}
+										v{index + 1}
 									</div>
-									<div className="ide-timeline__label">{node.label}</div>
+									{hasOutput ? (
+										<span className="text-green-500 text-[10px]" title="Has generated output">
+											<Icon name="check" className="w-3 h-3" />
+										</span>
+									) : (
+										<span className="text-amber-500 text-[10px]" title="Manual save (no output)">
+											<Icon name="edit" className="w-3 h-3" />
+										</span>
+									)}
 								</div>
+								<div className="ide-timeline__label">{node.label}</div>
 								<div className="ide-timeline__meta">
 									<span>{summarizeDelta(node, prev)}</span>
 									<span>
@@ -64,13 +77,8 @@ export function VersionTimeline({ tab, onJump }: VersionTimelineProps) {
 								</div>
 							</div>
 							<p className="ide-timeline__preview">
-								{node.content.slice(0, 140) || "—"}
+								{node.originalInput?.slice(0, 140) || node.content.slice(0, 140) || "—"}
 							</p>
-							{isActive && (
-								<div className="ide-timeline__active-tag">
-									<Icon name="star" /> Active version
-								</div>
-							)}
 						</button>
 					);
 				})}

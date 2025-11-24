@@ -14,9 +14,15 @@ export interface VersionNode {
 	id: string;
 	label: string;
 	content: string;
+	originalInput: string; // Raw text user typed
+	outputMessageId: string | null; // Links to assistant message
 	createdAt: number;
 	prevId: string | null;
 	nextId: string | null;
+	metadata?: {
+		taskType?: string;
+		options?: any;
+	};
 }
 
 export interface VersionGraph {

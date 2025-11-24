@@ -31,12 +31,16 @@ function pruneForward(graph: VersionGraph, anchorId: string): VersionGraph {
 export function createVersionGraph(
 	initialContent: string,
 	label = "Preset Baseline",
+	originalInput?: string,
+	outputMessageId?: string | null,
 ): VersionGraph {
 	const id = makeId();
 	const node: VersionNode = {
 		id,
 		label,
 		content: initialContent,
+		originalInput: originalInput ?? initialContent,
+		outputMessageId: outputMessageId ?? null,
 		createdAt: Date.now(),
 		prevId: null,
 		nextId: null,
@@ -53,6 +57,9 @@ export function appendVersion(
 	graph: VersionGraph,
 	content: string,
 	label: string,
+	originalInput?: string,
+	outputMessageId?: string | null,
+	metadata?: { taskType?: string; options?: any },
 ): VersionGraph {
 	const trimmed = content ?? "";
 	const cleaned = pruneForward(graph, graph.activeId);
@@ -63,10 +70,15 @@ export function appendVersion(
 		id: newId,
 		label,
 		content: trimmed,
+		originalInput: originalInput ?? trimmed,
+		outputMessageId: outputMessageId ?? null,
 		createdAt: Date.now(),
 		prevId: parent.id,
 		nextId: null,
 	};
+	if (metadata) {
+		nextNode.metadata = metadata;
+	}
 	cleaned.nodes[parent.id] = { ...parent, nextId: newId };
 	return {
 		nodes: { ...cleaned.nodes, [newId]: nextNode },
@@ -120,5 +132,59 @@ export function hasUndo(graph: VersionGraph): boolean {
 export function hasRedo(graph: VersionGraph): boolean {
 	const active = graph.nodes[graph.activeId];
 	return Boolean(active?.nextId);
+}
+
+export function getOutputMessageId(graph: VersionGraph, versionId?: string): string | null {
+	const id = versionId ?? graph.activeId;
+	const node = graph.nodes[id];
+	return node?.outputMessageId ?? null;
+}
+
+// Migration helper for backward compatibility with old version graphs
+export function migrateVersionGraph(graph: VersionGraph, messages?: Array<{ id: string; role: string; content: string; createdAt?: number }>): VersionGraph {
+	let needsMigration = false;
+	const migratedNodes: Record<string, VersionNode> = {};
+	
+	// Check if any node needs migration
+	for (const [id, node] of Object.entries(graph.nodes)) {
+		if (!('originalInput' in node) || !('outputMessageId' in node)) {
+			needsMigration = true;
+			break;
+		}
+	}
+	
+	if (!needsMigration) {
+		return graph;
+	}
+	
+	// Migrate each node
+	for (const [id, node] of Object.entries(graph.nodes)) {
+		const migratedNode: VersionNode = {
+			...node,
+			originalInput: (node as any).originalInput ?? node.content,
+			outputMessageId: (node as any).outputMessageId ?? null,
+		};
+		
+		// Try to match with assistant messages by timestamp if messages are provided
+		if (messages && !migratedNode.outputMessageId) {
+			const assistantMessages = messages.filter(m => m.role === 'assistant');
+			// Find assistant message closest in time (within 5 seconds)
+			const matchingMessage = assistantMessages.find(m => {
+				if (!m.createdAt) return false;
+				const timeDiff = Math.abs(m.createdAt - node.createdAt);
+				return timeDiff < 5000; // 5 seconds tolerance
+			});
+			if (matchingMessage) {
+				migratedNode.outputMessageId = matchingMessage.id;
+			}
+		}
+		
+		migratedNodes[id] = migratedNode;
+	}
+	
+	return {
+		...graph,
+		nodes: migratedNodes,
+	};
 }
 

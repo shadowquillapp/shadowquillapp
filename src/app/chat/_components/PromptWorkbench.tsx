@@ -42,10 +42,12 @@ import {
 import { MessageRenderer } from "./workbench/MessageRenderer";
 import { SavedSessionsModal } from "./workbench/SavedSessionsModal";
 import type { MessageItem, PromptPresetSummary } from "./workbench/types";
-import { usePromptWorkspace } from "./workbench/usePromptWorkspace";
-import { appendVersion, createVersionGraph, versionList } from "./workbench/version-graph";
+import { useTabManager } from "./workbench/useTabManager";
+import { appendVersion, createVersionGraph, versionList, getOutputMessageId, migrateVersionGraph } from "./workbench/version-graph";
 import { VersionHistoryModal } from "./workbench/VersionHistoryModal";
 import { PresetInfoDialog } from "./workbench/PresetInfoDialog";
+import { TabBar } from "./workbench/TabBar";
+import { PresetPickerModal } from "./workbench/PresetPickerModal";
 
 import type {
 	CameraMovement,
@@ -133,25 +135,10 @@ export default function PromptWorkbench() {
 	const [selectedPresetKey, setSelectedPresetKey] = useState("");
 	const [recentPresetKeys, setRecentPresetKeys] = useState<string[]>([]);
 
-	const {
-		session,
-		setPreset,
-		updateDraft,
-		commitDraft,
-		undo,
-		redo,
-		jumpToVersion,
-		setMessages,
-		pushMessage,
-		updateMessage,
-		setSending,
-		setError: setSessionError,
-		attachProject,
-		hasUndo,
-		hasRedo,
-		activeContent,
-		setVersionGraph,
-	} = usePromptWorkspace();
+	// Tab management
+	const tabManager = useTabManager();
+	const [showPresetPicker, setShowPresetPicker] = useState(false);
+	const [presetPickerForNewTab, setPresetPickerForNewTab] = useState(false);
 
 	// Local project list state
 	const [projectList, setProjectList] = useState<
@@ -295,7 +282,7 @@ export default function PromptWorkbench() {
 		
 		if (!controlsRef.current || !textareaContainerRef.current) return;
 		
-		// If this is the first drag (position is still 0,0), calculate the actual position from right/bottom
+		// If this is the first drag (position is still 0,0), calculate the actual position from left/bottom
 		let currentX = controlsPosition.x;
 		let currentY = controlsPosition.y;
 		
@@ -303,8 +290,8 @@ export default function PromptWorkbench() {
 			const containerRect = textareaContainerRef.current.getBoundingClientRect();
 			const controlsRect = controlsRef.current.getBoundingClientRect();
 			
-			// Calculate position from right/bottom (16px from edges) to left/top
-			currentX = containerRect.width - controlsRect.width - 16;
+			// Calculate position from left/bottom (16px from edges) to left/top
+			currentX = 16;
 			currentY = containerRect.height - controlsRect.height - 16;
 			
 			setControlsPosition({ x: currentX, y: currentY });
@@ -427,16 +414,19 @@ export default function PromptWorkbench() {
 	// Ensure project exists or create one
 	const ensureProject = useCallback(
 		async (firstLine: string) => {
-			if (session.projectId) return session.projectId;
+			const activeTab = tabManager.activeTab;
+			if (!activeTab) return null;
+			if (activeTab.projectId) return activeTab.projectId;
 			const title =
-				(firstLine || session.preset?.name || "New project").slice(0, 40) ||
+				(firstLine || activeTab.preset?.name || "New project").slice(0, 40) ||
 				"New project";
-			const created = await localCreateProject(title);
-			attachProject(created.id);
+			const presetId = activeTab.preset?.id ?? undefined;
+			const created = await localCreateProject(title, "local-user", presetId);
+			tabManager.attachProject(created.id);
 			await refreshProjectList();
 			return created.id;
 		},
-		[attachProject, session.projectId, session.preset, refreshProjectList],
+		[tabManager, refreshProjectList],
 	);
 
 	const applyPreset = useCallback(
@@ -527,15 +517,13 @@ export default function PromptWorkbench() {
 		[applyPreset, setPreset, presetToSummary, seedDraftFromPreset],
 	);
 
-	// Initialize session if empty
+	// Show preset picker if no tabs exist
 	useEffect(() => {
-		if (!session.preset && presets.length > 0 && !loadingPresets) {
-			const preferred =
-				presets.find((p) => (p.id ?? p.name) === selectedPresetKey) ??
-				presets[0];
-			if (preferred) loadPreset(preferred, { trackRecent: false });
+		if (tabManager.tabs.length === 0 && presets.length > 0 && !loadingPresets) {
+			setShowPresetPicker(true);
+			setPresetPickerForNewTab(true);
 		}
-	}, [session.preset, presets, loadingPresets, selectedPresetKey, loadPreset]);
+	}, [tabManager.tabs.length, presets.length, loadingPresets]);
 
 	// Presets load
 	useEffect(() => {
@@ -577,12 +565,18 @@ export default function PromptWorkbench() {
 						applyPreset(pick);
 					}
 				}
+				
+				// If no tabs exist, show preset picker to create first tab
+				if (list.length > 0 && tabManager.tabs.length === 0 && !loadingPresets) {
+					setShowPresetPicker(true);
+					setPresetPickerForNewTab(true);
+				}
 			} finally {
 				setLoadingPresets(false);
 			}
 		};
 		void load();
-	}, [applyPreset, selectedPresetKey]);
+	}, [applyPreset, selectedPresetKey, tabManager.tabs.length]);
 
 	// Check for preset applied from Preset Studio page
 	useEffect(() => {
@@ -602,19 +596,30 @@ export default function PromptWorkbench() {
 	}, [loadPreset]);
 
 	const send = useCallback(async () => {
-		const text = session.draft.trim();
-		if (!text || session.sending) return;
-		setSending(true);
-		setSessionError(null);
+		const activeTab = tabManager.activeTab;
+		if (!activeTab) return;
+		
+		const text = activeTab.draft.trim();
+		if (!text || activeTab.sending) return;
+		
+		// Capture original input before processing
+		const originalInput = text;
+		
+		tabManager.setSending(true);
+		tabManager.setError(null);
 		const controller = new AbortController();
 		abortRef.current = controller;
 		const projectId = await ensureProject(text);
+		if (!projectId) {
+			tabManager.setSending(false);
+			return;
+		}
 		const user: MessageItem = {
 			id: crypto.randomUUID(),
 			role: "user",
 			content: text,
 		};
-		pushMessage(user);
+		tabManager.pushMessage(user);
 		try {
 			try {
 				const result = await localAppendMessages(
@@ -623,7 +628,7 @@ export default function PromptWorkbench() {
 					50,
 				);
 				const createdUserId = result?.created?.[0]?.id;
-				if (createdUserId) updateMessage(user.id, { id: createdUserId });
+				if (createdUserId) tabManager.updateMessage(user.id, { id: createdUserId });
 			} catch {}
 
 			const options = {
@@ -680,7 +685,10 @@ export default function PromptWorkbench() {
 				role: "assistant",
 				content: output,
 			};
-			pushMessage(assistant);
+			tabManager.pushMessage(assistant);
+			
+			let finalAssistantId = assistant.id;
+			
 			try {
 				const result = await localAppendMessages(
 					projectId,
@@ -688,28 +696,43 @@ export default function PromptWorkbench() {
 					50,
 				);
 				const createdAssistantId = result?.created?.[0]?.id;
-				if (createdAssistantId)
-					updateMessage(assistant.id, { id: createdAssistantId });
+				if (createdAssistantId) {
+					tabManager.updateMessage(assistant.id, { id: createdAssistantId });
+					finalAssistantId = createdAssistantId;
+				}
 				await refreshProjectList();
 			} catch {}
+			
+			// Update version graph
+			const currentGraph = activeTab.versionGraph;
+			const timestamp = new Date().toLocaleTimeString([], { 
+				hour: '2-digit', 
+				minute: '2-digit' 
+			});
+			const updatedGraph = appendVersion(
+				currentGraph,
+				text,
+				`Generated ${timestamp}`,
+				originalInput,
+				finalAssistantId,
+				{ taskType, options }
+			);
+			tabManager.setVersionGraph(updatedGraph);
+			tabManager.markDirty(false);
 		} catch (e: any) {
 			if (e?.name === "AbortError" || e?.message?.includes("aborted")) {
 				// Silent abort
 			} else {
-				setSessionError(e?.message || "Something went wrong");
+				tabManager.setError(e?.message || "Something went wrong");
 			}
 		} finally {
-			setSending(false);
+			tabManager.setSending(false);
 			abortRef.current = null;
 		}
 	}, [
-		session.draft,
-		session.sending,
+		tabManager,
 		ensureProject,
-		pushMessage,
 		refreshProjectList,
-		setSessionError,
-		setSending,
 		taskType,
 		tone,
 		detail,
@@ -734,7 +757,6 @@ export default function PromptWorkbench() {
 		examplesText,
 		buildUnifiedPrompt,
 		callLocalModelClient,
-		updateMessage,
 	]);
 
 	const stopGenerating = useCallback(() => {
@@ -745,10 +767,10 @@ export default function PromptWorkbench() {
 				role: "assistant",
 				content: "Response aborted",
 			};
-			pushMessage(abortedMsg);
+			tabManager.pushMessage(abortedMsg);
 		} catch {}
-		setSending(false);
-	}, [pushMessage, setSending]);
+		tabManager.setSending(false);
+	}, [tabManager]);
 
 	const endRef = useRef<HTMLDivElement | null>(null);
 
@@ -762,9 +784,10 @@ export default function PromptWorkbench() {
 				behavior: "smooth",
 			});
 		});
-	}, [session.messages, session.sending]);
+	}, [tabManager.activeTab?.messages, tabManager.activeTab?.sending]);
 
-	const activeMessages = session.messages;
+	const activeTab = tabManager.activeTab;
+	const activeMessages = activeTab?.messages ?? [];
 	const hasMessages = activeMessages.length > 0;
 	const recentProjects = useMemo(
 		() =>
@@ -778,44 +801,105 @@ export default function PromptWorkbench() {
 	const loadProject = useCallback(
 		async (id: string) => {
 			try {
+				// Check if project is already open in a tab
+				const existingTab = tabManager.findTabByProjectId(id);
+				if (existingTab) {
+					tabManager.switchTab(existingTab.id);
+					return;
+				}
+				
+				// Check if we can create a new tab
+				if (!tabManager.canCreateTab) {
+					tabManager.setError("Maximum number of tabs reached. Close a tab to open this project.");
+					return;
+				}
+				
 				const data = await localGetProject(id, 50);
 				const loaded: MessageItem[] = (data.messages ?? []).map((m: any) => ({
 					id: m.id,
 					role: m.role,
 					content: m.content,
 				}));
-				setMessages(loaded);
 
-				if (data.versionGraph) {
-					setVersionGraph(data.versionGraph);
-				} else {
-					// Reconstruct history from user messages for legacy chats
-					let graph = createVersionGraph("", "Start");
-					const userMsgs = loaded.filter((m) => m.role === "user");
-					if (userMsgs.length > 0) {
-						userMsgs.forEach((msg, i) => {
-							graph = appendVersion(graph, msg.content, `Version ${i + 1}`);
-						});
+				// Find the preset for this project
+				let projectPreset: PromptPresetSummary | null = null;
+				if (data.presetId) {
+					const preset = presets.find((p) => p.id === data.presetId);
+					if (preset) {
+						projectPreset = preset;
 					}
-					setVersionGraph(graph);
 				}
-
-				attachProject(id);
+				
+				// If no preset found, ask user to select one
+				if (!projectPreset) {
+					// For now, use first preset or show picker
+					if (presets.length > 0) {
+						projectPreset = presets[0] ?? null;
+					}
+				}
+				
+				if (!projectPreset) {
+					tabManager.setError("No preset available to open this project");
+					return;
+				}
+				
+				// Apply preset configuration
+				applyPreset(projectPreset, { trackRecent: false });
+				
+				// Create new tab with project data
+				tabManager.createTab(projectPreset);
+				
+				// Wait for tab to be created and active
+				setTimeout(() => {
+					tabManager.setMessages(loaded);
+					
+					let graph;
+					if (data.versionGraph) {
+						// Migrate version graph for backward compatibility
+						graph = migrateVersionGraph(data.versionGraph, loaded);
+					} else {
+						// Reconstruct history from user messages for legacy chats
+						graph = createVersionGraph("", "Start", "", null);
+						const userMsgs = loaded.filter((m) => m.role === "user");
+						const assistantMsgs = loaded.filter((m) => m.role === "assistant");
+						
+						if (userMsgs.length > 0) {
+							userMsgs.forEach((msg, i) => {
+								// Try to link with corresponding assistant message
+								const outputId = assistantMsgs[i]?.id ?? null;
+								graph = appendVersion(
+									graph, 
+									msg.content, 
+									`Version ${i + 1}`,
+									msg.content,
+									outputId
+								);
+							});
+						}
+					}
+					tabManager.setVersionGraph(graph);
+					tabManager.attachProject(id);
+					
+					// Update tab label with project title
+					if (tabManager.activeTab && data.title) {
+						tabManager.updateTabLabel(tabManager.activeTab.id, data.title);
+					}
+				}, 50);
 			} catch {
-				setSessionError("Failed to load project");
+				tabManager.setError("Failed to load project");
 			}
 		},
-		[attachProject, setSessionError, setMessages, setVersionGraph],
+		[tabManager, presets, applyPreset],
 	);
 
 	// Auto-save version graph
 	useEffect(() => {
-		if (!session.projectId || !session.versionGraph) return;
+		if (!activeTab?.projectId || !activeTab?.versionGraph) return;
 		const timer = setTimeout(() => {
-			updateProjectVersionGraph(session.projectId!, session.versionGraph);
+			updateProjectVersionGraph(activeTab.projectId!, activeTab.versionGraph);
 		}, 1000);
 		return () => clearTimeout(timer);
-	}, [session.projectId, session.versionGraph]);
+	}, [activeTab?.projectId, activeTab?.versionGraph]);
 
 	const deleteProject = useCallback(
 		async (id: string) => {
@@ -823,12 +907,15 @@ export default function PromptWorkbench() {
 				await localDeleteProject(id);
 				await refreshProjectList();
 			} catch {}
-			if (session.projectId === id) {
-				attachProject(null);
-				setMessages([]);
-			}
+			
+			// Close any tabs with this project
+			tabManager.tabs.forEach((tab) => {
+				if (tab.projectId === id) {
+					tabManager.closeTab(tab.id);
+				}
+			});
 		},
-		[attachProject, refreshProjectList, setMessages, session.projectId],
+		[refreshProjectList, tabManager],
 	);
 
 	const deleteAllProjects = useCallback(async () => {
@@ -859,17 +946,16 @@ export default function PromptWorkbench() {
 		[],
 	);
 
-	const isDraftDirty = session.draft !== activeContent;
-	const versions = versionList(session.versionGraph).filter(
+	const versions = activeTab ? versionList(activeTab.versionGraph).filter(
 		(v) => v.label !== "Start",
-	);
+	) : [];
 	// Live word count for the editor header
 	const wordCount = useMemo(() => {
-		const text = session.draft || "";
+		const text = activeTab?.draft || "";
 		const trimmed = text.trim();
 		if (!trimmed) return 0;
 		return trimmed.split(/\s+/).filter(Boolean).length;
-	}, [session.draft]);
+	}, [activeTab?.draft]);
 
 	const lastAssistantMessage = useMemo(
 		() => activeMessages.filter((m) => m.role === "assistant").slice(-1)[0],
@@ -883,19 +969,43 @@ export default function PromptWorkbench() {
 		return trimmed.split(/\s+/).filter(Boolean).length;
 	}, [lastAssistantMessage]);
 
-	// Global keyboard shortcut for saving (Cmd+S / Ctrl+S)
+	// Global keyboard shortcut for saving (Cmd+S / Ctrl+S) and tabs
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
+			// Save
 			if ((e.metaKey || e.ctrlKey) && e.key === "s") {
 				e.preventDefault();
-				if (isDraftDirty) {
-					commitDraft();
+				// Currently, we don't have manual version saving in tab mode
+				// The version graph is auto-updated when generating
+			}
+			// New tab
+			if ((e.metaKey || e.ctrlKey) && e.key === "t") {
+				e.preventDefault();
+				if (tabManager.canCreateTab) {
+					setShowPresetPicker(true);
+					setPresetPickerForNewTab(true);
+				}
+			}
+			// Close tab
+			if ((e.metaKey || e.ctrlKey) && e.key === "w") {
+				e.preventDefault();
+				if (activeTab) {
+					tabManager.closeTab(activeTab.id);
+				}
+			}
+			// Switch tabs with Cmd/Ctrl + 1-8
+			if ((e.metaKey || e.ctrlKey) && e.key >= "1" && e.key <= "8") {
+				e.preventDefault();
+				const index = parseInt(e.key, 10) - 1;
+				const targetTab = tabManager.tabs[index];
+				if (targetTab) {
+					tabManager.switchTab(targetTab.id);
 				}
 			}
 		};
 		document.addEventListener("keydown", onKeyDown);
 		return () => document.removeEventListener("keydown", onKeyDown);
-	}, [isDraftDirty, commitDraft]);
+	}, [activeTab, tabManager]);
 
 	return (
 		<>
@@ -952,6 +1062,24 @@ export default function PromptWorkbench() {
 					)}
 				</header>
 
+				{/* Tab Bar */}
+				<TabBar
+					tabs={tabManager.tabs.map((tab) => ({
+						id: tab.id,
+						label: tab.label,
+						preset: tab.preset,
+						isDirty: tab.isDirty,
+					}))}
+					activeTabId={tabManager.activeTabId}
+					maxTabs={tabManager.maxTabs}
+					onSwitchTab={tabManager.switchTab}
+					onCloseTab={tabManager.closeTab}
+					onNewTab={() => {
+						setShowPresetPicker(true);
+						setPresetPickerForNewTab(true);
+					}}
+				/>
+
 				<div className="simple-workbench__panels">
 					{/* LEFT PANE: Input */}
 					<section className="prompt-input-pane flex flex-col gap-4 p-6 bg-surface border-r border-outline h-full overflow-hidden" style={{ backgroundColor: 'var(--color-surface)' }}>
@@ -980,15 +1108,16 @@ export default function PromptWorkbench() {
 								</div>
 								{/* Right: controls */}
 								<div className="flex items-center gap-2">
-									<button
-										type="button"
-										onClick={() => copyMessage("prompt-draft", session.draft)}
-										className="w-8 h-8 p-0 hover:bg-surface rounded-md transition-all duration-150 text-on-surface-variant hover:text-on-surface"
-										title="Copy prompt"
-										aria-label="Copy prompt"
-									>
-										<Icon name={copiedMessageId === "prompt-draft" ? "check" : "copy"} className="w-3.5 h-3.5" />
-									</button>
+								<button
+									type="button"
+									onClick={() => copyMessage("prompt-draft", activeTab?.draft ?? "")}
+									className="w-8 h-8 p-0 hover:bg-surface rounded-md transition-all duration-150 text-on-surface-variant hover:text-on-surface"
+									title="Copy prompt"
+									aria-label="Copy prompt"
+									disabled={!activeTab}
+								>
+									<Icon name={copiedMessageId === "prompt-draft" ? "check" : "copy"} className="w-3.5 h-3.5" />
+								</button>
 								</div>
 							</div>
 
@@ -1010,9 +1139,10 @@ export default function PromptWorkbench() {
 										caretColor: "var(--color-primary)",
 										boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--color-outline), white 18%)",
 									}}
-									value={session.draft}
-									onChange={(e) => updateDraft(e.target.value)}
-									placeholder="Describe your prompt & intent..."
+									value={activeTab?.draft ?? ""}
+									onChange={(e) => tabManager.updateDraft(e.target.value)}
+									placeholder={activeTab ? "Describe your prompt & intent..." : "Create or open a tab to get started..."}
+									disabled={!activeTab}
 								/>
 
 								{/* Floating Footer Controls - Draggable */}
@@ -1020,19 +1150,18 @@ export default function PromptWorkbench() {
 									ref={controlsRef}
 									onMouseDown={handleMouseDown}
 									className="absolute flex items-center gap-4 z-10 rounded-2xl border backdrop-blur-sm p-3 select-none"
-									style={{
-										borderColor: "var(--color-outline)",
-										background: "color-mix(in srgb, var(--color-surface-variant) 30%, transparent)",
-										right: controlsPosition.x === 0 ? '16px' : 'auto',
-										bottom: controlsPosition.y === 0 ? '16px' : 'auto',
-										left: controlsPosition.x !== 0 ? `${controlsPosition.x}px` : 'auto',
-										top: controlsPosition.y !== 0 ? `${controlsPosition.y}px` : 'auto',
-										cursor: isDragging ? 'grabbing' : 'grab',
-									}}
+								style={{
+									borderColor: "var(--color-outline)",
+									background: "color-mix(in srgb, var(--color-surface-variant) 30%, transparent)",
+									left: controlsPosition.x === 0 ? '16px' : `${controlsPosition.x}px`,
+									bottom: controlsPosition.y === 0 ? '16px' : 'auto',
+									top: controlsPosition.y !== 0 ? `${controlsPosition.y}px` : 'auto',
+									cursor: isDragging ? 'grabbing' : 'grab',
+								}}
 								>
 									{/* Minimal 3-Point Dial */}
 									<div 
-										className="relative flex items-center justify-center rounded-full"
+										className="relative flex items-center justify-center rounded-full ml-3"
 										style={{ 
 											width: "75px", 
 											height: "75px",
@@ -1120,7 +1249,6 @@ export default function PromptWorkbench() {
 														{model.label}
 														{!isInstalled && (
 															<div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-2 py-1 bg-surface-inverse text-on-surface-inverse text-[10px] rounded opacity-0 group-hover/model-btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap shadow-md z-50 font-medium">
-																Not Installed
 															</div>
 														)}
 													</div>
@@ -1133,7 +1261,7 @@ export default function PromptWorkbench() {
 									type="button"
 									onClick={() => (session.sending ? stopGenerating() : void send())}
 									disabled={!session.draft.trim()}
-									className={`group relative flex items-center justify-center rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden ${
+									className={`group relative flex ml-5 mt-3 mb-3 mr-3 items-center justify-center rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden ${
 										session.sending
 											? "text-on-attention"
 											: "text-on-primary"
@@ -1149,14 +1277,19 @@ export default function PromptWorkbench() {
 									{/* Subtle shimmer effect */}
 									<div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out pointer-events-none rounded-full" />
 
-									{session.sending ? (
-										<Icon name="stop" className="w-8 h-8 relative z-10" />
-									) : (
-										<Icon
-											name="chevron-right"
-											className="w-8 h-8 relative z-10 transition-transform group-hover:translate-x-0.5"
-										/>
-									)}
+								{session.sending ? (
+									<Icon 
+										name="stop" 
+										className="relative z-10" 
+										style={{ width: '32px', height: '32px', fontSize: '32px' }}
+									/>
+								) : (
+									<Icon
+										name="chevron-right"
+										className="relative z-10 transition-transform group-hover:translate-x-0.5"
+										style={{ width: '32px', height: '32px', fontSize: '32px' }}
+									/>
+								)}
 								</button>
 								</div>
 							</div>
@@ -1273,14 +1406,6 @@ export default function PromptWorkbench() {
 									<span className="text-[10px]">
 										{outputWordCount} {outputWordCount === 1 ? "word" : "words"}
 									</span>
-									{session.sending && (
-										<>
-											<span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse ml-2" />
-											<span className="text-[10px] text-primary font-medium">
-												Generating...
-											</span>
-										</>
-									)}
 								</div>
 								
 								{/* Actions */}
@@ -1362,39 +1487,52 @@ export default function PromptWorkbench() {
 											</p>
 										</div>
 									</div>
-								) : (
-									<div className="flex flex-col gap-6 pb-2">
-										{activeMessages
-											.filter((message) => message.role === "assistant")
-											.map((message, index) => (
-												<div
-													key={message.id}
-													className="group relative flex flex-col gap-3"
-												>
+								) : (() => {
+									// Get the active version's output message ID
+									const activeOutputId = getOutputMessageId(session.versionGraph, session.versionGraph.activeId);
+									const activeOutput = activeOutputId 
+										? activeMessages.find(m => m.id === activeOutputId && m.role === "assistant")
+										: null;
+									
+									return (
+										<div className="flex flex-col gap-6 pb-2">
+											{activeOutput ? (
+												<div className="group relative flex flex-col gap-3">
 													{/* Message Content */}
 													<div className="max-w-none text-on-surface leading-relaxed text-[11px] font-mono">
 														<MessageRenderer
-															content={message.content}
-															messageId={message.id}
+															content={activeOutput.content}
+															messageId={activeOutput.id}
 															copiedMessageId={copiedMessageId}
 															onCopy={copyMessage}
 														/>
 													</div>
-													
-													{index < activeMessages.filter(m => m.role === "assistant").length - 1 && (
-														<div className="h-px w-full bg-[var(--color-outline)]/30 my-2" />
-													)}
 												</div>
-											))}
+											) : !session.sending && (
+												<div className="flex flex-col items-center justify-center py-12 gap-3 text-center opacity-60">
+													<div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center border border-[var(--color-outline)]">
+														<Icon name="file-text" className="w-6 h-6 opacity-50" />
+													</div>
+													<div className="max-w-[280px]">
+														<p className="text-sm font-medium text-on-surface">
+															No Output for This Version
+														</p>
+														<p className="text-xs text-on-surface-variant mt-1">
+															This version is a manual save. Run the prompt to generate output.
+														</p>
+													</div>
+												</div>
+											)}
 
-										{session.sending && (
-											<div className="flex flex-col items-center justify-center py-4 gap-3 text-on-surface-variant opacity-70">
-												<FeatherLoader />
-											</div>
-										)}
-										<div ref={endRef} />
-									</div>
-								)}
+											{session.sending && (
+												<div className="flex flex-col items-center justify-center py-4 gap-3 text-on-surface-variant opacity-70">
+													<FeatherLoader />
+												</div>
+											)}
+											<div ref={endRef} />
+										</div>
+									);
+								})()}
 							</div>
 						</div>
 
