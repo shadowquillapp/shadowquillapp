@@ -71,63 +71,63 @@ export default function PresetEditor({
 				{/* Editor content */}
 				<div className="flex-1 overflow-y-auto px-6 py-4">
 					<div className="mx-auto max-w-5xl">
-						{/* Tabs */}
-						<div className="flex flex-wrap items-center border-b border-[var(--color-outline)]">
+					{/* Tabs */}
+					<div className="flex flex-wrap items-center border-b border-[var(--color-outline)]">
+						<button
+							className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
+								activeTab === "basic"
+									? "bg-surface text-light border-b-surface"
+									: "bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light border-transparent"
+							}`}
+							aria-selected={activeTab === "basic"}
+							onClick={() => setActiveTab("basic")}
+						>
+							Basic Settings
+						</button>
+						<button
+							className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
+								activeTab === "advanced"
+									? "bg-surface text-light border-b-surface"
+									: "bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light border-transparent"
+							}`}
+							aria-selected={activeTab === "advanced"}
+							onClick={() => setActiveTab("advanced")}
+						>
+							Advanced Settings
+							<span className="ml-1 hidden text-xs opacity-60 sm:inline">
+								(Optional)
+							</span>
+						</button>
+						{preset.taskType !== "general" && (
 							<button
 								className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
-									activeTab === "basic"
-										? "bg-surface-0 text-light border-b-surface-0"
-										: "bg-transparent text-secondary hover:bg-surface-0/50 hover:text-light border-transparent"
+									activeTab === "type"
+										? "bg-surface text-light border-b-surface"
+										: "bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light border-transparent"
 								}`}
-								aria-selected={activeTab === "basic"}
-								onClick={() => setActiveTab("basic")}
+								aria-selected={activeTab === "type"}
+								onClick={() => setActiveTab("type")}
 							>
-								Basic Settings
+								{preset.taskType.charAt(0).toUpperCase() +
+									preset.taskType.slice(1)}{" "}
+								Settings
 							</button>
-							<button
-								className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
-									activeTab === "advanced"
-										? "bg-surface-0 text-light border-b-surface-0"
-										: "bg-transparent text-secondary hover:bg-surface-0/50 hover:text-light border-transparent"
-								}`}
-								aria-selected={activeTab === "advanced"}
-								onClick={() => setActiveTab("advanced")}
-							>
-								Advanced Settings
-								<span className="ml-1 hidden text-xs opacity-60 sm:inline">
-									(Optional)
-								</span>
-							</button>
-							{preset.taskType !== "general" && (
-								<button
-									className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
-										activeTab === "type"
-											? "bg-surface-0 text-light border-b-surface-0"
-											: "bg-transparent text-secondary hover:bg-surface-0/50 hover:text-light border-transparent"
-									}`}
-									aria-selected={activeTab === "type"}
-									onClick={() => setActiveTab("type")}
-								>
-									{preset.taskType.charAt(0).toUpperCase() +
-										preset.taskType.slice(1)}{" "}
-									Settings
-								</button>
-							)}
-							<button
-								className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
-									activeTab === "output"
-										? "bg-surface-0 text-light border-b-surface-0"
-										: "bg-transparent text-secondary hover:bg-surface-0/50 hover:text-light border-transparent"
-								}`}
-								aria-selected={activeTab === "output"}
-								onClick={() => setActiveTab("output")}
-							>
-								Output Settings
-								<span className="ml-1 hidden text-xs opacity-60 sm:inline">
-									(Optional)
-								</span>
-							</button>
-						</div>
+						)}
+						<button
+							className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
+								activeTab === "output"
+									? "bg-surface text-light border-b-surface"
+									: "bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light border-transparent"
+							}`}
+							aria-selected={activeTab === "output"}
+							onClick={() => setActiveTab("output")}
+						>
+							Output Settings
+							<span className="ml-1 hidden text-xs opacity-60 sm:inline">
+								(Optional)
+							</span>
+						</button>
+					</div>
 
 					{/* Tab Content */}
 					<div className="mt-6 space-y-4">
@@ -221,7 +221,7 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 				</div>
 
 				{/* Action bar */}
-				<div className="border-t border-[var(--color-outline)] bg-surface-0 px-6 py-4">
+				<div className="border-t border-[var(--color-outline)] bg-[var(--color-surface-variant)] px-6 py-4">
 					<div className="mx-auto flex max-w-5xl items-center justify-between">
 						<div className="flex items-center gap-3">
 							<button

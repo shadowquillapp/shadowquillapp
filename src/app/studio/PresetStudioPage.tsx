@@ -309,7 +309,7 @@ export default function PresetStudioPage() {
 						: "flex-shrink-0 w-[320px] border-r"
 				}`}
 				style={{ 
-					background: 'var(--surfacea20)',
+					background: 'var(--color-surface-variant)',
 				}}
 				>
 					<PresetLibrary

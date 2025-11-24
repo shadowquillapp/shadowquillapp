@@ -65,14 +65,14 @@ export default function PresetLibrary({
 		>
 			<div className="flex h-full flex-col">
 			{/* Fixed Header - Material Design Top App Bar style */}
-			<div className="z-10 flex flex-col gap-4 border-b border-[var(--color-outline)] px-6 py-5" style={{ background: 'var(--surfacea20)' }}>
+			<div className="z-10 flex flex-col gap-4 border-b border-[var(--color-outline)] px-6 py-5" style={{ background: 'var(--color-surface-variant)' }}>
 				{/* Title & Action */}
 				<div className="flex items-center justify-between">
 			<div className="flex items-center gap-3">
 				<h2 className="font-semibold text-lg text-light tracking-tight">
 					Preset Library
 				</h2>
-				<span className="flex h-6 min-w-[24px] items-center justify-center rounded-full border border-[var(--color-outline)] px-2.5 font-semibold text-light text-xs shadow-sm" style={{ background: 'var(--surfacea10)' }}>
+				<span className="flex h-6 min-w-[24px] items-center justify-center rounded-full border border-[var(--color-outline)] px-2.5 font-semibold text-light text-xs shadow-sm" style={{ background: 'var(--color-surface)' }}>
 					{filteredPresets.length}
 				</span>
 			</div>
@@ -90,7 +90,7 @@ export default function PresetLibrary({
 
 		{/* Search Bar - Material Filled Input style */}
 		<div className="relative">
-			<div className="relative flex items-center rounded-2xl border border-[var(--color-outline)] transition-colors hover:bg-[var(--color-surface-variant)]" style={{ background: 'var(--surfacea10)' }}>
+			<div className="relative flex items-center rounded-2xl border border-[var(--color-outline)] transition-colors hover:bg-[var(--color-surface)]" style={{ background: 'var(--color-surface)' }}>
 				<Icon
 					name="search"
 					className="absolute left-4 text-secondary text-sm"
