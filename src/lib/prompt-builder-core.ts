@@ -138,6 +138,9 @@ export function buildOptionDirectives(
 		directives.push(
 			"Format the output using markdown for readability (bullets, emphasis, etc.).",
 		);
+		directives.push(
+			"Do NOT use XML or HTML tags in the output unless quoting literal examples; prefer native markdown constructs.",
+		);
 	} else if (options.format === "xml") {
 		// Provide default XML structure based on task type if no custom schema
 		if (!options.outputXMLSchema) {
@@ -168,6 +171,9 @@ export function buildOptionDirectives(
 	} else if (options.format === "plain") {
 		directives.push(
 			"Format the output as plain text with no markdown or special syntax.",
+		);
+		directives.push(
+			"Do NOT include XML/HTML tags, code fences, or any special markup in the output.",
 		);
 	}
 	if (options.language && options.language.toLowerCase() !== "english") {
@@ -415,12 +421,11 @@ export function buildOptionDirectives(
 			directives.push(
 				"For XML output: Keep tags simple and flat. Do NOT create nested subsections. Instead use simple tags with flowing prose inside each element.",
 			);
-			if (options.stylePreset) {
-				const styleGuidance = is2DImageStyle
-					? `XML visual_style tag: Begin by explicitly stating "${options.stylePreset} style" then describe using art technique terms: cel-shading, flat colors, hard shadows, bold line weight, hand-drawn textures, stylized effects. Include negative constraints: No 3D rendering, No photorealism.`
-					: `XML visual_style tag: Begin by explicitly stating "${options.stylePreset} style" then describe how that style manifests in the visuals, colors, textures, lighting, and overall aesthetic.`;
-				directives.push(styleGuidance);
-			}
+		if (options.stylePreset) {
+			directives.push(
+				`XML visual_style tag: Describe the visual style naturally as "${options.stylePreset} style" with appropriate artistic and technical characteristics for that style.`
+			);
+		}
 		}
 	}
 	if (taskType === "video") {
@@ -457,15 +462,12 @@ export function buildOptionDirectives(
 						`Use ${options.cameraMovement} framing with animated techniques like cuts, pans, and perspective distortion.`,
 				);
 			}
-			directives.push(
-				"2D ANIMATION REQUIREMENTS: Use animation terminology, not cinematography. Describe using: dynamic cuts, fast panning, snap zooms, action lines, speed lines, perspective distortion, foreshortening - NOT smooth camera glides or tracking shots.",
-			);
-			directives.push(
-				"VISUAL TECHNIQUE: Describe the art style, not physics. Use: cel-shaded, flat colors, hard shadows, bold line weight, hand-drawn effects, stylized smoke/fire, glowing outlines, vibrant flat colors - NOT realistic lighting like incandescent, ray-tracing, or volumetric effects.",
-			);
-			directives.push(
-				"STYLE ENFORCEMENT: For anime/2D styles, add negative constraints: No 3D CGI characters, No photorealism, No Unreal Engine style. Use terms: sakuga (high-quality hand-drawn animation), 2D animation, traditional media, flattened depth.",
-			);
+		directives.push(
+			"Use animation terminology appropriate for 2D/hand-drawn styles (dynamic cuts, perspective shifts) rather than cinematography terms (camera tracking, smooth glides).",
+		);
+		directives.push(
+			"Describe the visual art style naturally with appropriate artistic characteristics.",
+		);
 		} else {
 			// 3D/Cinematic terminology
 			if (options.cameraMovement) {
@@ -486,12 +488,11 @@ export function buildOptionDirectives(
 			directives.push(
 				"For XML output: Keep tags simple and flat. Do NOT create nested subsections like <camera><movement>...</movement></camera>. Instead use simple tags with flowing prose inside.",
 			);
-			if (options.stylePreset) {
-				const styleGuidance = is2DStyle
-					? `XML visual_style tag: Begin by explicitly stating "${options.stylePreset} style" then describe using animation art terms: cel-shading, flat colors, hard shadows, bold line weight, hand-drawn effects, sakuga quality. Include negative constraints: No 3D CGI, No photorealism.`
-					: `XML visual_style tag: Begin by explicitly stating "${options.stylePreset} style" then describe how that style manifests in the visuals, colors, lighting, textures, and overall aesthetic.`;
-				directives.push(styleGuidance);
-			}
+		if (options.stylePreset) {
+			directives.push(
+				`XML visual_style tag: Describe the visual style naturally as "${options.stylePreset} style" with appropriate artistic and technical characteristics for that style.`
+			);
+		}
 			if (is2DStyle) {
 				directives.push(
 					"XML motion tag: For 2D/anime, describe using: rapid cuts, dynamic panning, snap zooms, action lines, speed lines, perspective shifts - NOT smooth camera movements or tracking shots.",
@@ -613,9 +614,23 @@ export function buildUnifiedPromptCore(params: {
 	if (constraintParts.length)
 		lines.push(`Constraints: ${constraintParts.join(", ")}`);
 	
-	// WRAP INPUT IN XML TAGS TO PREVENT INJECTION/SAFETY TRIGGER
-	lines.push(`CONTENT_SOURCE:\n<user_requirement>\n${rawUserInput}\n</user_requirement>`);
-	lines.push(`INSTRUCTION: Generate the ${taskType} prompt based strictly on the content inside the <user_requirement> tags above.`);
+	// Delimit input to prevent instruction injection (XML only when XML format is requested)
+	const useXmlEnvelope = options?.format === "xml";
+	if (useXmlEnvelope) {
+		lines.push(
+			`CONTENT_SOURCE:\n<user_requirement>\n${rawUserInput}\n</user_requirement>`,
+		);
+		lines.push(
+			`INSTRUCTION: Generate the ${taskType} prompt based strictly on the content inside the <user_requirement> tags above.`,
+		);
+	} else {
+		lines.push(
+			`CONTENT_SOURCE:\n<<USER_REQUIREMENT_START>>\n${rawUserInput}\n<<USER_REQUIREMENT_END>>`,
+		);
+		lines.push(
+			`INSTRUCTION: Generate the ${taskType} prompt based strictly on the content delimited between <<USER_REQUIREMENT_START>> and <<USER_REQUIREMENT_END>> above.`,
+		);
+	}
 
 	// Additional context MUST come after input to be more prominent
 	if (options?.additionalContext) {
