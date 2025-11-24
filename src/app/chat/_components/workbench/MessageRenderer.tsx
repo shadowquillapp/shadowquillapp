@@ -599,18 +599,78 @@ export function MessageRenderer({
 	}, []);
 
 	const renderMessageContent = () => {
+		// Handle both proper code blocks and malformed ones (e.g., missing closing backticks)
 		const codeBlockRegex = /```([^\n]*)\n?([\s\S]*?)```/g;
+		const unclosedCodeBlockRegex = /```([^\n]*)\n([\s\S]+)$/;
+		// Ensure UI matches copy behavior: hide a final bare fence line (exactly ```) from display.
+		const displayContent =
+			/(?:^|\n)```$/.test(content) ? content.replace(/```$/, "") : content;
 		const parts = [];
 		let lastIndex = 0;
 		let match;
+		
+		// First check for unclosed code block at the end
+		const unclosedMatch = unclosedCodeBlockRegex.exec(displayContent);
+		if (unclosedMatch) {
+			// If we find an unclosed code block, treat it as a complete block
+			const [fullMatch, language, code] = unclosedMatch;
+			const beforeBlock = displayContent.slice(0, unclosedMatch.index);
+			
+			if (beforeBlock.trim()) {
+				parts.push(
+					<span key="text-0" style={{ whiteSpace: "pre-wrap" }}>
+						{beforeBlock}
+					</span>,
+				);
+			}
+			
+			const languageLabel = (language || "").trim();
+			const lang = (languageLabel || "code").toLowerCase();
+			
+			// Clean up duplicate opening markers (e.g., ```xml\n```xml\n<content>)
+			let cleanedCode = code || "";
+			const duplicateMarkerPattern = new RegExp(`^\\s*\`\`\`${lang}\\s*\\n`, 'i');
+			cleanedCode = cleanedCode.replace(duplicateMarkerPattern, '');
+			
+			let highlightedCode;
+			if (lang === "json") {
+				highlightedCode = highlightJSON(cleanedCode);
+			} else if (lang === "markdown" || lang === "md") {
+				highlightedCode = highlightMarkdown(cleanedCode);
+			} else if (lang === "xml" || lang === "html" || lang === "svg") {
+				highlightedCode = highlightXML(cleanedCode);
+			} else {
+				highlightedCode = cleanedCode;
+			}
+			
+			parts.push(
+				<div
+					key="code-unclosed"
+					className="font-mono text-[11px] my-4 whitespace-pre-wrap overflow-x-auto bg-[var(--color-surface)] border border-[var(--color-outline)] rounded-lg p-4"
+				>
+					{languageLabel && (
+						<div className="text-[9px] text-on-surface-variant uppercase mb-2 font-semibold opacity-60">
+							{languageLabel}
+						</div>
+					)}
+					<div className="overflow-x-auto">
+						{highlightedCode}
+					</div>
+				</div>,
+			);
+			
+			return parts.length > 0 ? <>{parts}</> : <span style={{ whiteSpace: "pre-wrap" }}>{content}</span>;
+		}
 
-		while ((match = codeBlockRegex.exec(content)) !== null) {
+		while ((match = codeBlockRegex.exec(displayContent)) !== null) {
 			if (match.index > lastIndex) {
-				const textBefore = content.slice(lastIndex, match.index);
-				if (textBefore.trim()) {
+				const textBefore = displayContent.slice(lastIndex, match.index);
+				// Remove a trailing fence-only line (e.g., ``` at bottom of a text segment)
+				const cleanedTextBefore = textBefore.replace(/\n?\s*`{3,}\s*$/g, "");
+				if (cleanedTextBefore.trim()) {
 					parts.push(
 						<span key={`text-${lastIndex}`} style={{ whiteSpace: "pre-wrap" }}>
-							{textBefore}
+							{cleanedTextBefore}
 						</span>,
 					);
 				}
@@ -631,33 +691,86 @@ export function MessageRenderer({
 				highlightedCode = code;
 			}
 
-			parts.push(
-				<div
-					key={`code-${match.index}`}
-					className="font-mono text-[11px] my-4 whitespace-pre-wrap overflow-x-auto"
-				>
+		parts.push(
+			<div
+				key={`code-${match.index}`}
+				className="font-mono text-[11px] my-4 whitespace-pre-wrap overflow-x-auto bg-[var(--color-surface)] border border-[var(--color-outline)] rounded-lg p-4"
+			>
+				{languageLabel && (
+					<div className="text-[9px] text-on-surface-variant uppercase mb-2 font-semibold opacity-60">
+						{languageLabel}
+					</div>
+				)}
+				<div className="overflow-x-auto">
 					{highlightedCode}
-				</div>,
-			);
+				</div>
+			</div>,
+		);
 
 			lastIndex = match.index + match[0].length;
 		}
 
-		if (lastIndex < content.length) {
-			const remainingText = content.slice(lastIndex);
+		if (lastIndex < displayContent.length) {
+			let remainingText = displayContent.slice(lastIndex);
 			if (remainingText.trim()) {
-				parts.push(
-					<span key={`text-${lastIndex}`} style={{ whiteSpace: "pre-wrap" }}>
-						{remainingText}
-					</span>,
-				);
+				// Drop a trailing fence-only line (closing ```), so it is not rendered
+				remainingText = remainingText.replace(/\n?\s*`{3,}\s*$/g, "");
+			}
+			if (remainingText.trim()) {
+				// Check if text starts with a language identifier followed by XML/HTML/JSON
+				const langWithCodePattern = /^(xml|html|svg|json)\s*\n+([\s\S]+)$/i;
+				const langMatch = langWithCodePattern.exec(remainingText.trim());
+				
+				if (langMatch && langMatch[1] && langMatch[2]) {
+					const lang = langMatch[1];
+					const codeContent = langMatch[2];
+					const normalizedLang = lang.toLowerCase();
+					const highlighter = normalizedLang === 'json' ? highlightJSON : highlightXML;
+					parts.push(
+						<div
+							key={`code-${lastIndex}`}
+							className="font-mono text-[11px] my-4 whitespace-pre-wrap overflow-x-auto bg-[var(--color-surface)] border border-[var(--color-outline)] rounded-lg p-4"
+						>
+							<div className="text-[9px] text-on-surface-variant uppercase mb-2 font-semibold opacity-60">
+								{lang.toUpperCase()}
+							</div>
+							<div className="overflow-x-auto">
+								{highlighter(codeContent.trim())}
+							</div>
+						</div>,
+					);
+				} else {
+					// Check if remaining text looks like XML/HTML that wasn't in code blocks
+					const xmlPattern = /^\s*<[\s\S]*>\s*$/;
+					if (xmlPattern.test(remainingText.trim())) {
+						parts.push(
+							<div
+								key={`code-${lastIndex}`}
+								className="font-mono text-[11px] my-4 whitespace-pre-wrap overflow-x-auto bg-[var(--color-surface)] border border-[var(--color-outline)] rounded-lg p-4"
+							>
+								<div className="text-[9px] text-on-surface-variant uppercase mb-2 font-semibold opacity-60">
+									XML
+								</div>
+								<div className="overflow-x-auto">
+									{highlightXML(remainingText.trim())}
+								</div>
+							</div>,
+						);
+					} else {
+						parts.push(
+							<span key={`text-${lastIndex}`} style={{ whiteSpace: "pre-wrap" }}>
+								{remainingText}
+							</span>,
+						);
+					}
+				}
 			}
 		}
 
 		return parts.length > 0 ? (
 			<>{parts}</>
 		) : (
-			<span style={{ whiteSpace: "pre-wrap" }}>{content}</span>
+			<span style={{ whiteSpace: "pre-wrap" }}>{displayContent}</span>
 		);
 	};
 
