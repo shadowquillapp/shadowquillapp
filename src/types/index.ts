@@ -20,6 +20,7 @@ export interface PromptProject {
 	id: string;
 	userId: string;
 	title: string | null;
+	presetId?: string;
 	createdAt: Date;
 	updatedAt: Date;
 	versionGraph?: any;

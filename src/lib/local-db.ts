@@ -14,6 +14,7 @@ interface StoredProject {
 	id: string;
 	userId: string;
 	title: string | null;
+	presetId?: string;
 	createdAt: number;
 	updatedAt: number;
 	versionGraph?: any;
@@ -54,6 +55,7 @@ export async function listProjectsByUser(
 export async function createProject(
 	title?: string | null,
 	userId: string = LOCAL_USER_ID,
+	presetId?: string,
 ): Promise<PromptProject> {
 	const id = `project-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 	const now = Date.now();
@@ -61,6 +63,7 @@ export async function createProject(
 		id,
 		userId,
 		title: title ?? null,
+		...(presetId !== undefined && { presetId }),
 		createdAt: now,
 		updatedAt: now,
 	};
@@ -118,7 +121,7 @@ export async function appendMessagesWithCap(
 export async function getProject(
 	projectId: string,
 	limit = 50,
-): Promise<{ id: string; title: string | null; messages: TestMessage[]; versionGraph?: any }> {
+): Promise<{ id: string; title: string | null; messages: TestMessage[]; versionGraph?: any; presetId?: string }> {
 	const projects = readProjects();
 	const c = projects[projectId];
 	const messages = Object.values(readTestMessages())
@@ -126,7 +129,13 @@ export async function getProject(
 		.sort((a, b) => a.createdAt - b.createdAt)
 		.slice(-limit)
 		.map((m) => ({ ...m, createdAt: new Date(m.createdAt) }));
-	return { id: projectId, title: c?.title ?? "Untitled", messages, versionGraph: c?.versionGraph };
+	return { 
+		id: projectId, 
+		title: c?.title ?? "Untitled", 
+		messages, 
+		versionGraph: c?.versionGraph,
+		...(c?.presetId !== undefined && { presetId: c.presetId })
+	};
 }
 
 export async function updateProjectVersionGraph(

@@ -1,5 +1,6 @@
 import type { PresetLite } from "@/app/studio/types";
 import { Icon } from "@/components/Icon";
+import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 
 interface PresetInfoDialogProps {
@@ -37,6 +38,19 @@ export function PresetInfoDialog({
 	onClose,
 	preset,
 }: PresetInfoDialogProps) {
+	const router = useRouter();
+
+	const handleOpenInStudio = () => {
+		// Set the preset ID in localStorage so it auto-selects when studio loads
+		if (preset.id) {
+			localStorage.setItem("last-selected-preset", preset.id);
+		} else if (preset.name) {
+			localStorage.setItem("last-selected-preset", preset.name);
+		}
+		onClose();
+		router.push("/studio");
+	};
+
 	useEffect(() => {
 		if (!open) return;
 		const onEsc = (e: KeyboardEvent) => {
@@ -67,7 +81,7 @@ export function PresetInfoDialog({
 		if (!groupedOptions[category]) {
 			groupedOptions[category] = [];
 		}
-		groupedOptions[category].push({ key, value });
+		groupedOptions[category]!.push({ key, value });
 	});
 
 	// Order categories
@@ -126,10 +140,29 @@ export function PresetInfoDialog({
 									</span>
 								</div>
 							</div>
+							<button
+								type="button"
+								className="md-btn md-btn--primary"
+								onClick={handleOpenInStudio}
+								title="Open in Preset Studio"
+								aria-label="Open in Preset Studio"
+								style={{
+									display: "flex",
+									alignItems: "center",
+									gap: 6,
+									padding: "8px 12px",
+									fontSize: 12,
+									fontWeight: 600,
+									whiteSpace: "nowrap",
+								}}
+							>
+								<Icon name="brush" style={{ width: 14, height: 14 }} />
+								Edit
+							</button>
 						</div>
 
 						{/* Grouped Settings */}
-						<div className="flex flex-col gap-5 max-h-[60vh] overflow-y-auto pr-2 -mr-2 custom-scrollbar">
+						<div className="flex flex-col gap-5">
 							{categoryOrder.map((cat) => {
 								const items = groupedOptions[cat];
 								if (!items || items.length === 0) return null;
