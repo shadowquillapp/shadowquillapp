@@ -8,18 +8,18 @@
 	"type": "module",
 	"scripts": {
 		"build": "npm run build:electron",
-		"build:electron": "node build-electron.cjs",
+		"build:electron": "node scripts/build-electron.cjs",
 		"dist:electron": "npm run build:electron && cross-env NEXT_PUBLIC_ELECTRON=1 electron-builder --win --mac --linux",
 		"dist:win": "npm run build:electron && cross-env NEXT_PUBLIC_ELECTRON=1 electron-builder --win",
-		"check": "biome check .",
-		"check:unsafe": "biome check --write --unsafe .",
-		"check:write": "biome check --write .",
+		"check": "biome check --config-path=config/biome.jsonc .",
+		"check:unsafe": "biome check --config-path=config/biome.jsonc --write --unsafe .",
+		"check:write": "biome check --config-path=config/biome.jsonc --write .",
 		"dev": "cross-env SKIP_ENV_VALIDATION=true ELECTRON=1 NEXT_PUBLIC_ELECTRON=1 node ./electron/start-electron.cjs",
 		"postinstall": "echo 'Installation complete'",
 		"start": "cross-env SKIP_ENV_VALIDATION=true ELECTRON=1 NEXT_PUBLIC_ELECTRON=1 node ./electron/start-electron.cjs --prod",
-		"test": "vitest run",
-		"test:watch": "vitest",
-		"test:coverage": "vitest run --coverage",
+		"test": "vitest run --config=config/vitest.config.ts",
+		"test:watch": "vitest --config=config/vitest.config.ts",
+		"test:coverage": "vitest run --config=config/vitest.config.ts --coverage",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
@@ -37,7 +37,7 @@
 		"@types/node": "^20.19.10",
 		"@types/react": "^19.1.11",
 		"@types/react-dom": "^19.0.0",
-		"@vitest/coverage-v8": "^2.1.8",
+		"@vitest/coverage-v8": "^4.0.14",
 		"cross-env": "^7.0.3",
 		"electron": "^38.0.0",
 		"electron-builder": "^26.0.12",
@@ -45,7 +45,7 @@
 		"tailwindcss": "^4.0.15",
 		"tsx": "^4.20.5",
 		"typescript": "^5.8.2",
-		"vitest": "^2.1.8"
+		"vitest": "^4.0.14"
 	},
 	"build": {
 		"appId": "com.shadowquill.app",
@@ -99,6 +99,11 @@
 	},
 	"overrides": {
 		"glob": "^11.0.4"
+	},
+	"postcss": {
+		"plugins": {
+			"@tailwindcss/postcss": {}
+		}
 	},
 	"packageManager": "npm@11.4.2",
 	"engines": {
