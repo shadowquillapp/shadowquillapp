@@ -37,7 +37,7 @@ export default defineConfig({
 	// Path resolution (matching tsconfig)
 	resolve: {
 		alias: {
-			"@": resolve(__dirname, "./src"),
+			"@": resolve(__dirname, "../src"),
 		},
 	},
 });
