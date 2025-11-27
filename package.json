@@ -17,18 +17,19 @@
 		"dev": "cross-env SKIP_ENV_VALIDATION=true ELECTRON=1 NEXT_PUBLIC_ELECTRON=1 node ./electron/start-electron.cjs",
 		"postinstall": "echo 'Installation complete'",
 		"start": "cross-env SKIP_ENV_VALIDATION=true ELECTRON=1 NEXT_PUBLIC_ELECTRON=1 node ./electron/start-electron.cjs --prod",
+		"test": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
 		"@fortawesome/fontawesome-svg-core": "^6.5.2",
 		"@fortawesome/free-solid-svg-icons": "^6.5.2",
 		"@fortawesome/react-fontawesome": "^0.2.0",
-		"@t3-oss/env-nextjs": "^0.12.0",
 		"next": "^16.0.3",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"systeminformation": "^5.25.11",
-		"zod": "^3.24.2"
+		"systeminformation": "^5.25.11"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
@@ -36,13 +37,15 @@
 		"@types/node": "^20.19.10",
 		"@types/react": "^19.1.11",
 		"@types/react-dom": "^19.0.0",
+		"@vitest/coverage-v8": "^2.1.8",
 		"cross-env": "^7.0.3",
 		"electron": "^38.0.0",
 		"electron-builder": "^26.0.12",
 		"postcss": "^8.5.3",
 		"tailwindcss": "^4.0.15",
 		"tsx": "^4.20.5",
-		"typescript": "^5.8.2"
+		"typescript": "^5.8.2",
+		"vitest": "^2.1.8"
 	},
 	"build": {
 		"appId": "com.shadowquill.app",
@@ -88,9 +91,9 @@
 				"deb"
 			],
 			"category": "Utility",
-			"maintainer": "Sammy Hamwi <info@sammyhamwi.ai>",
-			"synopsis": "ShadowQuill AI prompt engineering tool",
-			"description": "ShadowQuill: build AI prompts locally with private storage.",
+			"maintainer": "ShadowQuill <info@shadowquill.org>",
+			"synopsis": "ShadowQuill prompt building AI tool",
+			"description": "ShadowQuill: build prompts local AI and storage",
 			"artifactName": "${productName}-${version}-${arch}.${ext}"
 		}
 	},
