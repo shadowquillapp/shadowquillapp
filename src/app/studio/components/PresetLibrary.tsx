@@ -1,7 +1,7 @@
 "use client";
 
 import PresetCard from "@/app/studio/components/PresetCard";
-import type { PresetLite } from "@/app/studio/types";
+import type { PresetLite } from "@/types";
 import { CustomSelect } from "@/components/CustomSelect";
 import { Icon } from "@/components/Icon";
 import type React from "react";

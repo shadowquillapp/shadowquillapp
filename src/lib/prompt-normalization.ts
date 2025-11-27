@@ -5,7 +5,7 @@ import type {
 	ImageStylePreset,
 	ShotType,
 	VideoStylePreset,
-} from "@/app/studio/types";
+} from "@/types";
 
 export const normalizeStylePreset = (
 	v: string | undefined,

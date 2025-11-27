@@ -1,6 +1,6 @@
 "use client";
 
-import type { PresetOptions, TaskType } from "@/app/studio/types";
+import type { PresetOptions, TaskType } from "@/types";
 import { CustomSelect } from "@/components/CustomSelect";
 import React from "react";
 

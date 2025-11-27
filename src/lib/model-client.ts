@@ -1,4 +1,5 @@
-import type { GenerationOptions, TaskType } from "@/server/googleai";
+import type { GenerationOptions, TaskType } from "@/types";
+import { ModelError, NetworkError } from "./errors";
 import { readLocalModelConfig } from "./local-config";
 
 export async function callLocalModelClient(
@@ -21,9 +22,16 @@ export async function callLocalModelClient(
 	};
 
 	const cfg = readLocalModelConfig();
-	if (!cfg) throw new Error("Model not configured");
-	if (cfg.provider !== "ollama")
-		throw new Error(`Unsupported provider: ${cfg.provider}`);
+	if (!cfg) {
+		throw new ModelError("Model not configured", {
+			details: { reason: "no_config" },
+		});
+	}
+	if (cfg.provider !== "ollama") {
+		throw new ModelError(`Unsupported provider: ${cfg.provider}`, {
+			details: { provider: cfg.provider },
+		});
+	}
 	const controller = new AbortController();
 	const to = setTimeout(() => controller.abort(), 90000);
 	try {
@@ -38,13 +46,34 @@ export async function callLocalModelClient(
 				temperature: opts.options.temperature,
 			};
 		}
-		const res = await fetch(`${cfg.baseUrl.replace(/\/$/, "")}/api/generate`, {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify(payload),
-			signal: controller.signal,
+		const endpoint = `${cfg.baseUrl.replace(/\/$/, "")}/api/generate`;
+		let res: Response;
+		try {
+			res = await fetch(endpoint, {
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify(payload),
+				signal: controller.signal,
+			});
+		} catch (fetchError) {
+			if (fetchError instanceof Error && fetchError.name === "AbortError") {
+				throw new ModelError("Request timed out", {
+					modelId: cfg.model,
+					isTimeout: true,
+					cause: fetchError,
+				});
+			}
+		throw new NetworkError("Failed to connect to Ollama", {
+			endpoint,
+			...(fetchError instanceof Error && { cause: fetchError }),
 		});
-		if (!res.ok) throw new Error(`Ollama error ${res.status}`);
+		}
+		if (!res.ok) {
+			throw new ModelError(`Ollama error ${res.status}`, {
+				modelId: cfg.model,
+				statusCode: res.status,
+			});
+		}
 		const data: any = await res.json().catch(() => ({}));
 		const rawText =
 			typeof data?.response === "string" ? data.response : JSON.stringify(data);

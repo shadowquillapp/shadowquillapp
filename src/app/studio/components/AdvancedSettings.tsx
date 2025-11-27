@@ -1,6 +1,6 @@
 "use client";
 
-import type { PresetLite } from "@/app/studio/types";
+import type { PresetLite } from "@/types";
 import { CustomSelect } from "@/components/CustomSelect";
 import React from "react";
 

@@ -1,10 +1,14 @@
-import type { PresetLite } from "@/app/studio/types";
+import { generatePresetExamples, generateSingleExample } from "@/lib/example-generator";
+import { getDefaultPresets } from "@/lib/presets";
+import type { PresetLite } from "@/types";
 import { useCallback, useState } from "react";
 
 const STORAGE_KEY = "PC_PRESETS";
 
 export function usePresetManager() {
 	const [presets, setPresets] = useState<PresetLite[]>([]);
+	const [isGeneratingExamples, setIsGeneratingExamples] = useState(false);
+	const [regeneratingIndex, setRegeneratingIndex] = useState<0 | 1 | null>(null);
 
 	// Load presets from localStorage
 	const loadPresets = useCallback(() => {
@@ -22,118 +26,7 @@ export function usePresetManager() {
 				setPresets(presetsWithIds);
 			} else {
 				// Create default presets if none exist
-				const defaultPresets: PresetLite[] = [
-					{
-						id: "general-assistant",
-						name: "General Assistant",
-						taskType: "general",
-						options: {
-							tone: "friendly",
-							detail: "normal",
-							format: "markdown",
-							language: "English",
-							temperature: 0.7,
-							useDelimiters: true,
-							includeVerification: false,
-							reasoningStyle: "cot",
-							endOfPromptToken: "<|endofprompt|>",
-							additionalContext:
-								"You are a helpful AI assistant. Provide clear, accurate, and well-structured responses. Use examples when helpful.",
-						},
-					},
-					{
-						id: "code-expert",
-						name: "Code Expert",
-						taskType: "coding",
-						options: {
-							tone: "technical",
-							detail: "detailed",
-							format: "markdown",
-							language: "English",
-							temperature: 0.4,
-							includeTests: true,
-							useDelimiters: true,
-							includeVerification: true,
-							reasoningStyle: "plan_then_solve",
-							endOfPromptToken: "<|endofprompt|>",
-							additionalContext:
-								"Write clean, well-documented code following best practices. Include error handling, type safety, and comprehensive test cases. Explain your implementation choices.",
-						},
-					},
-					{
-						id: "creative-writer",
-						name: "Creative Writer",
-						taskType: "writing",
-						options: {
-							tone: "friendly",
-							detail: "detailed",
-							format: "markdown",
-							language: "English",
-							temperature: 0.85,
-							useDelimiters: false,
-							includeVerification: false,
-							reasoningStyle: "none",
-							endOfPromptToken: "<|endofprompt|>",
-							additionalContext:
-								"Write engaging, creative content with vivid descriptions and natural flow. Focus on storytelling, emotion, and reader engagement.",
-						},
-					},
-					{
-						id: "research-analyst",
-						name: "Research Analyst",
-						taskType: "research",
-						options: {
-							tone: "formal",
-							detail: "detailed",
-							format: "markdown",
-							language: "English",
-							temperature: 0.5,
-							requireCitations: true,
-							useDelimiters: true,
-							includeVerification: true,
-							reasoningStyle: "cot",
-							endOfPromptToken: "<|endofprompt|>",
-							additionalContext:
-								"Provide thorough, well-researched analysis with proper citations. Be objective, evidence-based, and comprehensive. Verify facts and acknowledge limitations.",
-						},
-					},
-					{
-						id: "technical-writer",
-						name: "Technical Writer",
-						taskType: "writing",
-						options: {
-							tone: "technical",
-							detail: "detailed",
-							format: "markdown",
-							language: "English",
-							temperature: 0.3,
-							useDelimiters: true,
-							includeVerification: true,
-							reasoningStyle: "plan_then_solve",
-							endOfPromptToken: "<|endofprompt|>",
-							additionalContext:
-								"Create clear, precise technical documentation. Use consistent terminology, proper formatting, and logical structure. Include examples, diagrams descriptions, and troubleshooting steps where relevant.",
-						},
-					},
-					{
-						id: "marketing-expert",
-						name: "Marketing Expert",
-						taskType: "marketing",
-						options: {
-							tone: "persuasive",
-							detail: "normal",
-							format: "markdown",
-							language: "English",
-							temperature: 0.8,
-							useDelimiters: true,
-							includeVerification: false,
-							reasoningStyle: "cot",
-							endOfPromptToken: "<|endofprompt|>",
-							additionalContext:
-								"Create compelling marketing copy that resonates with target audiences. Focus on benefits, emotional appeal, and clear calls-to-action. Use persuasive techniques while maintaining authenticity.",
-						},
-					},
-				];
+				const defaultPresets = getDefaultPresets();
 				setPresets(defaultPresets);
 				localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPresets));
 			}
@@ -143,32 +36,39 @@ export function usePresetManager() {
 		}
 	}, []);
 
-	// Save preset (create or update)
+	// Save preset (create or update) - examples are generated manually via generateExamplesOnly
 	const savePreset = useCallback(
-		async (preset: PresetLite) => {
+		async (preset: PresetLite): Promise<PresetLite> => {
 			try {
 				const existing = presets.find((p) => p.id === preset.id);
 				let updatedPresets: PresetLite[];
+				let savedPreset: PresetLite;
 
-				if (existing) {
-					// Update existing preset
+			if (existing) {
+				// Update existing preset, preserve existing examples
+				const presetToSave: PresetLite = {
+					...preset,
+					...(existing.generatedExamples && { generatedExamples: existing.generatedExamples }),
+				};
 					updatedPresets = presets.map((p) =>
-						p.id === preset.id ? preset : p,
+						p.id === preset.id ? presetToSave : p,
 					);
+					savedPreset = presetToSave;
 				} else {
 					// Add new preset with generated ID if needed
-					const newPreset = {
+					const newPreset: PresetLite = {
 						...preset,
 						id:
 							preset.id ||
 							`preset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 					};
 					updatedPresets = [...presets, newPreset];
+					savedPreset = newPreset;
 				}
 
 				localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets));
 				setPresets(updatedPresets);
-				return preset;
+				return savedPreset;
 			} catch (error) {
 				console.error("Failed to save preset:", error);
 				throw error;
@@ -192,17 +92,18 @@ export function usePresetManager() {
 		[presets],
 	);
 
-	// Duplicate preset
+	// Duplicate preset (copies examples from original)
 	const duplicatePreset = useCallback(
 		async (presetId: string) => {
 			try {
 				const original = presets.find((p) => p.id === presetId);
 				if (!original) return null;
 
+				// Create duplicate without generatedExamples so they get regenerated on next save
 				const duplicated: PresetLite = {
-					...original,
 					id: `preset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 					name: `${original.name} Copy`,
+					taskType: original.taskType,
 					options: { ...original.options },
 				};
 
@@ -271,13 +172,86 @@ export function usePresetManager() {
 		[presets],
 	);
 
+	// Generate examples for a preset without saving (updates in-memory and storage)
+	const generateExamplesOnly = useCallback(
+		async (preset: PresetLite): Promise<PresetLite | null> => {
+			if (!preset.id) return null;
+			
+			setIsGeneratingExamples(true);
+			try {
+				const examples = await generatePresetExamples(preset);
+				const presetWithExamples: PresetLite = {
+					...preset,
+					generatedExamples: examples,
+				};
+
+				// Update in presets array and localStorage
+				const updatedPresets = presets.map((p) =>
+					p.id === preset.id ? presetWithExamples : p,
+				);
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets));
+				setPresets(updatedPresets);
+
+				return presetWithExamples;
+			} catch (error) {
+				console.error("Failed to generate examples:", error);
+				return null;
+			} finally {
+				setIsGeneratingExamples(false);
+			}
+		},
+		[presets],
+	);
+
+	// Regenerate a single example at the given index (0 or 1)
+	const regenerateExample = useCallback(
+		async (preset: PresetLite, index: 0 | 1): Promise<PresetLite | null> => {
+			if (!preset.id || !preset.generatedExamples) return null;
+			
+			setRegeneratingIndex(index);
+			try {
+				const newExample = await generateSingleExample(preset);
+				
+				// Create updated examples array
+				const updatedExamples: [typeof newExample, typeof newExample] = 
+					index === 0 
+						? [newExample, preset.generatedExamples[1]]
+						: [preset.generatedExamples[0], newExample];
+				
+				const presetWithExamples: PresetLite = {
+					...preset,
+					generatedExamples: updatedExamples,
+				};
+
+				// Update in presets array and localStorage
+				const updatedPresets = presets.map((p) =>
+					p.id === preset.id ? presetWithExamples : p,
+				);
+				localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets));
+				setPresets(updatedPresets);
+
+				return presetWithExamples;
+			} catch (error) {
+				console.error("Failed to regenerate example:", error);
+				return null;
+			} finally {
+				setRegeneratingIndex(null);
+			}
+		},
+		[presets],
+	);
+
 	return {
 		presets,
+		isGeneratingExamples,
+		regeneratingIndex,
 		loadPresets,
 		savePreset,
 		deletePreset,
 		duplicatePreset,
 		exportPresets,
 		importPresets,
+		generateExamplesOnly,
+		regenerateExample,
 	};
 }
