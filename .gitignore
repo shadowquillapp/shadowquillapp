@@ -7,3 +7,4 @@ next-env.d.ts
 /docs
 tsconfig.tsbuildinfo
 package-lock.json
+.markdownlint.json
