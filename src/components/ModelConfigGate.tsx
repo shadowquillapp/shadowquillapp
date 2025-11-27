@@ -6,7 +6,6 @@ import {
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
 import { ensureDefaultPreset } from "@/lib/presets";
-import { isElectronRuntime } from "@/lib/runtime";
 import {
 	ensureSystemPromptBuild,
 	resetSystemPromptBuild,
@@ -25,6 +24,17 @@ interface WindowWithShadowQuill extends Window {
 		checkOllamaInstalled?: () => Promise<{ installed: boolean }>;
 		openOllama?: () => Promise<{ ok: boolean; error?: string }>;
 	};
+}
+
+function isElectronRuntime(): boolean {
+	if (typeof process !== "undefined") {
+		if ((process as any)?.versions?.electron) return true;
+		if (process.env.ELECTRON === "1" || process.env.NEXT_PUBLIC_ELECTRON === "1") return true;
+	}
+	if (typeof navigator !== "undefined") {
+		return /Electron/i.test(navigator.userAgent);
+	}
+	return false;
 }
 
 export default function ModelConfigGate({ children }: Props) {
@@ -1016,7 +1026,7 @@ function DataLocationModalWrapper() {
 											className="text-secondary text-xs"
 											style={{ marginBottom: 10 }}
 										>
-											This will delete all local data (settings, chats, presets)
+											This will delete all local data (settings, sessions, presets)
 											PERMANENTLY. Only use this if you want to start fresh.
 										</div>
 										<button
