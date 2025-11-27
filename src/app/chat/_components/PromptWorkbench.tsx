@@ -105,6 +105,7 @@ export default function PromptWorkbench() {
 	const [shotType, setShotType] = useState<ShotType>("medium");
 	const [durationSeconds, setDurationSeconds] = useState<number>(5);
 	const [frameRate, setFrameRate] = useState<FrameRate>(24);
+	const [includeStoryboard, setIncludeStoryboard] = useState(false);
 	const [includeTests, setIncludeTests] = useState(true);
 	const [requireCitations, setRequireCitations] = useState(true);
 	const [useDelimiters, setUseDelimiters] = useState(true);
@@ -125,6 +126,7 @@ export default function PromptWorkbench() {
 	const tabManager = useTabManager();
 	const [showPresetPicker, setShowPresetPicker] = useState(false);
 	const [presetPickerForNewTab, setPresetPickerForNewTab] = useState(false);
+	const hasAutoShownPresetPicker = useRef(false);
 
 	// Local project list state
 	const [projectList, setProjectList] = useState<
@@ -321,6 +323,7 @@ export default function PromptWorkbench() {
 			setFrameRate(
 				typeof o.frameRate === "number" ? (o.frameRate as FrameRate) : 24,
 			);
+			setIncludeStoryboard(!!o.includeStoryboard);
 			setIncludeTests(!!o.includeTests);
 			setRequireCitations(!!o.requireCitations);
 			setUseDelimiters(
@@ -450,6 +453,25 @@ export default function PromptWorkbench() {
 		applyPresetFromStorage();
 	}, [loadPreset]);
 
+	// Auto-show preset picker when no tabs are open
+	useEffect(() => {
+		// Wait for presets to be loaded
+		if (loadingPresets || presets.length === 0) return;
+
+		// Reset the auto-show flag when tabs exist
+		if (tabManager.tabs.length > 0) {
+			hasAutoShownPresetPicker.current = false;
+			return;
+		}
+
+		// If no tabs and we haven't auto-shown yet, show the preset picker
+		if (!hasAutoShownPresetPicker.current && !showPresetPicker) {
+			hasAutoShownPresetPicker.current = true;
+			setShowPresetPicker(true);
+			setPresetPickerForNewTab(true);
+		}
+	}, [loadingPresets, presets.length, tabManager.tabs.length, showPresetPicker]);
+
 	const send = useCallback(async () => {
 		const activeTab = tabManager.activeTab;
 		if (!activeTab) return;
@@ -516,6 +538,8 @@ export default function PromptWorkbench() {
 						: undefined,
 				frameRate:
 					taskType === "video" ? normalizeFrameRate(frameRate) : undefined,
+				includeStoryboard:
+					taskType === "video" ? includeStoryboard : undefined,
 				useDelimiters,
 				includeVerification,
 				reasoningStyle,
@@ -603,6 +627,7 @@ export default function PromptWorkbench() {
 		shotType,
 		durationSeconds,
 		frameRate,
+		includeStoryboard,
 		useDelimiters,
 		includeVerification,
 		reasoningStyle,

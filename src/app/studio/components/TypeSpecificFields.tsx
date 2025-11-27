@@ -168,6 +168,21 @@ export default function TypeSpecificFields({
 						/>
 					</div>
 				</div>
+
+				<label className="flex cursor-pointer items-center gap-2">
+					<input
+						type="checkbox"
+						checked={options.includeStoryboard ?? false}
+						onChange={(e) => onFieldChange("includeStoryboard", e.target.checked)}
+						className="md-checkbox"
+					/>
+					<span className="text-sm text-light">Include storyboard breakdown</span>
+				</label>
+				<p className="mt-1 ml-6 text-xs text-secondary opacity-80">
+					{(options.durationSeconds || 5) >= 10
+						? `Generate a scene-by-scene storyboard for the ${options.durationSeconds || 5}s video (recommended for longer videos)`
+						: `Add storyboard frames to visualize the ${options.durationSeconds || 5}s video sequence`}
+				</p>
 			</div>
 		);
 	}

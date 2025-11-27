@@ -144,7 +144,6 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 					className="modal-container"
 					aria-modal="true"
 					role="dialog"
-					onClick={() => closeActive(false)}
 				>
 					<div className="modal-backdrop-blur" />
 					<div className="modal-content" onClick={(e) => e.stopPropagation()}>
