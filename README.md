@@ -16,16 +16,16 @@ ShadowQuill is a desktop application for crafting high-quality AI prompts with c
 
 ## Key Features
 
-- **100% Local & Private**: All processing happens on your machine via Ollama. Data is stored in your local user profile.
-- **Tab-Based Interface**: Work with multiple prompt sessions simultaneously. Each tab maintains its own history and state.
-- **Version History**: Track all prompt iterations with manual saves (⌘S/Ctrl+S) and automatic versioning. Navigate through your prompt evolution with visual indicators.
-- **Specialized Prompt Building**: Dedicated modes for **Coding**, **Writing**, **Marketing**, **Research**, **Image**, and **Video** prompts.
-- **Gemma 3 Optimized**: Native support for Gemma 3 models (4B, 12B, 27B) with intuitive vertical model selector and auto-detection.
-- **Preset Studio**: Create, manage, and share reusable prompt templates with granular configuration. Link presets to projects for easy tracking.
-- **Multiple Themes**: Choose from 4 themes - Default (Earth), Dark Purple, Dark, and Light - all accessible from Settings.
-- **Smart Code Rendering**: Enhanced code block detection and syntax highlighting with automatic XML/HTML recognition.
-- **Mobile Responsive**: Fully responsive design that adapts to different screen sizes and mobile devices.
+- **100% Local & Private**: All processing happens on your machine via Ollama. Data is stored locally in your user profile.
+- **Tab-Based Workbench**: Work with up to 8 prompt sessions simultaneously. Each tab maintains its own preset, history, and version state.
+- **Preset-Driven Workflow**: Every tab is powered by a preset configuration. Create, customize, and reuse presets across sessions.
+- **Version History**: Track all prompt iterations with manual saves (⌘S/Ctrl+S) and automatic versioning. Navigate through your prompt evolution with a visual version timeline.
+- **7 Task Types**: Specialized prompt modes for **General**, **Coding**, **Writing**, **Marketing**, **Research**, **Image**, and **Video** generation.
+- **Gemma 3 Optimized**: Native support for Gemma 3 models (4B, 12B, 27B) with an intuitive model selector and auto-detection.
+- **Preset Studio**: Full-featured preset editor with live preview, AI-generated examples, and preset version history.
+- **4 Color Themes**: Default (Earth), Dark Purple, Dark, and Light—accessible from Settings > Display.
 - **Real-Time Metrics**: Track word and character counts for both input and output in real-time.
+- **Mobile Responsive**: Fully responsive design that adapts to different screen sizes.
 
 ## Getting Started
 
@@ -58,34 +58,55 @@ Download the latest installer for Windows, macOS, or Linux from:
 
 ### 3. Usage
 
-**Chat Interface (Prompt Workbench)**:
+#### Prompt Workbench
 
-- **Create New Tabs**: Click the "+" button in the tab bar or press ⌘T/Ctrl+T to start a new session with a preset.
-- **Select Task Type**: Choose from Coding, Writing, Marketing, Research, Image, or Video modes.
-- **Configure Options**: Set tone, detail level, output format (Markdown, Plain, XML), and other parameters.
-- **Switch Models**: Use the vertical model selector to switch between Gemma 3 models (4B, 12B, 27B).
-- **Track Progress**: Monitor word and character counts for both your prompts and AI responses.
-- **Manual Saves**: Press ⌘S/Ctrl+S to create version snapshots at any time.
-- **Version History**: Click the version button to view and navigate through all saved versions of your prompt.
-- **Copy Prompts**: Copy button automatically strips code fences for clean text copying.
+The main interface for crafting and generating prompts.
 
-**Preset Studio**:
+- **Create New Tabs**: Click the "+" button or press ⌘T/Ctrl+T. Select a preset to configure the new tab.
+- **Switch Models**: Use the vertical model selector (4B/12B/27B) in the editor pane to switch between Gemma 3 models.
+- **Write Prompts**: Enter your prompt in the left editor pane. Word and character counts update in real-time.
+- **Generate**: Click the run button or view responses in the right output pane.
+- **Version History**: Click the version indicator (e.g., "v2") to view and navigate through saved versions.
+- **Manual Save**: Press ⌘S/Ctrl+S to create a version snapshot at any time.
+- **Copy Output**: Copy responses with code fence stripping for clean text.
 
-- Create and save custom prompt configurations with all your preferred settings.
-- Apply presets instantly when creating new tabs.
-- Edit presets directly from the workbench with the "Edit" button.
-- Link presets to projects for better organization.
+**Keyboard Shortcuts:**
+| Shortcut | Action |
+|----------|--------|
+| ⌘T / Ctrl+T | New tab |
+| ⌘W / Ctrl+W | Close current tab |
+| ⌘S / Ctrl+S | Save version snapshot |
+| ⌘1-8 / Ctrl+1-8 | Switch to tab 1-8 |
 
-**Display & Theme**:
+#### Preset Studio
 
-- Access **Settings > Display** to choose from 4 themes: Default (Earth), Dark Purple, Dark, or Light.
-- Adjust UI zoom level (50%-200%) for comfortable viewing.
-- View display statistics and window information.
+Create and manage reusable prompt configurations.
 
-**Data Management**:
+- **Browse Presets**: View all presets in the left sidebar organized by task type.
+- **Edit Configuration**: Modify task type, tone, detail level, format, temperature, and task-specific options.
+- **Generate Examples**: AI-powered example generation to preview how your preset will behave.
+- **Apply to Workbench**: Send any preset directly to the workbench to start a new session.
+- **Duplicate & Delete**: Clone presets for variations or remove unused ones.
 
-- All chats, presets, and settings are stored locally.
-- View storage paths or reset data in **Settings > Data Location**.
+**Default Presets Include:**
+- Quick Answer, Deep Thinker (General)
+- Code Architect, Quick Script (Coding)
+- Photorealistic, Anime Art, Concept Art (Image)
+- Cinematic Shot, Social Clip (Video)
+- Deep Research (Research)
+- Storyteller, Blog Writer (Writing)
+- Social Media Pro, Sales Copy (Marketing)
+
+#### Settings
+
+Access via the gear icon in the workbench header.
+
+| Tab | Description |
+|-----|-------------|
+| **Ollama Setup** | Configure Ollama connection, view installed models, manage model selection |
+| **System Prompt** | Customize the base system prompt used across all generations |
+| **Data Management** | View storage paths, export/import data, factory reset |
+| **Display** | Theme selection, UI zoom (50%-200%), display statistics |
 
 ## Development
 
@@ -98,17 +119,33 @@ npm install
 # Run in development mode
 npm run dev
 
+# Run tests
+npm test
+
+# Type check
+npm run typecheck
+
+# Lint and format
+npm run check
+
 # Build for production
 npm run dist:electron
 ```
 
-**Tech Stack**: Electron, Next.js, React, Tailwind CSS, TypeScript.
+**Tech Stack:**
+- Electron 38
+- Next.js 16
+- React 19
+- Tailwind CSS 4
+- TypeScript 5.8
+- Vitest (testing)
+- Biome (linting/formatting)
 
 ## Privacy & Security
 
 - **Offline Capable**: Works without an internet connection (after downloading models).
 - **No Telemetry**: We do not track your usage.
-- **Local Storage**: Chats and settings are saved to your OS user data directory (via strictly local storage).
+- **Local Storage**: All chats, presets, and settings are saved to your OS user data directory.
 
 ## Contributing
 

@@ -6,7 +6,6 @@ import "@/styles/globals.css";
 import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
-import DatabaseSetupGate from "@/components/DatabaseSetupGate";
 import { DialogProvider } from "@/components/DialogProvider";
 import OllamaConnectionMonitor from "@/components/OllamaConnectionMonitor";
 import Titlebar from "@/components/Titlebar";
@@ -32,7 +31,7 @@ export default function RootLayout({
 				<DialogProvider>
 					<Titlebar />
 					<div className="flex flex-1 flex-col overflow-hidden">
-						<DatabaseSetupGate>{children}</DatabaseSetupGate>
+						{children}
 					</div>
 					<OllamaConnectionMonitor />
 				</DialogProvider>

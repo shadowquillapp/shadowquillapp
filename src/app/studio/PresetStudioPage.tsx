@@ -4,7 +4,7 @@ import PresetEditor from "@/app/studio/components/PresetEditor";
 import PresetLibrary from "@/app/studio/components/PresetLibrary";
 import StudioHeader from "@/app/studio/components/StudioHeader";
 import { usePresetManager } from "@/app/studio/hooks/usePresetManager";
-import type { PresetLite } from "@/app/studio/types";
+import type { PresetLite } from "@/types";
 import { useDialog } from "@/components/DialogProvider";
 import { useRouter } from "next/navigation";
 import React, { useState, useEffect, useCallback, useMemo } from "react";
@@ -12,7 +12,7 @@ import React, { useState, useEffect, useCallback, useMemo } from "react";
 export default function PresetStudioPage() {
 	const router = useRouter();
 	const { confirm } = useDialog();
-	const { presets, loadPresets, savePreset, deletePreset, duplicatePreset } =
+	const { presets, isGeneratingExamples, regeneratingIndex, loadPresets, savePreset, deletePreset, duplicatePreset, generateExamplesOnly, regenerateExample } =
 		usePresetManager();
 
 	// Selection states
@@ -150,14 +150,43 @@ export default function PresetStudioPage() {
 		if (!editingPreset) return;
 
 		try {
-			await savePreset(editingPreset);
-			setSelectedPresetId(editingPreset.id || null);
+			const savedPreset = await savePreset(editingPreset);
+			setSelectedPresetId(savedPreset.id || null);
+			setEditingPreset(savedPreset);
 			setIsDirty(false);
 			await loadPresets();
 		} catch (error) {
 			console.error("Failed to save preset:", error);
 		}
 	}, [editingPreset, savePreset, loadPresets]);
+
+	// Handle generating examples only (without saving other changes)
+	const handleGenerateExamples = useCallback(async () => {
+		if (!editingPreset) return;
+
+		try {
+			const updatedPreset = await generateExamplesOnly(editingPreset);
+			if (updatedPreset) {
+				setEditingPreset(updatedPreset);
+			}
+		} catch (error) {
+			console.error("Failed to generate examples:", error);
+		}
+	}, [editingPreset, generateExamplesOnly]);
+
+	// Handle regenerating a single example
+	const handleRegenerateExample = useCallback(async (index: 0 | 1) => {
+		if (!editingPreset) return;
+
+		try {
+			const updatedPreset = await regenerateExample(editingPreset, index);
+			if (updatedPreset) {
+				setEditingPreset(updatedPreset);
+			}
+		} catch (error) {
+			console.error("Failed to regenerate example:", error);
+		}
+	}, [editingPreset, regenerateExample]);
 
 	// Handle save as new preset
 	const handleSaveAs = useCallback(
@@ -228,12 +257,12 @@ export default function PresetStudioPage() {
 		[duplicatePreset, savePreset, loadPresets, handleSelectPreset],
 	);
 
-	// Handle apply to chat
-	const handleApplyToChat = useCallback(
+	// Handle apply to workbench
+	const handleApplyToWorkbench = useCallback(
 		(preset: PresetLite) => {
-			// Store in sessionStorage for ChatClient to pick up
+			// Store in sessionStorage for workbench to pick up
 			sessionStorage.setItem("PC_APPLY_PRESET", JSON.stringify(preset));
-			router.push("/chat");
+			router.push("/workbench");
 		},
 		[router],
 	);
@@ -279,7 +308,7 @@ export default function PresetStudioPage() {
 		>
 		<StudioHeader
 				onNewPreset={handleNewPreset}
-				onBack={() => router.push("/chat")}
+				onBack={() => router.push("/workbench")}
 				isDirty={isDirty}
 				isSmallScreen={isSmallScreen}
 				onToggleSidebar={() => setSidebarOpen((v) => !v)}
@@ -326,10 +355,14 @@ export default function PresetStudioPage() {
 				<PresetEditor
 							preset={editingPreset}
 							isDirty={isDirty}
+							isGeneratingExamples={isGeneratingExamples}
+							regeneratingIndex={regeneratingIndex}
 							onFieldChange={handleFieldChange}
 							onSave={handleSave}
-							onApplyToChat={() =>
-								editingPreset && handleApplyToChat(editingPreset)
+							onGenerateExamples={handleGenerateExamples}
+							onRegenerateExample={handleRegenerateExample}
+							onApplyToWorkbench={() =>
+								editingPreset && handleApplyToWorkbench(editingPreset)
 							}
 							onDuplicate={(id, name) => handleDuplicate(id, name)}
 							onDelete={(id) => handleDelete(id)}

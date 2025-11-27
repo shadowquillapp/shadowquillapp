@@ -2,18 +2,23 @@
 
 import AdvancedSettings from "@/app/studio/components/AdvancedSettings";
 import BasicSettings from "@/app/studio/components/BasicSettings";
+import LivePreview from "@/app/studio/components/LivePreview";
 import SaveAsDialog from "@/app/studio/components/SaveAsDialog";
 import TypeSpecificFields from "@/app/studio/components/TypeSpecificFields";
-import type { PresetLite } from "@/app/studio/types";
+import type { PresetLite } from "@/types";
 import { Icon } from "@/components/Icon";
 import React, { useEffect, useState } from "react";
 
 interface PresetEditorProps {
 	preset: PresetLite | null;
 	isDirty: boolean;
+	isGeneratingExamples?: boolean;
+	regeneratingIndex?: 0 | 1 | null;
 	onFieldChange: (field: string, value: any) => void;
 	onSave: () => void;
-	onApplyToChat: () => void;
+	onGenerateExamples?: () => void;
+	onRegenerateExample?: (index: 0 | 1) => void;
+	onApplyToWorkbench: () => void;
 	onDuplicate: (presetId: string, newName?: string) => void;
 	onDelete: (presetId: string) => void;
 	className?: string;
@@ -22,15 +27,19 @@ interface PresetEditorProps {
 export default function PresetEditor({
 	preset,
 	isDirty,
+	isGeneratingExamples = false,
+	regeneratingIndex = null,
 	onFieldChange,
 	onSave,
-	onApplyToChat,
+	onGenerateExamples,
+	onRegenerateExample,
+	onApplyToWorkbench,
 	onDuplicate,
 	onDelete,
 	className = "",
 }: PresetEditorProps) {
 	const [activeTab, setActiveTab] = useState<
-		"basic" | "advanced" | "type" | "output"
+		"basic" | "advanced" | "type" | "output" | "preview"
 	>("basic");
 	const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
 
@@ -70,7 +79,7 @@ export default function PresetEditor({
 			<div className="flex h-full flex-col">
 				{/* Editor content */}
 				<div className="flex-1 overflow-y-auto px-6 py-4">
-					<div className="mx-auto max-w-5xl">
+					<div className="w-full">
 					{/* Tabs */}
 					<div className="flex flex-wrap items-center border-b border-[var(--color-outline)]">
 						<button
@@ -126,6 +135,17 @@ export default function PresetEditor({
 							<span className="ml-1 hidden text-xs opacity-60 sm:inline">
 								(Optional)
 							</span>
+						</button>
+						<button
+							className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
+								activeTab === "preview"
+									? "bg-surface text-light border-b-surface"
+									: "bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light border-transparent"
+							}`}
+							aria-selected={activeTab === "preview"}
+							onClick={() => setActiveTab("preview")}
+						>
+							Live Examples
 						</button>
 					</div>
 
@@ -208,6 +228,16 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 								</div>
 							</div>
 						)}
+
+						{activeTab === "preview" && (
+							<LivePreview 
+								preset={preset} 
+								{...(onGenerateExamples && { onGenerateExamples })}
+								{...(onRegenerateExample && { onRegenerateExample })}
+								isGenerating={isGeneratingExamples}
+								regeneratingIndex={regeneratingIndex}
+							/>
+						)}
 					</div>
 
 						{/* Unsaved changes indicator below settings */}
@@ -222,10 +252,10 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 
 				{/* Action bar */}
 				<div className="border-t border-[var(--color-outline)] bg-[var(--color-surface-variant)] px-6 py-4">
-					<div className="mx-auto flex max-w-5xl items-center justify-between">
+					<div className="flex w-full items-center justify-between">
 						<div className="flex items-center gap-3">
 							<button
-								onClick={onApplyToChat}
+								onClick={onApplyToWorkbench}
 								className="md-btn md-btn--primary font-medium text-sm"
 							>
 								Apply to Session
@@ -280,6 +310,7 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 				}}
 				onCancel={() => setShowDuplicateDialog(false)}
 			/>
+
 		</section>
 	);
 }

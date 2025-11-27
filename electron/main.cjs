@@ -901,7 +901,7 @@ app.whenReady().then(async () => {
 			// Attempt static fallback: serve pre-rendered HTML if available
 			try {
 				const htmlCandidates = [
-					path.join(nextAppDir, ".next", "server", "app", "chat", "index.html"),
+					path.join(nextAppDir, ".next", "server", "app", "workbench", "index.html"),
 					path.join(nextAppDir, ".next", "server", "app", "index.html"),
 				];
 				const fallbackHtml = htmlCandidates.find((p) => {

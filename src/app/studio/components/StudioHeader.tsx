@@ -51,8 +51,8 @@ export default function StudioHeader({
 					onClick={onBack}
 					className="md-btn flex items-center bg-transparent px-3 text-secondary transition-colors hover:bg-[var(--color-outline)] hover:text-light"
 					style={{ height: 32, gap: 8 }}
-					aria-label="Back to Chat"
-					title="Back to Chat"
+					aria-label="Back to Workbench"
+					title="Back to Workbench"
 				>
 					<Icon name="chevron-left" className="text-base" />
 					<span className="font-medium text-sm">Back</span>
