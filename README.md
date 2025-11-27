@@ -12,148 +12,133 @@
 
 ## Overview
 
-ShadowQuill is a desktop application for crafting high-quality AI prompts with complete privacy. It runs entirely locally on your machine using **Ollama** and **Gemma 3** models. No data ever leaves your device.
+Desktop AI prompt studio running 100% locally via **Ollama** and **Gemma 3** models. No data leaves your device.
 
 ## Key Features
 
-- **100% Local & Private**: All processing happens on your machine via Ollama. Data is stored locally in your user profile.
-- **Tab-Based Workbench**: Work with up to 8 prompt sessions simultaneously. Each tab maintains its own preset, history, and version state.
-- **Preset-Driven Workflow**: Every tab is powered by a preset configuration. Create, customize, and reuse presets across sessions.
-- **Version History**: Track all prompt iterations with manual saves (⌘S/Ctrl+S) and automatic versioning. Navigate through your prompt evolution with a visual version timeline.
-- **7 Task Types**: Specialized prompt modes for **General**, **Coding**, **Writing**, **Marketing**, **Research**, **Image**, and **Video** generation.
-- **Gemma 3 Optimized**: Native support for Gemma 3 models (4B, 12B, 27B) with an intuitive model selector and auto-detection.
-- **Preset Studio**: Full-featured preset editor with live preview, AI-generated examples, and preset version history.
-- **4 Color Themes**: Default (Earth), Dark Purple, Dark, and Light—accessible from Settings > Display.
-- **Real-Time Metrics**: Track word and character counts for both input and output in real-time.
-- **Mobile Responsive**: Fully responsive design that adapts to different screen sizes.
+- **100% Local & Private** - All processing via Ollama on your machine
+- **8 Tabs** - Work on multiple prompts simultaneously with independent presets and history
+- **Version History** - Track prompt iterations with manual saves (⌘S/Ctrl+S) and visual timeline
+- **7 Task Types** - General, Coding, Writing, Marketing, Research, Image, Video
+- **Gemma 3 Only** - Supports gemma3:4b, gemma3:12b, gemma3:27b with auto-detection
+- **Preset Studio** - Create reusable configurations with live preview and AI examples
+- **4 Themes** - Default (Earth), Dark Purple, Dark, Light
 
 ## Getting Started
 
 ### 1. Prerequisites
 
-You need **Ollama** installed and at least one **Gemma 3** model.
+#### Install Ollama
 
-**Install Ollama:**
-Download from [ollama.ai](https://ollama.ai) or run:
+**Ollama** is a free app that runs AI models locally on your computer. ShadowQuill uses it as the AI engine for 100% offline privacy.
 
+Download from [ollama.com](https://ollama.com)
+
+Ollama runs in the background as a service, which can be used with ollama's CLI tools or live chat interface.
+
+#### Download a Gemma 3 Model
+
+**Supported models:**
+- `gemma3:4b` - Fast, balanced (Recommended)
+- `gemma3:12b` - Higher quality
+- `gemma3:27b` - Best quality (requires 32GB+ RAM)
+
+**Download via Command Line:**
 ```bash
-curl -fsSL https://ollama.ai/install.sh | sh
+ollama pull gemma3:4b # Gemma 3 4B Model
+```
+```bash
+ollama pull gemma3:12b # Gemma 3 12B Model
+```
+```bash
+ollama pull gemma3:27b # Gemma 3 27B Model
 ```
 
-**Get a Model:**
+**Download via Ollama Chat Interface:**
+1. Open Ollama desktop app
+2. Start chatting with a model name
+3. Ollama will prompt you to download it
 
-```bash
-ollama pull gemma3:4b   # Recommended balance
-# or
-ollama pull gemma3:12b  # High quality
-ollama pull gemma3:27b  # Max quality (requires high RAM)
-```
+> **Note:** Download models through Ollama (CLI or chat interface), not ShadowQuill. ShadowQuill auto-detects installed Gemma 3 models.
 
 ### 2. Install ShadowQuill
 
-Download the latest installer for Windows, macOS, or Linux from:
-
-- **Website**: [shadowquill.org](https://shadowquill.org)
-- **GitHub Releases**: [Latest Release](https://github.com/shadowquillapp/shadowquillapp/releases)
+Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Releases](https://github.com/shadowquillapp/shadowquillapp/releases)
 
 ### 3. Usage
 
 #### Prompt Workbench
 
-The main interface for crafting and generating prompts.
+- **New Tab** - Click "+" or ⌘T/Ctrl+T, select a preset
+- **Switch Models** - Use vertical selector (4B/12B/27B)
+- **Write & Generate** - Left pane for input, right pane for output
+- **Version History** - Click version indicator (e.g., "v2") to navigate saves
+- **Manual Save** - ⌘S/Ctrl+S to create version snapshot
 
-- **Create New Tabs**: Click the "+" button or press ⌘T/Ctrl+T. Select a preset to configure the new tab.
-- **Switch Models**: Use the vertical model selector (4B/12B/27B) in the editor pane to switch between Gemma 3 models.
-- **Write Prompts**: Enter your prompt in the left editor pane. Word and character counts update in real-time.
-- **Generate**: Click the run button or view responses in the right output pane.
-- **Version History**: Click the version indicator (e.g., "v2") to view and navigate through saved versions.
-- **Manual Save**: Press ⌘S/Ctrl+S to create a version snapshot at any time.
-- **Copy Output**: Copy responses with code fence stripping for clean text.
-
-**Keyboard Shortcuts:**
 | Shortcut | Action |
 |----------|--------|
 | ⌘T / Ctrl+T | New tab |
-| ⌘W / Ctrl+W | Close current tab |
-| ⌘S / Ctrl+S | Save version snapshot |
-| ⌘1-8 / Ctrl+1-8 | Switch to tab 1-8 |
+| ⌘W / Ctrl+W | Close tab |
+| ⌘S / Ctrl+S | Save version |
+| ⌘1-8 / Ctrl+1-8 | Switch tabs |
 
 #### Preset Studio
 
-Create and manage reusable prompt configurations.
+- **Browse** - View presets by task type
+- **Edit** - Modify tone, detail, format, temperature, task options
+- **Generate Examples** - AI-powered preview
+- **Apply to Workbench** - Start new session with preset
+- **Duplicate & Delete** - Clone or remove presets
 
-- **Browse Presets**: View all presets in the left sidebar organized by task type.
-- **Edit Configuration**: Modify task type, tone, detail level, format, temperature, and task-specific options.
-- **Generate Examples**: AI-powered example generation to preview how your preset will behave.
-- **Apply to Workbench**: Send any preset directly to the workbench to start a new session.
-- **Duplicate & Delete**: Clone presets for variations or remove unused ones.
-
-**Default Presets Include:**
-- Quick Answer, Deep Thinker (General)
-- Code Architect, Quick Script (Coding)
-- Photorealistic, Anime Art, Concept Art (Image)
-- Cinematic Shot, Social Clip (Video)
-- Deep Research (Research)
-- Storyteller, Blog Writer (Writing)
-- Social Media Pro, Sales Copy (Marketing)
+**Default Presets:** Quick Answer, Deep Thinker, Code Architect, Quick Script, Photorealistic, Anime Art, Concept Art, Cinematic Shot, Social Clip, Deep Research, Storyteller, Blog Writer, Social Media Pro, Sales Copy
 
 #### Settings
 
-Access via the gear icon in the workbench header.
+Access via gear icon.
 
 | Tab | Description |
 |-----|-------------|
-| **Ollama Setup** | Configure Ollama connection, view installed models, manage model selection |
-| **System Prompt** | Customize the base system prompt used across all generations |
-| **Data Management** | View storage paths, export/import data, factory reset |
-| **Display** | Theme selection, UI zoom (50%-200%), display statistics |
+| **Ollama Setup** | Connection, view/manage Gemma 3 models (4b/12b/27b) |
+| **System Prompt** | Customize base system prompt |
+| **Data Management** | Storage paths, export/import, factory reset |
+| **Display** | Themes, zoom (50%-200%) |
 
 ## Development
 
-Build from source:
-
 ```bash
-# Install dependencies
-npm install
-
-# Run in development mode
-npm run dev
-
-# Run tests
-npm test
-
-# Type check
-npm run typecheck
-
-# Lint and format
-npm run check
-
-# Build for production
-npm run dist:electron
+npm install              # Install dependencies
+```
+```bash
+npm run dev              # Development mode
+```
+```bash
+npm test                 # Run tests
+```
+```bash
+npm run typecheck        # Type check
+```
+```bash
+npm run check            # Lint and format
+```
+```bash
+npm run dist:electron    # Build for production
 ```
 
-**Tech Stack:**
-- Electron 38
-- Next.js 16
-- React 19
-- Tailwind CSS 4
-- TypeScript 5.8
-- Vitest (testing)
-- Biome (linting/formatting)
+**Stack:** Electron 38, Next.js 16, React 19, Tailwind CSS 4, TypeScript 5.8, Vitest, Biome
 
 ## Privacy & Security
 
-- **Offline Capable**: Works without an internet connection (after downloading models).
-- **No Telemetry**: We do not track your usage.
-- **Local Storage**: All chats, presets, and settings are saved to your OS user data directory.
+- **Offline** - Works without internet (after model download)
+- **No Telemetry** - Zero tracking
+- **Local Storage** - All data saved to OS local user directory
 
 ## Contributing
 
-Contributions are welcome! Please read our contribution guidelines before submitting a Pull Request.
+Contributions welcome! 
 
-1. [Open an issue](https://github.com/shadowquillapp/shadowquillapp/issues) to discuss changes.
-2. Keep PRs focused on a single task.
-3. Preserve the offline/local-first architecture.
+1. [Open an issue](https://github.com/shadowquillapp/shadowquillapp/issues) to discuss changes
+2. Keep PRs focused on one task
+3. Preserve offline/local-first architecture
 
 <p align="left">
   <a href="https://github.com/shadowquillapp/shadowquillapp/graphs/contributors">
