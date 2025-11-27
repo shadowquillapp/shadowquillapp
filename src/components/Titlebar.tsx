@@ -84,13 +84,25 @@ export default function Titlebar() {
 		};
 		detectPlatform();
 
+		// Helper to read model from config
+		const syncModel = () => {
+			try {
+				const cfg = readLocalModelConfig();
+				if (cfg && typeof cfg.model === "string") {
+					setCurrentModelId(cfg.model);
+					return true;
+				}
+			} catch {}
+			return false;
+		};
+
 		// Load currently selected model
-		try {
-			const cfg = readLocalModelConfig();
-			if (cfg && typeof cfg.model === "string") {
-				setCurrentModelId(cfg.model);
-			}
-		} catch {}
+		syncModel();
+
+		// Poll until model is found (handles initial setup delay)
+		const pollId = setInterval(() => {
+			if (syncModel()) clearInterval(pollId);
+		}, 500);
 
 		// Listen for model change broadcasts from elsewhere in the app
 		const onModelChanged = (e: Event) => {
@@ -100,7 +112,14 @@ export default function Titlebar() {
 			} catch {}
 		};
 		window.addEventListener("sq-model-changed", onModelChanged as any);
-		return () => window.removeEventListener("sq-model-changed", onModelChanged as any);
+		window.addEventListener("storage", syncModel);
+		window.addEventListener("focus", syncModel);
+		return () => {
+			clearInterval(pollId);
+			window.removeEventListener("sq-model-changed", onModelChanged as any);
+			window.removeEventListener("storage", syncModel);
+			window.removeEventListener("focus", syncModel);
+		};
 	}, []);
 
 	const isMac = platform === "darwin";
