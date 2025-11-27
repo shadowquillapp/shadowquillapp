@@ -546,6 +546,13 @@ export function buildUnifiedPromptCore(params: {
 		if (options?.cameraMovement)
 			constraintParts.push(`camera=${options.cameraMovement}`);
 		if (options?.shotType) constraintParts.push(`shot=${options?.shotType}`);
+		if (options?.includeStoryboard) {
+			const duration = options.durationSeconds || 5;
+			const frameCount = duration >= 10 ? Math.ceil(duration / 3) : Math.ceil(duration / 2);
+			constraintParts.push(
+				`storyboard=yes (REQUIRED: Include a scene-by-scene breakdown with ${frameCount} storyboard frames for the ${duration}s duration. Each frame should include: timestamp, scene description, camera angle, key action/motion)`,
+			);
+		}
 	}
 	if (taskType === "coding") {
 		constraintParts.push("preserve_user_input=CRITICAL");

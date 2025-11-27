@@ -71,7 +71,6 @@ export function SavedSessionsModal({
 			className="modal-container"
 			aria-modal="true"
 			role="dialog"
-			onClick={onClose}
 		>
 			<div className="modal-backdrop-blur" />
 			<div className="modal-content" onClick={(e) => e.stopPropagation()}>

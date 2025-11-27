@@ -67,6 +67,7 @@ export interface GenerationOptions {
 		| undefined;
 	durationSeconds?: number | undefined;
 	frameRate?: 24 | 30 | 60 | undefined;
+	includeStoryboard?: boolean | undefined;
 	// Writing
 	writingStyle?:
 		| "narrative"

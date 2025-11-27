@@ -92,7 +92,6 @@ export function PresetInfoDialog({
 			className="modal-container"
 			aria-modal="true"
 			role="dialog"
-			onClick={onClose}
 		>
 			<div className="modal-backdrop-blur" />
 			<div

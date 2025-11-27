@@ -205,7 +205,6 @@ export function PresetPickerModal({
 			aria-modal="true"
 			role="dialog"
 			aria-labelledby="preset-picker-title"
-			onClick={onClose}
 			onKeyDown={(e) => {
 				// "/" to focus search unless typing in an input/textarea
 				if (e.key === "/" && e.target instanceof HTMLElement) {

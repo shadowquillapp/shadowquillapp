@@ -89,7 +89,7 @@ export default function SettingsDialog({
 
 	return (
 		<div className="modal-container">
-			<div className="modal-backdrop-blur" onClick={onClose} />
+			<div className="modal-backdrop-blur" />
 			<div
 				className="modal-content modal-content--large settings-dialog"
 				onClick={(e) => e.stopPropagation()}

@@ -97,6 +97,7 @@ export interface PresetOptions {
 	shotType?: ShotType;
 	durationSeconds?: number;
 	frameRate?: FrameRate;
+	includeStoryboard?: boolean;
 
 	// Coding
 	includeTests?: boolean;
