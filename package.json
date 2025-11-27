@@ -8,7 +8,7 @@
 	"type": "module",
 	"scripts": {
 		"build": "npm run build:electron",
-		"build:electron": "node scripts/build-electron.cjs",
+		"build:electron": "node electron/build-electron.cjs",
 		"dist:electron": "npm run build:electron && cross-env NEXT_PUBLIC_ELECTRON=1 electron-builder --win --mac --linux",
 		"dist:win": "npm run build:electron && cross-env NEXT_PUBLIC_ELECTRON=1 electron-builder --win",
 		"check": "biome check --config-path=config/biome.jsonc .",
