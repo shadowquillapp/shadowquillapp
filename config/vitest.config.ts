@@ -3,8 +3,8 @@ import { defineConfig } from "vitest/config";
 
 export default defineConfig({
 	test: {
-		// Test environment
-		environment: "node",
+		// Test environment - jsdom for component tests
+		environment: "jsdom",
 
 		// Include test files
 		include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
@@ -19,19 +19,27 @@ export default defineConfig({
 		coverage: {
 			provider: "v8",
 			reporter: ["text", "json", "html"],
-			include: ["src/lib/**/*.ts"],
+			include: ["src/lib/**/*.ts", "src/components/**/*.tsx"],
 			exclude: [
 				"src/**/*.test.ts",
+				"src/**/*.test.tsx",
 				"src/**/*.d.ts",
 				"node_modules/**",
 			],
 		},
 
 		// Setup files
-		setupFiles: [],
+		setupFiles: ["./src/__tests__/setup.ts"],
 
 		// Global variables
 		globals: true,
+
+		// Environment options for jsdom
+		environmentOptions: {
+			jsdom: {
+				url: "http://localhost:3000",
+			},
+		},
 	},
 
 	// Path resolution (matching tsconfig)
@@ -41,4 +49,3 @@ export default defineConfig({
 		},
 	},
 });
-
