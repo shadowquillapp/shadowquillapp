@@ -1,8 +1,8 @@
 "use client";
 
+import { Icon } from "@/components/Icon";
 import type { PresetExample, PresetLite } from "@/types";
 import React, { useState } from "react";
-import { Icon } from "@/components/Icon";
 
 interface LivePreviewProps {
 	preset: PresetLite | null;
@@ -24,7 +24,10 @@ interface ExampleCardProps {
 /**
  * Parse output to extract language and content from code fences
  */
-function parseCodeFence(output: string): { language: string | null; content: string } {
+function parseCodeFence(output: string): {
+	language: string | null;
+	content: string;
+} {
 	const fenceMatch = output.match(/^```(\w*)\n([\s\S]*?)\n```$/);
 	if (fenceMatch) {
 		return {
@@ -35,7 +38,13 @@ function parseCodeFence(output: string): { language: string | null; content: str
 	return { language: null, content: output };
 }
 
-function ExampleCard({ title, example, index, onRegenerate, isRegenerating }: ExampleCardProps) {
+function ExampleCard({
+	title,
+	example,
+	index,
+	onRegenerate,
+	isRegenerating,
+}: ExampleCardProps) {
 	const [copied, setCopied] = useState(false);
 	const { language, content } = parseCodeFence(example.output.trim());
 
@@ -47,57 +56,59 @@ function ExampleCard({ title, example, index, onRegenerate, isRegenerating }: Ex
 	};
 
 	return (
-		<div className="flex flex-col rounded-xl border border-[var(--color-outline)] overflow-hidden bg-[var(--color-surface)] relative">
+		<div className="relative flex flex-col overflow-hidden rounded-xl border border-[var(--color-outline)] bg-[var(--color-surface)]">
 			{/* Regenerating overlay */}
 			{isRegenerating && (
 				<div className="absolute inset-0 z-10 flex items-center justify-center bg-[var(--color-surface)]/80 backdrop-blur-sm">
 					<div className="flex flex-col items-center gap-2">
-						<div className="relative w-8 h-8">
+						<div className="relative h-8 w-8">
 							<div className="absolute inset-0 rounded-full border-2 border-[var(--color-outline)]" />
-							<div className="absolute inset-0 rounded-full border-2 border-transparent border-t-[var(--color-primary)] animate-spin" />
+							<div className="absolute inset-0 animate-spin rounded-full border-2 border-transparent border-t-[var(--color-primary)]" />
 						</div>
-						<span className="text-xs font-medium text-secondary">Regenerating...</span>
+						<span className="font-medium text-secondary text-xs">
+							Regenerating...
+						</span>
 					</div>
 				</div>
 			)}
 
 			{/* Card Header */}
-			<div className="flex items-center justify-between px-4 py-2.5 bg-[var(--color-surface-variant)] border-b border-[var(--color-outline)]">
-				<span className="text-xs font-semibold text-on-surface">{title}</span>
+			<div className="flex items-center justify-between border-[var(--color-outline)] border-b bg-[var(--color-surface-variant)] px-4 py-2.5">
+				<span className="font-semibold text-on-surface text-xs">{title}</span>
 				{onRegenerate && (
 					<button
 						type="button"
 						onClick={() => onRegenerate(index)}
 						disabled={isRegenerating}
-						className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium text-secondary hover:text-primary hover:bg-[var(--color-surface)] rounded transition-colors disabled:opacity-50"
+						className="flex items-center gap-1 rounded px-2 py-0.5 font-medium text-[10px] text-secondary transition-colors hover:bg-[var(--color-surface)] hover:text-primary disabled:opacity-50"
 						title="Regenerate this example"
 					>
-						<Icon name="refresh" className="w-3 h-3" />
+						<Icon name="refresh" className="h-3 w-3" />
 						Regenerate
 					</button>
 				)}
 			</div>
 
 			{/* Input Section */}
-			<div className="px-4 py-3 border-b border-[var(--color-outline)] bg-[var(--color-surface)]">
-				<div className="text-[10px] font-semibold text-secondary uppercase tracking-wider mb-1">
+			<div className="border-[var(--color-outline)] border-b bg-[var(--color-surface)] px-4 py-3">
+				<div className="mb-1 font-semibold text-[10px] text-secondary uppercase tracking-wider">
 					AI-Generated Input
 				</div>
-				<p className="text-xs text-on-surface/80 italic leading-relaxed">
+				<p className="text-on-surface/80 text-xs italic leading-relaxed">
 					"{example.input}"
 				</p>
 			</div>
 
 			{/* Generated Prompt Section */}
-			<div className="flex-1 relative">
-				<div className="px-4 py-3 bg-[var(--color-surface-variant)]">
-					<div className="flex items-center justify-between mb-2">
+			<div className="relative flex-1">
+				<div className="bg-[var(--color-surface-variant)] px-4 py-3">
+					<div className="mb-2 flex items-center justify-between">
 						<div className="flex items-center gap-2">
-							<div className="text-[10px] font-semibold text-secondary uppercase tracking-wider">
+							<div className="font-semibold text-[10px] text-secondary uppercase tracking-wider">
 								Generated Prompt
 							</div>
 							{language && (
-								<span className="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider rounded bg-[var(--color-primary)]/20 text-primary border border-[var(--color-primary)]/30">
+								<span className="rounded border border-[var(--color-primary)]/30 bg-[var(--color-primary)]/20 px-1.5 py-0.5 font-bold text-[9px] text-primary uppercase tracking-wider">
 									{language}
 								</span>
 							)}
@@ -105,16 +116,16 @@ function ExampleCard({ title, example, index, onRegenerate, isRegenerating }: Ex
 						<button
 							type="button"
 							onClick={handleCopy}
-							className="flex items-center gap-1 px-2 py-0.5 text-[10px] font-medium text-secondary hover:text-primary hover:bg-[var(--color-surface)] rounded transition-colors"
+							className="flex items-center gap-1 rounded px-2 py-0.5 font-medium text-[10px] text-secondary transition-colors hover:bg-[var(--color-surface)] hover:text-primary"
 							title="Copy to clipboard"
 						>
-							<Icon name={copied ? "check" : "copy"} className="w-3 h-3" />
+							<Icon name={copied ? "check" : "copy"} className="h-3 w-3" />
 							{copied ? "Copied!" : "Copy"}
 						</button>
 					</div>
 
-					<div className="rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] overflow-hidden">
-						<pre className="p-3 text-xs font-mono text-on-surface whitespace-pre-wrap break-words leading-relaxed max-h-[300px] overflow-y-auto custom-scrollbar">
+					<div className="overflow-hidden rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)]">
+						<pre className="custom-scrollbar max-h-[300px] overflow-y-auto whitespace-pre-wrap break-words p-3 font-mono text-on-surface text-xs leading-relaxed">
 							{content}
 						</pre>
 					</div>
@@ -133,10 +144,12 @@ function formatTimestamp(timestamp: number): string {
 	const diffDays = Math.floor(diffMs / 86400000);
 
 	if (diffMins < 1) return "just now";
-	if (diffMins < 60) return `${diffMins} minute${diffMins !== 1 ? "s" : ""} ago`;
-	if (diffHours < 24) return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
+	if (diffMins < 60)
+		return `${diffMins} minute${diffMins !== 1 ? "s" : ""} ago`;
+	if (diffHours < 24)
+		return `${diffHours} hour${diffHours !== 1 ? "s" : ""} ago`;
 	if (diffDays < 7) return `${diffDays} day${diffDays !== 1 ? "s" : ""} ago`;
-	
+
 	return date.toLocaleDateString(undefined, {
 		month: "short",
 		day: "numeric",
@@ -160,84 +173,103 @@ export default function LivePreview({
 		return null;
 	}
 
-	const hasExamples = preset.generatedExamples && preset.generatedExamples.length === 2;
+	const hasExamples =
+		preset.generatedExamples && preset.generatedExamples.length === 2;
 	const isAnyRegenerating = regeneratingIndex !== null;
 	const isAnyGenerating = isGenerating || isAnyRegenerating;
 
 	return (
-		<div className={`flex flex-col gap-4 ${className}`} style={{ position: 'relative' }}>
+		<div
+			className={`flex flex-col gap-4 ${className}`}
+			style={{ position: "relative" }}
+		>
 			{/* Floating Generating Status - stays above the page overlay */}
 			{isAnyGenerating && (
-				<div 
+				<div
 					className="generating-status-floating"
 					style={{
-						position: 'fixed',
-						top: '50%',
-						left: '50%',
-						transform: 'translate(-50%, -50%)',
+						position: "fixed",
+						top: "50%",
+						left: "50%",
+						transform: "translate(-50%, -50%)",
 						zIndex: 150,
-						display: 'flex',
-						flexDirection: 'column',
-						alignItems: 'center',
-						justifyContent: 'center',
-						padding: '32px 48px',
-						borderRadius: '16px',
-						background: 'var(--color-surface)',
-						border: '1px solid var(--color-outline)',
-						boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+						display: "flex",
+						flexDirection: "column",
+						alignItems: "center",
+						justifyContent: "center",
+						padding: "32px 48px",
+						borderRadius: "16px",
+						background: "var(--color-surface)",
+						border: "1px solid var(--color-outline)",
+						boxShadow: "0 8px 32px rgba(0, 0, 0, 0.3)",
 					}}
 				>
 					{/* Loading spinner */}
-					<div className="relative w-16 h-16 mb-4">
+					<div className="relative mb-4 h-16 w-16">
 						<div className="absolute inset-0 rounded-full border-4 border-[var(--color-outline)]" />
-						<div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[var(--color-primary)] animate-spin" />
-						<div className="absolute inset-2 rounded-full border-4 border-transparent border-b-[var(--color-primary)] animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
+						<div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-[var(--color-primary)]" />
+						<div
+							className="absolute inset-2 animate-spin rounded-full border-4 border-transparent border-b-[var(--color-primary)]"
+							style={{
+								animationDirection: "reverse",
+								animationDuration: "0.8s",
+							}}
+						/>
 					</div>
-					<h4 className="text-sm font-semibold text-on-surface mb-1">
-						{isAnyRegenerating ? 'Regenerating Example' : 'Generating Examples'}
+					<h4 className="mb-1 font-semibold text-on-surface text-sm">
+						{isAnyRegenerating ? "Regenerating Example" : "Generating Examples"}
 					</h4>
-					<p className="text-xs text-secondary text-center max-w-sm">
-						{isAnyRegenerating 
+					<p className="max-w-sm text-center text-secondary text-xs">
+						{isAnyRegenerating
 							? `Regenerating example ${(regeneratingIndex ?? 0) + 1} with AI...`
-							: 'Using AI to create example inputs and generate outputs...'
-						}
+							: "Using AI to create example inputs and generate outputs..."}
 					</p>
 					<div className="mt-4 flex gap-1.5">
-						<span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-bounce" style={{ animationDelay: '0ms' }} />
-						<span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-bounce" style={{ animationDelay: '150ms' }} />
-						<span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-bounce" style={{ animationDelay: '300ms' }} />
+						<span
+							className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-primary)]"
+							style={{ animationDelay: "0ms" }}
+						/>
+						<span
+							className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-primary)]"
+							style={{ animationDelay: "150ms" }}
+						/>
+						<span
+							className="h-2 w-2 animate-bounce rounded-full bg-[var(--color-primary)]"
+							style={{ animationDelay: "300ms" }}
+						/>
 					</div>
 				</div>
 			)}
 			{/* Header */}
-			<div className="flex items-center justify-between flex-wrap gap-2">
+			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-3">
 					<div className="flex items-center gap-2">
-						<Icon name="eye" className="w-5 h-5 text-primary" />
-						<h3 className="text-base font-bold text-on-surface">
+						<Icon name="eye" className="h-5 w-5 text-primary" />
+						<h3 className="font-bold text-base text-on-surface">
 							Example Prompts
 						</h3>
 					</div>
-					<p className="text-xs text-secondary">
+					<p className="text-secondary text-xs">
 						AI-generated examples for this preset
 					</p>
 				</div>
-				
+
 				<div className="flex items-center gap-3">
 					{hasExamples && (
 						<>
 							<span className="text-[10px] text-secondary">
-								Generated {formatTimestamp(preset.generatedExamples![0].generatedAt)}
+								Generated{" "}
+								{formatTimestamp(preset.generatedExamples![0].generatedAt)}
 							</span>
 							{onGenerateExamples && (
 								<button
 									type="button"
 									onClick={onGenerateExamples}
 									disabled={isGenerating || isAnyRegenerating}
-									className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-secondary hover:text-primary border border-[var(--color-outline)] hover:border-[var(--color-primary)] rounded-lg transition-colors disabled:opacity-50"
+									className="flex items-center gap-1.5 rounded-lg border border-[var(--color-outline)] px-3 py-1.5 font-medium text-secondary text-xs transition-colors hover:border-[var(--color-primary)] hover:text-primary disabled:opacity-50"
 									title="Regenerate both examples"
 								>
-									<Icon name="refresh" className="w-3.5 h-3.5" />
+									<Icon name="refresh" className="h-3.5 w-3.5" />
 									Regenerate All
 								</button>
 							)}
@@ -247,30 +279,30 @@ export default function LivePreview({
 			</div>
 
 			{/* Preset Summary */}
-			<div className="flex flex-wrap items-center gap-2 px-3 py-2 rounded-lg bg-[var(--color-surface-variant)] border border-[var(--color-outline)]">
-				<span className="text-[10px] font-semibold text-secondary uppercase tracking-wider">
+			<div className="flex flex-wrap items-center gap-2 rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface-variant)] px-3 py-2">
+				<span className="font-semibold text-[10px] text-secondary uppercase tracking-wider">
 					Settings:
 				</span>
-				<span className="px-2 py-0.5 text-[10px] font-medium text-on-surface bg-[var(--color-surface)] rounded border border-[var(--color-outline)]">
+				<span className="rounded border border-[var(--color-outline)] bg-[var(--color-surface)] px-2 py-0.5 font-medium text-[10px] text-on-surface">
 					{preset.taskType}
 				</span>
-				<span className="px-2 py-0.5 text-[10px] font-medium text-on-surface bg-[var(--color-surface)] rounded border border-[var(--color-outline)]">
+				<span className="rounded border border-[var(--color-outline)] bg-[var(--color-surface)] px-2 py-0.5 font-medium text-[10px] text-on-surface">
 					{preset.options?.tone || "neutral"}
 				</span>
-				<span className="px-2 py-0.5 text-[10px] font-medium text-on-surface bg-[var(--color-surface)] rounded border border-[var(--color-outline)]">
+				<span className="rounded border border-[var(--color-outline)] bg-[var(--color-surface)] px-2 py-0.5 font-medium text-[10px] text-on-surface">
 					{preset.options?.detail || "normal"} detail
 				</span>
-				<span className="px-2 py-0.5 text-[10px] font-medium text-on-surface bg-[var(--color-surface)] rounded border border-[var(--color-outline)]">
+				<span className="rounded border border-[var(--color-outline)] bg-[var(--color-surface)] px-2 py-0.5 font-medium text-[10px] text-on-surface">
 					{preset.options?.format || "markdown"}
 				</span>
-				<span className="px-2 py-0.5 text-[10px] font-medium text-on-surface bg-[var(--color-surface)] rounded border border-[var(--color-outline)]">
+				<span className="rounded border border-[var(--color-outline)] bg-[var(--color-surface)] px-2 py-0.5 font-medium text-[10px] text-on-surface">
 					temp: {(preset.options?.temperature ?? 0.7).toFixed(1)}
 				</span>
 			</div>
 
 			{hasExamples ? (
 				/* Example Cards Grid */
-				<div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 					<ExampleCard
 						title="Example 1"
 						example={preset.generatedExamples![0]}
@@ -288,25 +320,26 @@ export default function LivePreview({
 				</div>
 			) : (
 				/* No examples message */
-				<div className="flex flex-col items-center justify-center py-12 px-6 rounded-xl border-2 border-dashed border-[var(--color-outline)] bg-[var(--color-surface-variant)]/50">
-					<div className="w-16 h-16 rounded-full bg-[var(--color-surface)] border border-[var(--color-outline)] flex items-center justify-center mb-4">
-						<Icon name="file-text" className="w-8 h-8 text-secondary/60" />
+				<div className="flex flex-col items-center justify-center rounded-xl border-2 border-[var(--color-outline)] border-dashed bg-[var(--color-surface-variant)]/50 px-6 py-12">
+					<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[var(--color-outline)] bg-[var(--color-surface)]">
+						<Icon name="file-text" className="h-8 w-8 text-secondary/60" />
 					</div>
-					<h4 className="text-sm font-semibold text-on-surface mb-1">
+					<h4 className="mb-1 font-semibold text-on-surface text-sm">
 						No Examples Yet
 					</h4>
-					<p className="text-xs text-secondary text-center max-w-sm mb-4">
-						Generate AI-powered example prompts that demonstrate how this preset transforms different inputs.
+					<p className="mb-4 max-w-sm text-center text-secondary text-xs">
+						Generate AI-powered example prompts that demonstrate how this preset
+						transforms different inputs.
 					</p>
-					
+
 					{onGenerateExamples && (
 						<button
 							type="button"
 							onClick={onGenerateExamples}
 							disabled={isGenerating}
-							className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-on-primary font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+							className="flex items-center gap-2 rounded-lg bg-[var(--color-primary)] px-4 py-2 font-medium text-on-primary text-sm transition-opacity hover:opacity-90 disabled:opacity-50"
 						>
-							<Icon name="refresh" className="w-4 h-4" />
+							<Icon name="refresh" className="h-4 w-4" />
 							Generate Examples
 						</button>
 					)}

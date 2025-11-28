@@ -4,14 +4,23 @@ import PresetEditor from "@/app/studio/components/PresetEditor";
 import PresetLibrary from "@/app/studio/components/PresetLibrary";
 import StudioHeader from "@/app/studio/components/StudioHeader";
 import { usePresetManager } from "@/app/studio/hooks/usePresetManager";
-import type { PresetLite } from "@/types";
 import { useDialog } from "@/components/DialogProvider";
+import type { PresetLite } from "@/types";
 import React, { useState, useEffect, useCallback } from "react";
 
 export default function PresetStudioPage() {
 	const { confirm } = useDialog();
-	const { presets, isGeneratingExamples, regeneratingIndex, loadPresets, savePreset, deletePreset, duplicatePreset, generateExamplesOnly, regenerateExample } =
-		usePresetManager();
+	const {
+		presets,
+		isGeneratingExamples,
+		regeneratingIndex,
+		loadPresets,
+		savePreset,
+		deletePreset,
+		duplicatePreset,
+		generateExamplesOnly,
+		regenerateExample,
+	} = usePresetManager();
 
 	// Selection states
 	const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
@@ -23,7 +32,7 @@ export default function PresetStudioPage() {
 	// Sidebar state - initialize based on window size to prevent flicker
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [isSmallScreen, setIsSmallScreen] = useState(() => {
-		if (typeof window !== 'undefined') {
+		if (typeof window !== "undefined") {
 			return window.innerWidth < 1280;
 		}
 		return false;
@@ -173,18 +182,21 @@ export default function PresetStudioPage() {
 	}, [editingPreset, generateExamplesOnly]);
 
 	// Handle regenerating a single example
-	const handleRegenerateExample = useCallback(async (index: 0 | 1) => {
-		if (!editingPreset) return;
+	const handleRegenerateExample = useCallback(
+		async (index: 0 | 1) => {
+			if (!editingPreset) return;
 
-		try {
-			const updatedPreset = await regenerateExample(editingPreset, index);
-			if (updatedPreset) {
-				setEditingPreset(updatedPreset);
+			try {
+				const updatedPreset = await regenerateExample(editingPreset, index);
+				if (updatedPreset) {
+					setEditingPreset(updatedPreset);
+				}
+			} catch (error) {
+				console.error("Failed to regenerate example:", error);
 			}
-		} catch (error) {
-			console.error("Failed to regenerate example:", error);
-		}
-	}, [editingPreset, regenerateExample]);
+		},
+		[editingPreset, regenerateExample],
+	);
 
 	// Handle save as new preset
 	const handleSaveAs = useCallback(
@@ -281,7 +293,7 @@ export default function PresetStudioPage() {
 				return prev;
 			});
 		};
-		
+
 		// Only add resize listener, don't call checkScreenSize on mount since state is already initialized
 		window.addEventListener("resize", checkScreenSize);
 		return () => {
@@ -290,72 +302,73 @@ export default function PresetStudioPage() {
 	}, []);
 
 	return (
-	<>
-		<div
-			className="flex flex-col bg-surface-0 text-light h-full page-animate"
-		>
-		<StudioHeader
-				isDirty={isDirty}
-				isSmallScreen={isSmallScreen}
-				onToggleSidebar={() => setSidebarOpen((v) => !v)}
-			/>
-
-			{/* Sidebar backdrop for mobile */}
-			{isSmallScreen && sidebarOpen && (
-				<div
-					style={{
-						position: "fixed",
-						inset: 0,
-						background: "rgba(0,0,0,0.5)",
-						zIndex: 25,
-					}}
-					onClick={() => setSidebarOpen(false)}
+		<>
+			<div className="page-animate flex h-full flex-col bg-surface-0 text-light">
+				<StudioHeader
+					isDirty={isDirty}
+					isSmallScreen={isSmallScreen}
+					onToggleSidebar={() => setSidebarOpen((v) => !v)}
 				/>
-			)}
 
-			<main className="flex flex-1 flex-col overflow-hidden xl:flex-row" style={{ position: "relative" }}>
-				{/* Generation Overlay - blocks all interactions when generating examples */}
-				{(isGeneratingExamples || regeneratingIndex !== null) && (
-					<div 
-						className="generation-overlay"
+				{/* Sidebar backdrop for mobile */}
+				{isSmallScreen && sidebarOpen && (
+					<div
 						style={{
-							position: 'absolute',
+							position: "fixed",
 							inset: 0,
-							backgroundColor: 'rgba(0, 0, 0, 0.35)',
-							zIndex: 100,
-							pointerEvents: 'auto',
-							cursor: 'not-allowed',
-							transition: 'opacity 0.2s ease',
-							backdropFilter: 'grayscale(0.5)',
+							background: "rgba(0,0,0,0.5)",
+							zIndex: 25,
 						}}
-						onClick={(e) => e.stopPropagation()}
+						onClick={() => setSidebarOpen(false)}
 					/>
 				)}
-				{/* Row 1 / Col 1: Preset Library */}
-			<aside
-			className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
-				isSmallScreen
-					? `fixed top-12 left-0 h-[calc(100vh-3rem)] w-[min(90vw,420px)] z-30 border-r ${
-							sidebarOpen ? "translate-x-0" : "-translate-x-full"
-					  }`
-					: "flex-shrink-0 w-[420px] border-r"
-			}`}
-				style={{ 
-					background: 'var(--color-surface-variant)',
-				}}
-				>
-					<PresetLibrary
-						presets={presets}
-						selectedPresetId={selectedPresetId}
-						onSelectPreset={handleSelectPreset}
-						onCreateNew={handleNewPreset}
-						className="flex-1 overflow-hidden"
-					/>
-				</aside>
 
-			{/* Row 2 / Col 2: Preset Editor */}
-			<div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface">
-				<PresetEditor
+				<main
+					className="flex flex-1 flex-col overflow-hidden xl:flex-row"
+					style={{ position: "relative" }}
+				>
+					{/* Generation Overlay - blocks all interactions when generating examples */}
+					{(isGeneratingExamples || regeneratingIndex !== null) && (
+						<div
+							className="generation-overlay"
+							style={{
+								position: "absolute",
+								inset: 0,
+								backgroundColor: "rgba(0, 0, 0, 0.35)",
+								zIndex: 100,
+								pointerEvents: "auto",
+								cursor: "not-allowed",
+								transition: "opacity 0.2s ease",
+								backdropFilter: "grayscale(0.5)",
+							}}
+							onClick={(e) => e.stopPropagation()}
+						/>
+					)}
+					{/* Row 1 / Col 1: Preset Library */}
+					<aside
+						className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
+							isSmallScreen
+								? `fixed top-12 left-0 z-30 h-[calc(100vh-3rem)] w-[min(90vw,420px)] border-r ${
+										sidebarOpen ? "translate-x-0" : "-translate-x-full"
+									}`
+								: "w-[420px] flex-shrink-0 border-r"
+						}`}
+						style={{
+							background: "var(--color-surface-variant)",
+						}}
+					>
+						<PresetLibrary
+							presets={presets}
+							selectedPresetId={selectedPresetId}
+							onSelectPreset={handleSelectPreset}
+							onCreateNew={handleNewPreset}
+							className="flex-1 overflow-hidden"
+						/>
+					</aside>
+
+					{/* Row 2 / Col 2: Preset Editor */}
+					<div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface">
+						<PresetEditor
 							preset={editingPreset}
 							isDirty={isDirty}
 							isGeneratingExamples={isGeneratingExamples}

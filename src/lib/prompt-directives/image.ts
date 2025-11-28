@@ -22,23 +22,23 @@ export function buildImageDirectives(options: GenerationOptions): string[] {
 	}
 	if (specs.length > 0) {
 		directives.push(
-			`REQUIRED TECHNICAL SPECS (use these EXACTLY, do NOT invent or change): ${specs.join(", ")}.`
+			`REQUIRED TECHNICAL SPECS (use these EXACTLY, do NOT invent or change): ${specs.join(", ")}.`,
 		);
 	}
 
 	// Prompt structure guidance
 	directives.push(
-		"Keep descriptions focused and concise. Avoid verbose prose - use evocative keywords and short phrases."
+		"Keep descriptions focused and concise. Avoid verbose prose - use evocative keywords and short phrases.",
 	);
 
 	// Do not invent specifications
 	directives.push(
-		"Do NOT invent technical specifications. Only include the resolution and aspect ratio provided above. Never add specifications that weren't explicitly given."
+		"Do NOT invent technical specifications. Only include the resolution and aspect ratio provided above. Never add specifications that weren't explicitly given.",
 	);
 
 	// Default positive environment
 	directives.push(
-		"Default mood: If no specific mood is mentioned, default to bright, positive atmosphere."
+		"Default mood: If no specific mood is mentioned, default to bright, positive atmosphere.",
 	);
 
 	return directives;
@@ -72,4 +72,3 @@ function getStyleGuidance(stylePreset: string): string {
 
 	return `Visual style: ${stylePreset}. Match terminology to this specific style.`;
 }
-

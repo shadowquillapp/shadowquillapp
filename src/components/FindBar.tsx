@@ -1,8 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+	faChevronDown,
+	faChevronUp,
+	faTimes,
+} from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faChevronUp, faChevronDown, faTimes } from "@fortawesome/free-solid-svg-icons";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 const HIGHLIGHT_CLASS = "find-highlight";
 const ACTIVE_CLASS = "find-highlight--active";
@@ -35,105 +39,116 @@ export default function FindBar() {
 	}, []);
 
 	// Perform search and highlight matches
-	const performSearch = useCallback((text: string) => {
-		// First clear existing highlights
-		clearHighlights();
+	const performSearch = useCallback(
+		(text: string) => {
+			// First clear existing highlights
+			clearHighlights();
 
-		if (!text.trim()) return;
+			if (!text.trim()) return;
 
-		const searchTerm = text.toLowerCase();
-		const marks: HTMLElement[] = [];
+			const searchTerm = text.toLowerCase();
+			const marks: HTMLElement[] = [];
 
-		// Walk the DOM and find text nodes
-		const walker = document.createTreeWalker(
-			document.body,
-			NodeFilter.SHOW_TEXT,
-			{
-				acceptNode: (node) => {
-					// Skip script, style, and our own find bar
-					const parent = node.parentElement;
-					if (!parent) return NodeFilter.FILTER_REJECT;
-					
-					const tagName = parent.tagName.toLowerCase();
-					if (tagName === "script" || tagName === "style" || tagName === "noscript") {
+			// Walk the DOM and find text nodes
+			const walker = document.createTreeWalker(
+				document.body,
+				NodeFilter.SHOW_TEXT,
+				{
+					acceptNode: (node) => {
+						// Skip script, style, and our own find bar
+						const parent = node.parentElement;
+						if (!parent) return NodeFilter.FILTER_REJECT;
+
+						const tagName = parent.tagName.toLowerCase();
+						if (
+							tagName === "script" ||
+							tagName === "style" ||
+							tagName === "noscript"
+						) {
+							return NodeFilter.FILTER_REJECT;
+						}
+
+						// Skip the find bar itself
+						if (parent.closest("[data-find-bar]")) {
+							return NodeFilter.FILTER_REJECT;
+						}
+
+						// Skip already highlighted nodes
+						if (parent.classList.contains(HIGHLIGHT_CLASS)) {
+							return NodeFilter.FILTER_REJECT;
+						}
+
+						// Check if text contains search term
+						const nodeText = node.textContent?.toLowerCase() || "";
+						if (nodeText.includes(searchTerm)) {
+							return NodeFilter.FILTER_ACCEPT;
+						}
+
 						return NodeFilter.FILTER_REJECT;
-					}
-					
-					// Skip the find bar itself
-					if (parent.closest("[data-find-bar]")) {
-						return NodeFilter.FILTER_REJECT;
-					}
-
-					// Skip already highlighted nodes
-					if (parent.classList.contains(HIGHLIGHT_CLASS)) {
-						return NodeFilter.FILTER_REJECT;
-					}
-
-					// Check if text contains search term
-					const nodeText = node.textContent?.toLowerCase() || "";
-					if (nodeText.includes(searchTerm)) {
-						return NodeFilter.FILTER_ACCEPT;
-					}
-
-					return NodeFilter.FILTER_REJECT;
+					},
 				},
+			);
+
+			const nodesToProcess: Text[] = [];
+			let currentNode = walker.nextNode();
+			while (currentNode) {
+				nodesToProcess.push(currentNode as Text);
+				currentNode = walker.nextNode();
 			}
-		);
 
-		const nodesToProcess: Text[] = [];
-		let currentNode = walker.nextNode();
-		while (currentNode) {
-			nodesToProcess.push(currentNode as Text);
-			currentNode = walker.nextNode();
-		}
+			// Process each text node
+			nodesToProcess.forEach((textNode) => {
+				const nodeText = textNode.textContent || "";
+				const lowerText = nodeText.toLowerCase();
+				let lastIndex = 0;
+				let index = lowerText.indexOf(searchTerm);
 
-		// Process each text node
-		nodesToProcess.forEach((textNode) => {
-			const nodeText = textNode.textContent || "";
-			const lowerText = nodeText.toLowerCase();
-			let lastIndex = 0;
-			let index = lowerText.indexOf(searchTerm);
+				if (index === -1) return;
 
-			if (index === -1) return;
+				const fragment = document.createDocumentFragment();
 
-			const fragment = document.createDocumentFragment();
+				while (index !== -1) {
+					// Add text before match
+					if (index > lastIndex) {
+						fragment.appendChild(
+							document.createTextNode(nodeText.slice(lastIndex, index)),
+						);
+					}
 
-			while (index !== -1) {
-				// Add text before match
-				if (index > lastIndex) {
-					fragment.appendChild(document.createTextNode(nodeText.slice(lastIndex, index)));
+					// Create highlight mark
+					const mark = document.createElement("mark");
+					mark.className = HIGHLIGHT_CLASS;
+					mark.textContent = nodeText.slice(index, index + searchTerm.length);
+					fragment.appendChild(mark);
+					marks.push(mark);
+
+					lastIndex = index + searchTerm.length;
+					index = lowerText.indexOf(searchTerm, lastIndex);
 				}
 
-				// Create highlight mark
-				const mark = document.createElement("mark");
-				mark.className = HIGHLIGHT_CLASS;
-				mark.textContent = nodeText.slice(index, index + searchTerm.length);
-				fragment.appendChild(mark);
-				marks.push(mark);
+				// Add remaining text
+				if (lastIndex < nodeText.length) {
+					fragment.appendChild(
+						document.createTextNode(nodeText.slice(lastIndex)),
+					);
+				}
 
-				lastIndex = index + searchTerm.length;
-				index = lowerText.indexOf(searchTerm, lastIndex);
+				// Replace text node with fragment
+				textNode.parentNode?.replaceChild(fragment, textNode);
+			});
+
+			highlightsRef.current = marks;
+			setMatchCount(marks.length);
+			setHasSearched(true);
+
+			// Activate first match if any
+			if (marks.length > 0) {
+				setCurrentMatch(1);
+				activateMatch(marks, 0);
 			}
-
-			// Add remaining text
-			if (lastIndex < nodeText.length) {
-				fragment.appendChild(document.createTextNode(nodeText.slice(lastIndex)));
-			}
-
-			// Replace text node with fragment
-			textNode.parentNode?.replaceChild(fragment, textNode);
-		});
-
-		highlightsRef.current = marks;
-		setMatchCount(marks.length);
-		setHasSearched(true);
-
-		// Activate first match if any
-		if (marks.length > 0) {
-			setCurrentMatch(1);
-			activateMatch(marks, 0);
-		}
-	}, [clearHighlights]);
+		},
+		[clearHighlights],
+	);
 
 	// Activate a specific match (make it the "current" one)
 	const activateMatch = useCallback((marks: HTMLElement[], index: number) => {
@@ -148,7 +163,7 @@ export default function FindBar() {
 		if (activeMatch) {
 			activeMatch.classList.add(ACTIVE_CLASS);
 			activeMatch.classList.add(PULSE_CLASS);
-			
+
 			// Scroll into view
 			activeMatch.scrollIntoView({
 				behavior: "smooth",
@@ -240,7 +255,11 @@ export default function FindBar() {
 			}
 
 			// Enter in find bar triggers find
-			if (e.key === "Enter" && isVisible && document.activeElement === inputRef.current) {
+			if (
+				e.key === "Enter" &&
+				isVisible &&
+				document.activeElement === inputRef.current
+			) {
 				e.preventDefault();
 				if (e.shiftKey) {
 					goToPrevious();
@@ -275,11 +294,13 @@ export default function FindBar() {
 	return (
 		<div
 			data-find-bar
-			className="fixed top-12 right-4 z-[9999] flex items-center gap-2 rounded-2xl px-3 py-2 border border-white/20 backdrop-blur-2xl"
-			style={{ 
-				minWidth: 280, 
-				background: "linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.08) 100%)",
-				boxShadow: "0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 1px 0 rgba(255,255,255,0.15) inset, 0 -1px 0 rgba(0,0,0,0.1) inset"
+			className="fixed top-12 right-4 z-[9999] flex items-center gap-2 rounded-2xl border border-white/20 px-3 py-2 backdrop-blur-2xl"
+			style={{
+				minWidth: 280,
+				background:
+					"linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.08) 100%)",
+				boxShadow:
+					"0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 1px 0 rgba(255,255,255,0.15) inset, 0 -1px 0 rgba(0,0,0,0.1) inset",
 			}}
 		>
 			<input
@@ -288,22 +309,23 @@ export default function FindBar() {
 				value={searchText}
 				onChange={(e) => setSearchText(e.target.value)}
 				placeholder="Find in page..."
-				className="flex-1 text-[var(--color-on-surface)] text-sm px-3 py-1.5 rounded-lg border border-white/10 outline-none focus:border-white/30 focus:ring-1 focus:ring-white/10 placeholder:text-[var(--color-on-surface-variant)] transition-all"
-				style={{ 
+				className="flex-1 rounded-lg border border-white/10 px-3 py-1.5 text-[var(--color-on-surface)] text-sm outline-none transition-all placeholder:text-[var(--color-on-surface-variant)] focus:border-white/30 focus:ring-1 focus:ring-white/10"
+				style={{
 					background: "rgba(0, 0, 0, 0.25)",
-					boxShadow: "inset 0 1px 3px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.05)"
+					boxShadow:
+						"inset 0 1px 3px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.05)",
 				}}
 				autoFocus
 			/>
 
 			{matchCount > 0 && searchText && (
-				<span className="text-xs text-[var(--color-on-surface-variant)] min-w-[60px] text-center">
+				<span className="min-w-[60px] text-center text-[var(--color-on-surface-variant)] text-xs">
 					{currentMatch}/{matchCount}
 				</span>
 			)}
 
 			{matchCount === 0 && searchText && hasSearched && (
-				<span className="text-xs text-[var(--color-attention)] min-w-[60px] text-center">
+				<span className="min-w-[60px] text-center text-[var(--color-attention)] text-xs">
 					No results
 				</span>
 			)}
@@ -312,29 +334,29 @@ export default function FindBar() {
 				type="button"
 				onClick={goToPrevious}
 				disabled={!searchText}
-				className="p-1.5 text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-surface-a20 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:bg-surface-a20 hover:text-[var(--color-on-surface)] disabled:cursor-not-allowed disabled:opacity-40"
 				title="Previous (Shift+Enter)"
 			>
-				<FontAwesomeIcon icon={faChevronUp} className="w-3 h-3" />
+				<FontAwesomeIcon icon={faChevronUp} className="h-3 w-3" />
 			</button>
 
 			<button
 				type="button"
 				onClick={goToNext}
 				disabled={!searchText}
-				className="p-1.5 text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-surface-a20 rounded disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:bg-surface-a20 hover:text-[var(--color-on-surface)] disabled:cursor-not-allowed disabled:opacity-40"
 				title="Next (Enter)"
 			>
-				<FontAwesomeIcon icon={faChevronDown} className="w-3 h-3" />
+				<FontAwesomeIcon icon={faChevronDown} className="h-3 w-3" />
 			</button>
 
 			<button
 				type="button"
 				onClick={closeFindBar}
-				className="p-1.5 text-[var(--color-on-surface-variant)] hover:text-[var(--color-on-surface)] hover:bg-surface-a20 rounded transition-colors"
+				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:bg-surface-a20 hover:text-[var(--color-on-surface)]"
 				title="Close (Escape)"
 			>
-				<FontAwesomeIcon icon={faTimes} className="w-3 h-3" />
+				<FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
 			</button>
 		</div>
 	);

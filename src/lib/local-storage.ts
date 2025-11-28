@@ -51,14 +51,14 @@ export function clearAllStorageForFactoryReset(): void {
 
 	// All known localStorage keys used by the app
 	const localStorageKeys = [
-		"workbench-tabs-v1",      // Tab manager
-		"PC_PRESETS",             // Presets
-		"PC_PROJECTS",            // Projects
-		"PC_TEST_MESSAGES",       // Test messages
-		"theme-preference",       // Theme
-		"recent-presets",         // Recent presets
-		"last-selected-preset",   // Last selected preset
-		"SYSTEM_PROMPT_BUILD",    // System prompt build
+		"workbench-tabs-v1", // Tab manager
+		"PC_PRESETS", // Presets
+		"PC_PROJECTS", // Projects
+		"PC_TEST_MESSAGES", // Test messages
+		"theme-preference", // Theme
+		"recent-presets", // Recent presets
+		"last-selected-preset", // Last selected preset
+		"SYSTEM_PROMPT_BUILD", // System prompt build
 	];
 
 	// Clear known keys first

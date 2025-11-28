@@ -63,10 +63,10 @@ export async function callLocalModelClient(
 					cause: fetchError,
 				});
 			}
-		throw new NetworkError("Failed to connect to Ollama", {
-			endpoint,
-			...(fetchError instanceof Error && { cause: fetchError }),
-		});
+			throw new NetworkError("Failed to connect to Ollama", {
+				endpoint,
+				...(fetchError instanceof Error && { cause: fetchError }),
+			});
 		}
 		if (!res.ok) {
 			throw new ModelError(`Ollama error ${res.status}`, {

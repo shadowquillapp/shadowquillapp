@@ -1,7 +1,7 @@
+import { Icon, type IconName } from "@/components/Icon";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Icon, type IconName } from "@/components/Icon";
 
 interface Option {
 	value: string;
@@ -191,9 +191,14 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 					boxShadow: "var(--shadow-1)",
 				}}
 			>
-				<span className={`flex items-center gap-2 ${selectedOption ? "" : "opacity-80"}`}>
+				<span
+					className={`flex items-center gap-2 ${selectedOption ? "" : "opacity-80"}`}
+				>
 					{selectedOption?.icon && (
-						<Icon name={selectedOption.icon} className="w-4 h-4 text-secondary" />
+						<Icon
+							name={selectedOption.icon}
+							className="h-4 w-4 text-secondary"
+						/>
 					)}
 					{displayText}
 				</span>
@@ -254,7 +259,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 							>
 								<span className="flex items-center gap-2">
 									{option.icon && (
-										<Icon name={option.icon} className="w-4 h-4" />
+										<Icon name={option.icon} className="h-4 w-4" />
 									)}
 									{option.label}
 								</span>

@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it } from "vitest";
 import {
+	type Preset,
 	compareVersions,
 	deletePresetByIdOrName,
 	ensureDefaultPreset,
@@ -9,10 +9,10 @@ import {
 	getPresetHistory,
 	getPresets,
 	importPresetWithHistory,
-	type Preset,
 	rollbackPreset,
 	savePreset,
 } from "@/lib/presets";
+import { beforeEach, describe, expect, it } from "vitest";
 
 /**
  * Integration tests for the preset management workflow
@@ -147,7 +147,7 @@ describe("Preset Workflow Integration", () => {
 		it("should compare versions correctly", () => {
 			// Version snapshots capture the state BEFORE each update
 			// So version 1 = original state, version 2 = state after first update
-			
+
 			const created = savePreset({
 				name: "Compare Test",
 				taskType: "coding",

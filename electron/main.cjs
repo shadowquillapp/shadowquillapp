@@ -67,7 +67,9 @@ try {
 		try {
 			// Synchronous delay to ensure previous instance locks are released
 			const end = Date.now() + 2500;
-			while (Date.now() < end) { /* busy wait */ }
+			while (Date.now() < end) {
+				/* busy wait */
+			}
 
 			if (fs.existsSync(userDataDir)) {
 				// Try rename-then-delete strategy
@@ -78,7 +80,10 @@ try {
 					wipeSuccess = true;
 				} catch (e) {
 					// Fallback to direct delete if rename fails
-					console.warn("[Factory Reset] Rename failed, trying direct delete:", e.message);
+					console.warn(
+						"[Factory Reset] Rename failed, trying direct delete:",
+						e.message,
+					);
 					fs.rmSync(userDataDir, { recursive: true, force: true });
 					wipeSuccess = true;
 				}
@@ -95,7 +100,9 @@ try {
 		if (wipeSuccess) {
 			console.log("[Factory Reset] Spawning fresh app instance...");
 			const { spawn } = require("node:child_process");
-			const argsWithoutReset = process.argv.slice(1).filter(arg => arg !== "--factory-reset");
+			const argsWithoutReset = process.argv
+				.slice(1)
+				.filter((arg) => arg !== "--factory-reset");
 			// Spawn detached so the new process survives this one exiting
 			spawn(process.execPath, argsWithoutReset, {
 				detached: true,
@@ -105,7 +112,7 @@ try {
 		}
 		app.exit(0);
 	}
-} catch (_) { }
+} catch (_) {}
 
 const isDev = !app.isPackaged;
 
@@ -121,15 +128,23 @@ function getWindowStatePath() {
 }
 
 function loadWindowState() {
-	const defaults = { width: 1280, height: 850, x: undefined, y: undefined, isMaximized: false };
+	const defaults = {
+		width: 1280,
+		height: 850,
+		x: undefined,
+		y: undefined,
+		isMaximized: false,
+	};
 	try {
 		const statePath = getWindowStatePath();
 		if (!statePath || !fs.existsSync(statePath)) return defaults;
 		const data = fs.readFileSync(statePath, "utf8");
 		const state = JSON.parse(data);
 		// Validate loaded values
-		if (typeof state.width !== "number" || state.width < 1045) state.width = defaults.width;
-		if (typeof state.height !== "number" || state.height < 850) state.height = defaults.height;
+		if (typeof state.width !== "number" || state.width < 1045)
+			state.width = defaults.width;
+		if (typeof state.height !== "number" || state.height < 850)
+			state.height = defaults.height;
 		// Ensure window is visible on screen (basic check)
 		if (typeof state.x !== "number" || state.x < -100) state.x = undefined;
 		if (typeof state.y !== "number" || state.y < -100) state.y = undefined;
@@ -145,7 +160,9 @@ function saveWindowState(win) {
 		if (!statePath || !win) return;
 		const isMaximized = win.isMaximized();
 		// Don't save dimensions if maximized - save the last normal bounds
-		const bounds = isMaximized ? (win._lastNormalBounds || win.getBounds()) : win.getBounds();
+		const bounds = isMaximized
+			? win._lastNormalBounds || win.getBounds()
+			: win.getBounds();
 		const state = {
 			width: bounds.width,
 			height: bounds.height,
@@ -154,11 +171,11 @@ function saveWindowState(win) {
 			isMaximized,
 		};
 		fs.writeFileSync(statePath, JSON.stringify(state, null, 2));
-	} catch (_) { }
+	} catch (_) {}
 }
 
 if (isDev) {
-	process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
+	process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = "true";
 }
 
 function checkAndOptionallyClearZoneIdentifier() {
@@ -265,7 +282,7 @@ ipcMain.handle("shadowquill:openOllama", async () => {
 					spawn(ollamaPath, [], { detached: true, stdio: "ignore" });
 					launched = true;
 					break;
-				} catch (_) { }
+				} catch (_) {}
 			}
 
 			if (!launched) {
@@ -305,7 +322,7 @@ ipcMain.handle("shadowquill:openOllama", async () => {
 ipcMain.handle("shadowquill:restartApp", async () => {
 	try {
 		console.log("[Restart] Initiating app restart...");
-		
+
 		// Close prod server if running
 		if (httpServer) {
 			console.log("[Restart] Closing production server...");
@@ -314,7 +331,7 @@ ipcMain.handle("shadowquill:restartApp", async () => {
 				httpServer = null;
 			} catch (_) {}
 		}
-		
+
 		// Close all windows and clean up (only in production mode)
 		if (!app.isPackaged) {
 			console.log("[Restart] Dev mode - skipping window cleanup.");
@@ -337,15 +354,15 @@ ipcMain.handle("shadowquill:restartApp", async () => {
 				console.warn("[Restart] Error closing window:", e);
 			}
 		}
-		
+
 		// Give a moment for cleanup to complete
-		await new Promise(resolve => setTimeout(resolve, 500));
-		
+		await new Promise((resolve) => setTimeout(resolve, 500));
+
 		// Relaunch with fresh state
 		console.log("[Restart] Relaunching application...");
 		app.relaunch();
 		app.exit(0);
-		
+
 		return { ok: true };
 	} catch (e) {
 		console.error("[Restart] Failed:", e);
@@ -395,8 +412,10 @@ function registerDataIPCHandlers() {
 	// The flag handler at startup will delete files BEFORE they get locked
 	ipcMain.handle("shadowquill:factoryReset", async () => {
 		try {
-			console.log("[Factory Reset] Triggered. Clearing session data and relaunching...");
-			
+			console.log(
+				"[Factory Reset] Triggered. Clearing session data and relaunching...",
+			);
+
 			// Clear all persistent storage for the default session
 			try {
 				await session.defaultSession.clearStorageData();
@@ -416,7 +435,9 @@ function registerDataIPCHandlers() {
 
 			// Relaunch the app with --factory-reset flag
 			// The startup handler will delete the userData directory BEFORE Electron locks the files
-			console.log("[Factory Reset] Relaunching app with --factory-reset flag...");
+			console.log(
+				"[Factory Reset] Relaunching app with --factory-reset flag...",
+			);
 			app.relaunch({ args: process.argv.slice(1).concat(["--factory-reset"]) });
 			app.exit(0);
 
@@ -561,22 +582,25 @@ ipcMain.handle("shadowquill:find:findInPage", (e, text, options = {}) => {
 	}
 });
 
-ipcMain.handle("shadowquill:find:stopFindInPage", (e, action = "clearSelection") => {
-	try {
-		const w = BrowserWindow.fromWebContents(e.sender);
-		if (w) {
-			w.webContents.stopFindInPage(action);
+ipcMain.handle(
+	"shadowquill:find:stopFindInPage",
+	(e, action = "clearSelection") => {
+		try {
+			const w = BrowserWindow.fromWebContents(e.sender);
+			if (w) {
+				w.webContents.stopFindInPage(action);
+			}
+			return { ok: true };
+		} catch (err) {
+			return { ok: false, error: err?.message };
 		}
-		return { ok: true };
-	} catch (err) {
-		return { ok: false, error: err?.message };
-	}
-});
+	},
+);
 
 function createWindow() {
 	// Load saved window state or use defaults
 	const windowState = loadWindowState();
-	
+
 	const win = new BrowserWindow({
 		width: windowState.width,
 		height: windowState.height,
@@ -643,7 +667,7 @@ function createWindow() {
 	win.webContents.once("did-finish-load", () => {
 		// Set default zoom to 110%
 		win.webContents.setZoomFactor(1.1);
-		
+
 		win.webContents.executeJavaScript(`
       (function() {
         const originalError = console.error;
@@ -1088,7 +1112,14 @@ app.whenReady().then(async () => {
 			// Attempt static fallback: serve pre-rendered HTML if available
 			try {
 				const htmlCandidates = [
-					path.join(nextAppDir, ".next", "server", "app", "workbench", "index.html"),
+					path.join(
+						nextAppDir,
+						".next",
+						"server",
+						"app",
+						"workbench",
+						"index.html",
+					),
 					path.join(nextAppDir, ".next", "server", "app", "index.html"),
 				];
 				const fallbackHtml = htmlCandidates.find((p) => {

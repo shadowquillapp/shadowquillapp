@@ -101,7 +101,9 @@ export default function SystemPromptEditorContent({
 					<div className="ollama-field">
 						<label className="ollama-label">
 							System Prompt Content
-							<span>This prompt guides how the AI processes and enhances your input.</span>
+							<span>
+								This prompt guides how the AI processes and enhances your input.
+							</span>
 						</label>
 						<textarea
 							ref={textareaRef}
@@ -166,7 +168,10 @@ export default function SystemPromptEditorContent({
 						>
 							Undo
 						</button>
-						<button disabled={saving || !isDirty} className="md-btn md-btn--primary">
+						<button
+							disabled={saving || !isDirty}
+							className="md-btn md-btn--primary"
+						>
 							{saving ? "Saving…" : "Save Changes"}
 						</button>
 					</div>

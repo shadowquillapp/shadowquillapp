@@ -1,5 +1,5 @@
-import type { PresetLite } from "@/types";
 import { Icon } from "@/components/Icon";
+import type { PresetLite } from "@/types";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 
@@ -11,9 +11,27 @@ interface PresetInfoDialogProps {
 
 const CATEGORIES = {
 	general: ["tone", "detail", "format", "language"],
-	model: ["temperature", "reasoningStyle", "includeVerification", "endOfPromptToken"],
-	content: ["useDelimiters", "requireCitations", "includeTests", "outputXMLSchema"],
-	media: ["stylePreset", "aspectRatio", "videoStylePreset", "cameraMovement", "shotType", "durationSeconds", "frameRate"],
+	model: [
+		"temperature",
+		"reasoningStyle",
+		"includeVerification",
+		"endOfPromptToken",
+	],
+	content: [
+		"useDelimiters",
+		"requireCitations",
+		"includeTests",
+		"outputXMLSchema",
+	],
+	media: [
+		"stylePreset",
+		"aspectRatio",
+		"videoStylePreset",
+		"cameraMovement",
+		"shotType",
+		"durationSeconds",
+		"frameRate",
+	],
 	context: ["additionalContext", "examplesText"],
 };
 
@@ -66,9 +84,15 @@ export function PresetInfoDialog({
 
 	// Group options by category
 	const groupedOptions: Record<string, Array<{ key: string; value: any }>> = {};
-	
+
 	Object.entries(options).forEach(([key, value]) => {
-		if (value === undefined || value === null || value === "" || value === false) return;
+		if (
+			value === undefined ||
+			value === null ||
+			value === "" ||
+			value === false
+		)
+			return;
 
 		let category = "other";
 		for (const [cat, keys] of Object.entries(CATEGORIES)) {
@@ -85,14 +109,17 @@ export function PresetInfoDialog({
 	});
 
 	// Order categories
-	const categoryOrder = ["general", "model", "content", "media", "context", "other"];
+	const categoryOrder = [
+		"general",
+		"model",
+		"content",
+		"media",
+		"context",
+		"other",
+	];
 
 	return (
-		<div
-			className="modal-container"
-			aria-modal="true"
-			role="dialog"
-		>
+		<div className="modal-container" aria-modal="true" role="dialog">
 			<div className="modal-backdrop-blur" />
 			<div
 				className="modal-content"
@@ -117,24 +144,31 @@ export function PresetInfoDialog({
 				<div className="modal-body">
 					<div className="flex flex-col gap-6">
 						{/* Header Info */}
-						<div 
-							className="flex items-start justify-between gap-4 p-5 rounded-xl border border-[var(--color-outline)]"
+						<div
+							className="flex items-start justify-between gap-4 rounded-xl border border-[var(--color-outline)] p-5"
 							style={{
-								background: "linear-gradient(135deg, var(--color-surface-variant) 0%, color-mix(in srgb, var(--color-surface-variant), transparent 50%) 100%)"
+								background:
+									"linear-gradient(135deg, var(--color-surface-variant) 0%, color-mix(in srgb, var(--color-surface-variant), transparent 50%) 100%)",
 							}}
 						>
 							<div className="flex flex-col gap-2">
-								<div className="text-xl font-bold text-on-surface leading-tight tracking-tight">
+								<div className="font-bold text-on-surface text-xl leading-tight tracking-tight">
 									{preset.name}
 								</div>
 								<div className="flex items-center gap-2">
-									<span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider border border-primary/10">
-										<Icon name={
-											preset.taskType === "coding" ? "git-compare" :
-											preset.taskType === "image" ? "palette" :
-											preset.taskType === "video" ? "eye" :
-											"sparkles"
-										} className="w-3 h-3" />
+									<span className="inline-flex items-center gap-1.5 rounded-md border border-primary/10 bg-primary/10 px-2.5 py-1 font-bold text-[10px] text-primary uppercase tracking-wider">
+										<Icon
+											name={
+												preset.taskType === "coding"
+													? "git-compare"
+													: preset.taskType === "image"
+														? "palette"
+														: preset.taskType === "video"
+															? "eye"
+															: "sparkles"
+											}
+											className="h-3 w-3"
+										/>
 										{preset.taskType || "General"}
 									</span>
 								</div>
@@ -168,29 +202,36 @@ export function PresetInfoDialog({
 
 								return (
 									<div key={cat} className="flex flex-col gap-3">
-										<div className="flex items-center gap-2 text-xs font-bold text-on-surface-variant uppercase tracking-wider border-b border-[var(--color-outline)]/50 pb-1.5">
-											<Icon name={CATEGORY_ICONS[cat] || "settings"} className="w-3.5 h-3.5 opacity-70" />
+										<div className="flex items-center gap-2 border-[var(--color-outline)]/50 border-b pb-1.5 font-bold text-on-surface-variant text-xs uppercase tracking-wider">
+											<Icon
+												name={CATEGORY_ICONS[cat] || "settings"}
+												className="h-3.5 w-3.5 opacity-70"
+											/>
 											{CATEGORY_LABELS[cat] || "Other Settings"}
 										</div>
-										
+
 										<div className="grid grid-cols-2 gap-3">
 											{items.map(({ key, value }) => {
 												const label = key
 													.replace(/([A-Z])/g, " $1")
 													.replace(/^./, (str) => str.toUpperCase());
 
-												const displayValue = typeof value === "boolean" ? "Yes" : String(value);
+												const displayValue =
+													typeof value === "boolean" ? "Yes" : String(value);
 												const isLongText = displayValue.length > 40;
 
 												return (
-													<div 
-														key={key} 
-														className={`flex flex-col gap-1.5 p-3 rounded-lg bg-[var(--color-surface)] border border-[var(--color-outline)]/50 hover:border-[var(--color-outline)] transition-colors ${isLongText ? 'col-span-2' : ''}`}
+													<div
+														key={key}
+														className={`flex flex-col gap-1.5 rounded-lg border border-[var(--color-outline)]/50 bg-[var(--color-surface)] p-3 transition-colors hover:border-[var(--color-outline)] ${isLongText ? "col-span-2" : ""}`}
 													>
-														<span className="text-[10px] font-bold text-on-surface-variant/70 uppercase tracking-wide leading-none">
+														<span className="font-bold text-[10px] text-on-surface-variant/70 uppercase leading-none tracking-wide">
 															{label}
 														</span>
-														<span className={`font-mono text-xs text-on-surface ${isLongText ? 'whitespace-pre-wrap leading-relaxed' : 'truncate'}`} title={displayValue}>
+														<span
+															className={`font-mono text-on-surface text-xs ${isLongText ? "whitespace-pre-wrap leading-relaxed" : "truncate"}`}
+															title={displayValue}
+														>
 															{displayValue}
 														</span>
 													</div>
@@ -200,16 +241,16 @@ export function PresetInfoDialog({
 									</div>
 								);
 							})}
-							
+
 							{Object.keys(groupedOptions).length === 0 && (
-								<div className="flex flex-col items-center justify-center py-8 text-secondary italic text-sm">
+								<div className="flex flex-col items-center justify-center py-8 text-secondary text-sm italic">
 									No specific options configured for this preset.
 								</div>
 							)}
 						</div>
 					</div>
 
-					<div className="flex justify-end mt-6 pt-4 border-t border-[var(--color-outline)]">
+					<div className="mt-6 flex justify-end border-[var(--color-outline)] border-t pt-4">
 						<button className="md-btn md-btn--primary px-6" onClick={onClose}>
 							Close
 						</button>

@@ -72,7 +72,6 @@ export default function TemperatureControl({
 			#ef4444 100%)`;
 	}, []);
 
-
 	// Band color mapping
 	const defaultColors = {
 		text: "#22c55e",
@@ -80,29 +79,30 @@ export default function TemperatureControl({
 		glow: "rgba(34, 197, 94, 0.3)",
 	};
 
-	const bandColors: Record<string, { text: string; bg: string; glow: string }> = {
-		blue: {
-			text: "#3b82f6",
-			bg: "rgba(59, 130, 246, 0.15)",
-			glow: "rgba(59, 130, 246, 0.3)",
-		},
-		cyan: {
-			text: "#06b6d4",
-			bg: "rgba(6, 182, 212, 0.15)",
-			glow: "rgba(6, 182, 212, 0.3)",
-		},
-		green: defaultColors,
-		yellow: {
-			text: "#eab308",
-			bg: "rgba(234, 179, 8, 0.15)",
-			glow: "rgba(234, 179, 8, 0.3)",
-		},
-		red: {
-			text: "#ef4444",
-			bg: "rgba(239, 68, 68, 0.15)",
-			glow: "rgba(239, 68, 68, 0.3)",
-		},
-	};
+	const bandColors: Record<string, { text: string; bg: string; glow: string }> =
+		{
+			blue: {
+				text: "#3b82f6",
+				bg: "rgba(59, 130, 246, 0.15)",
+				glow: "rgba(59, 130, 246, 0.3)",
+			},
+			cyan: {
+				text: "#06b6d4",
+				bg: "rgba(6, 182, 212, 0.15)",
+				glow: "rgba(6, 182, 212, 0.3)",
+			},
+			green: defaultColors,
+			yellow: {
+				text: "#eab308",
+				bg: "rgba(234, 179, 8, 0.15)",
+				glow: "rgba(234, 179, 8, 0.3)",
+			},
+			red: {
+				text: "#ef4444",
+				bg: "rgba(239, 68, 68, 0.15)",
+				glow: "rgba(239, 68, 68, 0.3)",
+			},
+		};
 
 	const currentColors = bandColors[band.color] ?? defaultColors;
 
@@ -117,18 +117,18 @@ export default function TemperatureControl({
 				{/* Current value display with band indicator */}
 				<div className="flex items-center gap-2">
 					<span
-						className="rounded-full px-2.5 py-1 font-semibold text-xs flex items-center gap-1.5 transition-all duration-200"
+						className="flex items-center gap-1.5 rounded-full px-2.5 py-1 font-semibold text-xs transition-all duration-200"
 						style={{
 							background: currentColors.bg,
 							color: currentColors.text,
 							boxShadow: isDragging ? `0 0 12px ${currentColors.glow}` : "none",
 						}}
 					>
-						<Icon name={band.icon as any} className="w-3 h-3" />
+						<Icon name={band.icon as any} className="h-3 w-3" />
 						{band.name}
 					</span>
 					<span
-						className="font-mono text-sm font-bold px-2 py-0.5 rounded-md transition-all duration-200"
+						className="rounded-md px-2 py-0.5 font-bold font-mono text-sm transition-all duration-200"
 						style={{
 							color: currentColors.text,
 							background: isDragging ? currentColors.bg : "transparent",
@@ -143,14 +143,14 @@ export default function TemperatureControl({
 			<div className="relative pt-1">
 				{/* Background track */}
 				<div
-					className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full opacity-30"
+					className="-translate-y-1/2 absolute inset-x-0 top-1/2 h-2 rounded-full opacity-30"
 					style={{ background: heatGradient }}
 				/>
 
 				{/* Filled track - using overflow hidden container to clip gradient */}
 				{value > 0 && (
 					<div
-						className="absolute left-0 top-1/2 h-2 -translate-y-1/2 rounded-full overflow-hidden transition-all duration-75"
+						className="-translate-y-1/2 absolute top-1/2 left-0 h-2 overflow-hidden rounded-full transition-all duration-75"
 						style={{
 							width: `${value * 100}%`,
 						}}
@@ -187,13 +187,13 @@ export default function TemperatureControl({
 
 				{/* Custom thumb indicator */}
 				<div
-					className="pointer-events-none absolute top-1/2 -translate-y-1/2 -translate-x-1/2 transition-all duration-75"
+					className="-translate-y-1/2 -translate-x-1/2 pointer-events-none absolute top-1/2 transition-all duration-75"
 					style={{
 						left: `${value * 100}%`,
 					}}
 				>
 					<div
-						className="w-4 h-4 rounded-full border-2 border-white shadow-lg transition-transform duration-150"
+						className="h-4 w-4 rounded-full border-2 border-white shadow-lg transition-transform duration-150"
 						style={{
 							background: currentColors.text,
 							transform: isDragging ? "scale(1.2)" : "scale(1)",
@@ -203,24 +203,24 @@ export default function TemperatureControl({
 				</div>
 			</div>
 
-		{/* Quick preset buttons */}
-		<div className="flex gap-2">
-			{PRESETS.map((preset) => (
-				<button
-					key={preset.value}
-					type="button"
-					onClick={() => onChange(preset.value)}
-					className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-150 border ${
-						Math.abs(value - preset.value) < 0.05
-							? "border-primary bg-primary/10 text-primary"
-							: "border-[var(--color-outline)] bg-[var(--color-surface-variant)] text-secondary hover:bg-[var(--color-surface)] hover:text-on-surface"
-					}`}
-					title={preset.description}
-				>
-					{preset.label}
-				</button>
-			))}
-		</div>
+			{/* Quick preset buttons */}
+			<div className="flex gap-2">
+				{PRESETS.map((preset) => (
+					<button
+						key={preset.value}
+						type="button"
+						onClick={() => onChange(preset.value)}
+						className={`flex-1 rounded-lg border px-2 py-1.5 font-medium text-[10px] transition-all duration-150 ${
+							Math.abs(value - preset.value) < 0.05
+								? "border-primary bg-primary/10 text-primary"
+								: "border-[var(--color-outline)] bg-[var(--color-surface-variant)] text-secondary hover:bg-[var(--color-surface)] hover:text-on-surface"
+						}`}
+						title={preset.description}
+					>
+						{preset.label}
+					</button>
+				))}
+			</div>
 
 			{/* Global styles for range input */}
 			<style jsx>{`

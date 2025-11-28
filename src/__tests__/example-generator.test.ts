@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { PresetLite, TaskType } from "@/types";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // We need to test the module's internal pure functions
 // Since they're not exported, we'll test them through the exported functions
@@ -64,7 +64,9 @@ describe("example-generator", () => {
 			};
 
 			// Mock failed input generation (returns unparseable response)
-			mockCallLocalModelClient.mockResolvedValueOnce("Invalid response without delimiter");
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Invalid response without delimiter",
+			);
 
 			// Mock the output generation
 			mockBuildPromptPreview.mockResolvedValue("Enhanced prompt");
@@ -94,7 +96,9 @@ describe("example-generator", () => {
 					taskType,
 				};
 
-				mockCallLocalModelClient.mockResolvedValueOnce("Input 1\n---SPLIT---\nInput 2");
+				mockCallLocalModelClient.mockResolvedValueOnce(
+					"Input 1\n---SPLIT---\nInput 2",
+				);
 				mockBuildPromptPreview.mockResolvedValue("Enhanced");
 				mockCallLocalModelClient.mockResolvedValue("Output");
 
@@ -114,7 +118,9 @@ describe("example-generator", () => {
 
 			const before = Date.now();
 
-			mockCallLocalModelClient.mockResolvedValueOnce("Input 1\n---SPLIT---\nInput 2");
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
 			mockBuildPromptPreview.mockResolvedValue("Enhanced");
 			mockCallLocalModelClient.mockResolvedValue("Output");
 
@@ -135,9 +141,13 @@ describe("example-generator", () => {
 				taskType: "writing",
 			};
 
-			mockCallLocalModelClient.mockResolvedValueOnce("Write an engaging blog post about AI");
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Write an engaging blog post about AI",
+			);
 			mockBuildPromptPreview.mockResolvedValue("Enhanced writing prompt");
-			mockCallLocalModelClient.mockResolvedValueOnce("Generated writing output");
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Generated writing output",
+			);
 
 			const example = await generateSingleExample(preset);
 
@@ -249,7 +259,9 @@ describe("example-generator", () => {
 				options: { tone: "formal" },
 			};
 
-			mockCallLocalModelClient.mockResolvedValueOnce("Input 1\n---SPLIT---\nInput 2");
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
 			mockBuildPromptPreview.mockResolvedValue("Enhanced");
 			mockCallLocalModelClient.mockResolvedValue("Output");
 
@@ -270,7 +282,9 @@ describe("example-generator", () => {
 				},
 			};
 
-			mockCallLocalModelClient.mockResolvedValueOnce("Input 1\n---SPLIT---\nInput 2");
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
 			mockBuildPromptPreview.mockResolvedValue("Enhanced");
 			mockCallLocalModelClient.mockResolvedValue("Output");
 
@@ -291,7 +305,9 @@ describe("example-generator", () => {
 				},
 			};
 
-			mockCallLocalModelClient.mockResolvedValueOnce("Input 1\n---SPLIT---\nInput 2");
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
 			mockBuildPromptPreview.mockResolvedValue("Enhanced");
 			mockCallLocalModelClient.mockResolvedValue("Output");
 
@@ -312,7 +328,9 @@ describe("example-generator", () => {
 				},
 			};
 
-			mockCallLocalModelClient.mockResolvedValueOnce("Input 1\n---SPLIT---\nInput 2");
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
 			mockBuildPromptPreview.mockResolvedValue("Enhanced");
 			mockCallLocalModelClient.mockResolvedValue("Output");
 
@@ -334,7 +352,9 @@ describe("example-generator", () => {
 				},
 			};
 
-			mockCallLocalModelClient.mockResolvedValueOnce("Input 1\n---SPLIT---\nInput 2");
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
 			mockBuildPromptPreview.mockResolvedValue("Enhanced");
 			mockCallLocalModelClient.mockResolvedValue("Output");
 
@@ -381,4 +401,3 @@ describe("example-generator", () => {
 		}
 	});
 });
-

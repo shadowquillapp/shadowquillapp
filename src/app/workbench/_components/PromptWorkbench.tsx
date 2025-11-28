@@ -10,7 +10,6 @@ import {
 	readLocalModelConfig as readLocalModelConfigClient,
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
-import { getJSON, setJSON } from "@/lib/local-storage";
 import {
 	appendMessagesWithCap as localAppendMessages,
 	createProject as localCreateProject,
@@ -19,9 +18,13 @@ import {
 	listProjectsByUser as localListProjects,
 	updateProjectVersionGraph,
 } from "@/lib/local-db";
+import { getJSON, setJSON } from "@/lib/local-storage";
 import { callLocalModelClient } from "@/lib/model-client";
 import { getPresets } from "@/lib/presets";
-import { buildUnifiedPrompt, buildRefinementPrompt } from "@/lib/prompt-builder-client";
+import {
+	buildRefinementPrompt,
+	buildUnifiedPrompt,
+} from "@/lib/prompt-builder-client";
 import {
 	normalizeAspectRatio,
 	normalizeCameraMovement,
@@ -41,14 +44,22 @@ import {
 	useState,
 } from "react";
 import { MessageRenderer } from "./workbench/MessageRenderer";
-import type { MessageItem, PromptPresetSummary } from "./workbench/types";
-import { useTabManager } from "./workbench/useTabManager";
-import { appendVersion, createVersionGraph, versionList, getOutputMessageId, migrateVersionGraph, undoVersion, redoVersion } from "./workbench/version-graph";
+import { PresetInfoDialog } from "./workbench/PresetInfoDialog";
+import { PresetPickerModal } from "./workbench/PresetPickerModal";
+import { TabBar } from "./workbench/TabBar";
 import { VersionHistoryModal } from "./workbench/VersionHistoryModal";
 import { VersionNavigator } from "./workbench/VersionNavigator";
-import { PresetInfoDialog } from "./workbench/PresetInfoDialog";
-import { TabBar } from "./workbench/TabBar";
-import { PresetPickerModal } from "./workbench/PresetPickerModal";
+import type { MessageItem, PromptPresetSummary } from "./workbench/types";
+import { useTabManager } from "./workbench/useTabManager";
+import {
+	appendVersion,
+	createVersionGraph,
+	getOutputMessageId,
+	migrateVersionGraph,
+	redoVersion,
+	undoVersion,
+	versionList,
+} from "./workbench/version-graph";
 
 import type {
 	CameraMovement,
@@ -82,8 +93,8 @@ export default function PromptWorkbench() {
 	const [justCreatedVersion, setJustCreatedVersion] = useState(false);
 	const [showRefinementContext, setShowRefinementContext] = useState(false);
 	const [outputAnimateKey, setOutputAnimateKey] = useState(0);
-	const [leftPanelWidth, setLeftPanelWidth] = useState(() => 
-		getJSON<number>("shadowquill:panelWidth", 50)
+	const [leftPanelWidth, setLeftPanelWidth] = useState(() =>
+		getJSON<number>("shadowquill:panelWidth", 50),
 	); // percentage - persisted
 	const [isResizing, setIsResizing] = useState(false);
 	const panelsRef = useRef<HTMLDivElement | null>(null);
@@ -218,10 +229,7 @@ export default function PromptWorkbench() {
 
 	// Drag handlers for controls
 
-	const modelIds = useMemo(
-		() => ["gemma3:4b", "gemma3:12b", "gemma3:27b"],
-		[],
-	);
+	const modelIds = useMemo(() => ["gemma3:4b", "gemma3:12b", "gemma3:27b"], []);
 	const activeIndex = useMemo(
 		() => Math.max(0, modelIds.indexOf(currentModelId ?? "")),
 		[currentModelId, modelIds],
@@ -479,15 +487,20 @@ export default function PromptWorkbench() {
 			setShowPresetPicker(true);
 			setPresetPickerForNewTab(true);
 		}
-	}, [loadingPresets, presets.length, tabManager.tabs.length, showPresetPicker]);
+	}, [
+		loadingPresets,
+		presets.length,
+		tabManager.tabs.length,
+		showPresetPicker,
+	]);
 
 	const send = useCallback(async () => {
 		const activeTab = tabManager.activeTab;
 		if (!activeTab) return;
-		
+
 		const text = activeTab.draft.trim();
 		if (!text || activeTab.sending) return;
-		
+
 		// Check if user is on a past version - if so, confirm before proceeding
 		const graph = activeTab.versionGraph;
 		if (graph.activeId !== graph.tailId) {
@@ -498,21 +511,21 @@ export default function PromptWorkbench() {
 				versionsToRemove++;
 				cursor = graph.nodes[cursor]?.nextId ?? null;
 			}
-			
+
 			const confirmed = await confirm({
 				title: "Generate from Past Version",
-				message: `You are on a past version. Generating here will remove ${versionsToRemove} version${versionsToRemove === 1 ? '' : 's'} ahead of this point. This cannot be undone.`,
+				message: `You are on a past version. Generating here will remove ${versionsToRemove} version${versionsToRemove === 1 ? "" : "s"} ahead of this point. This cannot be undone.`,
 				confirmText: "Continue & Revert",
 				cancelText: "Cancel",
 				tone: "destructive",
 			});
-			
+
 			if (!confirmed) return;
 		}
-		
+
 		// Capture original input before processing
 		const originalInput = text;
-		
+
 		tabManager.setSending(true);
 		tabManager.setError(null);
 		const controller = new AbortController();
@@ -536,7 +549,8 @@ export default function PromptWorkbench() {
 					50,
 				);
 				const createdUserId = result?.created?.[0]?.id;
-				if (createdUserId) tabManager.updateMessage(user.id, { id: createdUserId });
+				if (createdUserId)
+					tabManager.updateMessage(user.id, { id: createdUserId });
 			} catch {}
 
 			// Pre-compute normalized values to avoid spreading undefined with exactOptionalPropertyTypes
@@ -554,9 +568,12 @@ export default function PromptWorkbench() {
 				format,
 				...(language && { language }),
 				temperature,
-				...(taskType === "image" && normalizedImageStyle && { stylePreset: normalizedImageStyle }),
-				...(taskType === "video" && normalizedVideoStyle && { stylePreset: normalizedVideoStyle }),
-				...((taskType === "image" || taskType === "video") && normalizedAspect && { aspectRatio: normalizedAspect }),
+				...(taskType === "image" &&
+					normalizedImageStyle && { stylePreset: normalizedImageStyle }),
+				...(taskType === "video" &&
+					normalizedVideoStyle && { stylePreset: normalizedVideoStyle }),
+				...((taskType === "image" || taskType === "video") &&
+					normalizedAspect && { aspectRatio: normalizedAspect }),
 				...(taskType === "coding" && { includeTests }),
 				...(taskType === "research" && { requireCitations }),
 				...(taskType === "video" && {
@@ -576,21 +593,28 @@ export default function PromptWorkbench() {
 			};
 
 			// Check if we're in refinement mode (has at least one version with output)
-			const existingVersions = versionList(graph).filter(v => v.label !== "Start");
-			const versionsWithOutput = existingVersions.filter(v => v.outputMessageId);
+			const existingVersions = versionList(graph).filter(
+				(v) => v.label !== "Start",
+			);
+			const versionsWithOutput = existingVersions.filter(
+				(v) => v.outputMessageId,
+			);
 			const isRefinementMode = versionsWithOutput.length > 0;
-			
+
 			let built: string;
 			let refinedVersionId: string | undefined;
-			
+
 			if (isRefinementMode) {
 				// REFINEMENT MODE: Use the last version's output as the base to refine
-				const lastVersionWithOutput = versionsWithOutput[versionsWithOutput.length - 1];
+				const lastVersionWithOutput =
+					versionsWithOutput[versionsWithOutput.length - 1];
 				refinedVersionId = lastVersionWithOutput?.id;
 				const lastOutputMessage = activeTab.messages.find(
-					m => m.id === lastVersionWithOutput?.outputMessageId && m.role === "assistant"
+					(m) =>
+						m.id === lastVersionWithOutput?.outputMessageId &&
+						m.role === "assistant",
 				);
-				
+
 				if (lastOutputMessage?.content) {
 					built = await buildRefinementPrompt({
 						previousOutput: lastOutputMessage.content,
@@ -614,7 +638,7 @@ export default function PromptWorkbench() {
 					options,
 				});
 			}
-			
+
 			const output = await callLocalModelClient(built, {
 				taskType,
 				options,
@@ -625,9 +649,9 @@ export default function PromptWorkbench() {
 				content: output,
 			};
 			tabManager.pushMessage(assistant);
-			
+
 			let finalAssistantId = assistant.id;
-			
+
 			try {
 				const result = await localAppendMessages(
 					projectId,
@@ -641,15 +665,15 @@ export default function PromptWorkbench() {
 				}
 				await refreshProjectList();
 			} catch {}
-			
+
 			// Update version graph
 			const currentGraph = activeTab.versionGraph;
-			const timestamp = new Date().toLocaleTimeString([], { 
-				hour: '2-digit', 
-				minute: '2-digit' 
+			const timestamp = new Date().toLocaleTimeString([], {
+				hour: "2-digit",
+				minute: "2-digit",
 			});
-			const versionLabel = isRefinementMode 
-				? `Refined ${timestamp}` 
+			const versionLabel = isRefinementMode
+				? `Refined ${timestamp}`
 				: `Generated ${timestamp}`;
 			const updatedGraph = appendVersion(
 				currentGraph,
@@ -657,30 +681,31 @@ export default function PromptWorkbench() {
 				versionLabel,
 				originalInput,
 				finalAssistantId,
-				{ 
-					taskType, 
+				{
+					taskType,
 					options,
 					isRefinement: isRefinementMode,
 					...(refinedVersionId && { refinedVersionId }),
-				}
+				},
 			);
 			tabManager.setVersionGraph(updatedGraph);
 			tabManager.markDirty(false);
-			
+
 			// Clear the input after successful generation so user can enter refinement
 			tabManager.updateDraft("");
-			
+
 			// Auto-sync tab name to the prompt input (only for base version, not refinements)
 			if (!isRefinementMode) {
-				const truncatedLabel = originalInput.length > 40 
-					? originalInput.slice(0, 40).trim() + "…" 
-					: originalInput;
+				const truncatedLabel =
+					originalInput.length > 40
+						? originalInput.slice(0, 40).trim() + "…"
+						: originalInput;
 				tabManager.updateTabLabel(activeTab.id, truncatedLabel);
 			}
-			
+
 			// Trigger version creation animation
 			setJustCreatedVersion(true);
-			setOutputAnimateKey(prev => prev + 1);
+			setOutputAnimateKey((prev) => prev + 1);
 			setTimeout(() => setJustCreatedVersion(false), 700);
 		} catch (e: any) {
 			if (e?.name === "AbortError" || e?.message?.includes("aborted")) {
@@ -753,7 +778,7 @@ export default function PromptWorkbench() {
 			}
 			tabManager.setVersionGraph(prevGraph);
 			tabManager.markDirty(false);
-			setOutputAnimateKey(prev => prev + 1);
+			setOutputAnimateKey((prev) => prev + 1);
 		}
 	}, [tabManager]);
 
@@ -772,7 +797,7 @@ export default function PromptWorkbench() {
 			}
 			tabManager.setVersionGraph(nextGraph);
 			tabManager.markDirty(false);
-			setOutputAnimateKey(prev => prev + 1);
+			setOutputAnimateKey((prev) => prev + 1);
 		}
 	}, [tabManager]);
 
@@ -811,18 +836,24 @@ export default function PromptWorkbench() {
 					tabManager.switchTab(existingTab.id);
 					return;
 				}
-				
+
 				// Check if we can create a new tab
 				if (!tabManager.canCreateTab) {
 					// Use activeTab's error if available, otherwise show alert
 					if (tabManager.activeTab) {
-						tabManager.setError("Maximum number of tabs reached. Close a tab to open this project.");
+						tabManager.setError(
+							"Maximum number of tabs reached. Close a tab to open this project.",
+						);
 					} else {
-						showInfo({ title: "Tab Limit", message: "Maximum number of tabs reached. Close a tab to open this project." });
+						showInfo({
+							title: "Tab Limit",
+							message:
+								"Maximum number of tabs reached. Close a tab to open this project.",
+						});
 					}
 					return;
 				}
-				
+
 				const data = await localGetProject(id, 50);
 				const loaded: MessageItem[] = (data.messages ?? []).map((m: any) => ({
 					id: m.id,
@@ -838,25 +869,28 @@ export default function PromptWorkbench() {
 						projectPreset = preset;
 					}
 				}
-				
+
 				// If no preset found, use first available preset
 				if (!projectPreset) {
 					if (presets.length > 0) {
 						projectPreset = presets[0] ?? null;
 					}
 				}
-				
+
 				if (!projectPreset) {
-					showInfo({ title: "No Preset", message: "No preset available to open this project." });
+					showInfo({
+						title: "No Preset",
+						message: "No preset available to open this project.",
+					});
 					return;
 				}
-				
+
 				// Apply preset configuration
 				applyPreset(projectPreset, { trackRecent: false });
-				
+
 				// Create new tab and capture the tab ID for synchronous operations
 				const newTabId = tabManager.createTab(projectPreset);
-				
+
 				// Build the version graph
 				let graph: any;
 				if (data.versionGraph) {
@@ -867,40 +901,41 @@ export default function PromptWorkbench() {
 					graph = createVersionGraph("", "Start", "", null);
 					const userMsgs = loaded.filter((m) => m.role === "user");
 					const assistantMsgs = loaded.filter((m) => m.role === "assistant");
-					
+
 					if (userMsgs.length > 0) {
 						userMsgs.forEach((msg, i) => {
 							// Try to link with corresponding assistant message
 							const outputId = assistantMsgs[i]?.id ?? null;
 							graph = appendVersion(
-								graph, 
-								msg.content, 
+								graph,
+								msg.content,
 								`Version ${i + 1}`,
 								msg.content,
-								outputId
+								outputId,
 							);
 						});
 					}
 				}
-				
+
 				// Jump to the most recent version when opening a saved project
 				if (graph.tailId && graph.nodes[graph.tailId]) {
 					graph = { ...graph, activeId: graph.tailId };
 				}
-				
+
 				// Apply all data to the new tab using explicit tabId-based operations
 				tabManager.setMessagesForTab(newTabId, loaded);
 				tabManager.setVersionGraphForTab(newTabId, graph);
 				tabManager.attachProjectForTab(newTabId, id);
-				
+
 				const activeNode = graph.nodes[graph.activeId];
 				if (activeNode && !activeNode.outputMessageId) {
-					const draftContent = activeNode.originalInput || activeNode.content || "";
+					const draftContent =
+						activeNode.originalInput || activeNode.content || "";
 					tabManager.updateDraftForTab(newTabId, draftContent);
 				} else {
 					tabManager.updateDraftForTab(newTabId, "");
 				}
-				
+
 				// Update tab label with project title
 				if (data.title) {
 					tabManager.updateTabLabel(newTabId, data.title);
@@ -932,7 +967,7 @@ export default function PromptWorkbench() {
 				await localDeleteProject(id);
 				await refreshProjectList();
 			} catch {}
-			
+
 			// Close any tabs with this project
 			tabManager.tabs.forEach((tab) => {
 				if (tab.projectId === id) {
@@ -956,13 +991,18 @@ export default function PromptWorkbench() {
 			try {
 				// Strip a single OUTER fenced code block (e.g., ```xml ... ```) from copied text
 				let textToCopy = content;
-				const fenceMatch = textToCopy.match(/^\s*```([^\n]*)\n?([\s\S]*?)\n```[\s\r]*$/);
+				const fenceMatch = textToCopy.match(
+					/^\s*```([^\n]*)\n?([\s\S]*?)\n```[\s\r]*$/,
+				);
 				if (fenceMatch) {
 					const lang = (fenceMatch[1] || "").trim().toLowerCase();
 					textToCopy = fenceMatch[2] || "";
 					// Clean duplicate opening marker inside inner content if present (e.g., ```xml\n at start)
 					if (lang) {
-						const duplicateMarkerPattern = new RegExp(`^\\s*\\\`\\\`\\\`${lang}\\s*\\n`, "i");
+						const duplicateMarkerPattern = new RegExp(
+							`^\\s*\\\`\\\`\\\`${lang}\\s*\\n`,
+							"i",
+						);
 						textToCopy = textToCopy.replace(duplicateMarkerPattern, "");
 					}
 				}
@@ -974,12 +1014,17 @@ export default function PromptWorkbench() {
 				const textArea = document.createElement("textarea");
 				// Fallback path mirrors fenced stripping as above
 				let textToCopy = content;
-				const fenceMatch = textToCopy.match(/^\s*```([^\n]*)\n?([\s\S]*?)\n```[\s\r]*$/);
+				const fenceMatch = textToCopy.match(
+					/^\s*```([^\n]*)\n?([\s\S]*?)\n```[\s\r]*$/,
+				);
 				if (fenceMatch) {
 					const lang = (fenceMatch[1] || "").trim().toLowerCase();
 					textToCopy = fenceMatch[2] || "";
 					if (lang) {
-						const duplicateMarkerPattern = new RegExp(`^\\s*\\\`\\\`\\\`${lang}\\s*\\n`, "i");
+						const duplicateMarkerPattern = new RegExp(
+							`^\\s*\\\`\\\`\\\`${lang}\\s*\\n`,
+							"i",
+						);
 						textToCopy = textToCopy.replace(duplicateMarkerPattern, "");
 					}
 				}
@@ -995,44 +1040,56 @@ export default function PromptWorkbench() {
 		[],
 	);
 
-	const versions = activeTab ? versionList(activeTab.versionGraph).filter(
-		(v) => v.label !== "Start",
-	) : [];
-	
+	const versions = activeTab
+		? versionList(activeTab.versionGraph).filter((v) => v.label !== "Start")
+		: [];
+
 	// Refinement mode: true when there's at least one version with generated output
-	const versionsWithOutput = versions.filter(v => v.outputMessageId);
+	const versionsWithOutput = versions.filter((v) => v.outputMessageId);
 	const isRefinementMode = versionsWithOutput.length > 0;
-	
+
 	// Get the currently ACTIVE version for context display
 	const activeVersionId = activeTab?.versionGraph.activeId;
-	const activeVersion = activeVersionId ? activeTab?.versionGraph.nodes[activeVersionId] : null;
-	const activeVersionIndex = versions.findIndex(v => v.id === activeVersionId);
-	const activeVersionNumber = activeVersionIndex >= 0 ? activeVersionIndex + 1 : 0;
-	
+	const activeVersion = activeVersionId
+		? activeTab?.versionGraph.nodes[activeVersionId]
+		: null;
+	const activeVersionIndex = versions.findIndex(
+		(v) => v.id === activeVersionId,
+	);
+	const activeVersionNumber =
+		activeVersionIndex >= 0 ? activeVersionIndex + 1 : 0;
+
 	// Determine if the active version is a refinement
-	const activeVersionIsRefinement = activeVersion?.metadata?.isRefinement === true;
-	
+	const activeVersionIsRefinement =
+		activeVersion?.metadata?.isRefinement === true;
+
 	// Get the version to show in context (for refinement, show what's being refined)
 	// When creating a new refinement, use the active version's output
 	// When viewing a refinement version, show the version it refined
-	const contextVersion = activeVersionIsRefinement && activeVersion?.metadata?.refinedVersionId
-		? activeTab?.versionGraph.nodes[activeVersion.metadata.refinedVersionId]
-		: activeVersion;
-	
+	const contextVersion =
+		activeVersionIsRefinement && activeVersion?.metadata?.refinedVersionId
+			? activeTab?.versionGraph.nodes[activeVersion.metadata.refinedVersionId]
+			: activeVersion;
+
 	// Get output and input for the context display
 	const contextOutput = contextVersion?.outputMessageId
-		? activeMessages.find(m => m.id === contextVersion.outputMessageId && m.role === "assistant")?.content
+		? activeMessages.find(
+				(m) =>
+					m.id === contextVersion.outputMessageId && m.role === "assistant",
+			)?.content
 		: null;
 	const contextInput = contextVersion?.originalInput ?? null;
-	
+
 	// For refinement mode display, show what will be refined (the active version's output)
-	const lastVersionWithOutput = versionsWithOutput[versionsWithOutput.length - 1];
+	const lastVersionWithOutput =
+		versionsWithOutput[versionsWithOutput.length - 1];
 	const outputToRefine = activeVersion?.outputMessageId
-		? activeMessages.find(m => m.id === activeVersion.outputMessageId && m.role === "assistant")?.content
+		? activeMessages.find(
+				(m) => m.id === activeVersion.outputMessageId && m.role === "assistant",
+			)?.content
 		: null;
 	const inputThatGeneratedOutput = activeVersion?.originalInput ?? null;
-	
-	
+
 	// Live word count for the editor header
 	const wordCount = useMemo(() => {
 		const text = activeTab?.draft || "";
@@ -1070,16 +1127,16 @@ export default function PromptWorkbench() {
 			if ((e.metaKey || e.ctrlKey) && e.key === "s") {
 				e.preventDefault();
 				if (activeTab && activeTab.draft.trim() && activeTab.isDirty) {
-					const timestamp = new Date().toLocaleTimeString([], { 
-						hour: '2-digit', 
-						minute: '2-digit' 
+					const timestamp = new Date().toLocaleTimeString([], {
+						hour: "2-digit",
+						minute: "2-digit",
 					});
 					const updatedGraph = appendVersion(
 						activeTab.versionGraph,
 						activeTab.draft,
 						`Manual save ${timestamp}`,
 						activeTab.draft,
-						null
+						null,
 					);
 					tabManager.setVersionGraph(updatedGraph);
 					tabManager.markDirty(false);
@@ -1103,7 +1160,7 @@ export default function PromptWorkbench() {
 			// Switch tabs with Cmd/Ctrl + 1-8
 			if ((e.metaKey || e.ctrlKey) && e.key >= "1" && e.key <= "8") {
 				e.preventDefault();
-				const index = parseInt(e.key, 10) - 1;
+				const index = Number.parseInt(e.key, 10) - 1;
 				const targetTab = tabManager.tabs[index];
 				if (targetTab) {
 					tabManager.switchTab(targetTab.id);
@@ -1116,16 +1173,19 @@ export default function PromptWorkbench() {
 
 	// Panel resize handlers
 	const grabOffsetRef = useRef<number>(0);
-	const handleResizeStart = useCallback((e: React.MouseEvent) => {
-		e.preventDefault();
-		// Calculate and store the offset from the center divider to maintain cursor position
-		if (panelsRef.current) {
-			const rect = panelsRef.current.getBoundingClientRect();
-			const currentDividerX = rect.left + (rect.width * leftPanelWidth) / 100;
-			grabOffsetRef.current = e.clientX - currentDividerX;
-		}
-		setIsResizing(true);
-	}, [leftPanelWidth]);
+	const handleResizeStart = useCallback(
+		(e: React.MouseEvent) => {
+			e.preventDefault();
+			// Calculate and store the offset from the center divider to maintain cursor position
+			if (panelsRef.current) {
+				const rect = panelsRef.current.getBoundingClientRect();
+				const currentDividerX = rect.left + (rect.width * leftPanelWidth) / 100;
+				grabOffsetRef.current = e.clientX - currentDividerX;
+			}
+			setIsResizing(true);
+		},
+		[leftPanelWidth],
+	);
 
 	// Track the latest panel width in a ref for saving on resize end
 	const latestPanelWidthRef = useRef(leftPanelWidth);
@@ -1142,16 +1202,18 @@ export default function PromptWorkbench() {
 			// Subtract the grab offset so cursor stays where the user grabbed
 			const adjustedX = e.clientX - grabOffsetRef.current;
 			const newWidth = ((adjustedX - rect.left) / rect.width) * 100;
-			
+
 			// Minimum pixel width for both panes
 			const MIN_PANE_WIDTH_PX = 480;
 			// Calculate minimum percentage based on container width
 			const minPercentage = (MIN_PANE_WIDTH_PX / rect.width) * 100;
 			// Max percentage for left pane = 100% - minPercentage (to leave room for right pane)
 			const maxPercentage = 100 - minPercentage;
-			
+
 			// Clamp between minPercentage and maxPercentage (ensuring both panes have at least 480px)
-			setLeftPanelWidth(Math.min(maxPercentage, Math.max(minPercentage, newWidth)));
+			setLeftPanelWidth(
+				Math.min(maxPercentage, Math.max(minPercentage, newWidth)),
+			);
 		};
 
 		const handleMouseUp = () => {
@@ -1199,38 +1261,44 @@ export default function PromptWorkbench() {
 					}
 				}
 			`}</style>
-			<div className="simple-workbench" style={{ position: 'relative' }}>
+			<div className="simple-workbench" style={{ position: "relative" }}>
 				{/* Generation Overlay - blocks all interactions except stop button in left panel */}
 				{isGenerating && (
-					<div 
+					<div
 						className="generation-overlay"
 						style={{
-							position: 'absolute',
+							position: "absolute",
 							inset: 0,
-							backgroundColor: 'rgba(0, 0, 0, 0.35)',
+							backgroundColor: "rgba(0, 0, 0, 0.35)",
 							zIndex: 100,
-							pointerEvents: 'auto',
-							cursor: 'not-allowed',
-							transition: 'opacity 0.2s ease',
-							backdropFilter: 'grayscale(0.5)',
+							pointerEvents: "auto",
+							cursor: "not-allowed",
+							transition: "opacity 0.2s ease",
+							backdropFilter: "grayscale(0.5)",
 						}}
 						onClick={(e) => e.stopPropagation()}
 					/>
 				)}
-				<header className="simple-workbench__header" style={{ 
-					flexWrap: 'nowrap', 
-					gap: '8px',
-					padding: '8px 12px 2px 12px',
-					alignItems: 'flex-end'
-				}}>
-					<div className="simple-workbench__header-left" style={{ 
-						display: 'flex', 
-						gap: '8px', 
-						flexWrap: 'nowrap',
-						flex: '1 1 auto',
-						minWidth: 0,
-						overflow: 'hidden'
-					}}>
+				<header
+					className="simple-workbench__header"
+					style={{
+						flexWrap: "nowrap",
+						gap: "8px",
+						padding: "8px 12px 2px 12px",
+						alignItems: "flex-end",
+					}}
+				>
+					<div
+						className="simple-workbench__header-left"
+						style={{
+							display: "flex",
+							gap: "8px",
+							flexWrap: "nowrap",
+							flex: "1 1 auto",
+							minWidth: 0,
+							overflow: "hidden",
+						}}
+					>
 						<TabBar
 							embedded
 							tabs={tabManager.tabs.map((tab) => ({
@@ -1250,63 +1318,66 @@ export default function PromptWorkbench() {
 							}}
 						/>
 					</div>
-					<div className="simple-workbench__header-actions" style={{ 
-						display: 'flex', 
-						gap: '8px',
-						flexShrink: 0,
-						paddingBottom: '6px'
-					}}>
-					<button
-						type="button"
-						onClick={() => router.push("/studio")}
-						className="md-btn md-btn--primary"
-						title="Open Preset Studio"
-						style={{ minWidth: 0 }}
-					>
-						<Icon name="brush" />
-					</button>
-					<button
-						className="md-btn"
-						onClick={() => {
-							setSettingsOpen(true);
+					<div
+						className="simple-workbench__header-actions"
+						style={{
+							display: "flex",
+							gap: "8px",
+							flexShrink: 0,
+							paddingBottom: "6px",
 						}}
-						title="Settings"
 					>
-						<Icon name="gear" />
-					</button>
+						<button
+							type="button"
+							onClick={() => router.push("/studio")}
+							className="md-btn md-btn--primary"
+							title="Open Preset Studio"
+							style={{ minWidth: 0 }}
+						>
+							<Icon name="brush" />
+						</button>
+						<button
+							className="md-btn"
+							onClick={() => {
+								setSettingsOpen(true);
+							}}
+							title="Settings"
+						>
+							<Icon name="gear" />
+						</button>
 					</div>
 				</header>
 
-				
-
-				<div 
+				<div
 					ref={panelsRef}
-					className="simple-workbench__panels" 
+					className="simple-workbench__panels"
 					style={{
-						display: 'flex',
-						flexDirection: 'row',
-						height: '100%',
-						overflow: 'hidden',
-						position: 'relative',
-						marginRight: '8px',
+						display: "flex",
+						flexDirection: "row",
+						height: "100%",
+						overflow: "hidden",
+						position: "relative",
+						marginRight: "8px",
 					}}
 				>
 					{/* LEFT PANE: Input */}
-					<section className="prompt-input-pane flex flex-col gap-4 p-4 md:p-6 bg-surface h-full overflow-hidden" style={{ 
-						backgroundColor: 'var(--color-surface)',
-						width: `${leftPanelWidth}%`,
-						flexShrink: 0,
-						flexGrow: 0,
-						minWidth: 480,
-						opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
-						pointerEvents: tabManager.tabs.length === 0 ? 'none' : 'auto',
-						transition: isResizing ? 'none' : 'opacity 0.3s ease',
-						filter: tabManager.tabs.length === 0 ? 'grayscale(0.3)' : 'none'
-					}}>
-
+					<section
+						className="prompt-input-pane flex h-full flex-col gap-4 overflow-hidden bg-surface p-4 md:p-6"
+						style={{
+							backgroundColor: "var(--color-surface)",
+							width: `${leftPanelWidth}%`,
+							flexShrink: 0,
+							flexGrow: 0,
+							minWidth: 480,
+							opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
+							pointerEvents: tabManager.tabs.length === 0 ? "none" : "auto",
+							transition: isResizing ? "none" : "opacity 0.3s ease",
+							filter: tabManager.tabs.length === 0 ? "grayscale(0.3)" : "none",
+						}}
+					>
 						{/* Editor Area with Integrated Toolbar */}
 						<div
-							className="relative flex-1 min-h-0 flex flex-col group rounded-2xl"
+							className="group relative flex min-h-0 flex-1 flex-col rounded-2xl"
 							style={{
 								// Solid background + solid border (no gradient)
 								background: "var(--color-surface-variant)",
@@ -1315,15 +1386,17 @@ export default function PromptWorkbench() {
 							}}
 						>
 							{/* Header bar inside the text area container */}
-							<div 
-								className="flex items-center justify-between gap-3 px-3 md:px-4 py-2.5 rounded-t-2xl shrink-0"
+							<div
+								className="flex shrink-0 items-center justify-between gap-3 rounded-t-2xl px-3 py-2.5 md:px-4"
 								style={{
-									background: "linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 50%) 0%, var(--color-surface-variant) 100%)",
-									borderBottom: "1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
+									background:
+										"linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 50%) 0%, var(--color-surface-variant) 100%)",
+									borderBottom:
+										"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
 								}}
 							>
 								{/* Left: Badge & Stats */}
-								<div className="flex items-center gap-3 min-w-0">
+								<div className="flex min-w-0 items-center gap-3">
 									{/* Editor Badge - Changes based on refinement mode */}
 									<div
 										style={{
@@ -1332,42 +1405,67 @@ export default function PromptWorkbench() {
 											gap: "6px",
 											padding: "4px 10px",
 											borderRadius: "20px",
-											background: isRefinementMode 
+											background: isRefinementMode
 												? "linear-gradient(135deg, var(--color-tertiary), color-mix(in srgb, var(--color-tertiary), var(--color-surface) 30%))"
 												: "var(--color-surface)",
-											border: isRefinementMode 
+											border: isRefinementMode
 												? "none"
 												: "1px solid var(--color-outline)",
-											color: isRefinementMode 
-												? "var(--color-on-tertiary)" 
+											color: isRefinementMode
+												? "var(--color-on-tertiary)"
 												: "var(--color-on-surface-variant)",
-											boxShadow: isRefinementMode 
+											boxShadow: isRefinementMode
 												? "0 2px 6px color-mix(in srgb, var(--color-tertiary), transparent 60%)"
 												: "none",
 										}}
-										title={isRefinementMode 
-											? "Refinement mode: Your input will modify the previous output" 
-											: "Initial mode: Your input will generate a new prompt"}
+										title={
+											isRefinementMode
+												? "Refinement mode: Your input will modify the previous output"
+												: "Initial mode: Your input will generate a new prompt"
+										}
 									>
-										<Icon 
-											name={isRefinementMode ? "refresh" : "edit"} 
-											style={{ width: 11, height: 11, opacity: isRefinementMode ? 1 : 0.7 }} 
+										<Icon
+											name={isRefinementMode ? "refresh" : "edit"}
+											style={{
+												width: 11,
+												height: 11,
+												opacity: isRefinementMode ? 1 : 0.7,
+											}}
 										/>
-										<span style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.02em" }}>
+										<span
+											style={{
+												fontSize: "10px",
+												fontWeight: 600,
+												letterSpacing: "0.02em",
+											}}
+										>
 											{isRefinementMode ? "Refine" : "Input"}
 										</span>
 									</div>
 
 									{/* Stats - Hidden on very small screens */}
-									<div className="hidden sm:flex items-center gap-2 text-on-surface-variant/70">
-										<div className="flex items-center gap-1.5" style={{ fontSize: "10px" }}>
-											<Icon name="file-text" style={{ width: 10, height: 10, opacity: 0.6 }} />
-											<span style={{ fontVariantNumeric: "tabular-nums" }}>{wordCount.toLocaleString()}</span>
+									<div className="hidden items-center gap-2 text-on-surface-variant/70 sm:flex">
+										<div
+											className="flex items-center gap-1.5"
+											style={{ fontSize: "10px" }}
+										>
+											<Icon
+												name="file-text"
+												style={{ width: 10, height: 10, opacity: 0.6 }}
+											/>
+											<span style={{ fontVariantNumeric: "tabular-nums" }}>
+												{wordCount.toLocaleString()}
+											</span>
 											<span style={{ opacity: 0.5 }}>words</span>
 										</div>
 										<span style={{ opacity: 0.3 }}>•</span>
-										<div className="flex items-center gap-1" style={{ fontSize: "10px" }}>
-											<span style={{ fontVariantNumeric: "tabular-nums" }}>{charCount.toLocaleString()}</span>
+										<div
+											className="flex items-center gap-1"
+											style={{ fontSize: "10px" }}
+										>
+											<span style={{ fontVariantNumeric: "tabular-nums" }}>
+												{charCount.toLocaleString()}
+											</span>
 											<span style={{ opacity: 0.5 }}>chars</span>
 										</div>
 									</div>
@@ -1378,28 +1476,35 @@ export default function PromptWorkbench() {
 									{/* Copy Button */}
 									<button
 										type="button"
-										onClick={() => copyMessage("prompt-draft", activeTab?.draft ?? "")}
+										onClick={() =>
+											copyMessage("prompt-draft", activeTab?.draft ?? "")
+										}
 										disabled={!activeTab}
-										className="flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+										className="flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
 										title="Copy prompt"
 										aria-label="Copy prompt"
 										style={{
 											width: 28,
 											height: 28,
 											borderRadius: "8px",
-											background: copiedMessageId === "prompt-draft" 
-												? "var(--color-save)" 
-												: "var(--color-surface)",
-											border: copiedMessageId === "prompt-draft" 
-												? "1px solid var(--color-save)"
-												: "1px solid var(--color-outline)",
-											color: copiedMessageId === "prompt-draft" 
-												? "var(--color-on-save)" 
-												: "var(--color-on-surface-variant)",
+											background:
+												copiedMessageId === "prompt-draft"
+													? "var(--color-save)"
+													: "var(--color-surface)",
+											border:
+												copiedMessageId === "prompt-draft"
+													? "1px solid var(--color-save)"
+													: "1px solid var(--color-outline)",
+											color:
+												copiedMessageId === "prompt-draft"
+													? "var(--color-on-save)"
+													: "var(--color-on-surface-variant)",
 										}}
 									>
 										<Icon
-											name={copiedMessageId === "prompt-draft" ? "check" : "copy"}
+											name={
+												copiedMessageId === "prompt-draft" ? "check" : "copy"
+											}
 											style={{ width: 13, height: 13 }}
 										/>
 									</button>
@@ -1408,35 +1513,55 @@ export default function PromptWorkbench() {
 
 							{/* Refinement Context Panel - Version History Timeline */}
 							{isRefinementMode && outputToRefine && (
-								<div className={`refine-panel ${showRefinementContext ? "refine-panel--expanded" : ""}`}>
+								<div
+									className={`refine-panel ${showRefinementContext ? "refine-panel--expanded" : ""}`}
+								>
 									<button
 										type="button"
-										onClick={() => setShowRefinementContext(!showRefinementContext)}
+										onClick={() =>
+											setShowRefinementContext(!showRefinementContext)
+										}
 										className="refine-panel__header"
 									>
 										<div className="refine-panel__left">
 											<div className="refine-panel__badge">
-												<Icon name="refresh" className="refine-panel__badge-icon" />
+												<Icon
+													name="refresh"
+													className="refine-panel__badge-icon"
+												/>
 												<span className="refine-panel__badge-text">
-													v{activeVersionNumber} {activeVersionIsRefinement ? "Refinement" : "Base"}
+													v{activeVersionNumber}{" "}
+													{activeVersionIsRefinement ? "Refinement" : "Base"}
 												</span>
 											</div>
-											<span className="refine-count" title={`${versions.length} versions`}>
-												<Icon name="layout" style={{ width: 11, height: 11, opacity: 0.85 }} />
+											<span
+												className="refine-count"
+												title={`${versions.length} versions`}
+											>
+												<Icon
+													name="layout"
+													style={{ width: 11, height: 11, opacity: 0.85 }}
+												/>
 												{versions.length}
 											</span>
 										</div>
 										{!showRefinementContext && inputThatGeneratedOutput && (
 											<div className="refine-panel__preview">
-												<span className="refine-panel__preview-label">Previous Input:</span>
+												<span className="refine-panel__preview-label">
+													Previous Input:
+												</span>
 												<span className="refine-panel__preview-text">
-													{inputThatGeneratedOutput.slice(0, 25)}{inputThatGeneratedOutput.length > 25 ? "..." : ""}
+													{inputThatGeneratedOutput.slice(0, 25)}
+													{inputThatGeneratedOutput.length > 25 ? "..." : ""}
 												</span>
 											</div>
 										)}
 										<div className="refine-panel__toggle">
 											<span>{showRefinementContext ? "Hide" : "History"}</span>
-											<Icon name="chevron-down" className="refine-panel__toggle-icon" />
+											<Icon
+												name="chevron-down"
+												className="refine-panel__toggle-icon"
+											/>
 										</div>
 									</button>
 
@@ -1445,7 +1570,8 @@ export default function PromptWorkbench() {
 											{versions.map((version, index) => {
 												const versionNum = index + 1;
 												const isCurrentVersion = version.id === activeVersionId;
-												const isRefinement = version.metadata?.isRefinement === true;
+												const isRefinement =
+													version.metadata?.isRefinement === true;
 
 												const handleJumpToVersion = () => {
 													if (isCurrentVersion) return;
@@ -1453,7 +1579,9 @@ export default function PromptWorkbench() {
 													if (version.outputMessageId) {
 														tabManager.updateDraft("");
 													} else {
-														tabManager.updateDraft(version.originalInput || version.content);
+														tabManager.updateDraft(
+															version.originalInput || version.content,
+														);
 													}
 													// Update the version graph to point to this version
 													const updatedGraph = {
@@ -1464,87 +1592,108 @@ export default function PromptWorkbench() {
 													tabManager.markDirty(false);
 												};
 
-											const versionInput = version.originalInput || "";
-											const copyId = `refine-v-${version.id}`;
+												const versionInput = version.originalInput || "";
+												const copyId = `refine-v-${version.id}`;
 
-											return (
-												<div
-													key={version.id}
-													className={`refine-timeline__item ${isCurrentVersion ? "refine-timeline__item--current" : ""}`}
-												>
-													<button
-														type="button"
-														onClick={handleJumpToVersion}
-														disabled={isCurrentVersion}
-														className="refine-timeline__item-btn"
-														title={isCurrentVersion ? "Current version" : `Jump to v${versionNum}`}
+												return (
+													<div
+														key={version.id}
+														className={`refine-timeline__item ${isCurrentVersion ? "refine-timeline__item--current" : ""}`}
 													>
-														<div className={`refine-timeline__node ${isRefinement ? "refine-timeline__node--refinement" : "refine-timeline__node--base"}`}>
-															{versionNum}
-														</div>
-													</button>
-													<div className="refine-timeline__content">
-														<div className="refine-timeline__header">
-															<div className="refine-timeline__title">
-																<span className={`refine-timeline__type ${isRefinement ? "refine-timeline__type--refinement" : "refine-timeline__type--base"}`}>
-																	{isRefinement ? "Refinement" : "Base"}
-																</span>
-															</div>
-															<div className="refine-timeline__actions">
-																{isCurrentVersion && (
-																	<span className="refine-timeline__current-badge">Current</span>
-																)}
-																<button
-																	type="button"
-																	onClick={(e) => {
-																		e.stopPropagation();
-																		if (versionInput) {
-																			copyMessage(copyId, versionInput);
-																		}
-																	}}
-																	disabled={!versionInput}
-																	className="refine-timeline__copy-btn"
-																	title="Copy this input"
-																	aria-label="Copy input"
-																>
-																	<Icon
-																		name={copiedMessageId === copyId ? "check" : "copy"}
-																		style={{ width: 10, height: 10 }}
-																	/>
-																</button>
-															</div>
-														</div>
 														<button
 															type="button"
 															onClick={handleJumpToVersion}
 															disabled={isCurrentVersion}
-															className="refine-timeline__body"
-															title={isCurrentVersion ? "Current version" : `Jump to v${versionNum}`}
+															className="refine-timeline__item-btn"
+															title={
+																isCurrentVersion
+																	? "Current version"
+																	: `Jump to v${versionNum}`
+															}
 														>
-															{versionInput || <em style={{ opacity: 0.5 }}>Empty</em>}
+															<div
+																className={`refine-timeline__node ${isRefinement ? "refine-timeline__node--refinement" : "refine-timeline__node--base"}`}
+															>
+																{versionNum}
+															</div>
 														</button>
+														<div className="refine-timeline__content">
+															<div className="refine-timeline__header">
+																<div className="refine-timeline__title">
+																	<span
+																		className={`refine-timeline__type ${isRefinement ? "refine-timeline__type--refinement" : "refine-timeline__type--base"}`}
+																	>
+																		{isRefinement ? "Refinement" : "Base"}
+																	</span>
+																</div>
+																<div className="refine-timeline__actions">
+																	{isCurrentVersion && (
+																		<span className="refine-timeline__current-badge">
+																			Current
+																		</span>
+																	)}
+																	<button
+																		type="button"
+																		onClick={(e) => {
+																			e.stopPropagation();
+																			if (versionInput) {
+																				copyMessage(copyId, versionInput);
+																			}
+																		}}
+																		disabled={!versionInput}
+																		className="refine-timeline__copy-btn"
+																		title="Copy this input"
+																		aria-label="Copy input"
+																	>
+																		<Icon
+																			name={
+																				copiedMessageId === copyId
+																					? "check"
+																					: "copy"
+																			}
+																			style={{ width: 10, height: 10 }}
+																		/>
+																	</button>
+																</div>
+															</div>
+															<button
+																type="button"
+																onClick={handleJumpToVersion}
+																disabled={isCurrentVersion}
+																className="refine-timeline__body"
+																title={
+																	isCurrentVersion
+																		? "Current version"
+																		: `Jump to v${versionNum}`
+																}
+															>
+																{versionInput || (
+																	<em style={{ opacity: 0.5 }}>Empty</em>
+																)}
+															</button>
+														</div>
 													</div>
-												</div>
-											);
+												);
 											})}
 										</div>
 									)}
 								</div>
 							)}
 
-							<div 
-								ref={textareaContainerRef} 
-								className="relative flex-1 min-h-0 w-full"
+							<div
+								ref={textareaContainerRef}
+								className="relative min-h-0 w-full flex-1"
 								style={{
 									// When generating, elevate this container above the overlay so the stop button is clickable
-									zIndex: isGenerating ? 150 : 'auto',
+									zIndex: isGenerating ? 150 : "auto",
 								}}
 							>
 								<textarea
-									className="absolute inset-0 w-full h-full p-3 md:p-6 pt-3 md:pt-4 pb-24 md:pb-24 rounded-b-2xl resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-outline)] focus:border-[var(--color-outline)] transition-all duration-200 ease-out font-mono text-[10px] md:text-[11px] leading-[20px] md:leading-[24px] text-on-surface placeholder:text-on-surface-variant/50 shadow-none"
+									className="absolute inset-0 h-full w-full resize-none rounded-b-2xl p-3 pt-3 pb-24 font-mono text-[10px] text-on-surface leading-[20px] shadow-none transition-all duration-200 ease-out placeholder:text-on-surface-variant/50 focus:border-[var(--color-outline)] focus:outline-none focus:ring-2 focus:ring-[var(--color-outline)] md:p-6 md:pt-4 md:pb-24 md:text-[11px] md:leading-[24px]"
 									style={{
 										// Lighter background that respects theme - lighter in light mode, slightly lighter in dark mode
-										backgroundColor: "color-mix(in srgb, var(--color-surface-variant), var(--color-surface) 55%)",
+										backgroundColor:
+											"color-mix(in srgb, var(--color-surface-variant), var(--color-surface) 55%)",
 										// Subtle ruled-paper lines to signal this is a text input area
 										backgroundImage:
 											currentTheme === "light"
@@ -1555,187 +1704,213 @@ export default function PromptWorkbench() {
 										backgroundPosition:
 											currentTheme === "light" ? undefined : "0 40px", // align after header (pt-4 ≈ 16px + header height)
 										caretColor: "var(--color-primary)",
-										boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--color-outline), white 18%)",
+										boxShadow:
+											"inset 0 0 0 1px color-mix(in srgb, var(--color-outline), white 18%)",
 										// Disable pointer events when generating
-										pointerEvents: isGenerating ? 'none' : 'auto',
+										pointerEvents: isGenerating ? "none" : "auto",
 									}}
 									value={activeTab?.draft ?? ""}
 									onChange={(e) => tabManager.updateDraft(e.target.value)}
 									placeholder={
-										!activeTab 
-											? "Create or open a tab to get started..." 
-											: isRefinementMode 
-												? 'Enter refinement (e.g., "more minimal", "add details about X", "change aesthetic to minimalist")...' 
+										!activeTab
+											? "Create or open a tab to get started..."
+											: isRefinementMode
+												? 'Enter refinement (e.g., "more minimal", "add details about X", "change aesthetic to minimalist")...'
 												: "Describe your prompt & intent..."
 									}
 									disabled={!activeTab || isGenerating}
 								/>
 
-							{/* Model Selector - Bottom Left */}
-							<div 
-								className="absolute z-10"
-								style={{
-									left: '20px',
-									bottom: '20px',
-									// Disable during generation
-									pointerEvents: isGenerating ? 'none' : 'auto',
-									opacity: isGenerating ? 0.5 : 1,
-								}}
-							>
-								{/* Vertical Slider Model Selector */}
+								{/* Model Selector - Bottom Left */}
 								<div
-									className="relative"
+									className="absolute z-10"
 									style={{
-										width: "min(80px, 16vw)",
-										height: "min(80px, 16vw)",
-										minWidth: "54px",
-										minHeight: "54px",
+										left: "20px",
+										bottom: "20px",
+										// Disable during generation
+										pointerEvents: isGenerating ? "none" : "auto",
+										opacity: isGenerating ? 0.5 : 1,
 									}}
 								>
-									{/* Slider container */}
+									{/* Vertical Slider Model Selector */}
 									<div
-										className="absolute inset-0 rounded-[18px] border overflow-hidden"
+										className="relative"
 										style={{
-											borderColor: "var(--color-outline)",
-											background: "var(--color-surface)",
-											padding: "8px",
+											width: "min(80px, 16vw)",
+											height: "min(80px, 16vw)",
+											minWidth: "54px",
+											minHeight: "54px",
 										}}
 									>
-										{/* Header */}
-										<div 
-											className="text-center font-bold text-[10px] tracking-wider uppercase mb-1"
+										{/* Slider container */}
+										<div
+											className="absolute inset-0 overflow-hidden rounded-[18px] border"
 											style={{
-												color: "var(--color-on-surface)",
-												opacity: 0.7,
-												lineHeight: 1,
+												borderColor: "var(--color-outline)",
+												background: "var(--color-surface)",
+												padding: "8px",
 											}}
 										>
-											GEMMA 3
-										</div>
-										{/* Stops */}
-										<div className="flex flex-col justify-between items-stretch h-full relative z-[1]" style={{ height: 'calc(100% - 16px)' }}>
-											{[
-												{ label: "4B", id: "gemma3:4b" },
-												{ label: "12B", id: "gemma3:12b" },
-												{ label: "27B", id: "gemma3:27b" },
-											].map((model, idx) => {
-												const isInstalled = availableModels.some((m) => m.name === model.id);
-												const isActive = currentModelId === model.id;
-												return (
-													<button
-														key={model.id}
-														type="button"
-														disabled={!isInstalled}
-														onClick={() => {
-															if (!isInstalled) return;
-															writeLocalModelConfigClient({
-																provider: "ollama",
-																baseUrl: "http://localhost:11434",
-																model: model.id,
-															} as any);
-															setCurrentModelId(model.id);
-															setModelLabel(`Gemma 3 ${model.label}`);
-															try {
-																window.dispatchEvent(
-																	new CustomEvent("sq-model-changed", {
-																		detail: { modelId: model.id },
-																	}) as any,
-																);
-															} catch {}
-														}}
-														className={`w-full h-[22px] flex items-center justify-center text-[13px] font-bold rounded-[12px] transition-colors ${
-															!isInstalled ? "opacity-40 cursor-not-allowed" : ""
-														}`}
-														title={
-															isInstalled
-																? `Switch to Gemma 3 ${model.label}`
-																: `Gemma 3 ${model.label} is not installed`
-														}
-														aria-pressed={isActive}
-														style={{
-															lineHeight: 1,
-															color: "var(--color-on-surface)",
-															background: isActive
-																? "color-mix(in srgb, var(--color-primary), var(--color-surface) 72%)"
-																: "transparent",
-															border: isActive
-																? "1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 55%)"
-																: "1px solid transparent",
-														}}
-													>
-														{model.label}
-													</button>
-												);
-											})}
+											{/* Header */}
+											<div
+												className="mb-1 text-center font-bold text-[10px] uppercase tracking-wider"
+												style={{
+													color: "var(--color-on-surface)",
+													opacity: 0.7,
+													lineHeight: 1,
+												}}
+											>
+												GEMMA 3
+											</div>
+											{/* Stops */}
+											<div
+												className="relative z-[1] flex h-full flex-col items-stretch justify-between"
+												style={{ height: "calc(100% - 16px)" }}
+											>
+												{[
+													{ label: "4B", id: "gemma3:4b" },
+													{ label: "12B", id: "gemma3:12b" },
+													{ label: "27B", id: "gemma3:27b" },
+												].map((model, idx) => {
+													const isInstalled = availableModels.some(
+														(m) => m.name === model.id,
+													);
+													const isActive = currentModelId === model.id;
+													return (
+														<button
+															key={model.id}
+															type="button"
+															disabled={!isInstalled}
+															onClick={() => {
+																if (!isInstalled) return;
+																writeLocalModelConfigClient({
+																	provider: "ollama",
+																	baseUrl: "http://localhost:11434",
+																	model: model.id,
+																} as any);
+																setCurrentModelId(model.id);
+																setModelLabel(`Gemma 3 ${model.label}`);
+																try {
+																	window.dispatchEvent(
+																		new CustomEvent("sq-model-changed", {
+																			detail: { modelId: model.id },
+																		}) as any,
+																	);
+																} catch {}
+															}}
+															className={`flex h-[22px] w-full items-center justify-center rounded-[12px] font-bold text-[13px] transition-colors ${
+																!isInstalled
+																	? "cursor-not-allowed opacity-40"
+																	: ""
+															}`}
+															title={
+																isInstalled
+																	? `Switch to Gemma 3 ${model.label}`
+																	: `Gemma 3 ${model.label} is not installed`
+															}
+															aria-pressed={isActive}
+															style={{
+																lineHeight: 1,
+																color: "var(--color-on-surface)",
+																background: isActive
+																	? "color-mix(in srgb, var(--color-primary), var(--color-surface) 72%)"
+																	: "transparent",
+																border: isActive
+																	? "1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 55%)"
+																	: "1px solid transparent",
+															}}
+														>
+															{model.label}
+														</button>
+													);
+												})}
+											</div>
 										</div>
 									</div>
 								</div>
-							</div>
 
-							{/* Run Button - Bottom Right */}
-							<button
-								type="button"
-								onClick={() => (activeTab?.sending ? stopGenerating() : void send())}
-								disabled={!activeTab || (!activeTab.sending && !activeTab.draft.trim())}
-								className={`group absolute rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden flex items-center justify-center ${
-									activeTab?.sending
-										? "text-on-attention"
-										: "text-on-primary"
-								}`}
-								style={{ 
-									width: 'min(48px, 10vw)', 
-									height: 'min(48px, 10vw)',
-									minWidth: '36px',
-									minHeight: '36px',
-									right: '20px',
-									bottom: '20px',
-									border: '1px solid var(--color-outline)',
-									background: activeTab?.sending ? "var(--color-attention)" : "var(--color-primary)",
-									// High z-index to stay above the generation overlay
-									zIndex: activeTab?.sending ? 150 : 10,
-								}}
-								title={activeTab?.sending ? "Stop Generation" : "Run Prompt"}
-							>
-								{/* Subtle shimmer effect */}
-								<div className="absolute inset-0 bg-white/5 translate-y-full group-hover:translate-y-0 transition-transform duration-500 ease-out pointer-events-none rounded-full" />
+								{/* Run Button - Bottom Right */}
+								<button
+									type="button"
+									onClick={() =>
+										activeTab?.sending ? stopGenerating() : void send()
+									}
+									disabled={
+										!activeTab ||
+										(!activeTab.sending && !activeTab.draft.trim())
+									}
+									className={`group absolute flex items-center justify-center overflow-hidden rounded-full transition-all duration-300 active:scale-95 disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50 ${
+										activeTab?.sending ? "text-on-attention" : "text-on-primary"
+									}`}
+									style={{
+										width: "min(48px, 10vw)",
+										height: "min(48px, 10vw)",
+										minWidth: "36px",
+										minHeight: "36px",
+										right: "20px",
+										bottom: "20px",
+										border: "1px solid var(--color-outline)",
+										background: activeTab?.sending
+											? "var(--color-attention)"
+											: "var(--color-primary)",
+										// High z-index to stay above the generation overlay
+										zIndex: activeTab?.sending ? 150 : 10,
+									}}
+									title={activeTab?.sending ? "Stop Generation" : "Run Prompt"}
+								>
+									{/* Subtle shimmer effect */}
+									<div className="pointer-events-none absolute inset-0 translate-y-full rounded-full bg-white/5 transition-transform duration-500 ease-out group-hover:translate-y-0" />
 
-							{activeTab?.sending ? (
-								<Icon 
-									name="stop" 
-									className="relative z-10" 
-									style={{ width: '22px', height: '22px', fontSize: '22px' }}
-								/>
-							) : (
-								<Icon
-									name="chevron-right"
-									className="relative z-10 transition-transform group-hover:translate-x-0.5"
-									style={{ width: '22px', height: '22px', fontSize: '22px' }}
-								/>
-							)}
-							</button>
+									{activeTab?.sending ? (
+										<Icon
+											name="stop"
+											className="relative z-10"
+											style={{
+												width: "22px",
+												height: "22px",
+												fontSize: "22px",
+											}}
+										/>
+									) : (
+										<Icon
+											name="chevron-right"
+											className="relative z-10 transition-transform group-hover:translate-x-0.5"
+											style={{
+												width: "22px",
+												height: "22px",
+												fontSize: "22px",
+											}}
+										/>
+									)}
+								</button>
 							</div>
 						</div>
 
 						{/* Preset Info Row - Moved Under Editor Area */}
 						{activeTab?.preset && (
-							<div 
-								className="flex items-center gap-3 p-2.5 md:p-3 rounded-xl transition-all"
+							<div
+								className="flex items-center gap-3 rounded-xl p-2.5 transition-all md:p-3"
 								style={{
-									background: "linear-gradient(135deg, color-mix(in srgb, var(--color-primary), var(--color-surface-variant) 85%) 0%, var(--color-surface-variant) 100%)",
-									border: "1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
-									boxShadow: "0 2px 8px color-mix(in srgb, var(--color-primary), transparent 85%)",
+									background:
+										"linear-gradient(135deg, color-mix(in srgb, var(--color-primary), var(--color-surface-variant) 85%) 0%, var(--color-surface-variant) 100%)",
+									border:
+										"1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
+									boxShadow:
+										"0 2px 8px color-mix(in srgb, var(--color-primary), transparent 85%)",
 								}}
 							>
 								{/* Icon */}
-								<div 
+								<div
 									className="flex shrink-0 items-center justify-center"
 									style={{
 										width: 36,
 										height: 36,
 										borderRadius: 10,
-										background: "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary), var(--color-surface) 30%))",
+										background:
+											"linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary), var(--color-surface) 30%))",
 										color: "var(--color-on-primary)",
-										boxShadow: "0 2px 6px color-mix(in srgb, var(--color-primary), transparent 50%)",
+										boxShadow:
+											"0 2px 6px color-mix(in srgb, var(--color-primary), transparent 50%)",
 									}}
 								>
 									<Icon
@@ -1759,33 +1934,33 @@ export default function PromptWorkbench() {
 								</div>
 
 								{/* Title & Type */}
-								<div className="flex flex-col min-w-0 gap-0.5 flex-1">
+								<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 									<button
 										type="button"
 										onClick={() => setShowPresetInfo(true)}
-										className="flex items-center gap-1.5 group/btn text-left"
+										className="group/btn flex items-center gap-1.5 text-left"
 									>
 										<span
-											className="text-[13px] font-bold text-on-surface truncate leading-tight group-hover/btn:text-primary transition-colors"
+											className="truncate font-bold text-[13px] text-on-surface leading-tight transition-colors group-hover/btn:text-primary"
 											title="Click for full preset details"
 										>
 											{activeTab.preset.name}
 										</span>
 										<Icon
 											name="info"
-											className="text-on-surface-variant/40 group-hover/btn:text-primary transition-colors"
+											className="text-on-surface-variant/40 transition-colors group-hover/btn:text-primary"
 											style={{ width: 10, height: 10 }}
 										/>
 									</button>
-									
+
 									{/* Tags Row */}
-									<div className="flex items-center gap-1.5 flex-wrap">
+									<div className="flex flex-wrap items-center gap-1.5">
 										{/* Task Type Badge */}
-										<span 
-											style={{ 
-												fontSize: 9, 
-												fontWeight: 700, 
-												textTransform: "uppercase", 
+										<span
+											style={{
+												fontSize: 9,
+												fontWeight: 700,
+												textTransform: "uppercase",
 												letterSpacing: "0.05em",
 												color: "var(--color-primary)",
 												opacity: 0.9,
@@ -1793,25 +1968,54 @@ export default function PromptWorkbench() {
 										>
 											{activeTab.preset.taskType}
 										</span>
-										
+
 										{/* Separator */}
-										{(activeTab.preset.options?.tone || activeTab.preset.options?.format || activeTab.preset.options?.detail || typeof activeTab.preset.options?.temperature === "number") && (
+										{(activeTab.preset.options?.tone ||
+											activeTab.preset.options?.format ||
+											activeTab.preset.options?.detail ||
+											typeof activeTab.preset.options?.temperature ===
+												"number") && (
 											<span style={{ opacity: 0.3, fontSize: 9 }}>•</span>
 										)}
-										
+
 										{/* Metadata Tags - Inline */}
 										{activeTab.preset.options?.tone && (
-											<span style={{ fontSize: 9, color: "var(--color-on-surface-variant)", opacity: 0.7, textTransform: "capitalize" }}>
+											<span
+												style={{
+													fontSize: 9,
+													color: "var(--color-on-surface-variant)",
+													opacity: 0.7,
+													textTransform: "capitalize",
+												}}
+											>
 												{activeTab.preset.options.tone}
 											</span>
 										)}
 										{activeTab.preset.options?.format && (
-											<span style={{ fontSize: 9, color: "var(--color-on-surface-variant)", opacity: 0.7 }}>
-												{activeTab.preset.options.format === "plain" ? "Plain" : activeTab.preset.options.format === "markdown" ? "MD" : activeTab.preset.options.format.toUpperCase()}
+											<span
+												style={{
+													fontSize: 9,
+													color: "var(--color-on-surface-variant)",
+													opacity: 0.7,
+												}}
+											>
+												{activeTab.preset.options.format === "plain"
+													? "Plain"
+													: activeTab.preset.options.format === "markdown"
+														? "MD"
+														: activeTab.preset.options.format.toUpperCase()}
 											</span>
 										)}
-										{typeof activeTab.preset.options?.temperature === "number" && (
-											<span style={{ fontSize: 9, color: "var(--color-on-surface-variant)", opacity: 0.7, fontVariantNumeric: "tabular-nums" }}>
+										{typeof activeTab.preset.options?.temperature ===
+											"number" && (
+											<span
+												style={{
+													fontSize: 9,
+													color: "var(--color-on-surface-variant)",
+													opacity: 0.7,
+													fontVariantNumeric: "tabular-nums",
+												}}
+											>
 												temp {activeTab.preset.options.temperature.toFixed(1)}
 											</span>
 										)}
@@ -1822,7 +2026,7 @@ export default function PromptWorkbench() {
 								<button
 									type="button"
 									onClick={() => router.push("/studio")}
-									className="flex items-center justify-center shrink-0 transition-all duration-200 hover:scale-105 active:scale-95"
+									className="flex shrink-0 items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
 									title="Edit preset in Studio"
 									aria-label="Edit preset in Studio"
 									style={{
@@ -1841,12 +2045,12 @@ export default function PromptWorkbench() {
 					</section>
 
 					{/* CENTER: Resize Handle + Version Navigator */}
-					<div 
-						className={`hidden md:flex flex-col items-center justify-center relative panel-resize-container ${isResizing ? 'panel-resize-container--active' : ''}`}
+					<div
+						className={`panel-resize-container relative hidden flex-col items-center justify-center md:flex ${isResizing ? "panel-resize-container--active" : ""}`}
 						onMouseDown={handleResizeStart}
 						title="Drag to resize panels"
 						style={{
-							width: '8px',
+							width: "8px",
 							flexShrink: 0,
 						}}
 					>
@@ -1854,7 +2058,7 @@ export default function PromptWorkbench() {
 						<div className="panel-resize-line panel-resize-line--top" />
 						{/* Single centered resize line - bottom segment */}
 						<div className="panel-resize-line panel-resize-line--bottom" />
-						
+
 						{/* Version Navigator - sits in the cutout */}
 						{activeTab && (
 							<VersionNavigator
@@ -1869,19 +2073,27 @@ export default function PromptWorkbench() {
 					</div>
 
 					{/* RIGHT PANE: Output */}
-					<section className="prompt-output-pane flex flex-col gap-4 p-4 md:p-6 h-full overflow-hidden relative" style={{
-						flex: 1,
-						minWidth: 480,
-						opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
-						pointerEvents: tabManager.tabs.length === 0 ? 'none' : (isGenerating ? 'none' : 'auto'),
-						transition: isResizing ? 'none' : 'opacity 0.3s ease',
-						filter: tabManager.tabs.length === 0 ? 'grayscale(0.3)' : 'none',
-						// Elevate above overlay when generating so the animation is visible
-						zIndex: isGenerating ? 150 : 'auto',
-					}}>
+					<section
+						className="prompt-output-pane relative flex h-full flex-col gap-4 overflow-hidden p-4 md:p-6"
+						style={{
+							flex: 1,
+							minWidth: 480,
+							opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
+							pointerEvents:
+								tabManager.tabs.length === 0
+									? "none"
+									: isGenerating
+										? "none"
+										: "auto",
+							transition: isResizing ? "none" : "opacity 0.3s ease",
+							filter: tabManager.tabs.length === 0 ? "grayscale(0.3)" : "none",
+							// Elevate above overlay when generating so the animation is visible
+							zIndex: isGenerating ? 150 : "auto",
+						}}
+					>
 						{/* Content Body with Integrated Toolbar Style */}
-						<div 
-							className={`relative flex-1 min-h-0 flex flex-col group rounded-2xl ${activeTab?.sending ? 'output-generating' : ''}`}
+						<div
+							className={`group relative flex min-h-0 flex-1 flex-col rounded-2xl ${activeTab?.sending ? "output-generating" : ""}`}
 							style={{
 								background: "var(--color-surface-variant)",
 								border: "1px solid var(--color-outline)",
@@ -1889,60 +2101,103 @@ export default function PromptWorkbench() {
 							}}
 						>
 							{/* Toolbar Header inside container */}
-							<div 
-								className="flex items-center justify-between gap-3 px-3 md:px-4 py-2.5 rounded-t-2xl shrink-0"
+							<div
+								className="flex shrink-0 items-center justify-between gap-3 rounded-t-2xl px-3 py-2.5 md:px-4"
 								style={{
-									background: "linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 50%) 0%, var(--color-surface-variant) 100%)",
-									borderBottom: "1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
+									background:
+										"linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 50%) 0%, var(--color-surface-variant) 100%)",
+									borderBottom:
+										"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
 								}}
 							>
 								{/* Left: Title & Stats */}
-								<div className="flex items-center gap-3 min-w-0">
+								<div className="flex min-w-0 items-center gap-3">
 									{/* Version Badge */}
 									<button
 										type="button"
 										className={`flex items-center gap-1.5 transition-all duration-200 ${
 											versions.length > 0
-												? "opacity-100 cursor-pointer hover:scale-105"
-												: "opacity-40 cursor-default"
+												? "cursor-pointer opacity-100 hover:scale-105"
+												: "cursor-default opacity-40"
 										}`}
 										onClick={() => {
 											if (versions.length > 0) setShowVersionHistory(true);
 										}}
 										disabled={versions.length === 0}
-										title={versions.length > 0 ? "View version history" : "No versions"}
+										title={
+											versions.length > 0
+												? "View version history"
+												: "No versions"
+										}
 										style={{
 											padding: "4px 10px",
 											borderRadius: "20px",
-											background: versions.length > 0 
-												? "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary), var(--color-surface) 30%))"
-												: "var(--color-surface)",
-											color: versions.length > 0 ? "var(--color-on-primary)" : "var(--color-on-surface-variant)",
-											border: versions.length > 0 ? "none" : "1px solid var(--color-outline)",
-											boxShadow: versions.length > 0 ? "0 2px 8px color-mix(in srgb, var(--color-primary), transparent 60%)" : "none",
+											background:
+												versions.length > 0
+													? "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary), var(--color-surface) 30%))"
+													: "var(--color-surface)",
+											color:
+												versions.length > 0
+													? "var(--color-on-primary)"
+													: "var(--color-on-surface-variant)",
+											border:
+												versions.length > 0
+													? "none"
+													: "1px solid var(--color-outline)",
+											boxShadow:
+												versions.length > 0
+													? "0 2px 8px color-mix(in srgb, var(--color-primary), transparent 60%)"
+													: "none",
 										}}
 									>
-										<Icon name="git-compare" style={{ width: 11, height: 11 }} />
-										<span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.02em" }}>
-											v{versions.length > 0 && activeTab ? versions.findIndex(v => v.id === activeTab.versionGraph.activeId) + 1 : 0}
+										<Icon
+											name="git-compare"
+											style={{ width: 11, height: 11 }}
+										/>
+										<span
+											style={{
+												fontSize: "10px",
+												fontWeight: 700,
+												letterSpacing: "0.02em",
+											}}
+										>
+											v
+											{versions.length > 0 && activeTab
+												? versions.findIndex(
+														(v) => v.id === activeTab.versionGraph.activeId,
+													) + 1
+												: 0}
 										</span>
 									</button>
 
 									{/* Stats - Hidden on very small screens */}
-									<div className="hidden sm:flex items-center gap-2 text-on-surface-variant/70">
-										<div className="flex items-center gap-1.5" style={{ fontSize: "10px" }}>
-											<Icon name="file-text" style={{ width: 10, height: 10, opacity: 0.6 }} />
-											<span style={{ fontVariantNumeric: "tabular-nums" }}>{outputWordCount.toLocaleString()}</span>
+									<div className="hidden items-center gap-2 text-on-surface-variant/70 sm:flex">
+										<div
+											className="flex items-center gap-1.5"
+											style={{ fontSize: "10px" }}
+										>
+											<Icon
+												name="file-text"
+												style={{ width: 10, height: 10, opacity: 0.6 }}
+											/>
+											<span style={{ fontVariantNumeric: "tabular-nums" }}>
+												{outputWordCount.toLocaleString()}
+											</span>
 											<span style={{ opacity: 0.5 }}>words</span>
 										</div>
 										<span style={{ opacity: 0.3 }}>•</span>
-										<div className="flex items-center gap-1" style={{ fontSize: "10px" }}>
-											<span style={{ fontVariantNumeric: "tabular-nums" }}>{outputCharCount.toLocaleString()}</span>
+										<div
+											className="flex items-center gap-1"
+											style={{ fontSize: "10px" }}
+										>
+											<span style={{ fontVariantNumeric: "tabular-nums" }}>
+												{outputCharCount.toLocaleString()}
+											</span>
 											<span style={{ opacity: 0.5 }}>chars</span>
 										</div>
 									</div>
 								</div>
-								
+
 								{/* Right: Actions */}
 								<div className="flex items-center gap-1">
 									{/* Copy Button */}
@@ -1950,30 +2205,40 @@ export default function PromptWorkbench() {
 										type="button"
 										onClick={() => {
 											if (lastAssistantMessage?.content) {
-												copyMessage(lastAssistantMessage.id, lastAssistantMessage.content);
+												copyMessage(
+													lastAssistantMessage.id,
+													lastAssistantMessage.content,
+												);
 											}
 										}}
 										disabled={!lastAssistantMessage}
-										className="flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+										className="flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
 										title="Copy response"
 										aria-label="Copy response"
 										style={{
 											width: 28,
 											height: 28,
 											borderRadius: "8px",
-											background: copiedMessageId === lastAssistantMessage?.id 
-												? "var(--color-save)" 
-												: "var(--color-surface)",
-											border: copiedMessageId === lastAssistantMessage?.id 
-												? "1px solid var(--color-save)"
-												: "1px solid var(--color-outline)",
-											color: copiedMessageId === lastAssistantMessage?.id 
-												? "var(--color-on-save)" 
-												: "var(--color-on-surface-variant)",
+											background:
+												copiedMessageId === lastAssistantMessage?.id
+													? "var(--color-save)"
+													: "var(--color-surface)",
+											border:
+												copiedMessageId === lastAssistantMessage?.id
+													? "1px solid var(--color-save)"
+													: "1px solid var(--color-outline)",
+											color:
+												copiedMessageId === lastAssistantMessage?.id
+													? "var(--color-on-save)"
+													: "var(--color-on-surface-variant)",
 										}}
 									>
 										<Icon
-											name={copiedMessageId === lastAssistantMessage?.id ? "check" : "copy"}
+											name={
+												copiedMessageId === lastAssistantMessage?.id
+													? "check"
+													: "copy"
+											}
 											style={{ width: 13, height: 13 }}
 										/>
 									</button>
@@ -1983,86 +2248,103 @@ export default function PromptWorkbench() {
 							{/* Scrollable Content Area */}
 							<div
 								ref={scrollContainerRef}
-								className="relative flex-1 min-h-0 overflow-y-auto p-3 md:p-6 custom-scrollbar"
+								className="custom-scrollbar relative min-h-0 flex-1 overflow-y-auto p-3 md:p-6"
 							>
 								{!hasMessages ? (
-									<div className="flex flex-col items-center justify-center h-full text-center gap-4 opacity-60">
-										<div className="w-16 h-16 rounded-2xl bg-surface flex items-center justify-center border border-[var(--color-outline)]">
-											<Logo className="w-8 h-8 opacity-50 grayscale" />
+									<div className="flex h-full flex-col items-center justify-center gap-4 text-center opacity-60">
+										<div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--color-outline)] bg-surface">
+											<Logo className="h-8 w-8 opacity-50 grayscale" />
 										</div>
 										<div className="max-w-[240px]">
-											<p className="text-sm font-medium text-on-surface">
+											<p className="font-medium text-on-surface text-sm">
 												Ready to Generate
 											</p>
-											<p className="text-xs text-on-surface-variant mt-1">
+											<p className="mt-1 text-on-surface-variant text-xs">
 												Run your prompt to see the results appear here.
 											</p>
 										</div>
 									</div>
-								) : (() => {
-									// Get the active version's output message ID
-									const activeOutputId = activeTab ? getOutputMessageId(activeTab.versionGraph, activeTab.versionGraph.activeId) : null;
-									const activeOutput = activeOutputId 
-										? activeMessages.find(m => m.id === activeOutputId && m.role === "assistant")
-										: null;
-									
-									return (
-										<div key={outputAnimateKey} className="flex flex-col gap-6 output-animate-in">
-											{activeTab?.sending ? (
-												<div 
-													className="flex flex-col items-center justify-center h-full min-h-[200px] gap-3 text-on-surface-variant"
-													style={{
-														// Ensure the crafting animation is fully visible and not grayed out
-														filter: 'none',
-														opacity: 1,
-													}}
-												>
-													<FeatherLoader />
-												</div>
-											) : activeOutput ? (
-												<div className="group relative flex flex-col gap-3">
-													{/* Message Content */}
-													<div className="max-w-none text-on-surface leading-relaxed text-[11px] font-mono">
-														<MessageRenderer
-															content={activeOutput.content}
-															messageId={activeOutput.id}
-															copiedMessageId={copiedMessageId}
-															onCopy={copyMessage}
-														/>
+								) : (
+									(() => {
+										// Get the active version's output message ID
+										const activeOutputId = activeTab
+											? getOutputMessageId(
+													activeTab.versionGraph,
+													activeTab.versionGraph.activeId,
+												)
+											: null;
+										const activeOutput = activeOutputId
+											? activeMessages.find(
+													(m) =>
+														m.id === activeOutputId && m.role === "assistant",
+												)
+											: null;
+
+										return (
+											<div
+												key={outputAnimateKey}
+												className="output-animate-in flex flex-col gap-6"
+											>
+												{activeTab?.sending ? (
+													<div
+														className="flex h-full min-h-[200px] flex-col items-center justify-center gap-3 text-on-surface-variant"
+														style={{
+															// Ensure the crafting animation is fully visible and not grayed out
+															filter: "none",
+															opacity: 1,
+														}}
+													>
+														<FeatherLoader />
 													</div>
-												</div>
-											) : (
-												<div className="flex flex-col items-center justify-center py-12 gap-3 text-center opacity-60">
-													<div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center border border-[var(--color-outline)]">
-														<Icon name="file-text" className="w-6 h-6 opacity-50" />
+												) : activeOutput ? (
+													<div className="group relative flex flex-col gap-3">
+														{/* Message Content */}
+														<div className="max-w-none font-mono text-[11px] text-on-surface leading-relaxed">
+															<MessageRenderer
+																content={activeOutput.content}
+																messageId={activeOutput.id}
+																copiedMessageId={copiedMessageId}
+																onCopy={copyMessage}
+															/>
+														</div>
 													</div>
-													<div className="max-w-[280px]">
-														<p className="text-sm font-medium text-on-surface">
-															No Output for This Version
-														</p>
-														<p className="text-xs text-on-surface-variant mt-1">
-															This version is a manual save. Run the prompt to generate output.
-														</p>
+												) : (
+													<div className="flex flex-col items-center justify-center gap-3 py-12 text-center opacity-60">
+														<div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--color-outline)] bg-surface">
+															<Icon
+																name="file-text"
+																className="h-6 w-6 opacity-50"
+															/>
+														</div>
+														<div className="max-w-[280px]">
+															<p className="font-medium text-on-surface text-sm">
+																No Output for This Version
+															</p>
+															<p className="mt-1 text-on-surface-variant text-xs">
+																This version is a manual save. Run the prompt to
+																generate output.
+															</p>
+														</div>
 													</div>
-												</div>
-											)}
-											<div ref={endRef} />
-										</div>
-									);
-								})()}
+												)}
+												<div ref={endRef} />
+											</div>
+										);
+									})()
+								)}
 							</div>
 						</div>
 
 						{/* Error Toast/Banner */}
 						{activeTab?.error && (
-							<div className="absolute bottom-6 left-6 right-6 p-4 rounded-lg bg-attention/10 border border-attention/10 text-attention flex items-center gap-3 shadow-lg animate-in slide-in-from-bottom-2">
-								<Icon name="warning" className="w-5 h-5 shrink-0" />
-								<p className="text-sm font-medium">{activeTab.error}</p>
+							<div className="slide-in-from-bottom-2 absolute right-6 bottom-6 left-6 flex animate-in items-center gap-3 rounded-lg border border-attention/10 bg-attention/10 p-4 text-attention shadow-lg">
+								<Icon name="warning" className="h-5 w-5 shrink-0" />
+								<p className="font-medium text-sm">{activeTab.error}</p>
 								<button
-									className="ml-auto p-1 hover:bg-attention/10 rounded"
+									className="ml-auto rounded p-1 hover:bg-attention/10"
 									onClick={() => tabManager.setError(null)}
 								>
-									<Icon name="close" className="w-4 h-4" />
+									<Icon name="close" className="h-4 w-4" />
 								</button>
 							</div>
 						)}
@@ -2092,7 +2374,9 @@ export default function PromptWorkbench() {
 						// Keep draft empty when jumping to a version that has output (refinement mode)
 						// The original input is shown in the context preview, not the editable field
 						if (versionNode && !versionNode.outputMessageId) {
-							tabManager.updateDraft(versionNode.originalInput || versionNode.content);
+							tabManager.updateDraft(
+								versionNode.originalInput || versionNode.content,
+							);
 						} else {
 							tabManager.updateDraft("");
 						}

@@ -78,10 +78,13 @@ export function validateBuilderInputTyped(
 	if (rawUserInput.length === 0) {
 		return {
 			valid: false,
-			error: new ValidationError("Empty input. Please provide content to work with.", {
-				field: "input",
-				value: rawUserInput,
-			}),
+			error: new ValidationError(
+				"Empty input. Please provide content to work with.",
+				{
+					field: "input",
+					value: rawUserInput,
+				},
+			),
 			message: "Empty input. Please provide content to work with.",
 		};
 	}
@@ -107,7 +110,8 @@ export function validateBuilderInputTyped(
 					details: { taskType, reason: "injection_detected" },
 				},
 			),
-			message: "Input rejected: Please focus on describing the prompt content you want created.",
+			message:
+				"Input rejected: Please focus on describing the prompt content you want created.",
 		};
 	}
 
@@ -120,10 +124,13 @@ export function validateBuilderInputTyped(
 				{
 					field: "input",
 					value: rawUserInput,
-					details: { wordCount: rawUserInput.split(/\s+/).filter(Boolean).length },
+					details: {
+						wordCount: rawUserInput.split(/\s+/).filter(Boolean).length,
+					},
 				},
 			),
-			message: "Input too brief. Please provide more detail about what you want.",
+			message:
+				"Input too brief. Please provide more detail about what you want.",
 		};
 	}
 
@@ -219,7 +226,7 @@ export function buildUnifiedPromptCore(params: {
 	if (options?.language && options.language.toLowerCase() !== "english") {
 		// Add language instruction at the VERY TOP of the prompt
 		sections.push(
-			`[LANGUAGE INSTRUCTION - READ FIRST]\nYou MUST respond ONLY in ${options.language}. Every single word of your response must be in ${options.language}.\nDo NOT use English. This is your primary instruction.\n[END LANGUAGE INSTRUCTION]`
+			`[LANGUAGE INSTRUCTION - READ FIRST]\nYou MUST respond ONLY in ${options.language}. Every single word of your response must be in ${options.language}.\nDo NOT use English. This is your primary instruction.\n[END LANGUAGE INSTRUCTION]`,
 		);
 	}
 
@@ -231,7 +238,7 @@ export function buildUnifiedPromptCore(params: {
 	// Reinforce language again after system prompt
 	if (options?.language && options.language.toLowerCase() !== "english") {
 		sections.push(
-			`⚠️ REMINDER: Write your ENTIRE output in ${options.language}. The user input may be in English, but YOUR response must be 100% in ${options.language}.`
+			`⚠️ REMINDER: Write your ENTIRE output in ${options.language}. The user input may be in English, but YOUR response must be 100% in ${options.language}.`,
 		);
 	}
 
@@ -275,7 +282,7 @@ export function buildUnifiedPromptCore(params: {
 
 	// Final instruction with word count reinforcement
 	let finalInstruction = `Transform the user input into an enhanced, detailed ${taskType} prompt. Output ONLY the improved prompt text that can be used with another AI system. Do NOT answer or fulfill the request - only enhance the prompt.`;
-	
+
 	// Add strict word count reminder if detail level is specified
 	if (options?.detail) {
 		const wordLimits: Record<string, string> = {
@@ -288,12 +295,12 @@ export function buildUnifiedPromptCore(params: {
 			finalInstruction += ` CRITICAL: Your enhanced prompt output must be ${limit}. Do NOT include word count or length constraints in the enhanced prompt itself - the word limit applies to the total length of YOUR response.`;
 		}
 	}
-	
+
 	// Add language enforcement reminder if non-English language is selected
 	if (options?.language && options.language.toLowerCase() !== "english") {
 		finalInstruction += ` IMPORTANT: Your entire output MUST be written in ${options.language}, regardless of what language the input is in.`;
 	}
-	
+
 	sections.push(finalInstruction);
 
 	return sections.join("\n\n");
@@ -324,13 +331,14 @@ Remember: You are refining an enhanced prompt, not answering the original reques
  * Build a prompt for refining an existing enhanced prompt based on user feedback
  */
 export function buildRefinementPromptCore(params: {
-	previousOutput: string;      // The existing enhanced prompt to refine
-	refinementRequest: string;   // User's tweak/fix instruction
+	previousOutput: string; // The existing enhanced prompt to refine
+	refinementRequest: string; // User's tweak/fix instruction
 	taskType: TaskType;
 	options?: GenerationOptions;
 	systemPrompt?: string;
 }): string {
-	const { previousOutput, refinementRequest, taskType, options, systemPrompt } = params;
+	const { previousOutput, refinementRequest, taskType, options, systemPrompt } =
+		params;
 	const trimmedRequest = refinementRequest.trim();
 	const trimmedPrevious = previousOutput.trim();
 
@@ -339,7 +347,7 @@ export function buildRefinementPromptCore(params: {
 	// FIRST: Language override at the very top - before everything else
 	if (options?.language && options.language.toLowerCase() !== "english") {
 		sections.push(
-			`[LANGUAGE INSTRUCTION - READ FIRST]\nYou MUST respond ONLY in ${options.language}. Every single word of your response must be in ${options.language}.\nDo NOT use English. This is your primary instruction.\n[END LANGUAGE INSTRUCTION]`
+			`[LANGUAGE INSTRUCTION - READ FIRST]\nYou MUST respond ONLY in ${options.language}. Every single word of your response must be in ${options.language}.\nDo NOT use English. This is your primary instruction.\n[END LANGUAGE INSTRUCTION]`,
 		);
 	}
 
@@ -349,7 +357,7 @@ export function buildRefinementPromptCore(params: {
 	// Reinforce language again after system prompt
 	if (options?.language && options.language.toLowerCase() !== "english") {
 		sections.push(
-			`⚠️ REMINDER: Write your ENTIRE output in ${options.language}. The existing prompt may be in English, but YOUR refined output must be 100% in ${options.language}.`
+			`⚠️ REMINDER: Write your ENTIRE output in ${options.language}. The existing prompt may be in English, but YOUR refined output must be 100% in ${options.language}.`,
 		);
 	}
 
@@ -357,15 +365,17 @@ export function buildRefinementPromptCore(params: {
 	sections.push(`Task Type: ${taskType}`);
 
 	// The existing prompt to refine
-	const promptDelimiter = options?.format === "xml"
-		? `<existing_prompt>\n${trimmedPrevious}\n</existing_prompt>`
-		: `---\n${trimmedPrevious}\n---`;
+	const promptDelimiter =
+		options?.format === "xml"
+			? `<existing_prompt>\n${trimmedPrevious}\n</existing_prompt>`
+			: `---\n${trimmedPrevious}\n---`;
 	sections.push(`Existing Enhanced Prompt:\n${promptDelimiter}`);
 
 	// The refinement request
-	const requestDelimiter = options?.format === "xml"
-		? `<refinement_request>\n${trimmedRequest}\n</refinement_request>`
-		: `---\n${trimmedRequest}\n---`;
+	const requestDelimiter =
+		options?.format === "xml"
+			? `<refinement_request>\n${trimmedRequest}\n</refinement_request>`
+			: `---\n${trimmedRequest}\n---`;
 	sections.push(`Refinement Request:\n${requestDelimiter}`);
 
 	// Final instruction

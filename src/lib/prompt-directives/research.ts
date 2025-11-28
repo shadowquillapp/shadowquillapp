@@ -20,4 +20,3 @@ export function buildResearchDirectives(options: GenerationOptions): string[] {
 
 	return directives;
 }
-

@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import {
 	normalizeAspectRatio,
 	normalizeCameraMovement,
@@ -8,6 +7,7 @@ import {
 	normalizeStylePreset,
 	normalizeVideoStylePreset,
 } from "@/lib/prompt-normalization";
+import { describe, expect, it } from "vitest";
 
 describe("normalizeStylePreset", () => {
 	it("should return valid image style presets", () => {
@@ -187,4 +187,3 @@ describe("normalizeDurationSeconds", () => {
 		expect(normalizeDurationSeconds(60.6)).toBe(60); // rounds to 61, then clamps to 60
 	});
 });
-

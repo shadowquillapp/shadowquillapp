@@ -7,7 +7,10 @@ export default function DisplayContent() {
 	const [available, setAvailable] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
 	const [zoomFactor, setZoomFactor] = React.useState(1);
-	const [contentSize, setContentSize] = React.useState<{ w: number; h: number }>({
+	const [contentSize, setContentSize] = React.useState<{
+		w: number;
+		h: number;
+	}>({
 		w: 0,
 		h: 0,
 	});
@@ -108,7 +111,9 @@ export default function DisplayContent() {
 		void applyZoom(1.1);
 	};
 
-	const handleThemeChange = (theme: "earth" | "purpledark" | "dark" | "light") => {
+	const handleThemeChange = (
+		theme: "earth" | "purpledark" | "dark" | "light",
+	) => {
 		setCurrentTheme(theme);
 		document.documentElement.setAttribute(
 			"data-theme",
@@ -140,12 +145,20 @@ export default function DisplayContent() {
 
 				<div className="ollama-panel__body" style={{ paddingTop: "16px" }}>
 					{!available && (
-						<div className="ollama-error-banner" role="alert" style={{ marginBottom: "16px" }}>
+						<div
+							className="ollama-error-banner"
+							role="alert"
+							style={{ marginBottom: "16px" }}
+						>
 							Not available outside the desktop app.
 						</div>
 					)}
 					{error && (
-						<div className="ollama-error-banner" role="alert" style={{ marginBottom: "16px" }}>
+						<div
+							className="ollama-error-banner"
+							role="alert"
+							style={{ marginBottom: "16px" }}
+						>
 							{error}
 						</div>
 					)}
@@ -161,7 +174,7 @@ export default function DisplayContent() {
 									key={option.value}
 									type="button"
 									onClick={() => handleThemeChange(option.value)}
-									className={`flex flex-col items-center gap-1.5 p-3 rounded-lg border-2 transition-all ${
+									className={`flex flex-col items-center gap-1.5 rounded-lg border-2 p-3 transition-all ${
 										currentTheme === option.value
 											? "border-primary bg-primary/10"
 											: "border-[var(--color-outline)] bg-[var(--color-surface-variant)] hover:border-primary/50"
@@ -169,19 +182,21 @@ export default function DisplayContent() {
 									aria-label={`Select ${option.label} theme`}
 									title={option.label}
 								>
-									<Icon 
-										name={option.icon as any} 
-										className={`w-5 h-5 ${
+									<Icon
+										name={option.icon as any}
+										className={`h-5 w-5 ${
 											currentTheme === option.value
 												? "text-primary"
 												: "text-on-surface-variant"
 										}`}
 									/>
-									<span className={`text-xs font-medium ${
-										currentTheme === option.value
-											? "text-primary"
-											: "text-on-surface"
-									}`}>
+									<span
+										className={`font-medium text-xs ${
+											currentTheme === option.value
+												? "text-primary"
+												: "text-on-surface"
+										}`}
+									>
 										{option.label}
 									</span>
 								</button>
@@ -261,37 +276,44 @@ export default function DisplayContent() {
 						<button
 							type="button"
 							onClick={() => setShowStats(!showStats)}
-							className="flex items-center justify-between w-full p-2 rounded hover:bg-[var(--color-surface-variant)] transition-colors"
-							style={{ 
+							className="flex w-full items-center justify-between rounded p-2 transition-colors hover:bg-[var(--color-surface-variant)]"
+							style={{
 								background: "transparent",
 								border: "none",
 								cursor: "pointer",
 								marginBottom: showStats ? "8px" : "0",
 							}}
 						>
-							<label className="ollama-label" style={{ marginBottom: "0", cursor: "pointer" }}>
+							<label
+								className="ollama-label"
+								style={{ marginBottom: "0", cursor: "pointer" }}
+							>
 								Display Stats
 							</label>
-							<Icon 
-								name={(showStats ? "chevron-up" : "chevron-down") as IconName} 
-								className="w-4 h-4 text-on-surface-variant"
+							<Icon
+								name={(showStats ? "chevron-up" : "chevron-down") as IconName}
+								className="h-4 w-4 text-on-surface-variant"
 							/>
 						</button>
 						{showStats && (
-							<div className="grid grid-cols-2 gap-2 mt-2">
+							<div className="mt-2 grid grid-cols-2 gap-2">
 								<div className="md-input" style={{ padding: "8px 10px" }}>
-									<div className="text-xs text-on-surface-variant mb-1">Content Area</div>
+									<div className="mb-1 text-on-surface-variant text-xs">
+										Content Area
+									</div>
 									<div
-										className="text-xs font-mono"
+										className="font-mono text-xs"
 										style={{ fontFamily: "var(--font-mono, monospace)" }}
 									>
 										{contentSize.w} × {contentSize.h} px
 									</div>
 								</div>
 								<div className="md-input" style={{ padding: "8px 10px" }}>
-									<div className="text-xs text-on-surface-variant mb-1">OS Window</div>
+									<div className="mb-1 text-on-surface-variant text-xs">
+										OS Window
+									</div>
 									<div
-										className="text-xs font-mono"
+										className="font-mono text-xs"
 										style={{ fontFamily: "var(--font-mono, monospace)" }}
 									>
 										{windowInfo?.windowSize
@@ -300,9 +322,11 @@ export default function DisplayContent() {
 									</div>
 								</div>
 								<div className="md-input" style={{ padding: "8px 10px" }}>
-									<div className="text-xs text-on-surface-variant mb-1">Chromium Content</div>
+									<div className="mb-1 text-on-surface-variant text-xs">
+										Chromium Content
+									</div>
 									<div
-										className="text-xs font-mono"
+										className="font-mono text-xs"
 										style={{ fontFamily: "var(--font-mono, monospace)" }}
 									>
 										{windowInfo?.contentSize
@@ -311,13 +335,15 @@ export default function DisplayContent() {
 									</div>
 								</div>
 								<div className="md-input" style={{ padding: "8px 10px" }}>
-									<div className="text-xs text-on-surface-variant mb-1">State</div>
-									<div className="text-xs font-mono">
+									<div className="mb-1 text-on-surface-variant text-xs">
+										State
+									</div>
+									<div className="font-mono text-xs">
 										{windowInfo?.isFullScreen
 											? "Fullscreen"
 											: windowInfo?.isMaximized
-											? "Maximized"
-											: "Windowed"}
+												? "Maximized"
+												: "Windowed"}
 									</div>
 								</div>
 							</div>

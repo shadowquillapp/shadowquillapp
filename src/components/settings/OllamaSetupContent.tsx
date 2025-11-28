@@ -179,12 +179,12 @@ export default function OllamaSetupContent() {
 	const statusTone: "success" | "error" | "loading" | "idle" = testingLocal
 		? "loading"
 		: localTestResult
-				? localTestResult.success
-					? "success"
-					: "error"
-				: connectionError
-					? "error"
-					: "idle";
+			? localTestResult.success
+				? "success"
+				: "error"
+			: connectionError
+				? "error"
+				: "idle";
 	const statusLabelMap = {
 		success:
 			statusTone === "success" && availableModels.length > 0
@@ -214,15 +214,15 @@ export default function OllamaSetupContent() {
 						title: "Checking local Ollama endpoint",
 						body: "Hang tight while we verify the connection and discover Gemma builds.",
 					}
-			: statusTone === "success"
-				? {
-						title: "Gemma 3 connection successful",
-						body: "Found compatible Gemma 3 models ready for use.",
-					}
-				: {
-						title: "",
-						body: "",
-					};
+				: statusTone === "success"
+					? {
+							title: "Gemma 3 connection successful",
+							body: "Found compatible Gemma 3 models ready for use.",
+						}
+					: {
+							title: "",
+							body: "",
+						};
 	const selectedModelMetadata = localTestResult?.models?.find(
 		(m) => m.name === model,
 	);
@@ -306,10 +306,9 @@ export default function OllamaSetupContent() {
 								maxLength={5}
 								value={localPort}
 								onChange={(e) => {
-									const raw = (e.target.value || "").replace(/\D/g, "").slice(
-										0,
-										5,
-									);
+									const raw = (e.target.value || "")
+										.replace(/\D/g, "")
+										.slice(0, 5);
 									setLocalPort(raw);
 									setLocalTestResult(null);
 								}}
@@ -318,18 +317,18 @@ export default function OllamaSetupContent() {
 								placeholder="11434"
 								autoComplete="off"
 							/>
-						<button
-							type="button"
-							onClick={() => testLocalConnection()}
-							disabled={testingLocal || !isValidPort(localPort)}
-							className={`md-btn md-btn--primary ollama-field__action${statusTone !== "success" ? " pulse-glow" : ""}`}
-							title="Check for available Ollama models"
-							aria-label="Check for available Ollama models"
-						>
-							<Icon
-								name="refresh"
-								{...(testingLocal && { className: "md-spin" })}
-							/>
+							<button
+								type="button"
+								onClick={() => testLocalConnection()}
+								disabled={testingLocal || !isValidPort(localPort)}
+								className={`md-btn md-btn--primary ollama-field__action${statusTone !== "success" ? " pulse-glow" : ""}`}
+								title="Check for available Ollama models"
+								aria-label="Check for available Ollama models"
+							>
+								<Icon
+									name="refresh"
+									{...(testingLocal && { className: "md-spin" })}
+								/>
 							</button>
 						</div>
 						<p className="ollama-field-hint" aria-live="polite">
@@ -343,38 +342,41 @@ export default function OllamaSetupContent() {
 						className={`ollama-status-card ollama-status-card--${statusTone}`}
 						aria-live="polite"
 					>
-					<div className="ollama-status-card__icon">
-						<Icon
-							name={statusIconMap[statusTone]}
-							{...(statusTone === "loading" && { className: "md-spin" })}
-						/>
-					</div>
+						<div className="ollama-status-card__icon">
+							<Icon
+								name={statusIconMap[statusTone]}
+								{...(statusTone === "loading" && { className: "md-spin" })}
+							/>
+						</div>
 						<div className="ollama-status-card__content">
 							<div>
-								<p className="ollama-status-card__title">{statusDetails.title}</p>
+								<p className="ollama-status-card__title">
+									{statusDetails.title}
+								</p>
 								<p className="ollama-status-card__body">{statusDetails.body}</p>
 							</div>
 							{statusTone === "success" &&
 								localTestResult?.models &&
 								localTestResult.models.length > 0 && (
-								<div className="ollama-models-list">
-									{localTestResult.models.map((m) => {
-										const size = (m.name.split(":")[1] || "").toUpperCase();
-										const readable = size ? `Gemma 3 ${size}` : m.name;
-										const sizeInGB = (
-											m.size /
-											(1024 * 1024 * 1024)
-										).toFixed(1);
-										return (
-											<div key={m.name} className="ollama-model-item">
-												<Icon name="check" />
-												<span className="ollama-model-name">{readable}</span>
-												<span className="ollama-model-size">{sizeInGB}GB</span>
-											</div>
-										);
-									})}
-								</div>
-							)}
+									<div className="ollama-models-list">
+										{localTestResult.models.map((m) => {
+											const size = (m.name.split(":")[1] || "").toUpperCase();
+											const readable = size ? `Gemma 3 ${size}` : m.name;
+											const sizeInGB = (m.size / (1024 * 1024 * 1024)).toFixed(
+												1,
+											);
+											return (
+												<div key={m.name} className="ollama-model-item">
+													<Icon name="check" />
+													<span className="ollama-model-name">{readable}</span>
+													<span className="ollama-model-size">
+														{sizeInGB}GB
+													</span>
+												</div>
+											);
+										})}
+									</div>
+								)}
 							{statusTone === "success" &&
 								localTestResult?.models &&
 								localTestResult.models.length === 0 && (
@@ -466,8 +468,8 @@ export default function OllamaSetupContent() {
 							Ollama defaults to <code>http://localhost:11434</code>
 						</li>
 						<li>
-							Need to reset/remove models quickly? Run <code>ollama rm gemma3:*</code> to clear
-							old downloads
+							Need to reset/remove models quickly? Run{" "}
+							<code>ollama rm gemma3:*</code> to clear old downloads
 						</li>
 						<li>
 							If you prefer CPU-only inference, pick the smallest Gemma variant

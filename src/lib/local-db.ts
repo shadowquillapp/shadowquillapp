@@ -40,7 +40,9 @@ function writeTestMessages(map: Record<string, StoredTestMessage>) {
 export async function listProjectsByUser(
 	userId: string = LOCAL_USER_ID,
 ): Promise<Array<PromptProject & { messageCount: number }>> {
-	const projects = Object.values(readProjects()).filter((c) => c.userId === userId);
+	const projects = Object.values(readProjects()).filter(
+		(c) => c.userId === userId,
+	);
 	const messages = Object.values(readTestMessages());
 	return projects
 		.map((c) => ({
@@ -121,7 +123,13 @@ export async function appendMessagesWithCap(
 export async function getProject(
 	projectId: string,
 	limit = 50,
-): Promise<{ id: string; title: string | null; messages: TestMessage[]; versionGraph?: any; presetId?: string }> {
+): Promise<{
+	id: string;
+	title: string | null;
+	messages: TestMessage[];
+	versionGraph?: any;
+	presetId?: string;
+}> {
 	const projects = readProjects();
 	const c = projects[projectId];
 	const messages = Object.values(readTestMessages())
@@ -129,12 +137,12 @@ export async function getProject(
 		.sort((a, b) => a.createdAt - b.createdAt)
 		.slice(-limit)
 		.map((m) => ({ ...m, createdAt: new Date(m.createdAt) }));
-	return { 
-		id: projectId, 
-		title: c?.title ?? "Untitled", 
-		messages, 
+	return {
+		id: projectId,
+		title: c?.title ?? "Untitled",
+		messages,
 		versionGraph: c?.versionGraph,
-		...(c?.presetId !== undefined && { presetId: c.presetId })
+		...(c?.presetId !== undefined && { presetId: c.presetId }),
 	};
 }
 

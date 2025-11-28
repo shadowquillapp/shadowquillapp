@@ -66,7 +66,8 @@ export function buildVideoDirectives(options: GenerationOptions): string[] {
 	// Storyboard
 	if (options.includeStoryboard) {
 		const duration = options.durationSeconds || 5;
-		const frames = duration >= 10 ? Math.ceil(duration / 3) : Math.ceil(duration / 2);
+		const frames =
+			duration >= 10 ? Math.ceil(duration / 3) : Math.ceil(duration / 2);
 		directives.push(
 			`Include storyboard: ${frames} frames with timestamp, scene description, camera angle, and key action.`,
 		);
@@ -79,4 +80,3 @@ export function buildVideoDirectives(options: GenerationOptions): string[] {
 
 	return directives;
 }
-

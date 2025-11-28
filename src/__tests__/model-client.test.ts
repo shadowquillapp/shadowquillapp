@@ -1,14 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ModelError, NetworkError } from "@/lib/errors";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the local-config module
 vi.mock("@/lib/local-config", () => ({
 	readLocalModelConfig: vi.fn(),
 }));
 
+import { readLocalModelConfig } from "@/lib/local-config";
 // Import after mocking
 import { callLocalModelClient } from "@/lib/model-client";
-import { readLocalModelConfig } from "@/lib/local-config";
 
 const mockReadLocalModelConfig = vi.mocked(readLocalModelConfig);
 
@@ -26,8 +26,12 @@ describe("callLocalModelClient", () => {
 		it("should throw ModelError when no config exists", async () => {
 			mockReadLocalModelConfig.mockReturnValue(null);
 
-			await expect(callLocalModelClient("test prompt")).rejects.toThrow(ModelError);
-			await expect(callLocalModelClient("test prompt")).rejects.toThrow("Model not configured");
+			await expect(callLocalModelClient("test prompt")).rejects.toThrow(
+				ModelError,
+			);
+			await expect(callLocalModelClient("test prompt")).rejects.toThrow(
+				"Model not configured",
+			);
 		});
 
 		it("should throw ModelError for unsupported provider", async () => {
@@ -37,8 +41,12 @@ describe("callLocalModelClient", () => {
 				model: "test-model",
 			});
 
-			await expect(callLocalModelClient("test prompt")).rejects.toThrow(ModelError);
-			await expect(callLocalModelClient("test prompt")).rejects.toThrow("Unsupported provider");
+			await expect(callLocalModelClient("test prompt")).rejects.toThrow(
+				ModelError,
+			);
+			await expect(callLocalModelClient("test prompt")).rejects.toThrow(
+				"Unsupported provider",
+			);
 		});
 	});
 
@@ -120,8 +128,12 @@ describe("callLocalModelClient", () => {
 		it("should throw NetworkError when fetch fails", async () => {
 			global.fetch = vi.fn().mockRejectedValue(new Error("Connection refused"));
 
-			await expect(callLocalModelClient("prompt")).rejects.toThrow(NetworkError);
-			await expect(callLocalModelClient("prompt")).rejects.toThrow("Failed to connect to Ollama");
+			await expect(callLocalModelClient("prompt")).rejects.toThrow(
+				NetworkError,
+			);
+			await expect(callLocalModelClient("prompt")).rejects.toThrow(
+				"Failed to connect to Ollama",
+			);
 		});
 
 		it("should throw ModelError with timeout flag on abort", async () => {
@@ -193,7 +205,8 @@ describe("callLocalModelClient", () => {
 		it("should unwrap outer fence for markdown responses", async () => {
 			global.fetch = vi.fn().mockResolvedValue({
 				ok: true,
-				json: () => Promise.resolve({ response: "```markdown\n# Content\n```" }),
+				json: () =>
+					Promise.resolve({ response: "```markdown\n# Content\n```" }),
 			});
 
 			const result = await callLocalModelClient("prompt", {
@@ -207,7 +220,8 @@ describe("callLocalModelClient", () => {
 		it("should wrap XML responses in code fence", async () => {
 			global.fetch = vi.fn().mockResolvedValue({
 				ok: true,
-				json: () => Promise.resolve({ response: "<root><item>value</item></root>" }),
+				json: () =>
+					Promise.resolve({ response: "<root><item>value</item></root>" }),
 			});
 
 			const result = await callLocalModelClient("prompt", {
@@ -257,9 +271,10 @@ describe("callLocalModelClient", () => {
 		it("should strip word count lines from output", async () => {
 			global.fetch = vi.fn().mockResolvedValue({
 				ok: true,
-				json: () => Promise.resolve({
-					response: "Main content here\nWord Count: 500\nMore content",
-				}),
+				json: () =>
+					Promise.resolve({
+						response: "Main content here\nWord Count: 500\nMore content",
+					}),
 			});
 
 			const result = await callLocalModelClient("prompt");
@@ -272,9 +287,10 @@ describe("callLocalModelClient", () => {
 		it("should strip bold word count variations", async () => {
 			global.fetch = vi.fn().mockResolvedValue({
 				ok: true,
-				json: () => Promise.resolve({
-					response: "Content\n**Word Count**: 250 words",
-				}),
+				json: () =>
+					Promise.resolve({
+						response: "Content\n**Word Count**: 250 words",
+					}),
 			});
 
 			const result = await callLocalModelClient("prompt");
@@ -286,9 +302,10 @@ describe("callLocalModelClient", () => {
 		it("should strip total words variation", async () => {
 			global.fetch = vi.fn().mockResolvedValue({
 				ok: true,
-				json: () => Promise.resolve({
-					response: "Content\nTotal Words: 150",
-				}),
+				json: () =>
+					Promise.resolve({
+						response: "Content\nTotal Words: 150",
+					}),
 			});
 
 			const result = await callLocalModelClient("prompt");
@@ -297,4 +314,3 @@ describe("callLocalModelClient", () => {
 		});
 	});
 });
-

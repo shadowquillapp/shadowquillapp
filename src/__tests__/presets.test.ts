@@ -1,5 +1,5 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	type Preset,
 	compareVersions,
 	deletePresetByIdOrName,
 	ensureDefaultPreset,
@@ -9,11 +9,11 @@ import {
 	getPresetHistory,
 	getPresets,
 	importPresetWithHistory,
-	type Preset,
 	rollbackPreset,
 	savePreset,
 } from "@/lib/presets";
 import type { VersionedPreset } from "@/types";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Helper to clear localStorage before each test
 const clearStorage = () => {
@@ -75,8 +75,18 @@ describe("getPresetHistory", () => {
 
 	it("should return versions when preset has history", () => {
 		const versions = [
-			{ version: 2, timestamp: 2000, taskType: "general" as const, options: {} },
-			{ version: 1, timestamp: 1000, taskType: "general" as const, options: {} },
+			{
+				version: 2,
+				timestamp: 2000,
+				taskType: "general" as const,
+				options: {},
+			},
+			{
+				version: 1,
+				timestamp: 1000,
+				taskType: "general" as const,
+				options: {},
+			},
 		];
 		const preset: Preset = {
 			id: "test-1",
@@ -112,7 +122,11 @@ describe("savePreset", () => {
 	});
 
 	it("should update existing preset by id", () => {
-		const initial: Preset = { id: "test-1", name: "Original", taskType: "general" };
+		const initial: Preset = {
+			id: "test-1",
+			name: "Original",
+			taskType: "general",
+		};
 		localStorage.setItem("PC_PRESETS", JSON.stringify([initial]));
 
 		const updated = savePreset({
@@ -299,8 +313,18 @@ describe("rollbackPreset", () => {
 
 	it("should rollback to specified version", () => {
 		const versions = [
-			{ version: 2, timestamp: 2000, taskType: "coding" as const, options: { tone: "technical" as const } },
-			{ version: 1, timestamp: 1000, taskType: "general" as const, options: { tone: "formal" as const } },
+			{
+				version: 2,
+				timestamp: 2000,
+				taskType: "coding" as const,
+				options: { tone: "technical" as const },
+			},
+			{
+				version: 1,
+				timestamp: 1000,
+				taskType: "general" as const,
+				options: { tone: "formal" as const },
+			},
 		];
 		const preset: Preset = {
 			id: "test-1",
@@ -340,7 +364,12 @@ describe("rollbackPreset", () => {
 
 	it("should include rollback changelog in new version", () => {
 		const versions = [
-			{ version: 1, timestamp: 1000, taskType: "general" as const, options: { tone: "formal" as const } },
+			{
+				version: 1,
+				timestamp: 1000,
+				taskType: "general" as const,
+				options: { tone: "formal" as const },
+			},
 		];
 		const preset: Preset = {
 			id: "test-1",
@@ -354,7 +383,9 @@ describe("rollbackPreset", () => {
 
 		const result = rollbackPreset("test-1", 1);
 
-		expect(result?.versions?.[0]?.changelog).toContain("Rolled back to version 1");
+		expect(result?.versions?.[0]?.changelog).toContain(
+			"Rolled back to version 1",
+		);
 	});
 });
 
@@ -363,8 +394,18 @@ describe("compareVersions", () => {
 
 	it("should identify changed options", () => {
 		const versions = [
-			{ version: 2, timestamp: 2000, taskType: "general" as const, options: { tone: "friendly" as const, detail: "brief" as const } },
-			{ version: 1, timestamp: 1000, taskType: "general" as const, options: { tone: "formal" as const, detail: "brief" as const } },
+			{
+				version: 2,
+				timestamp: 2000,
+				taskType: "general" as const,
+				options: { tone: "friendly" as const, detail: "brief" as const },
+			},
+			{
+				version: 1,
+				timestamp: 1000,
+				taskType: "general" as const,
+				options: { tone: "formal" as const, detail: "brief" as const },
+			},
 		];
 		const preset: Preset = {
 			id: "test-1",
@@ -382,8 +423,18 @@ describe("compareVersions", () => {
 
 	it("should identify added options", () => {
 		const versions = [
-			{ version: 2, timestamp: 2000, taskType: "general" as const, options: { tone: "formal" as const, detail: "brief" as const } },
-			{ version: 1, timestamp: 1000, taskType: "general" as const, options: { tone: "formal" as const } },
+			{
+				version: 2,
+				timestamp: 2000,
+				taskType: "general" as const,
+				options: { tone: "formal" as const, detail: "brief" as const },
+			},
+			{
+				version: 1,
+				timestamp: 1000,
+				taskType: "general" as const,
+				options: { tone: "formal" as const },
+			},
 		];
 		const preset: Preset = {
 			id: "test-1",
@@ -400,8 +451,18 @@ describe("compareVersions", () => {
 
 	it("should identify removed options", () => {
 		const versions = [
-			{ version: 2, timestamp: 2000, taskType: "general" as const, options: { tone: "formal" as const } },
-			{ version: 1, timestamp: 1000, taskType: "general" as const, options: { tone: "formal" as const, detail: "brief" as const } },
+			{
+				version: 2,
+				timestamp: 2000,
+				taskType: "general" as const,
+				options: { tone: "formal" as const },
+			},
+			{
+				version: 1,
+				timestamp: 1000,
+				taskType: "general" as const,
+				options: { tone: "formal" as const, detail: "brief" as const },
+			},
 		];
 		const preset: Preset = {
 			id: "test-1",
@@ -426,7 +487,9 @@ describe("compareVersions", () => {
 			id: "test-1",
 			name: "Test",
 			taskType: "general",
-			versions: [{ version: 1, timestamp: 1000, taskType: "general", options: {} }],
+			versions: [
+				{ version: 1, timestamp: 1000, taskType: "general", options: {} },
+			],
 		};
 		localStorage.setItem("PC_PRESETS", JSON.stringify([preset]));
 
@@ -507,7 +570,12 @@ describe("exportPresetWithHistory", () => {
 
 	it("should export preset with all metadata", () => {
 		const versions = [
-			{ version: 1, timestamp: 1000, taskType: "general" as const, options: { tone: "formal" as const } },
+			{
+				version: 1,
+				timestamp: 1000,
+				taskType: "general" as const,
+				options: { tone: "formal" as const },
+			},
 		];
 		const preset: Preset = {
 			id: "test-1",
@@ -546,8 +614,12 @@ describe("exportPresetWithHistory", () => {
 		const exported = exportPresetWithHistory("test-1");
 
 		expect(exported).not.toBeNull();
-		expect(Object.prototype.hasOwnProperty.call(exported, "options")).toBe(false);
-		expect(Object.prototype.hasOwnProperty.call(exported, "versions")).toBe(false);
+		expect(Object.prototype.hasOwnProperty.call(exported, "options")).toBe(
+			false,
+		);
+		expect(Object.prototype.hasOwnProperty.call(exported, "versions")).toBe(
+			false,
+		);
 	});
 });
 
@@ -617,7 +689,12 @@ describe("importPresetWithHistory", () => {
 
 	it("should preserve version history on import", () => {
 		const versions = [
-			{ version: 1, timestamp: 1000, taskType: "general" as const, options: {} },
+			{
+				version: 1,
+				timestamp: 1000,
+				taskType: "general" as const,
+				options: {},
+			},
 		];
 		const presetData: VersionedPreset = {
 			name: "With History",
@@ -632,4 +709,3 @@ describe("importPresetWithHistory", () => {
 		expect(imported.currentVersion).toBe(1);
 	});
 });
-

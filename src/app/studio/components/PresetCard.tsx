@@ -1,7 +1,7 @@
 "use client";
 
-import type { PresetLite } from "@/types";
 import { Icon } from "@/components/Icon";
+import type { PresetLite } from "@/types";
 import React from "react";
 
 interface PresetCardProps {
@@ -62,50 +62,56 @@ export default function PresetCard({
 					: "border-[var(--color-outline)] text-secondary hover:border-primary hover:shadow-md"
 			}`}
 			style={{
-				background: isSelected ? 'var(--color-surface-variant)' : 'var(--color-surface)'
+				background: isSelected
+					? "var(--color-surface-variant)"
+					: "var(--color-surface)",
 			}}
 			onMouseEnter={(e) => {
 				if (!isSelected) {
-					(e.currentTarget as HTMLElement).style.background = 'var(--color-surface-variant)';
+					(e.currentTarget as HTMLElement).style.background =
+						"var(--color-surface-variant)";
 				}
 			}}
 			onMouseLeave={(e) => {
 				if (!isSelected) {
-					(e.currentTarget as HTMLElement).style.background = 'var(--color-surface)';
+					(e.currentTarget as HTMLElement).style.background =
+						"var(--color-surface)";
 				}
 			}}
 			onClick={onSelect}
 			aria-label={`Select preset: ${preset.name}`}
 			aria-pressed={isSelected}
 		>
-		{/* Icon */}
-		<div
-			className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
-				isSelected
-					? "shadow-sm"
-					: "text-secondary group-hover:text-light"
-			}`}
-			style={{
-				background: isSelected ? 'var(--color-primary)' : 'var(--color-surface-variant)',
-				color: isSelected ? 'var(--color-on-primary)' : undefined
-			}}
-		>
-			<Icon name={iconName as any} className="text-xs" />
-		</div>
+			{/* Icon */}
+			<div
+				className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
+					isSelected ? "shadow-sm" : "text-secondary group-hover:text-light"
+				}`}
+				style={{
+					background: isSelected
+						? "var(--color-primary)"
+						: "var(--color-surface-variant)",
+					color: isSelected ? "var(--color-on-primary)" : undefined,
+				}}
+			>
+				<Icon name={iconName as any} className="text-xs" />
+			</div>
 
 			{/* Content */}
 			<div className="flex min-w-0 flex-1 flex-col">
 				<div className="flex items-center justify-between gap-2 pb-1">
 					<span
 						className={`truncate font-medium text-sm leading-tight ${
-							isSelected ? "text-light" : "text-secondary group-hover:text-light"
+							isSelected
+								? "text-light"
+								: "text-secondary group-hover:text-light"
 						}`}
 					>
 						{preset.name}
 					</span>
 				</div>
 
-				<div className="flex items-center gap-2 text-[10px] text-secondary opacity-80 leading-tight">
+				<div className="flex items-center gap-2 text-[10px] text-secondary leading-tight opacity-80">
 					<span className="capitalize">{taskType}</span>
 					<span className="text-[var(--color-outline)]">•</span>
 					<span title={`Detail: ${preset.options?.detail || "Normal"}`}>

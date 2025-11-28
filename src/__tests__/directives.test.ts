@@ -1,4 +1,3 @@
-import { describe, expect, it } from "vitest";
 import { buildDirectives } from "@/lib/prompt-directives";
 import {
 	buildAdvancedDirectives,
@@ -7,10 +6,11 @@ import {
 } from "@/lib/prompt-directives/base";
 import { buildCodingDirectives } from "@/lib/prompt-directives/coding";
 import { buildImageDirectives } from "@/lib/prompt-directives/image";
+import { buildMarketingDirectives } from "@/lib/prompt-directives/marketing";
+import { buildResearchDirectives } from "@/lib/prompt-directives/research";
 import { buildVideoDirectives } from "@/lib/prompt-directives/video";
 import { buildWritingDirectives } from "@/lib/prompt-directives/writing";
-import { buildResearchDirectives } from "@/lib/prompt-directives/research";
-import { buildMarketingDirectives } from "@/lib/prompt-directives/marketing";
+import { describe, expect, it } from "vitest";
 
 describe("buildDirectives", () => {
 	it("should return empty array when no options provided", () => {
@@ -52,12 +52,16 @@ describe("buildBaseDirectives", () => {
 
 	it("should include output length requirement for detail level", () => {
 		const result = buildBaseDirectives({ detail: "brief" });
-		expect(result.some((d) => d.includes("75-150") && d.includes("OUTPUT LENGTH"))).toBe(true);
+		expect(
+			result.some((d) => d.includes("75-150") && d.includes("OUTPUT LENGTH")),
+		).toBe(true);
 	});
 
 	it("should include output length requirement for detailed level", () => {
 		const result = buildBaseDirectives({ detail: "detailed" });
-		expect(result.some((d) => d.includes("350-500") && d.includes("OUTPUT LENGTH"))).toBe(true);
+		expect(
+			result.some((d) => d.includes("350-500") && d.includes("OUTPUT LENGTH")),
+		).toBe(true);
 	});
 
 	it("should skip language directive for English", () => {
@@ -245,16 +249,16 @@ describe("buildImageDirectives", () => {
 		expect(result.some((d) => d.includes("16:9") && d.includes("1080p"))).toBe(
 			true,
 		);
-		expect(result.some((d) => d.includes("REQUIRED") || d.includes("EXACTLY"))).toBe(
-			true,
-		);
+		expect(
+			result.some((d) => d.includes("REQUIRED") || d.includes("EXACTLY")),
+		).toBe(true);
 	});
 
 	it("should include instruction to not invent specifications", () => {
 		const result = buildImageDirectives({ stylePreset: "anime" });
-		expect(
-			result.some((d) => d.toLowerCase().includes("do not invent")),
-		).toBe(true);
+		expect(result.some((d) => d.toLowerCase().includes("do not invent"))).toBe(
+			true,
+		);
 	});
 });
 
@@ -331,9 +335,9 @@ describe("buildResearchDirectives", () => {
 
 	it("should indicate no citations when disabled", () => {
 		const result = buildResearchDirectives({ requireCitations: false });
-		expect(result.some((d) => d.toLowerCase().includes("without citation"))).toBe(
-			true,
-		);
+		expect(
+			result.some((d) => d.toLowerCase().includes("without citation")),
+		).toBe(true);
 	});
 });
 
@@ -362,4 +366,3 @@ describe("buildMarketingDirectives", () => {
 		expect(result.some((d) => d.includes("GDPR"))).toBe(true);
 	});
 });
-

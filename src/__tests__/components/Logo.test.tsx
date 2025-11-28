@@ -1,6 +1,6 @@
+import { Logo } from "@/components/Logo";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { Logo } from "@/components/Logo";
 
 describe("Logo", () => {
 	it("should render an SVG element", () => {
@@ -45,4 +45,3 @@ describe("Logo", () => {
 		expect(path).toHaveAttribute("fill", "currentColor");
 	});
 });
-

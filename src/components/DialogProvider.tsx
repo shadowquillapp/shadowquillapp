@@ -140,11 +140,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 		<DialogContext.Provider value={value}>
 			{children}
 			{active && (
-				<div
-					className="modal-container"
-					aria-modal="true"
-					role="dialog"
-				>
+				<div className="modal-container" aria-modal="true" role="dialog">
 					<div className="modal-backdrop-blur" />
 					<div className="modal-content" onClick={(e) => e.stopPropagation()}>
 						<div className="modal-header">

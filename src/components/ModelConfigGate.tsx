@@ -5,13 +5,13 @@ import {
 	validateLocalModelConnection as validateLocalModelConnectionClient,
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
+import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
 import { ensureDefaultPreset } from "@/lib/presets";
 import {
 	ensureSystemPromptBuild,
 	resetSystemPromptBuild,
 	setSystemPromptBuild,
 } from "@/lib/system-prompts";
-import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
 import { useEffect, useRef, useState } from "react";
 import { useDialog } from "./DialogProvider";
 import { Icon } from "./Icon";
@@ -30,7 +30,11 @@ interface WindowWithShadowQuill extends Window {
 function isElectronRuntime(): boolean {
 	if (typeof process !== "undefined") {
 		if ((process as any)?.versions?.electron) return true;
-		if (process.env.ELECTRON === "1" || process.env.NEXT_PUBLIC_ELECTRON === "1") return true;
+		if (
+			process.env.ELECTRON === "1" ||
+			process.env.NEXT_PUBLIC_ELECTRON === "1"
+		)
+			return true;
 	}
 	if (typeof navigator !== "undefined") {
 		return /Electron/i.test(navigator.userAgent);
@@ -352,11 +356,11 @@ export default function ModelConfigGate({ children }: Props) {
 			/>
 			<div
 				className="relative h-full w-full"
-			data-model-gate={
-				electronMode ? (config ? "ready" : "pending") : "disabled"
-			}
-		>
-			{!gated && children}
+				data-model-gate={
+					electronMode ? (config ? "ready" : "pending") : "disabled"
+				}
+			>
+				{!gated && children}
 				{electronMode && gated && (
 					<div className="modal-container">
 						<div className="modal-backdrop-blur" />
@@ -387,7 +391,10 @@ export default function ModelConfigGate({ children }: Props) {
 								style={{ overflow: "hidden" }}
 							>
 								<div className="modal-header">
-									<div className="modal-title" style={{ display: "flex", alignItems: "center", gap: 10 }}>
+									<div
+										className="modal-title"
+										style={{ display: "flex", alignItems: "center", gap: 10 }}
+									>
 										<Icon name="gear" />
 										<span>Ollama Connection Setup</span>
 									</div>
@@ -446,27 +453,51 @@ export default function ModelConfigGate({ children }: Props) {
 										<section className="ollama-panel">
 											<header className="ollama-panel__head">
 												<div>
-													<p className="ollama-panel__eyebrow">First-Time Setup</p>
+													<p className="ollama-panel__eyebrow">
+														First-Time Setup
+													</p>
 													<h3>Connect to Ollama</h3>
 													<p className="ollama-panel__subtitle">
-														Configure your local Ollama connection to start using ShadowQuill.
+														Configure your local Ollama connection to start
+														using ShadowQuill.
 													</p>
 												</div>
-												<span className={`ollama-status-chip ollama-status-chip--${
-													testingLocal ? "loading" :
-													localTestResult ? (localTestResult.success ? "success" : "error") :
-													connectionError ? "error" : "idle"
-												}`}>
-													{testingLocal ? "Checking…" :
-													localTestResult ? (localTestResult.success ? "Connected" : "Failed") :
-													connectionError ? "Error" : "Ready"}
+												<span
+													className={`ollama-status-chip ollama-status-chip--${
+														testingLocal
+															? "loading"
+															: localTestResult
+																? (
+																		localTestResult.success
+																			? "success"
+																			: "error"
+																	)
+																: connectionError
+																	? "error"
+																	: "idle"
+													}`}
+												>
+													{testingLocal
+														? "Checking…"
+														: localTestResult
+															? localTestResult.success
+																? "Connected"
+																: "Failed"
+															: connectionError
+																? "Error"
+																: "Ready"}
 												</span>
 											</header>
 
 											<div className="ollama-panel__body">
 												{previouslyConfigured && connectionError && (
-													<div className="ollama-error-banner" role="alert" hidden>
-														Previous configuration failed: {connectionError}. Please update and save again.
+													<div
+														className="ollama-error-banner"
+														role="alert"
+														hidden
+													>
+														Previous configuration failed: {connectionError}.
+														Please update and save again.
 													</div>
 												)}
 
@@ -502,18 +533,28 @@ export default function ModelConfigGate({ children }: Props) {
 															title="Check for available Ollama models"
 															aria-label="Check for available Ollama models"
 														>
-															<Icon name="refresh" {...(testingLocal && { className: "md-spin" })} />
+															<Icon
+																name="refresh"
+																{...(testingLocal && { className: "md-spin" })}
+															/>
 														</button>
 													</div>
 													<p className="ollama-field-hint">
-														{normalizeToBaseUrl(localPort) || "Waiting for port value."}
+														{normalizeToBaseUrl(localPort) ||
+															"Waiting for port value."}
 													</p>
 												</div>
 
 												{localTestResult && (
-													<div className={`ollama-status-card ollama-status-card--${localTestResult.success ? "success" : "error"}`}>
+													<div
+														className={`ollama-status-card ollama-status-card--${localTestResult.success ? "success" : "error"}`}
+													>
 														<div className="ollama-status-card__icon">
-															<Icon name={localTestResult.success ? "check" : "warning"} />
+															<Icon
+																name={
+																	localTestResult.success ? "check" : "warning"
+																}
+															/>
 														</div>
 														<div className="ollama-status-card__content">
 															<div>
@@ -558,7 +599,9 @@ export default function ModelConfigGate({ children }: Props) {
 																</div>
 															)}
 															{openOllamaError && (
-																<p className="ollama-error-inline">{openOllamaError}</p>
+																<p className="ollama-error-inline">
+																	{openOllamaError}
+																</p>
 															)}
 															{localTestResult.success &&
 																localTestResult.models &&
@@ -568,16 +611,25 @@ export default function ModelConfigGate({ children }: Props) {
 																			const size = (
 																				m.name.split(":")[1] || ""
 																			).toUpperCase();
-																			const readable = size ? `Gemma 3 ${size}` : m.name;
+																			const readable = size
+																				? `Gemma 3 ${size}`
+																				: m.name;
 																			const sizeInGB = (
 																				m.size /
 																				(1024 * 1024 * 1024)
 																			).toFixed(1);
 																			return (
-																				<div key={m.name} className="ollama-model-item">
+																				<div
+																					key={m.name}
+																					className="ollama-model-item"
+																				>
 																					<Icon name="check" />
-																					<span className="ollama-model-name">{readable}</span>
-																					<span className="ollama-model-size">{sizeInGB}GB</span>
+																					<span className="ollama-model-name">
+																						{readable}
+																					</span>
+																					<span className="ollama-model-size">
+																						{sizeInGB}GB
+																					</span>
 																				</div>
 																			);
 																		})}
@@ -587,7 +639,8 @@ export default function ModelConfigGate({ children }: Props) {
 																localTestResult.models &&
 																localTestResult.models.length === 0 && (
 																	<p className="ollama-empty-note">
-																		Connected, but Gemma 3 models have not been pulled yet.
+																		Connected, but Gemma 3 models have not been
+																		pulled yet.
 																	</p>
 																)}
 														</div>
@@ -596,16 +649,18 @@ export default function ModelConfigGate({ children }: Props) {
 
 												{!localTestResult && availableModels.length === 0 && (
 													<div className="ollama-availability">
-														No Gemma 3 models detected yet. After installing Ollama, run{" "}
-														<code>ollama pull gemma3:4b</code> (or your preferred size) and
-														retest.
+														No Gemma 3 models detected yet. After installing
+														Ollama, run <code>ollama pull gemma3:4b</code> (or
+														your preferred size) and retest.
 													</div>
 												)}
 
 												{availableModels.length > 0 && (
 													<div className="ollama-availability">
-														Found <strong>{availableModels.length}</strong> usable model
-														{availableModels.length > 1 ? "s" : ""}. Auto-selecting: <code>{model}</code>
+														Found <strong>{availableModels.length}</strong>{" "}
+														usable model
+														{availableModels.length > 1 ? "s" : ""}.
+														Auto-selecting: <code>{model}</code>
 													</div>
 												)}
 											</div>
@@ -618,7 +673,10 @@ export default function ModelConfigGate({ children }: Props) {
 												</span>
 												<button
 													disabled={
-														saving || validating || !model || model.trim() === ""
+														saving ||
+														validating ||
+														!model ||
+														model.trim() === ""
 													}
 													className={`md-btn md-btn--primary${localTestResult?.success ? " pulse-glow" : ""}`}
 													style={{
@@ -1027,15 +1085,17 @@ function DataLocationModalWrapper() {
 											className="text-secondary text-xs"
 											style={{ marginBottom: 10 }}
 										>
-											This will delete all local data (settings, workbenchs, presets)
-											PERMANENTLY. The app will restart with a fresh state.
+											This will delete all local data (settings, workbenchs,
+											presets) PERMANENTLY. The app will restart with a fresh
+											state.
 										</div>
 										<button
 											className="md-btn md-btn--destructive"
 											onClick={async () => {
 												const ok = await confirm({
 													title: "Factory Reset",
-													message: "Delete ALL local data and restart? The app will restart with a completely fresh state.",
+													message:
+														"Delete ALL local data and restart? The app will restart with a completely fresh state.",
 													confirmText: "Delete & Restart",
 													cancelText: "Cancel",
 													tone: "destructive",
@@ -1047,7 +1107,7 @@ function DataLocationModalWrapper() {
 													// CRITICAL: Clear all renderer storage FIRST to prevent
 													// beforeunload handlers from re-saving data
 													clearAllStorageForFactoryReset();
-													
+
 													const api = (window as any).shadowquill;
 													const res = await api?.factoryReset?.();
 													if (!res?.ok) {

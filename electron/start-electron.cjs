@@ -75,7 +75,7 @@ function startNext() {
 /** Cleanup function to kill all child processes and servers */
 function cleanup() {
 	console.log("[start-electron] Cleaning up...");
-	
+
 	// Kill Next.js dev server if running
 	if (nextDevServer && !nextDevServer.killed) {
 		console.log("[start-electron] Killing Next.js dev server...");
@@ -91,7 +91,7 @@ function cleanup() {
 			console.error("[start-electron] Error killing Next.js dev server:", e);
 		}
 	}
-	
+
 	// Close prod server if running
 	if (prodServer) {
 		console.log("[start-electron] Closing production server...");
@@ -128,24 +128,24 @@ function cleanup() {
 				process.stderr.write(data);
 			});
 		}
-		
+
 		// Clean up when Electron exits
 		proc.on("exit", (code) => {
 			cleanup();
 			process.exit(code ?? 0);
 		});
-		
+
 		// Clean up when this process is killed
 		process.on("SIGINT", () => {
 			cleanup();
 			process.exit(0);
 		});
-		
+
 		process.on("SIGTERM", () => {
 			cleanup();
 			process.exit(0);
 		});
-		
+
 		// Ensure cleanup happens on process exit
 		process.on("exit", () => {
 			if (nextDevServer && !nextDevServer.killed) {

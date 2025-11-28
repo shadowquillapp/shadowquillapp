@@ -1,9 +1,9 @@
 "use client";
 
 import TemperatureControl from "@/app/studio/components/TemperatureControl";
-import type { PresetLite } from "@/types";
 import { CustomSelect } from "@/components/CustomSelect";
 import { Icon } from "@/components/Icon";
+import type { PresetLite } from "@/types";
 import React from "react";
 
 interface BasicSettingsProps {
@@ -36,13 +36,11 @@ const DETAIL_LEVELS = {
 	},
 } as const;
 
-
 export default function BasicSettings({
 	preset,
 	onFieldChange,
 }: BasicSettingsProps) {
 	const options = preset.options || {};
-
 
 	return (
 		<div className="mt-4 space-y-6">
@@ -56,7 +54,7 @@ export default function BasicSettings({
 					value={preset.name}
 					onChange={(e) => onFieldChange("name", e.target.value)}
 					placeholder="Enter preset name"
-					className="md-input w-full h-10 !rounded-lg py-2 px-3 text-sm"
+					className="md-input !rounded-lg h-10 w-full px-3 py-2 text-sm"
 				/>
 			</div>
 
@@ -116,15 +114,15 @@ export default function BasicSettings({
 				</div>
 			</div>
 
-
-		{/* Detail Level - simplified */}
-		<div>
-			<label className="mb-1.5 block font-medium text-secondary text-xs">
-				Detail Level
-			</label>
-			<div className="grid grid-cols-3 gap-2">
-				{(Object.keys(DETAIL_LEVELS) as Array<keyof typeof DETAIL_LEVELS>).map(
-					(level) => {
+			{/* Detail Level - simplified */}
+			<div>
+				<label className="mb-1.5 block font-medium text-secondary text-xs">
+					Detail Level
+				</label>
+				<div className="grid grid-cols-3 gap-2">
+					{(
+						Object.keys(DETAIL_LEVELS) as Array<keyof typeof DETAIL_LEVELS>
+					).map((level) => {
 						const meta = DETAIL_LEVELS[level];
 						const isSelected = (options.detail || "normal") === level;
 
@@ -133,22 +131,22 @@ export default function BasicSettings({
 								key={level}
 								type="button"
 								onClick={() => onFieldChange("detail", level)}
-								className={`relative p-3 rounded-xl border transition-all duration-200 text-center ${
+								className={`relative rounded-xl border p-3 text-center transition-all duration-200 ${
 									isSelected
 										? "border-primary bg-primary/10"
-										: "border-[var(--color-outline)] bg-[var(--color-surface)] hover:bg-[var(--color-surface-variant)] hover:border-primary/50"
+										: "border-[var(--color-outline)] bg-[var(--color-surface)] hover:border-primary/50 hover:bg-[var(--color-surface-variant)]"
 								}`}
 							>
 								<div className="flex items-center justify-center gap-2">
 									<Icon
 										name={meta.icon as any}
-										className="w-3.5 h-3.5"
+										className="h-3.5 w-3.5"
 										style={{
 											color: isSelected ? meta.color : "var(--color-secondary)",
 										}}
 									/>
 									<span
-										className={`text-xs font-semibold ${
+										className={`font-semibold text-xs ${
 											isSelected ? "text-primary" : "text-on-surface"
 										}`}
 									>
@@ -157,10 +155,9 @@ export default function BasicSettings({
 								</div>
 							</button>
 						);
-					},
-				)}
+					})}
+				</div>
 			</div>
-		</div>
 
 			{/* Language */}
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">

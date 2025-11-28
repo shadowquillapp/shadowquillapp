@@ -9,7 +9,10 @@ interface VersionTimelineProps {
 	onJump: (versionId: string) => void;
 }
 
-const summarizeDelta = (current: VersionNode, previous?: VersionNode | null) => {
+const summarizeDelta = (
+	current: VersionNode,
+	previous?: VersionNode | null,
+) => {
 	const delta = current.content.length - (previous?.content.length ?? 0);
 	if (delta === 0) return "±0 chars";
 	return delta > 0 ? `+${delta} chars` : `${delta} chars`;
@@ -54,31 +57,37 @@ export function VersionTimeline({ tab, onJump }: VersionTimelineProps) {
 						>
 							<div className="ide-timeline__item-head">
 								<div className="flex items-center gap-2">
-									<div className="ide-timeline__step">
-										v{index + 1}
-									</div>
+									<div className="ide-timeline__step">v{index + 1}</div>
 									{hasOutput ? (
-										<span 
-											className={`text-[10px] ${isRefinement ? "text-[var(--color-tertiary)]" : "text-green-500"}`} 
+										<span
+											className={`text-[10px] ${isRefinement ? "text-[var(--color-tertiary)]" : "text-green-500"}`}
 											title={isRefinement ? "Refinement" : "Base version"}
 										>
-											<Icon name={isRefinement ? "refresh" : "check"} className="w-3 h-3" />
+											<Icon
+												name={isRefinement ? "refresh" : "check"}
+												className="h-3 w-3"
+											/>
 										</span>
 									) : (
-										<span className="text-amber-500 text-[10px]" title="Manual save (no output)">
-											<Icon name="edit" className="w-3 h-3" />
+										<span
+											className="text-[10px] text-amber-500"
+											title="Manual save (no output)"
+										>
+											<Icon name="edit" className="h-3 w-3" />
 										</span>
 									)}
 								</div>
 								<div className="ide-timeline__label">
 									{hasOutput && (
-										<span 
-											className="text-[9px] font-bold uppercase mr-1.5 px-1 py-0.5 rounded"
+										<span
+											className="mr-1.5 rounded px-1 py-0.5 font-bold text-[9px] uppercase"
 											style={{
-												background: isRefinement 
+												background: isRefinement
 													? "color-mix(in srgb, var(--color-tertiary) 20%, transparent)"
 													: "color-mix(in srgb, var(--color-save) 20%, transparent)",
-												color: isRefinement ? "var(--color-tertiary)" : "var(--color-save)",
+												color: isRefinement
+													? "var(--color-tertiary)"
+													: "var(--color-save)",
 											}}
 										>
 											{isRefinement ? "Refine" : "Base"}
@@ -97,7 +106,9 @@ export function VersionTimeline({ tab, onJump }: VersionTimelineProps) {
 								</div>
 							</div>
 							<p className="ide-timeline__preview">
-								{node.originalInput?.slice(0, 140) || node.content.slice(0, 140) || "—"}
+								{node.originalInput?.slice(0, 140) ||
+									node.content.slice(0, 140) ||
+									"—"}
 							</p>
 						</button>
 					);
@@ -129,4 +140,3 @@ export function VersionTimeline({ tab, onJump }: VersionTimelineProps) {
 		</aside>
 	);
 }
-
