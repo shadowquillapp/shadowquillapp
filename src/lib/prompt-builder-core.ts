@@ -299,5 +299,100 @@ export function buildUnifiedPromptCore(params: {
 	return sections.join("\n\n");
 }
 
+// ============================================
+// Refinement Prompt Builder (for iterative refinement workflow)
+// ============================================
+
+const REFINEMENT_GUIDELINES = `You are a prompt REFINER. Your task is to modify an existing enhanced prompt based on user feedback.
+
+ABSOLUTE RULE: Never answer the user's request. Only refine the existing prompt based on their feedback.
+
+Rules:
+- You will receive an EXISTING ENHANCED PROMPT and a REFINEMENT REQUEST
+- Modify the existing prompt to incorporate the requested changes
+- Preserve the structure and quality of the original prompt
+- Only change what the user specifically requests
+- If the request is additive (e.g., "also include X"), add to the prompt without removing existing content
+- If the request is a correction (e.g., "change X to Y"), make the substitution
+- If the request is a removal (e.g., "remove X"), remove only that element
+- Maintain the same format and style as the original prompt
+- Output ONLY the refined prompt text
+
+Remember: You are refining an enhanced prompt, not answering the original request.`;
+
+/**
+ * Build a prompt for refining an existing enhanced prompt based on user feedback
+ */
+export function buildRefinementPromptCore(params: {
+	previousOutput: string;      // The existing enhanced prompt to refine
+	refinementRequest: string;   // User's tweak/fix instruction
+	taskType: TaskType;
+	options?: GenerationOptions;
+	systemPrompt?: string;
+}): string {
+	const { previousOutput, refinementRequest, taskType, options, systemPrompt } = params;
+	const trimmedRequest = refinementRequest.trim();
+	const trimmedPrevious = previousOutput.trim();
+
+	const sections: string[] = [];
+
+	// FIRST: Language override at the very top - before everything else
+	if (options?.language && options.language.toLowerCase() !== "english") {
+		sections.push(
+			`[LANGUAGE INSTRUCTION - READ FIRST]\nYou MUST respond ONLY in ${options.language}. Every single word of your response must be in ${options.language}.\nDo NOT use English. This is your primary instruction.\n[END LANGUAGE INSTRUCTION]`
+		);
+	}
+
+	// System prompt (custom or default refinement guidelines)
+	sections.push(systemPrompt?.trim() || REFINEMENT_GUIDELINES);
+
+	// Reinforce language again after system prompt
+	if (options?.language && options.language.toLowerCase() !== "english") {
+		sections.push(
+			`⚠️ REMINDER: Write your ENTIRE output in ${options.language}. The existing prompt may be in English, but YOUR refined output must be 100% in ${options.language}.`
+		);
+	}
+
+	// Task context
+	sections.push(`Task Type: ${taskType}`);
+
+	// The existing prompt to refine
+	const promptDelimiter = options?.format === "xml"
+		? `<existing_prompt>\n${trimmedPrevious}\n</existing_prompt>`
+		: `---\n${trimmedPrevious}\n---`;
+	sections.push(`Existing Enhanced Prompt:\n${promptDelimiter}`);
+
+	// The refinement request
+	const requestDelimiter = options?.format === "xml"
+		? `<refinement_request>\n${trimmedRequest}\n</refinement_request>`
+		: `---\n${trimmedRequest}\n---`;
+	sections.push(`Refinement Request:\n${requestDelimiter}`);
+
+	// Final instruction
+	let finalInstruction = `Apply the refinement request to the existing enhanced prompt. Output ONLY the refined prompt text. Do NOT include any explanations, commentary, or meta-text about the changes you made.`;
+
+	// Add strict word count reminder if detail level is specified
+	if (options?.detail) {
+		const wordLimits: Record<string, string> = {
+			brief: "75-150 words (DO NOT EXCEED 150)",
+			normal: "200-300 words (DO NOT EXCEED 300)",
+			detailed: "350-500 words (DO NOT EXCEED 500)",
+		};
+		const limit = wordLimits[options.detail];
+		if (limit) {
+			finalInstruction += ` CRITICAL: Your refined prompt output must be ${limit}.`;
+		}
+	}
+
+	// Add language enforcement reminder if non-English language is selected
+	if (options?.language && options.language.toLowerCase() !== "english") {
+		finalInstruction += ` IMPORTANT: Your entire output MUST be written in ${options.language}.`;
+	}
+
+	sections.push(finalInstruction);
+
+	return sections.join("\n\n");
+}
+
 // Legacy export for backward compatibility
 export { buildDirectives as buildOptionDirectives } from "./prompt-directives";

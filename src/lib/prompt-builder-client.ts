@@ -4,6 +4,7 @@
  */
 import {
 	buildUnifiedPromptCore,
+	buildRefinementPromptCore,
 	validateBuilderInput,
 } from "@/lib/prompt-builder-core";
 import type { GenerationOptions, TaskType } from "@/types";
@@ -100,4 +101,43 @@ export async function buildPromptPreview({
 	return buildUnifiedPrompt({ input, taskType, skipCache: true, ...(options && { options }) });
 }
 
+export interface BuildRefinementPromptInput {
+	previousOutput: string;      // The existing enhanced prompt to refine
+	refinementRequest: string;   // User's tweak/fix instruction
+	taskType: TaskType;
+	options?: GenerationOptions;
+}
+
+/**
+ * Build a refinement prompt that modifies an existing enhanced prompt based on user feedback.
+ * Used in the versioning workflow when the user wants to tweak/fix a previous output.
+ * 
+ * @param params - The refinement parameters
+ * @returns The generated refinement prompt string
+ */
+export async function buildRefinementPrompt({
+	previousOutput,
+	refinementRequest,
+	taskType,
+	options,
+}: BuildRefinementPromptInput): Promise<string> {
+	const trimmedRequest = refinementRequest.trim();
+
+	// Validate the refinement request (must have some content)
+	if (!trimmedRequest) {
+		return "Please provide a refinement request describing what to change.";
+	}
+
+	// Generate the refinement prompt (no caching for refinements as they depend on previous output)
+	const generatedPrompt = buildRefinementPromptCore({
+		previousOutput,
+		refinementRequest: trimmedRequest,
+		taskType,
+		...(options && { options }),
+	});
+
+	return generatedPrompt;
+}
+
 export { validateBuilderInput } from "@/lib/prompt-builder-core";
+
