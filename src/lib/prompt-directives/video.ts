@@ -14,6 +14,10 @@ export function buildVideoDirectives(options: GenerationOptions): string[] {
 		directives.push(`Aspect ratio: ${options.aspectRatio}.`);
 	}
 
+	if (options.targetResolution) {
+		directives.push(`Target resolution: ${options.targetResolution}.`);
+	}
+
 	if (typeof options.durationSeconds === "number") {
 		directives.push(`Duration: ~${options.durationSeconds} seconds.`);
 	}

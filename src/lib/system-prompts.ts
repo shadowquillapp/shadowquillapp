@@ -35,6 +35,7 @@ Example of WRONG behavior:
 Output rules:
 - Output ONLY the enhanced prompt text
 - Match the requested format (plain text, markdown, or XML)
+- If a specific language is requested, write your ENTIRE output in that language
 - The enhanced prompt should be ready to paste into another AI system`;
 
 function readRawPrompt(): string {

@@ -141,16 +141,9 @@ function buildConstraints(
 	if (!options) return [];
 	const constraints: string[] = [];
 
-	// Basic constraints
+	// Basic constraints (these appear in the enhanced prompt, so exclude output-length constraints like word count)
 	if (options.tone) constraints.push(`tone=${options.tone}`);
-	if (options.detail) {
-		const wordRanges: Record<string, string> = {
-			brief: "100-150",
-			normal: "200-300",
-			detailed: "350-500",
-		};
-		constraints.push(`words=${wordRanges[options.detail]}`);
-	}
+	// Note: word count is excluded from constraints as it applies to the enhancer's output length, not the final prompt
 	if (options.format) constraints.push(`format=${options.format}`);
 	if (options.language && options.language.toLowerCase() !== "english") {
 		constraints.push(`lang=${options.language}`);
@@ -222,9 +215,24 @@ export function buildUnifiedPromptCore(params: {
 
 	const sections: string[] = [];
 
+	// FIRST: Language override at the very top - before everything else
+	if (options?.language && options.language.toLowerCase() !== "english") {
+		// Add language instruction at the VERY TOP of the prompt
+		sections.push(
+			`[LANGUAGE INSTRUCTION - READ FIRST]\nYou MUST respond ONLY in ${options.language}. Every single word of your response must be in ${options.language}.\nDo NOT use English. This is your primary instruction.\n[END LANGUAGE INSTRUCTION]`
+		);
+	}
+
 	// System prompt (custom or default)
 	if (systemPrompt) {
 		sections.push(systemPrompt);
+	}
+
+	// Reinforce language again after system prompt
+	if (options?.language && options.language.toLowerCase() !== "english") {
+		sections.push(
+			`⚠️ REMINDER: Write your ENTIRE output in ${options.language}. The user input may be in English, but YOUR response must be 100% in ${options.language}.`
+		);
 	}
 
 	// Core guidelines
@@ -265,10 +273,28 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(`Examples:\n${options.examplesText}`);
 	}
 
-	// Final instruction
-	sections.push(
-		`Transform the user input into an enhanced, detailed ${taskType} prompt. Output ONLY the improved prompt text that can be used with another AI system. Do NOT answer or fulfill the request - only enhance the prompt.`,
-	);
+	// Final instruction with word count reinforcement
+	let finalInstruction = `Transform the user input into an enhanced, detailed ${taskType} prompt. Output ONLY the improved prompt text that can be used with another AI system. Do NOT answer or fulfill the request - only enhance the prompt.`;
+	
+	// Add strict word count reminder if detail level is specified
+	if (options?.detail) {
+		const wordLimits: Record<string, string> = {
+			brief: "75-150 words (DO NOT EXCEED 150)",
+			normal: "200-300 words (DO NOT EXCEED 300)",
+			detailed: "350-500 words (DO NOT EXCEED 500)",
+		};
+		const limit = wordLimits[options.detail];
+		if (limit) {
+			finalInstruction += ` CRITICAL: Your enhanced prompt output must be ${limit}. Do NOT include word count or length constraints in the enhanced prompt itself - the word limit applies to the total length of YOUR response.`;
+		}
+	}
+	
+	// Add language enforcement reminder if non-English language is selected
+	if (options?.language && options.language.toLowerCase() !== "english") {
+		finalInstruction += ` IMPORTANT: Your entire output MUST be written in ${options.language}, regardless of what language the input is in.`;
+	}
+	
+	sections.push(finalInstruction);
 
 	return sections.join("\n\n");
 }
