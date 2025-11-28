@@ -50,14 +50,14 @@ describe("buildBaseDirectives", () => {
 		expect(result.some((d) => d.toLowerCase().includes("formal"))).toBe(true);
 	});
 
-	it("should include word count for detail level", () => {
+	it("should include output length requirement for detail level", () => {
 		const result = buildBaseDirectives({ detail: "brief" });
-		expect(result.some((d) => d.includes("100-150"))).toBe(true);
+		expect(result.some((d) => d.includes("75-150") && d.includes("OUTPUT LENGTH"))).toBe(true);
 	});
 
-	it("should include word count for detailed level", () => {
+	it("should include output length requirement for detailed level", () => {
 		const result = buildBaseDirectives({ detail: "detailed" });
-		expect(result.some((d) => d.includes("350-500"))).toBe(true);
+		expect(result.some((d) => d.includes("350-500") && d.includes("OUTPUT LENGTH"))).toBe(true);
 	});
 
 	it("should skip language directive for English", () => {
@@ -107,6 +107,29 @@ describe("buildFormatDirectives", () => {
 		expect(result.some((d) => d.toLowerCase().includes("plain text"))).toBe(
 			true,
 		);
+	});
+
+	it("should inject resolution and aspect ratio into image XML schema", () => {
+		const result = buildFormatDirectives("image", {
+			format: "xml",
+			targetResolution: "1080p",
+			aspectRatio: "16:9",
+		});
+		expect(result.some((d) => d.includes('resolution="1080p"'))).toBe(true);
+		expect(result.some((d) => d.includes('aspect="16:9"'))).toBe(true);
+	});
+
+	it("should inject specs into video XML schema", () => {
+		const result = buildFormatDirectives("video", {
+			format: "xml",
+			targetResolution: "4K",
+			aspectRatio: "9:16",
+			frameRate: 60,
+			durationSeconds: 15,
+		});
+		expect(result.some((d) => d.includes('resolution="4K"'))).toBe(true);
+		expect(result.some((d) => d.includes('fps="60"'))).toBe(true);
+		expect(result.some((d) => d.includes('duration="15s"'))).toBe(true);
 	});
 });
 
@@ -193,16 +216,45 @@ describe("buildCodingDirectives", () => {
 });
 
 describe("buildImageDirectives", () => {
-	it("should include style preset", () => {
+	it("should include style-specific guidance for photorealistic", () => {
 		const result = buildImageDirectives({ stylePreset: "photorealistic" });
 		expect(result.some((d) => d.toLowerCase().includes("photorealistic"))).toBe(
 			true,
 		);
+		expect(result.some((d) => d.toLowerCase().includes("photography"))).toBe(
+			true,
+		);
 	});
 
-	it("should include aspect ratio", () => {
-		const result = buildImageDirectives({ aspectRatio: "16:9" });
-		expect(result.some((d) => d.includes("16:9"))).toBe(true);
+	it("should include anime-specific guidance with hand-drawn terminology", () => {
+		const result = buildImageDirectives({ stylePreset: "anime" });
+		expect(result.some((d) => d.toLowerCase().includes("anime"))).toBe(true);
+		expect(result.some((d) => d.toLowerCase().includes("hand-drawn"))).toBe(
+			true,
+		);
+		expect(result.some((d) => d.toLowerCase().includes("cel-shading"))).toBe(
+			true,
+		);
+	});
+
+	it("should include strict technical specs with resolution and aspect ratio", () => {
+		const result = buildImageDirectives({
+			aspectRatio: "16:9",
+			targetResolution: "1080p",
+		});
+		expect(result.some((d) => d.includes("16:9") && d.includes("1080p"))).toBe(
+			true,
+		);
+		expect(result.some((d) => d.includes("REQUIRED") || d.includes("EXACTLY"))).toBe(
+			true,
+		);
+	});
+
+	it("should include instruction to not invent specifications", () => {
+		const result = buildImageDirectives({ stylePreset: "anime" });
+		expect(
+			result.some((d) => d.toLowerCase().includes("do not invent")),
+		).toBe(true);
 	});
 });
 
