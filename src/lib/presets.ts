@@ -151,37 +151,73 @@ function createVersionEntry(
  */
 export function getDefaultPresets(): Preset[] {
 	return [
-		// General
+		// General productivity
 		{
-			id: "quick-answer",
-			name: "Quick Answer",
+			id: "daily-assistant",
+			name: "Daily Assistant",
 			taskType: "general",
 			options: {
 				tone: "friendly",
-				detail: "brief",
-				format: "plain",
+				detail: "normal",
+				format: "markdown",
 				language: "English",
-				temperature: 0.6,
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
+				temperature: 0.65,
+				useDelimiters: true,
+				includeVerification: true,
+				reasoningStyle: "plan_then_solve",
+				additionalContext:
+					"Act as a proactive executive assistant. Ask clarifying questions when requirements are ambiguous, suggest next steps, and present answers with concise bullet points plus a short recommendation.",
 			},
 		},
 		{
-			id: "deep-thinker",
-			name: "Deep Thinker",
+			id: "brainstorm-partner",
+			name: "Brainstorm Partner",
+			taskType: "general",
+			options: {
+				tone: "friendly",
+				detail: "normal",
+				format: "markdown",
+				language: "English",
+				temperature: 0.85,
+				useDelimiters: false,
+				includeVerification: false,
+				reasoningStyle: "tree_of_thought",
+				additionalContext:
+					"Generate diverse idea sets. Label quick wins vs bold bets, highlight required resources, and combine compatible ideas into themed clusters.",
+			},
+		},
+		{
+			id: "smart-summarizer",
+			name: "Smart Summaries",
 			taskType: "general",
 			options: {
 				tone: "neutral",
-				detail: "detailed",
+				detail: "brief",
 				format: "markdown",
 				language: "English",
-				temperature: 0.7,
+				temperature: 0.35,
 				useDelimiters: true,
 				includeVerification: true,
-				reasoningStyle: "tree_of_thought",
+				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Approach problems from multiple angles. Consider edge cases, implications, and alternative perspectives before arriving at conclusions.",
+					"Turn long-form content into layered summaries. Always include sections for Key Takeaways, Action Items with owners, and Open Questions.",
+			},
+		},
+		{
+			id: "meeting-notes",
+			name: "Meeting Minutes",
+			taskType: "general",
+			options: {
+				tone: "formal",
+				detail: "normal",
+				format: "markdown",
+				language: "English",
+				temperature: 0.4,
+				useDelimiters: true,
+				includeVerification: true,
+				reasoningStyle: "plan_then_solve",
+				additionalContext:
+					"Organize raw meeting notes into a structured report with attendees, agenda, decisions, risks, and action items (owner + due date). Highlight blockers and follow-ups.",
 			},
 		},
 		// Coding
@@ -200,28 +236,168 @@ export function getDefaultPresets(): Preset[] {
 				includeVerification: true,
 				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Design scalable, maintainable solutions. Prioritize clean architecture, SOLID principles, and comprehensive error handling.",
+					"Design scalable, maintainable solutions. Outline architecture, data contracts, failure modes, and provide pseudocode before final implementation.",
 			},
 		},
 		{
-			id: "quick-script",
-			name: "Quick Script",
+			id: "bug-fixer",
+			name: "Bug Fixer",
 			taskType: "coding",
 			options: {
-				tone: "neutral",
-				detail: "normal",
+				tone: "technical",
+				detail: "detailed",
 				format: "markdown",
 				language: "English",
-				temperature: 0.4,
+				temperature: 0.25,
+				includeTests: true,
+				useDelimiters: true,
+				includeVerification: true,
+				reasoningStyle: "plan_then_solve",
+				additionalContext:
+					"Diagnose and resolve defects. Summarize reproduction steps, root cause analysis, patch strategy, and regression tests to run.",
+			},
+		},
+		{
+			id: "code-explainer",
+			name: "Code Explainer",
+			taskType: "coding",
+			options: {
+				tone: "friendly",
+				detail: "detailed",
+				format: "markdown",
+				language: "English",
+				temperature: 0.35,
 				includeTests: false,
+				useDelimiters: false,
+				includeVerification: true,
+				reasoningStyle: "plan_then_solve",
+				additionalContext:
+					"Explain codebases to cross-functional teammates. Break down what the code does, why it was implemented that way, and opportunities for improvement.",
+			},
+		},
+		// Writing
+		{
+			id: "storyteller",
+			name: "Storyteller",
+			taskType: "writing",
+			options: {
+				tone: "friendly",
+				detail: "detailed",
+				format: "markdown",
+				language: "English",
+				temperature: 0.9,
+				writingStyle: "narrative",
+				pointOfView: "third",
+				readingLevel: "intermediate",
+				targetWordCount: 900,
 				useDelimiters: false,
 				includeVerification: false,
 				reasoningStyle: "none",
 				additionalContext:
-					"Write concise, functional code. Focus on getting the job done efficiently.",
+					"Craft immersive narratives with vivid descriptions, compelling characters, and emotional depth. Show, don't tell, and end with a memorable hook.",
 			},
 		},
-		// Image Generation
+		{
+			id: "blog-writer",
+			name: "Blog Writer",
+			taskType: "writing",
+			options: {
+				tone: "friendly",
+				detail: "detailed",
+				format: "markdown",
+				language: "English",
+				temperature: 0.75,
+				writingStyle: "expository",
+				readingLevel: "intermediate",
+				includeHeadings: true,
+				targetWordCount: 1200,
+				useDelimiters: false,
+				includeVerification: false,
+				reasoningStyle: "none",
+				additionalContext:
+					"Produce SEO-friendly blog posts with a compelling hook, outline-driven sections, scannable formatting, and actionable takeaways.",
+			},
+		},
+		{
+			id: "inbox-zero",
+			name: "Inbox Zero",
+			taskType: "writing",
+			options: {
+				tone: "friendly",
+				detail: "normal",
+				format: "plain",
+				language: "English",
+				temperature: 0.45,
+				writingStyle: "expository",
+				pointOfView: "second",
+				useDelimiters: true,
+				includeVerification: true,
+				reasoningStyle: "plan_then_solve",
+				additionalContext:
+					"Draft concise professional emails. Include a subject line, greeting, body (with bullets when helpful), and a clear call to action or next step.",
+			},
+		},
+		// Research
+		{
+			id: "deep-research",
+			name: "Deep Research",
+			taskType: "research",
+			options: {
+				tone: "formal",
+				detail: "detailed",
+				format: "markdown",
+				language: "English",
+				temperature: 0.4,
+				requireCitations: true,
+				useDelimiters: true,
+				includeVerification: true,
+				reasoningStyle: "cot",
+				additionalContext:
+					"Conduct thorough, academic-quality research. Provide sections for Executive Summary, Evidence, Counterpoints, Risks, and Recommendations, citing reputable sources.",
+			},
+		},
+		// Marketing
+		{
+			id: "social-media-pro",
+			name: "Social Media Pro",
+			taskType: "marketing",
+			options: {
+				tone: "friendly",
+				detail: "brief",
+				format: "markdown",
+				language: "English",
+				temperature: 0.85,
+				marketingChannel: "social",
+				ctaStyle: "soft",
+				useDelimiters: false,
+				includeVerification: false,
+				reasoningStyle: "none",
+				additionalContext:
+					"Create platform-ready social posts. Provide hook, caption, CTA, hashtags, and a suggested visual concept tailored for the intended platform.",
+			},
+		},
+		{
+			id: "launch-copy",
+			name: "Launch Copy",
+			taskType: "marketing",
+			options: {
+				tone: "persuasive",
+				detail: "detailed",
+				format: "markdown",
+				language: "English",
+				temperature: 0.65,
+				marketingChannel: "landing_page",
+				ctaStyle: "strong",
+				useDelimiters: true,
+				includeVerification: false,
+				reasoningStyle: "cot",
+				valueProps:
+					"Highlight ROI, proof points, social validation, and risk reversal.",
+				additionalContext:
+					"Write conversion-focused launch copy with sections for Hero, Problem, Solution, Benefits, Proof, Pricing, FAQ, and CTA.",
+			},
+		},
+		// Image generation
 		{
 			id: "photorealistic",
 			name: "Photorealistic",
@@ -239,27 +415,7 @@ export function getDefaultPresets(): Preset[] {
 				includeVerification: false,
 				reasoningStyle: "none",
 				additionalContext:
-					"Create hyperrealistic imagery with natural lighting, accurate textures, and lifelike details. Emphasize depth of field and atmospheric effects.",
-			},
-		},
-		{
-			id: "anime-art",
-			name: "Anime Art",
-			taskType: "image",
-			options: {
-				tone: "friendly",
-				detail: "detailed",
-				format: "xml",
-				language: "English",
-				temperature: 0.8,
-				stylePreset: "anime",
-				aspectRatio: "16:9",
-				targetResolution: "1080p",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
-				additionalContext:
-					"Create vibrant Japanese anime-style artwork with expressive characters and dynamic poses. Include anime aesthetics and manga style elements like hand-drawn style, large eyes, expressive faces, and bold colors.",
+					"Create cinematic, high-fidelity imagery with natural lighting, accurate materials, subtle imperfections, and depth-of-field for realism.",
 			},
 		},
 		{
@@ -279,35 +435,10 @@ export function getDefaultPresets(): Preset[] {
 				includeVerification: false,
 				reasoningStyle: "none",
 				additionalContext:
-					"Design professional concept art suitable for games, films, or production. Focus on mood, composition, and visual storytelling.",
+					"Deliver production-ready concept art that emphasizes mood, silhouettes, and storytelling suitable for films or games.",
 			},
 		},
-		// Video Generation
-		{
-			id: "cinematic-shot",
-			name: "Cinematic Shot",
-			taskType: "video",
-			options: {
-				tone: "neutral",
-				detail: "detailed",
-				format: "plain",
-				language: "English",
-				temperature: 0.7,
-				stylePreset: "cinematic",
-				aspectRatio: "16:9",
-				targetResolution: "1080p",
-				cameraMovement: "dolly",
-				shotType: "wide",
-				durationSeconds: 10,
-				frameRate: 24,
-				includeStoryboard: true,
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
-				additionalContext:
-					"Create dramatic, film-quality shots with professional cinematography. Emphasize lighting, composition, and emotional impact.",
-			},
-		},
+		// Video generation
 		{
 			id: "social-clip",
 			name: "Social Clip",
@@ -330,104 +461,7 @@ export function getDefaultPresets(): Preset[] {
 				includeVerification: false,
 				reasoningStyle: "none",
 				additionalContext:
-					"Create engaging vertical video content optimized for TikTok, Reels, and Shorts. Focus on attention-grabbing visuals and dynamic pacing.",
-			},
-		},
-		// Research
-		{
-			id: "deep-research",
-			name: "Deep Research",
-			taskType: "research",
-			options: {
-				tone: "formal",
-				detail: "detailed",
-				format: "markdown",
-				language: "English",
-				temperature: 0.4,
-				requireCitations: true,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "cot",
-				additionalContext:
-					"Conduct thorough, academic-quality research. Cite sources, acknowledge limitations, and present balanced analysis with evidence-based conclusions.",
-			},
-		},
-		// Writing
-		{
-			id: "storyteller",
-			name: "Storyteller",
-			taskType: "writing",
-			options: {
-				tone: "friendly",
-				detail: "detailed",
-				format: "markdown",
-				language: "English",
-				temperature: 0.9,
-				writingStyle: "narrative",
-				pointOfView: "third",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
-				additionalContext:
-					"Craft immersive narratives with vivid descriptions, compelling characters, and emotional depth. Show, don't tell.",
-			},
-		},
-		{
-			id: "blog-writer",
-			name: "Blog Writer",
-			taskType: "writing",
-			options: {
-				tone: "friendly",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				temperature: 0.75,
-				writingStyle: "expository",
-				includeHeadings: true,
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
-				additionalContext:
-					"Write engaging, SEO-friendly blog content with clear structure, scannable formatting, and actionable takeaways.",
-			},
-		},
-		// Marketing
-		{
-			id: "social-media-pro",
-			name: "Social Media Pro",
-			taskType: "marketing",
-			options: {
-				tone: "friendly",
-				detail: "brief",
-				format: "plain",
-				language: "English",
-				temperature: 0.85,
-				marketingChannel: "social",
-				ctaStyle: "soft",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
-				additionalContext:
-					"Create scroll-stopping social content. Use hooks, trending formats, and authentic voice. Optimize for engagement and shareability.",
-			},
-		},
-		{
-			id: "sales-copy",
-			name: "Sales Copy",
-			taskType: "marketing",
-			options: {
-				tone: "persuasive",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				temperature: 0.7,
-				marketingChannel: "landing_page",
-				ctaStyle: "strong",
-				useDelimiters: true,
-				includeVerification: false,
-				reasoningStyle: "cot",
-				additionalContext:
-					"Write high-converting sales copy. Lead with benefits, address objections, build urgency, and drive action with compelling CTAs.",
+					"Outline a punchy vertical video with hook, beats, b-roll ideas, captions, and CTA optimized for TikTok, Reels, or Shorts.",
 			},
 		},
 	];
