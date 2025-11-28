@@ -109,22 +109,19 @@ Access via gear icon.
 npm install              # Install dependencies
 ```
 ```bash
-npm run dev              # Development mode
-```
-```bash
 npm test                 # Run tests
 ```
 ```bash
 npm run typecheck        # Type check
 ```
 ```bash
-npm run check            # Lint and format
-```
-```bash
 npm run dist:electron    # Build for production
 ```
+```bash
+npm run dev              # Development mode
+```
 
-**Stack:** Electron 38, Next.js 16, React 19, Tailwind CSS 4, TypeScript 5.8, Vitest, Biome
+**Stack:** Electron, Next.js, React, Tailwind CSS, TypeScript, Vitest, Biome
 
 ## Privacy & Security
 
