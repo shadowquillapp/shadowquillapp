@@ -39,22 +39,27 @@ Ollama runs in the background as a service, which can be used with ollama's CLI 
 #### Download a Gemma 3 Model
 
 **Supported models:**
+
 - `gemma3:4b` - Fast, balanced (Recommended)
 - `gemma3:12b` - Higher quality
 - `gemma3:27b` - Best quality (requires 32GB+ RAM)
 
 **Download via Command Line:**
+
 ```bash
 ollama pull gemma3:4b # Gemma 3 4B Model
 ```
+
 ```bash
 ollama pull gemma3:12b # Gemma 3 12B Model
 ```
+
 ```bash
 ollama pull gemma3:27b # Gemma 3 27B Model
 ```
 
 **Download via Ollama Chat Interface:**
+
 1. Open Ollama desktop app
 2. Start chatting with a model name
 3. Ollama will prompt you to download it
@@ -108,17 +113,21 @@ Access via gear icon.
 ```bash
 npm install              # Install dependencies
 ```
+
 ```bash
 npm test                 # Run tests
 ```
+
 ```bash
 npm run typecheck        # Type check
 ```
-```bash
-npm run dist:electron    # Build for production
-```
+
 ```bash
 npm run dev              # Development mode
+```
+
+```bash
+npm run dist:electron    # Build for production
 ```
 
 **Stack:** Electron, Next.js, React, Tailwind CSS, TypeScript, Vitest, Biome
@@ -131,7 +140,7 @@ npm run dev              # Development mode
 
 ## Contributing
 
-Contributions welcome! 
+Contributions welcome!
 
 1. [Open an issue](https://github.com/shadowquillapp/shadowquillapp/issues) to discuss changes
 2. Keep PRs focused on one task
