@@ -2,8 +2,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the cache module
 vi.mock("@/lib/cache", () => ({
-	createPromptCacheKey: vi.fn((input, taskType, options) =>
-		`cache-key-${input}-${taskType}`,
+	createPromptCacheKey: vi.fn(
+		(input, taskType, options) => `cache-key-${input}-${taskType}`,
 	),
 	getPromptCache: vi.fn(() => ({
 		get: vi.fn(),
@@ -20,17 +20,17 @@ vi.mock("@/lib/system-prompts", () => ({
 }));
 
 import {
-	buildUnifiedPrompt,
-	buildPromptPreview,
-	buildRefinementPrompt,
-	validateBuilderInput,
-} from "@/lib/prompt-builder-client";
-import {
 	createPromptCacheKey,
-	getPromptCache,
 	getFromSessionCache,
+	getPromptCache,
 	saveToSessionCache,
 } from "@/lib/cache";
+import {
+	buildPromptPreview,
+	buildRefinementPrompt,
+	buildUnifiedPrompt,
+	validateBuilderInput,
+} from "@/lib/prompt-builder-client";
 import { ensureSystemPromptBuild } from "@/lib/system-prompts";
 
 const mockGetPromptCache = vi.mocked(getPromptCache);
@@ -39,14 +39,19 @@ const mockSaveToSessionCache = vi.mocked(saveToSessionCache);
 const mockEnsureSystemPromptBuild = vi.mocked(ensureSystemPromptBuild);
 
 describe("buildUnifiedPrompt", () => {
-	let mockMemoryCache: { get: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn> };
+	let mockMemoryCache: {
+		get: ReturnType<typeof vi.fn>;
+		set: ReturnType<typeof vi.fn>;
+	};
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockMemoryCache = { get: vi.fn(), set: vi.fn() };
 		mockGetPromptCache.mockReturnValue(mockMemoryCache as any);
 		mockGetFromSessionCache.mockReturnValue(undefined);
-		mockEnsureSystemPromptBuild.mockReturnValue("You are a test prompt enhancer.");
+		mockEnsureSystemPromptBuild.mockReturnValue(
+			"You are a test prompt enhancer.",
+		);
 	});
 
 	describe("input validation", () => {
@@ -74,7 +79,9 @@ describe("buildUnifiedPrompt", () => {
 				taskType: "general",
 			});
 
-			expect(result).toBe("Input too brief. Please provide more detail about what you want.");
+			expect(result).toBe(
+				"Input too brief. Please provide more detail about what you want.",
+			);
 		});
 
 		it("should return error for injection attempts", async () => {
@@ -199,13 +206,18 @@ describe("buildUnifiedPrompt", () => {
 });
 
 describe("buildPromptPreview", () => {
-	let mockMemoryCache: { get: ReturnType<typeof vi.fn>; set: ReturnType<typeof vi.fn> };
+	let mockMemoryCache: {
+		get: ReturnType<typeof vi.fn>;
+		set: ReturnType<typeof vi.fn>;
+	};
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockMemoryCache = { get: vi.fn(), set: vi.fn() };
 		mockGetPromptCache.mockReturnValue(mockMemoryCache as any);
-		mockEnsureSystemPromptBuild.mockReturnValue("You are a test prompt enhancer.");
+		mockEnsureSystemPromptBuild.mockReturnValue(
+			"You are a test prompt enhancer.",
+		);
 	});
 
 	it("should always skip cache lookup", async () => {
@@ -244,7 +256,9 @@ describe("buildRefinementPrompt", () => {
 			taskType: "general",
 		});
 
-		expect(result).toBe("Please provide a refinement request describing what to change.");
+		expect(result).toBe(
+			"Please provide a refinement request describing what to change.",
+		);
 	});
 
 	it("should return error for whitespace-only request", async () => {
@@ -254,7 +268,9 @@ describe("buildRefinementPrompt", () => {
 			taskType: "general",
 		});
 
-		expect(result).toBe("Please provide a refinement request describing what to change.");
+		expect(result).toBe(
+			"Please provide a refinement request describing what to change.",
+		);
 	});
 
 	it("should generate refinement prompt with previous output", async () => {
@@ -282,7 +298,10 @@ describe("buildRefinementPrompt", () => {
 
 describe("validateBuilderInput", () => {
 	it("should return null for valid input", () => {
-		const result = validateBuilderInput("Write a detailed blog post about AI", "general");
+		const result = validateBuilderInput(
+			"Write a detailed blog post about AI",
+			"general",
+		);
 		expect(result).toBeNull();
 	});
 
@@ -293,7 +312,9 @@ describe("validateBuilderInput", () => {
 
 	it("should return error for single word input", () => {
 		const result = validateBuilderInput("hello", "general");
-		expect(result).toBe("Input too brief. Please provide more detail about what you want.");
+		expect(result).toBe(
+			"Input too brief. Please provide more detail about what you want.",
+		);
 	});
 
 	it("should reject injection patterns", () => {
@@ -319,4 +340,3 @@ describe("validateBuilderInput", () => {
 		expect(result).toBeNull();
 	});
 });
-

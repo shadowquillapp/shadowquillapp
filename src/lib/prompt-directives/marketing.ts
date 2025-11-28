@@ -12,7 +12,8 @@ export function buildMarketingDirectives(options: GenerationOptions): string[] {
 				"Channel: Email - strong subject, compelling preview, skimmable body.",
 			landing_page:
 				"Channel: Landing page - benefit-led headline, proof points, prominent CTA.",
-			social: "Channel: Social media - short hooks, scannable, platform-friendly.",
+			social:
+				"Channel: Social media - short hooks, scannable, platform-friendly.",
 			ad: "Channel: Ad - concise headline and body within character limits.",
 		};
 		directives.push(
@@ -40,4 +41,3 @@ export function buildMarketingDirectives(options: GenerationOptions): string[] {
 
 	return directives;
 }
-

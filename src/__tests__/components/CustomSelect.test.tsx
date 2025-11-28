@@ -1,7 +1,7 @@
+import { CustomSelect } from "@/components/CustomSelect";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { CustomSelect } from "@/components/CustomSelect";
 
 const defaultOptions = [
 	{ value: "option1", label: "Option 1" },
@@ -362,4 +362,3 @@ describe("CustomSelect", () => {
 		});
 	});
 });
-

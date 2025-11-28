@@ -1,4 +1,7 @@
-import { generatePresetExamples, generateSingleExample } from "@/lib/example-generator";
+import {
+	generatePresetExamples,
+	generateSingleExample,
+} from "@/lib/example-generator";
 import { getDefaultPresets } from "@/lib/presets";
 import type { PresetLite } from "@/types";
 import { useCallback, useState } from "react";
@@ -8,7 +11,9 @@ const STORAGE_KEY = "PC_PRESETS";
 export function usePresetManager() {
 	const [presets, setPresets] = useState<PresetLite[]>([]);
 	const [isGeneratingExamples, setIsGeneratingExamples] = useState(false);
-	const [regeneratingIndex, setRegeneratingIndex] = useState<0 | 1 | null>(null);
+	const [regeneratingIndex, setRegeneratingIndex] = useState<0 | 1 | null>(
+		null,
+	);
 
 	// Load presets from localStorage
 	const loadPresets = useCallback(() => {
@@ -44,12 +49,14 @@ export function usePresetManager() {
 				let updatedPresets: PresetLite[];
 				let savedPreset: PresetLite;
 
-			if (existing) {
-				// Update existing preset, preserve existing examples
-				const presetToSave: PresetLite = {
-					...preset,
-					...(existing.generatedExamples && { generatedExamples: existing.generatedExamples }),
-				};
+				if (existing) {
+					// Update existing preset, preserve existing examples
+					const presetToSave: PresetLite = {
+						...preset,
+						...(existing.generatedExamples && {
+							generatedExamples: existing.generatedExamples,
+						}),
+					};
 					updatedPresets = presets.map((p) =>
 						p.id === preset.id ? presetToSave : p,
 					);
@@ -176,7 +183,7 @@ export function usePresetManager() {
 	const generateExamplesOnly = useCallback(
 		async (preset: PresetLite): Promise<PresetLite | null> => {
 			if (!preset.id) return null;
-			
+
 			setIsGeneratingExamples(true);
 			try {
 				const examples = await generatePresetExamples(preset);
@@ -207,17 +214,17 @@ export function usePresetManager() {
 	const regenerateExample = useCallback(
 		async (preset: PresetLite, index: 0 | 1): Promise<PresetLite | null> => {
 			if (!preset.id || !preset.generatedExamples) return null;
-			
+
 			setRegeneratingIndex(index);
 			try {
 				const newExample = await generateSingleExample(preset);
-				
+
 				// Create updated examples array
-				const updatedExamples: [typeof newExample, typeof newExample] = 
-					index === 0 
+				const updatedExamples: [typeof newExample, typeof newExample] =
+					index === 0
 						? [newExample, preset.generatedExamples[1]]
 						: [preset.generatedExamples[0], newExample];
-				
+
 				const presetWithExamples: PresetLite = {
 					...preset,
 					generatedExamples: updatedExamples,

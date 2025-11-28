@@ -1,9 +1,9 @@
-import { describe, expect, it } from "vitest";
 import {
 	buildUnifiedPromptCore,
 	validateBuilderInput,
 	validateBuilderInputTyped,
 } from "@/lib/prompt-builder-core";
+import { describe, expect, it } from "vitest";
 
 describe("validateBuilderInput", () => {
 	it("should reject empty input", () => {
@@ -77,7 +77,10 @@ describe("validateBuilderInputTyped", () => {
 		);
 		expect(result.valid).toBe(false);
 		expect(result.error?.details).toHaveProperty("taskType", "coding");
-		expect(result.error?.details).toHaveProperty("reason", "injection_detected");
+		expect(result.error?.details).toHaveProperty(
+			"reason",
+			"injection_detected",
+		);
 	});
 });
 
@@ -229,4 +232,3 @@ describe("buildUnifiedPromptCore", () => {
 		expect(result).toContain("<|END|>");
 	});
 });
-

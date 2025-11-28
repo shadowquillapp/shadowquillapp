@@ -297,8 +297,7 @@ export function wrapError(
 
 	const originalError = error instanceof Error ? error : undefined;
 	const errorMessage =
-		message ||
-		(originalError?.message ?? "An unexpected error occurred");
+		message || (originalError?.message ?? "An unexpected error occurred");
 
 	return new ShadowQuillError(code, errorMessage, {
 		...(originalError && { cause: originalError }),

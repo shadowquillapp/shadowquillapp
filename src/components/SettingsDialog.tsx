@@ -1,10 +1,11 @@
 "use client";
-import React, { useEffect, useState, useCallback, useRef } from "react";
+import type React from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
+import DisplayContent from "./settings/DisplayContent";
 import LocalDataManagementContent from "./settings/LocalDataManagementContent";
 import OllamaSetupContent from "./settings/OllamaSetupContent";
 import SystemPromptEditorContent from "./settings/SystemPromptEditorContent";
-import DisplayContent from "./settings/DisplayContent";
 
 export type SettingsTab = "system" | "ollama" | "data" | "display";
 
@@ -25,38 +26,43 @@ export default function SettingsDialog({
 	const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
 	const [displayedTab, setDisplayedTab] = useState<SettingsTab>(initialTab);
 	const [isTransitioning, setIsTransitioning] = useState(false);
-	const [transitionDirection, setTransitionDirection] = useState<"up" | "down">("down");
+	const [transitionDirection, setTransitionDirection] = useState<"up" | "down">(
+		"down",
+	);
 	const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
 	// Handle tab switching with animation
-	const handleTabChange = useCallback((newTab: SettingsTab) => {
-		if (newTab === activeTab || isTransitioning) return;
-		
-		// Determine direction based on tab order
-		const currentIndex = TAB_ORDER.indexOf(activeTab);
-		const newIndex = TAB_ORDER.indexOf(newTab);
-		setTransitionDirection(newIndex > currentIndex ? "down" : "up");
-		
-		// Start transition
-		setIsTransitioning(true);
-		setActiveTab(newTab);
-		
-		// Clear any existing timeout
-		if (transitionTimeoutRef.current) {
-			clearTimeout(transitionTimeoutRef.current);
-		}
-		
-		// After exit animation, switch displayed content and start enter animation
-		transitionTimeoutRef.current = setTimeout(() => {
-			setDisplayedTab(newTab);
-			// Small delay to ensure the new content renders before animation starts
-			requestAnimationFrame(() => {
-				transitionTimeoutRef.current = setTimeout(() => {
-					setIsTransitioning(false);
-				}, 450); // Duration of enter animation
-			});
-		}, 300); // Duration of exit animation
-	}, [activeTab, isTransitioning]);
+	const handleTabChange = useCallback(
+		(newTab: SettingsTab) => {
+			if (newTab === activeTab || isTransitioning) return;
+
+			// Determine direction based on tab order
+			const currentIndex = TAB_ORDER.indexOf(activeTab);
+			const newIndex = TAB_ORDER.indexOf(newTab);
+			setTransitionDirection(newIndex > currentIndex ? "down" : "up");
+
+			// Start transition
+			setIsTransitioning(true);
+			setActiveTab(newTab);
+
+			// Clear any existing timeout
+			if (transitionTimeoutRef.current) {
+				clearTimeout(transitionTimeoutRef.current);
+			}
+
+			// After exit animation, switch displayed content and start enter animation
+			transitionTimeoutRef.current = setTimeout(() => {
+				setDisplayedTab(newTab);
+				// Small delay to ensure the new content renders before animation starts
+				requestAnimationFrame(() => {
+					transitionTimeoutRef.current = setTimeout(() => {
+						setIsTransitioning(false);
+					}, 450); // Duration of enter animation
+				});
+			}, 300); // Duration of exit animation
+		},
+		[activeTab, isTransitioning],
+	);
 
 	useEffect(() => {
 		if (!open) return;
@@ -64,7 +70,7 @@ export default function SettingsDialog({
 		setDisplayedTab(initialTab);
 		setIsTransitioning(false);
 	}, [open, initialTab]);
-	
+
 	// Cleanup timeout on unmount
 	useEffect(() => {
 		return () => {
@@ -92,7 +98,7 @@ export default function SettingsDialog({
 			<button
 				type="button"
 				onClick={() => handleTabChange(tab)}
-				className={`text-left settings-tab-btn ${isActive ? "settings-tab-btn--active" : ""}`}
+				className={`settings-tab-btn text-left ${isActive ? "settings-tab-btn--active" : ""}`}
 				style={{
 					width: "100%",
 					textAlign: "left",
@@ -126,7 +132,7 @@ export default function SettingsDialog({
 			case "data":
 				return <LocalDataManagementContent />;
 			case "display":
-			 return <DisplayContent />;
+				return <DisplayContent />;
 			default:
 				return null;
 		}
@@ -309,15 +315,15 @@ export default function SettingsDialog({
 								overflow: "hidden",
 							}}
 						>
-						<TabItem tab="ollama" label="Ollama Setup" />
-						<TabItem tab="system" label="System Prompt" />
-						<TabItem tab="data" label="Data Management" />
-						<TabItem tab="display" label="Display" />
+							<TabItem tab="ollama" label="Ollama Setup" />
+							<TabItem tab="system" label="System Prompt" />
+							<TabItem tab="data" label="Data Management" />
+							<TabItem tab="display" label="Display" />
 						</nav>
 						{/* Right content */}
-						<div 
-							style={{ 
-								flex: 1, 
+						<div
+							style={{
+								flex: 1,
 								minWidth: 0,
 							}}
 						>
@@ -328,39 +334,43 @@ export default function SettingsDialog({
 								}}
 							>
 								{/* Render only the displayed tab with animations */}
-								{(["system", "ollama", "data", "display"] as SettingsTab[]).map((tab) => {
-									const isDisplayed = displayedTab === tab;
-									const isTargetTab = activeTab === tab;
-									
-									// Determine animation class
-									let animationClass = "settings-tab-panel--idle";
-									if (isTransitioning) {
-										if (isDisplayed && !isTargetTab) {
-											// Current tab exiting
-											animationClass = transitionDirection === "down" 
-												? "settings-tab-panel--exiting-down" 
-												: "settings-tab-panel--exiting-up";
-										} else if (isDisplayed && isTargetTab) {
-											// New tab entering
-											animationClass = transitionDirection === "down"
-												? "settings-tab-panel--entering-down"
-												: "settings-tab-panel--entering-up";
+								{(["system", "ollama", "data", "display"] as SettingsTab[]).map(
+									(tab) => {
+										const isDisplayed = displayedTab === tab;
+										const isTargetTab = activeTab === tab;
+
+										// Determine animation class
+										let animationClass = "settings-tab-panel--idle";
+										if (isTransitioning) {
+											if (isDisplayed && !isTargetTab) {
+												// Current tab exiting
+												animationClass =
+													transitionDirection === "down"
+														? "settings-tab-panel--exiting-down"
+														: "settings-tab-panel--exiting-up";
+											} else if (isDisplayed && isTargetTab) {
+												// New tab entering
+												animationClass =
+													transitionDirection === "down"
+														? "settings-tab-panel--entering-down"
+														: "settings-tab-panel--entering-up";
+											}
 										}
-									}
-									
-									return (
-										<div
-											key={tab}
-											className={`settings-tab-panel ${animationClass}`}
-											style={{
-												display: isDisplayed ? "block" : "none",
-											}}
-											aria-hidden={!isDisplayed}
-										>
-											{renderContentFor(tab)}
-										</div>
-									);
-								})}
+
+										return (
+											<div
+												key={tab}
+												className={`settings-tab-panel ${animationClass}`}
+												style={{
+													display: isDisplayed ? "block" : "none",
+												}}
+												aria-hidden={!isDisplayed}
+											>
+												{renderContentFor(tab)}
+											</div>
+										);
+									},
+								)}
 							</div>
 						</div>
 					</div>

@@ -131,10 +131,7 @@ export function compareVersions(
 /**
  * Create a version entry from current preset state
  */
-function createVersionEntry(
-	preset: Preset,
-	changelog?: string,
-): PresetVersion {
+function createVersionEntry(preset: Preset, changelog?: string): PresetVersion {
 	const currentVersion = (preset.currentVersion ?? 0) + 1;
 	return {
 		version: currentVersion,
@@ -619,7 +616,9 @@ export function deletePresetByIdOrName(id?: string, name?: string): void {
 /**
  * Export preset with full version history
  */
-export function exportPresetWithHistory(presetId: string): VersionedPreset | null {
+export function exportPresetWithHistory(
+	presetId: string,
+): VersionedPreset | null {
 	const preset = getPresetById(presetId);
 	if (!preset) return null;
 
@@ -629,7 +628,9 @@ export function exportPresetWithHistory(presetId: string): VersionedPreset | nul
 		taskType: preset.taskType,
 		...(preset.options && { options: preset.options }),
 		...(preset.versions && { versions: preset.versions }),
-		...(preset.currentVersion !== undefined && { currentVersion: preset.currentVersion }),
+		...(preset.currentVersion !== undefined && {
+			currentVersion: preset.currentVersion,
+		}),
 		...(preset.createdAt !== undefined && { createdAt: preset.createdAt }),
 		...(preset.updatedAt !== undefined && { updatedAt: preset.updatedAt }),
 	};

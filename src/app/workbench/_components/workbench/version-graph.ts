@@ -3,7 +3,10 @@ import type { VersionGraph, VersionNode, VersionNodeMetadata } from "./types";
 // Version graph utility functions for managing prompt versioning
 
 const makeId = () => {
-	if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+	if (
+		typeof crypto !== "undefined" &&
+		typeof crypto.randomUUID === "function"
+	) {
 		return crypto.randomUUID();
 	}
 	return `vg_${Math.random().toString(36).slice(2, 9)}_${Date.now().toString(36)}`;
@@ -143,29 +146,40 @@ export function hasRedo(graph: VersionGraph): boolean {
 	return Boolean(active?.nextId);
 }
 
-export function getOutputMessageId(graph: VersionGraph, versionId?: string): string | null {
+export function getOutputMessageId(
+	graph: VersionGraph,
+	versionId?: string,
+): string | null {
 	const id = versionId ?? graph.activeId;
 	const node = graph.nodes[id];
 	return node?.outputMessageId ?? null;
 }
 
 // Migration helper for backward compatibility with old version graphs
-export function migrateVersionGraph(graph: VersionGraph, messages?: Array<{ id: string; role: string; content: string; createdAt?: number }>): VersionGraph {
+export function migrateVersionGraph(
+	graph: VersionGraph,
+	messages?: Array<{
+		id: string;
+		role: string;
+		content: string;
+		createdAt?: number;
+	}>,
+): VersionGraph {
 	let needsMigration = false;
 	const migratedNodes: Record<string, VersionNode> = {};
-	
+
 	// Check if any node needs migration
 	for (const [id, node] of Object.entries(graph.nodes)) {
-		if (!('originalInput' in node) || !('outputMessageId' in node)) {
+		if (!("originalInput" in node) || !("outputMessageId" in node)) {
 			needsMigration = true;
 			break;
 		}
 	}
-	
+
 	if (!needsMigration) {
 		return graph;
 	}
-	
+
 	// Migrate each node
 	for (const [id, node] of Object.entries(graph.nodes)) {
 		const migratedNode: VersionNode = {
@@ -173,12 +187,12 @@ export function migrateVersionGraph(graph: VersionGraph, messages?: Array<{ id: 
 			originalInput: (node as any).originalInput ?? node.content,
 			outputMessageId: (node as any).outputMessageId ?? null,
 		};
-		
+
 		// Try to match with assistant messages by timestamp if messages are provided
 		if (messages && !migratedNode.outputMessageId) {
-			const assistantMessages = messages.filter(m => m.role === 'assistant');
+			const assistantMessages = messages.filter((m) => m.role === "assistant");
 			// Find assistant message closest in time (within 5 seconds)
-			const matchingMessage = assistantMessages.find(m => {
+			const matchingMessage = assistantMessages.find((m) => {
 				if (!m.createdAt) return false;
 				const timeDiff = Math.abs(m.createdAt - node.createdAt);
 				return timeDiff < 5000; // 5 seconds tolerance
@@ -187,13 +201,12 @@ export function migrateVersionGraph(graph: VersionGraph, messages?: Array<{ id: 
 				migratedNode.outputMessageId = matchingMessage.id;
 			}
 		}
-		
+
 		migratedNodes[id] = migratedNode;
 	}
-	
+
 	return {
 		...graph,
 		nodes: migratedNodes,
 	};
 }
-

@@ -1,4 +1,3 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	clearAllStorageForFactoryReset,
 	getJSON,
@@ -6,6 +5,7 @@ import {
 	remove,
 	setJSON,
 } from "@/lib/local-storage";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Helper to access internal state - we need to reload the module to reset state
 const resetModule = async () => {
@@ -198,4 +198,3 @@ describe("SSR safety", () => {
 		expect(() => remove("key")).not.toThrow();
 	});
 });
-

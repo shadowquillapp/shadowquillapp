@@ -1,6 +1,6 @@
+import FeatherLoader from "@/components/FeatherLoader";
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import FeatherLoader from "@/components/FeatherLoader";
 
 describe("FeatherLoader", () => {
 	it("should render with default text", () => {
@@ -61,4 +61,3 @@ describe("FeatherLoader", () => {
 		expect(path).toHaveAttribute("fill", "currentColor");
 	});
 });
-

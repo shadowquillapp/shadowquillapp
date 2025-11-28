@@ -31,9 +31,7 @@ export default function RootLayout({
 			<body className="flex h-screen flex-col overflow-hidden">
 				<DialogProvider>
 					<Titlebar />
-					<div className="flex flex-1 flex-col overflow-hidden">
-						{children}
-					</div>
+					<div className="flex flex-1 flex-col overflow-hidden">{children}</div>
 					<OllamaConnectionMonitor />
 					<FindBar />
 				</DialogProvider>

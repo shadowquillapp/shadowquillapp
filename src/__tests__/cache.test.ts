@@ -1,12 +1,12 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	LRUCache,
+	clearAllCaches,
 	createPromptCacheKey,
 	getPromptCache,
 	getTemplateCache,
 	hashString,
-	clearAllCaches,
 } from "@/lib/cache";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("LRUCache", () => {
 	describe("basic operations", () => {
@@ -306,4 +306,3 @@ describe("cache singletons", () => {
 		expect(templateCache.size).toBe(0);
 	});
 });
-

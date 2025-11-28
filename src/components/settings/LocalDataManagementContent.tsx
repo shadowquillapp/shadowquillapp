@@ -1,7 +1,7 @@
 "use client";
+import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
 import React, { useEffect, useState } from "react";
 import { useDialog } from "../DialogProvider";
-import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
 
 export default function LocalDataManagementContent() {
 	const { confirm } = useDialog();
@@ -126,9 +126,9 @@ export default function LocalDataManagementContent() {
 						<div className="ollama-status-card__content">
 							<p className="ollama-status-card__title">Danger Zone</p>
 							<p className="ollama-status-card__body">
-								Factory reset will permanently delete all local data including settings,
-								saved prompts, and presets. This action cannot be undone. The app will
-								restart automatically with a fresh state.
+								Factory reset will permanently delete all local data including
+								settings, saved prompts, and presets. This action cannot be
+								undone. The app will restart automatically with a fresh state.
 							</p>
 							<div className="ollama-status-card__actions">
 								<button
@@ -141,7 +141,8 @@ export default function LocalDataManagementContent() {
 									onClick={async () => {
 										const ok = await confirm({
 											title: "Factory Reset",
-											message: "Delete ALL local data and restart? The app will restart with a completely fresh state.",
+											message:
+												"Delete ALL local data and restart? The app will restart with a completely fresh state.",
 											confirmText: "Delete & Restart",
 											cancelText: "Cancel",
 											tone: "destructive",

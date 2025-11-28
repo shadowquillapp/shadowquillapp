@@ -20,7 +20,10 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 
 	// Detail level / word count - STRICT ENFORCEMENT (applies to YOUR output, not to be included in the enhanced prompt)
 	if (options.detail) {
-		const wordLimits: Record<string, { min: number; max: number; description: string }> = {
+		const wordLimits: Record<
+			string,
+			{ min: number; max: number; description: string }
+		> = {
 			brief: { min: 75, max: 150, description: "Brief (75-150 words)" },
 			normal: { min: 200, max: 300, description: "Normal (200-300 words)" },
 			detailed: { min: 350, max: 500, description: "Detailed (350-500 words)" },
@@ -28,7 +31,7 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 		const limit = wordLimits[options.detail];
 		if (limit) {
 			directives.push(
-				`OUTPUT LENGTH REQUIREMENT: Your enhanced prompt must be ${limit.description}. This is a constraint on YOUR output length - do NOT include word count constraints in the enhanced prompt itself. Exceeding ${limit.max} words is NOT acceptable.`
+				`OUTPUT LENGTH REQUIREMENT: Your enhanced prompt must be ${limit.description}. This is a constraint on YOUR output length - do NOT include word count constraints in the enhanced prompt itself. Exceeding ${limit.max} words is NOT acceptable.`,
 			);
 		}
 	}
@@ -36,7 +39,7 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 	// Language - strong enforcement for non-English output
 	if (options.language && options.language.toLowerCase() !== "english") {
 		directives.push(
-			`LANGUAGE REQUIREMENT: The enhanced prompt output MUST be written entirely in ${options.language}. Even if the user's input is in English or another language, your output must be in ${options.language}. This is non-negotiable.`
+			`LANGUAGE REQUIREMENT: The enhanced prompt output MUST be written entirely in ${options.language}. Even if the user's input is in English or another language, your output must be in ${options.language}. This is non-negotiable.`,
 		);
 	}
 
@@ -83,13 +86,16 @@ export function buildFormatDirectives(
 /**
  * Get the default XML schema for a task type, with dynamic value injection for image/video
  */
-function getDefaultXMLSchema(taskType: TaskType, options: GenerationOptions): string {
+function getDefaultXMLSchema(
+	taskType: TaskType,
+	options: GenerationOptions,
+): string {
 	// For image prompts, inject actual resolution and aspect ratio values
 	if (taskType === "image") {
 		const resolution = options.targetResolution ?? "1080p";
 		const aspectRatio = options.aspectRatio ?? "16:9";
 		const style = options.stylePreset ?? "photorealistic";
-		
+
 		return `XML FORMAT - Use this EXACT structure with the specified values:
 <image_prompt>
   <subject>[Main subject - concise description]</subject>
@@ -107,7 +113,7 @@ IMPORTANT: Use EXACTLY resolution="${resolution}" and aspect="${aspectRatio}" - 
 		const aspectRatio = options.aspectRatio ?? "16:9";
 		const fps = options.frameRate ?? 24;
 		const duration = options.durationSeconds ?? 5;
-		
+
 		return `XML FORMAT - Use this EXACT structure with the specified values:
 <video_prompt>
   <subject>[Main subject - concise]</subject>
@@ -132,10 +138,9 @@ IMPORTANT: Use these EXACT specs - do NOT change or invent values.`;
 			"XML: <research_task> with <core_question>, <scope>, <methodology>, <source_requirements>, <deliverables>",
 		marketing:
 			"XML: <marketing_content> with <target_audience>, <core_message>, <value_props>, <channel_specs>, <call_to_action>",
-		general:
-			"XML: <prompt> with <goal>, <context>, <requirements>, <style>",
+		general: "XML: <prompt> with <goal>, <context>, <requirements>, <style>",
 	};
-	
+
 	return defaultSchemas[taskType] ?? defaultSchemas.general;
 }
 
@@ -164,4 +169,3 @@ export function buildAdvancedDirectives(options: GenerationOptions): string[] {
 
 	return directives;
 }
-

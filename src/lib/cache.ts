@@ -267,18 +267,18 @@ export function saveToSessionCache(key: string, value: string): void {
 
 	try {
 		const data = getSessionCacheData();
-		
+
 		// Remove existing entry with same key
 		data.entries = data.entries.filter((e) => e.key !== key);
-		
+
 		// Add new entry
 		data.entries.push({ key, value, timestamp: Date.now() });
-		
+
 		// Trim to max size (keep most recent)
 		if (data.entries.length > SESSION_CACHE_MAX_SIZE) {
 			data.entries = data.entries.slice(-SESSION_CACHE_MAX_SIZE);
 		}
-		
+
 		sessionStorage.setItem(SESSION_CACHE_KEY, JSON.stringify(data));
 	} catch {
 		// Ignore storage errors
@@ -324,4 +324,3 @@ export function clearSessionCache(): void {
 		// Ignore
 	}
 }
-

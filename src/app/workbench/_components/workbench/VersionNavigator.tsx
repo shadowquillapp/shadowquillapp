@@ -2,7 +2,7 @@
 
 import { Icon } from "@/components/Icon";
 import type { VersionGraph } from "./types";
-import { hasUndo, hasRedo, versionList } from "./version-graph";
+import { hasRedo, hasUndo, versionList } from "./version-graph";
 
 interface VersionNavigatorProps {
 	versionGraph: VersionGraph;
@@ -21,17 +21,19 @@ export function VersionNavigator({
 	isGenerating = false,
 	justCreatedVersion = false,
 }: VersionNavigatorProps) {
-	const versions = versionList(versionGraph).filter(v => v.label !== "Start");
-	const currentIndex = versions.findIndex(v => v.id === versionGraph.activeId);
+	const versions = versionList(versionGraph).filter((v) => v.label !== "Start");
+	const currentIndex = versions.findIndex(
+		(v) => v.id === versionGraph.activeId,
+	);
 	const currentVersion = currentIndex >= 0 ? currentIndex + 1 : 0;
 	const totalVersions = versions.length;
-	
+
 	// Get current version's metadata for mode indication
 	const currentVersionNode = versions[currentIndex];
 	const isRefinement = currentVersionNode?.metadata?.isRefinement === true;
-	const versionsWithOutput = versions.filter(v => v.outputMessageId);
+	const versionsWithOutput = versions.filter((v) => v.outputMessageId);
 	const hasBaseVersion = versionsWithOutput.length > 0;
-	
+
 	const canGoPrev = hasUndo(versionGraph);
 	const canGoNext = hasRedo(versionGraph);
 
@@ -41,9 +43,7 @@ export function VersionNavigator({
 				<div className="version-nav-vertical__icon-wrap">
 					<Icon name="git-compare" />
 				</div>
-				<span className="version-nav-vertical__hint">
-					No versions
-				</span>
+				<span className="version-nav-vertical__hint">No versions</span>
 			</div>
 		);
 	}
@@ -54,14 +54,16 @@ export function VersionNavigator({
 		: `v${currentVersion} • Click to view history`;
 
 	return (
-		<div className={`version-nav-vertical version-nav-vertical--compact ${justCreatedVersion ? 'version-nav-vertical--pulse' : ''} ${isGenerating ? 'version-nav-vertical--generating' : ''}`}>
+		<div
+			className={`version-nav-vertical version-nav-vertical--compact ${justCreatedVersion ? "version-nav-vertical--pulse" : ""} ${isGenerating ? "version-nav-vertical--generating" : ""}`}
+		>
 			{/* Up: Previous button */}
 			<button
 				type="button"
 				className="version-nav-vertical__btn"
 				onClick={onPrev}
 				disabled={!canGoPrev || isGenerating}
-				title={`Previous version${tooltipText ? ` • ${tooltipText}` : ''}`}
+				title={`Previous version${tooltipText ? ` • ${tooltipText}` : ""}`}
 				aria-label="Go to previous version"
 			>
 				<Icon name="chevron-up" />
@@ -84,7 +86,7 @@ export function VersionNavigator({
 				className="version-nav-vertical__btn"
 				onClick={onNext}
 				disabled={!canGoNext || isGenerating}
-				title={`Next version${tooltipText ? ` • ${tooltipText}` : ''}`}
+				title={`Next version${tooltipText ? ` • ${tooltipText}` : ""}`}
 				aria-label="Go to next version"
 			>
 				<Icon name="chevron-down" />

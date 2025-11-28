@@ -301,7 +301,11 @@ declare global {
 			find?: {
 				findInPage: (
 					text: string,
-					options?: { forward?: boolean; findNext?: boolean; matchCase?: boolean }
+					options?: {
+						forward?: boolean;
+						findNext?: boolean;
+						matchCase?: boolean;
+					},
 				) => Promise<{ ok: boolean; requestId?: number }>;
 				stopFindInPage: (action?: string) => Promise<{ ok: boolean }>;
 				onShow: (callback: () => void) => () => void;

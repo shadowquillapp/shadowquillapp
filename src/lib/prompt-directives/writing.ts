@@ -47,4 +47,3 @@ export function buildWritingDirectives(options: GenerationOptions): string[] {
 
 	return directives;
 }
-

@@ -74,4 +74,3 @@ export { buildMarketingDirectives } from "./marketing";
 export { buildResearchDirectives } from "./research";
 export { buildVideoDirectives } from "./video";
 export { buildWritingDirectives } from "./writing";
-

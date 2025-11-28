@@ -3,8 +3,8 @@
  * Uses localStorage for system prompt storage and caching for performance
  */
 import {
-	buildUnifiedPromptCore,
 	buildRefinementPromptCore,
+	buildUnifiedPromptCore,
 	validateBuilderInput,
 } from "@/lib/prompt-builder-core";
 import type { GenerationOptions, TaskType } from "@/types";
@@ -14,7 +14,10 @@ import {
 	getPromptCache,
 	saveToSessionCache,
 } from "./cache";
-import { DEFAULT_BUILD_PROMPT, ensureSystemPromptBuild } from "./system-prompts";
+import {
+	DEFAULT_BUILD_PROMPT,
+	ensureSystemPromptBuild,
+} from "./system-prompts";
 
 export interface BuildPromptInput {
 	input: string;
@@ -26,12 +29,12 @@ export interface BuildPromptInput {
 
 /**
  * Build a unified prompt with multi-level caching
- * 
+ *
  * Cache hierarchy:
  * 1. In-memory LRU cache (fastest, session-scoped)
  * 2. Session storage cache (persists across page reloads)
  * 3. Fresh generation (slowest, always accurate)
- * 
+ *
  * @param params - The prompt building parameters
  * @returns The generated or cached prompt string
  */
@@ -98,12 +101,17 @@ export async function buildPromptPreview({
 	taskType,
 	options,
 }: Omit<BuildPromptInput, "skipCache">): Promise<string> {
-	return buildUnifiedPrompt({ input, taskType, skipCache: true, ...(options && { options }) });
+	return buildUnifiedPrompt({
+		input,
+		taskType,
+		skipCache: true,
+		...(options && { options }),
+	});
 }
 
 export interface BuildRefinementPromptInput {
-	previousOutput: string;      // The existing enhanced prompt to refine
-	refinementRequest: string;   // User's tweak/fix instruction
+	previousOutput: string; // The existing enhanced prompt to refine
+	refinementRequest: string; // User's tweak/fix instruction
 	taskType: TaskType;
 	options?: GenerationOptions;
 }
@@ -111,7 +119,7 @@ export interface BuildRefinementPromptInput {
 /**
  * Build a refinement prompt that modifies an existing enhanced prompt based on user feedback.
  * Used in the versioning workflow when the user wants to tweak/fix a previous output.
- * 
+ *
  * @param params - The refinement parameters
  * @returns The generated refinement prompt string
  */
@@ -140,4 +148,3 @@ export async function buildRefinementPrompt({
 }
 
 export { validateBuilderInput } from "@/lib/prompt-builder-core";
-

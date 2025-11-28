@@ -1,4 +1,3 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	buildUnifiedPromptCore,
 	validateBuilderInput,
@@ -6,6 +5,7 @@ import {
 } from "@/lib/prompt-builder-core";
 import { buildDirectives } from "@/lib/prompt-directives";
 import type { TaskType } from "@/types";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Integration tests for the prompt generation flow
@@ -22,7 +22,10 @@ describe("Prompt Generation Flow", () => {
 			expect(validationError).toBeNull();
 
 			// Step 2: Generate directives
-			const directives = buildDirectives(taskType, { tone: "friendly", detail: "detailed" });
+			const directives = buildDirectives(taskType, {
+				tone: "friendly",
+				detail: "detailed",
+			});
 			expect(directives.length).toBeGreaterThan(0);
 
 			// Step 3: Generate final prompt
@@ -51,7 +54,11 @@ describe("Prompt Generation Flow", () => {
 		});
 
 		it("should generate task-specific prompts with appropriate directives", () => {
-			const testCases: Array<{ taskType: TaskType; input: string; expectContains: string[] }> = [
+			const testCases: Array<{
+				taskType: TaskType;
+				input: string;
+				expectContains: string[];
+			}> = [
 				{
 					taskType: "coding",
 					input: "Create a REST API endpoint for user authentication",
@@ -264,4 +271,3 @@ describe("Prompt Generation Flow", () => {
 		});
 	});
 });
-

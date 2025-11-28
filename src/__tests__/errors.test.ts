@@ -1,18 +1,18 @@
-import { describe, expect, it } from "vitest";
 import {
-	ShadowQuillError,
-	ValidationError,
-	GenerationError,
-	StorageError,
-	ModelError,
 	CacheError,
+	GenerationError,
+	ModelError,
 	NetworkError,
 	PresetError,
+	ShadowQuillError,
+	StorageError,
+	ValidationError,
+	formatErrorLog,
+	getUserMessage,
 	isShadowQuillError,
 	wrapError,
-	getUserMessage,
-	formatErrorLog,
 } from "@/lib/errors";
+import { describe, expect, it } from "vitest";
 
 describe("ShadowQuillError", () => {
 	it("should create error with code and message", () => {
@@ -312,4 +312,3 @@ describe("formatErrorLog", () => {
 		expect(log).toBe("string error");
 	});
 });
-

@@ -41,4 +41,3 @@ export function buildCodingDirectives(options: GenerationOptions): string[] {
 
 	return directives;
 }
-

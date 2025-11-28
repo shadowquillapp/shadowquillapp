@@ -603,19 +603,20 @@ export function MessageRenderer({
 		const codeBlockRegex = /```([^\n]*)\n?([\s\S]*?)```/g;
 		const unclosedCodeBlockRegex = /```([^\n]*)\n([\s\S]+)$/;
 		// Ensure UI matches copy behavior: hide a final bare fence line (exactly ```) from display.
-		const displayContent =
-			/(?:^|\n)```$/.test(content) ? content.replace(/```$/, "") : content;
+		const displayContent = /(?:^|\n)```$/.test(content)
+			? content.replace(/```$/, "")
+			: content;
 		const parts = [];
 		let lastIndex = 0;
 		let match;
-		
+
 		// First check for unclosed code block at the end
 		const unclosedMatch = unclosedCodeBlockRegex.exec(displayContent);
 		if (unclosedMatch) {
 			// If we find an unclosed code block, treat it as a complete block
 			const [fullMatch, language, code] = unclosedMatch;
 			const beforeBlock = displayContent.slice(0, unclosedMatch.index);
-			
+
 			if (beforeBlock.trim()) {
 				parts.push(
 					<span key="text-0" style={{ whiteSpace: "pre-wrap" }}>
@@ -623,15 +624,18 @@ export function MessageRenderer({
 					</span>,
 				);
 			}
-			
+
 			const languageLabel = (language || "").trim();
 			const lang = (languageLabel || "code").toLowerCase();
-			
+
 			// Clean up duplicate opening markers (e.g., ```xml\n```xml\n<content>)
 			let cleanedCode = code || "";
-			const duplicateMarkerPattern = new RegExp(`^\\s*\`\`\`${lang}\\s*\\n`, 'i');
-			cleanedCode = cleanedCode.replace(duplicateMarkerPattern, '');
-			
+			const duplicateMarkerPattern = new RegExp(
+				`^\\s*\`\`\`${lang}\\s*\\n`,
+				"i",
+			);
+			cleanedCode = cleanedCode.replace(duplicateMarkerPattern, "");
+
 			let highlightedCode;
 			if (lang === "json") {
 				highlightedCode = highlightJSON(cleanedCode);
@@ -642,24 +646,26 @@ export function MessageRenderer({
 			} else {
 				highlightedCode = cleanedCode;
 			}
-			
+
 			parts.push(
 				<div
 					key="code-unclosed"
-					className="font-mono text-[11px] my-4 whitespace-pre-wrap overflow-x-auto bg-[var(--color-surface)] border border-[var(--color-outline)] rounded-lg p-4"
+					className="my-4 overflow-x-auto whitespace-pre-wrap rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
 				>
 					{languageLabel && (
-						<div className="text-[9px] text-on-surface-variant uppercase mb-2 font-semibold opacity-60">
+						<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
 							{languageLabel}
 						</div>
 					)}
-					<div className="overflow-x-auto">
-						{highlightedCode}
-					</div>
+					<div className="overflow-x-auto">{highlightedCode}</div>
 				</div>,
 			);
-			
-			return parts.length > 0 ? <>{parts}</> : <span style={{ whiteSpace: "pre-wrap" }}>{content}</span>;
+
+			return parts.length > 0 ? (
+				<>{parts}</>
+			) : (
+				<span style={{ whiteSpace: "pre-wrap" }}>{content}</span>
+			);
 		}
 
 		while ((match = codeBlockRegex.exec(displayContent)) !== null) {
@@ -691,21 +697,19 @@ export function MessageRenderer({
 				highlightedCode = code;
 			}
 
-		parts.push(
-			<div
-				key={`code-${match.index}`}
-				className="font-mono text-[11px] my-4 whitespace-pre-wrap overflow-x-auto bg-[var(--color-surface)] border border-[var(--color-outline)] rounded-lg p-4"
-			>
-				{languageLabel && (
-					<div className="text-[9px] text-on-surface-variant uppercase mb-2 font-semibold opacity-60">
-						{languageLabel}
-					</div>
-				)}
-				<div className="overflow-x-auto">
-					{highlightedCode}
-				</div>
-			</div>,
-		);
+			parts.push(
+				<div
+					key={`code-${match.index}`}
+					className="my-4 overflow-x-auto whitespace-pre-wrap rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
+				>
+					{languageLabel && (
+						<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
+							{languageLabel}
+						</div>
+					)}
+					<div className="overflow-x-auto">{highlightedCode}</div>
+				</div>,
+			);
 
 			lastIndex = match.index + match[0].length;
 		}
@@ -720,18 +724,19 @@ export function MessageRenderer({
 				// Check if text starts with a language identifier followed by XML/HTML/JSON
 				const langWithCodePattern = /^(xml|html|svg|json)\s*\n+([\s\S]+)$/i;
 				const langMatch = langWithCodePattern.exec(remainingText.trim());
-				
+
 				if (langMatch && langMatch[1] && langMatch[2]) {
 					const lang = langMatch[1];
 					const codeContent = langMatch[2];
 					const normalizedLang = lang.toLowerCase();
-					const highlighter = normalizedLang === 'json' ? highlightJSON : highlightXML;
+					const highlighter =
+						normalizedLang === "json" ? highlightJSON : highlightXML;
 					parts.push(
 						<div
 							key={`code-${lastIndex}`}
-							className="font-mono text-[11px] my-4 whitespace-pre-wrap overflow-x-auto bg-[var(--color-surface)] border border-[var(--color-outline)] rounded-lg p-4"
+							className="my-4 overflow-x-auto whitespace-pre-wrap rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
 						>
-							<div className="text-[9px] text-on-surface-variant uppercase mb-2 font-semibold opacity-60">
+							<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
 								{lang.toUpperCase()}
 							</div>
 							<div className="overflow-x-auto">
@@ -746,9 +751,9 @@ export function MessageRenderer({
 						parts.push(
 							<div
 								key={`code-${lastIndex}`}
-								className="font-mono text-[11px] my-4 whitespace-pre-wrap overflow-x-auto bg-[var(--color-surface)] border border-[var(--color-outline)] rounded-lg p-4"
+								className="my-4 overflow-x-auto whitespace-pre-wrap rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
 							>
-								<div className="text-[9px] text-on-surface-variant uppercase mb-2 font-semibold opacity-60">
+								<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
 									XML
 								</div>
 								<div className="overflow-x-auto">
@@ -758,7 +763,10 @@ export function MessageRenderer({
 						);
 					} else {
 						parts.push(
-							<span key={`text-${lastIndex}`} style={{ whiteSpace: "pre-wrap" }}>
+							<span
+								key={`text-${lastIndex}`}
+								style={{ whiteSpace: "pre-wrap" }}
+							>
 								{remainingText}
 							</span>,
 						);
@@ -776,4 +784,3 @@ export function MessageRenderer({
 
 	return renderMessageContent();
 }
-

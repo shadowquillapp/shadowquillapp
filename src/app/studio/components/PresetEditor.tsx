@@ -5,8 +5,8 @@ import BasicSettings from "@/app/studio/components/BasicSettings";
 import LivePreview from "@/app/studio/components/LivePreview";
 import SaveAsDialog from "@/app/studio/components/SaveAsDialog";
 import TypeSpecificFields from "@/app/studio/components/TypeSpecificFields";
-import type { PresetLite } from "@/types";
 import { Icon } from "@/components/Icon";
+import type { PresetLite } from "@/types";
 import React, { useEffect, useState } from "react";
 
 interface PresetEditorProps {
@@ -50,10 +50,7 @@ export default function PresetEditor({
 
 	if (!preset) {
 		return (
-			<section
-				className={`${className} bg-surface`}
-				aria-label="Preset Editor"
-			>
+			<section className={`${className} bg-surface`} aria-label="Preset Editor">
 				<div className="flex h-full items-center justify-center">
 					<div className="text-center">
 						<Icon
@@ -70,177 +67,171 @@ export default function PresetEditor({
 	}
 
 	return (
-		<section
-			className={`${className} bg-surface`}
-			aria-label="Preset Editor"
-		>
+		<section className={`${className} bg-surface`} aria-label="Preset Editor">
 			<div className="flex h-full flex-col">
-			{/* Editor content */}
-			<div className="flex-1 overflow-y-auto px-6 py-4">
-				<div className="mx-auto max-w-5xl">
-					{/* Tabs */}
-					<div className="flex flex-wrap items-center border-b border-[var(--color-outline)]">
-						<button
-							className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
-								activeTab === "basic"
-									? "bg-surface text-light border-b-surface"
-									: "bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light border-transparent"
-							}`}
-							aria-selected={activeTab === "basic"}
-							onClick={() => setActiveTab("basic")}
-						>
-							Basic Settings
-						</button>
-						<button
-							className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
-								activeTab === "advanced"
-									? "bg-surface text-light border-b-surface"
-									: "bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light border-transparent"
-							}`}
-							aria-selected={activeTab === "advanced"}
-							onClick={() => setActiveTab("advanced")}
-						>
-							Advanced Settings
-							<span className="ml-1 hidden text-xs opacity-60 sm:inline">
-								(Optional)
-							</span>
-						</button>
-						{preset.taskType !== "general" && (
+				{/* Editor content */}
+				<div className="flex-1 overflow-y-auto px-6 py-4">
+					<div className="mx-auto max-w-5xl">
+						{/* Tabs */}
+						<div className="flex flex-wrap items-center border-[var(--color-outline)] border-b">
 							<button
-								className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
-									activeTab === "type"
-										? "bg-surface text-light border-b-surface"
-										: "bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light border-transparent"
+								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
+									activeTab === "basic"
+										? "border-b-surface bg-surface text-light"
+										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
 								}`}
-								aria-selected={activeTab === "type"}
-								onClick={() => setActiveTab("type")}
+								aria-selected={activeTab === "basic"}
+								onClick={() => setActiveTab("basic")}
 							>
-								{preset.taskType.charAt(0).toUpperCase() +
-									preset.taskType.slice(1)}{" "}
-								Settings
+								Basic Settings
 							</button>
-						)}
-						<button
-							className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
-								activeTab === "output"
-									? "bg-surface text-light border-b-surface"
-									: "bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light border-transparent"
-							}`}
-							aria-selected={activeTab === "output"}
-							onClick={() => setActiveTab("output")}
-						>
-							Output Settings
-							<span className="ml-1 hidden text-xs opacity-60 sm:inline">
-								(Optional)
-							</span>
-						</button>
-						<button
-							className={`cursor-pointer border-t border-r border-l border-[var(--color-outline)] rounded-t-lg px-4 py-2 font-medium text-sm transition-colors -mb-px ${
-								activeTab === "preview"
-									? "bg-surface text-light border-b-surface"
-									: "bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light border-transparent"
-							}`}
-							aria-selected={activeTab === "preview"}
-							onClick={() => setActiveTab("preview")}
-						>
-							Live Examples
-						</button>
-					</div>
+							<button
+								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
+									activeTab === "advanced"
+										? "border-b-surface bg-surface text-light"
+										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
+								}`}
+								aria-selected={activeTab === "advanced"}
+								onClick={() => setActiveTab("advanced")}
+							>
+								Advanced Settings
+								<span className="ml-1 hidden text-xs opacity-60 sm:inline">
+									(Optional)
+								</span>
+							</button>
+							{preset.taskType !== "general" && (
+								<button
+									className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
+										activeTab === "type"
+											? "border-b-surface bg-surface text-light"
+											: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
+									}`}
+									aria-selected={activeTab === "type"}
+									onClick={() => setActiveTab("type")}
+								>
+									{preset.taskType.charAt(0).toUpperCase() +
+										preset.taskType.slice(1)}{" "}
+									Settings
+								</button>
+							)}
+							<button
+								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
+									activeTab === "output"
+										? "border-b-surface bg-surface text-light"
+										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
+								}`}
+								aria-selected={activeTab === "output"}
+								onClick={() => setActiveTab("output")}
+							>
+								Output Settings
+								<span className="ml-1 hidden text-xs opacity-60 sm:inline">
+									(Optional)
+								</span>
+							</button>
+							<button
+								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
+									activeTab === "preview"
+										? "border-b-surface bg-surface text-light"
+										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
+								}`}
+								aria-selected={activeTab === "preview"}
+								onClick={() => setActiveTab("preview")}
+							>
+								Live Examples
+							</button>
+						</div>
 
-					{/* Tab Content */}
-					<div className="mt-6 space-y-4">
-						{activeTab === "basic" && (
-							<BasicSettings
-								preset={preset}
-								onFieldChange={onFieldChange}
-							/>
-						)}
+						{/* Tab Content */}
+						<div className="mt-6 space-y-4">
+							{activeTab === "basic" && (
+								<BasicSettings preset={preset} onFieldChange={onFieldChange} />
+							)}
 
-						{activeTab === "advanced" && (
-							<AdvancedSettings
-								preset={preset}
-								onFieldChange={onFieldChange}
-							/>
-						)}
+							{activeTab === "advanced" && (
+								<AdvancedSettings
+									preset={preset}
+									onFieldChange={onFieldChange}
+								/>
+							)}
 
-						{activeTab === "type" && preset.taskType !== "general" && (
-							<TypeSpecificFields
-								taskType={preset.taskType}
-								options={preset.options || {}}
-								onFieldChange={onFieldChange}
-							/>
-						)}
+							{activeTab === "type" && preset.taskType !== "general" && (
+								<TypeSpecificFields
+									taskType={preset.taskType}
+									options={preset.options || {}}
+									onFieldChange={onFieldChange}
+								/>
+							)}
 
-						{activeTab === "output" && (
-							<div className="space-y-4">
-								{preset.options?.format === "xml" && (
+							{activeTab === "output" && (
+								<div className="space-y-4">
+									{preset.options?.format === "xml" && (
+										<div>
+											<label className="mb-1 block font-medium text-secondary text-xs">
+												XML Output Schema / Tags
+											</label>
+											<textarea
+												value={preset.options?.outputXMLSchema || ""}
+												onChange={(e) =>
+													onFieldChange("outputXMLSchema", e.target.value)
+												}
+												placeholder="<root><title/><summary/><tags><tag/></tags></root>"
+												className="md-input w-full resize-none px-3 py-2 text-sm"
+												rows={3}
+											/>
+										</div>
+									)}
+
 									<div>
 										<label className="mb-1 block font-medium text-secondary text-xs">
-											XML Output Schema / Tags
+											Additional Context
 										</label>
 										<textarea
-											value={preset.options?.outputXMLSchema || ""}
+											value={preset.options?.additionalContext || ""}
 											onChange={(e) =>
-												onFieldChange("outputXMLSchema", e.target.value)
+												onFieldChange("additionalContext", e.target.value)
 											}
-											placeholder="<root><title/><summary/><tags><tag/></tags></root>"
-											className="md-input w-full resize-none py-2 px-3 text-sm"
+											placeholder="Background info, definitions, constraints to include in the prompt."
+											className="md-input w-full resize-none px-3 py-2 text-sm"
 											rows={3}
 										/>
 									</div>
-								)}
 
-								<div>
-									<label className="mb-1 block font-medium text-secondary text-xs">
-										Additional Context
-									</label>
-									<textarea
-										value={preset.options?.additionalContext || ""}
-										onChange={(e) =>
-											onFieldChange("additionalContext", e.target.value)
-										}
-										placeholder="Background info, definitions, constraints to include in the prompt."
-										className="md-input w-full resize-none py-2 px-3 text-sm"
-										rows={3}
-									/>
-								</div>
-
-								<div>
-									<label className="mb-1 block font-medium text-secondary text-xs">
-										Few-shot Examples
-									</label>
-									<textarea
-										value={preset.options?.examplesText || ""}
-										onChange={(e) =>
-											onFieldChange("examplesText", e.target.value)
-										}
-										placeholder={`Example:
+									<div>
+										<label className="mb-1 block font-medium text-secondary text-xs">
+											Few-shot Examples
+										</label>
+										<textarea
+											value={preset.options?.examplesText || ""}
+											onChange={(e) =>
+												onFieldChange("examplesText", e.target.value)
+											}
+											placeholder={`Example:
 Q: [task]
 A: Let's think step by step... [reasoning]. Therefore, [answer].`}
-										className="md-input w-full resize-none font-mono text-sm"
-										style={{
-											fontFamily: "var(--font-mono, monospace)",
-										}}
-										rows={4}
-									/>
+											className="md-input w-full resize-none font-mono text-sm"
+											style={{
+												fontFamily: "var(--font-mono, monospace)",
+											}}
+											rows={4}
+										/>
+									</div>
 								</div>
-							</div>
-						)}
+							)}
 
-						{activeTab === "preview" && (
-							<LivePreview 
-								preset={preset} 
-								{...(onGenerateExamples && { onGenerateExamples })}
-								{...(onRegenerateExample && { onRegenerateExample })}
-								isGenerating={isGeneratingExamples}
-								regeneratingIndex={regeneratingIndex}
-							/>
-						)}
-					</div>
+							{activeTab === "preview" && (
+								<LivePreview
+									preset={preset}
+									{...(onGenerateExamples && { onGenerateExamples })}
+									{...(onRegenerateExample && { onRegenerateExample })}
+									isGenerating={isGeneratingExamples}
+									regeneratingIndex={regeneratingIndex}
+								/>
+							)}
+						</div>
 
 						{/* Unsaved changes indicator below settings */}
 						{isDirty && (
-							<div className="mt-4 flex items-center gap-2 font-semibold text-base text-[var(--color-attention)]">
+							<div className="mt-4 flex items-center gap-2 font-semibold text-[var(--color-attention)] text-base">
 								<span className="h-2.5 w-2.5 rounded-full bg-[var(--color-attention)]" />
 								{`Unsaved Changes to (${preset.name})`}
 							</div>
@@ -248,12 +239,12 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 					</div>
 				</div>
 
-			{/* Action bar */}
-			<div className="border-t border-[var(--color-outline)] bg-[var(--color-surface-variant)] px-6 py-4">
-				<div className="mx-auto flex max-w-5xl items-center justify-between">
+				{/* Action bar */}
+				<div className="border-[var(--color-outline)] border-t bg-[var(--color-surface-variant)] px-6 py-4">
+					<div className="mx-auto flex max-w-5xl items-center justify-between">
 						<button
 							onClick={() => preset?.id && onDelete(preset.id)}
-							className="md-btn md-btn--destructive font-medium text-sm text-red-500"
+							className="md-btn md-btn--destructive font-medium text-red-500 text-sm"
 							disabled={!preset?.id || preset?.name === "Default"}
 							title="Delete preset"
 							style={{ color: "#ef4444" }}
@@ -299,7 +290,6 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 				}}
 				onCancel={() => setShowDuplicateDialog(false)}
 			/>
-
 		</section>
 	);
 }

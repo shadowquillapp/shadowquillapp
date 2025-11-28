@@ -19,8 +19,7 @@ contextBridge.exposeInMainWorld("shadowquill", {
 		getSize: () => ipcRenderer.invoke("shadowquill:window:getSize"),
 	},
 	view: {
-		getZoomFactor: () =>
-			ipcRenderer.invoke("shadowquill:view:getZoomFactor"),
+		getZoomFactor: () => ipcRenderer.invoke("shadowquill:view:getZoomFactor"),
 		setZoomFactor: (factor) =>
 			ipcRenderer.invoke("shadowquill:view:setZoomFactor", factor),
 		resetZoom: () => ipcRenderer.invoke("shadowquill:view:resetZoom"),
@@ -32,15 +31,18 @@ contextBridge.exposeInMainWorld("shadowquill", {
 			ipcRenderer.invoke("shadowquill:find:stopFindInPage", action),
 		onShow: (callback) => {
 			ipcRenderer.on("shadowquill:find:show", callback);
-			return () => ipcRenderer.removeListener("shadowquill:find:show", callback);
+			return () =>
+				ipcRenderer.removeListener("shadowquill:find:show", callback);
 		},
 		onNext: (callback) => {
 			ipcRenderer.on("shadowquill:find:next", callback);
-			return () => ipcRenderer.removeListener("shadowquill:find:next", callback);
+			return () =>
+				ipcRenderer.removeListener("shadowquill:find:next", callback);
 		},
 		onPrevious: (callback) => {
 			ipcRenderer.on("shadowquill:find:previous", callback);
-			return () => ipcRenderer.removeListener("shadowquill:find:previous", callback);
+			return () =>
+				ipcRenderer.removeListener("shadowquill:find:previous", callback);
 		},
 	},
 });

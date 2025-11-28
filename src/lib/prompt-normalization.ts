@@ -65,7 +65,9 @@ export const normalizeCameraMovement = (
 		: undefined;
 };
 
-export const normalizeShotType = (v: string | undefined): ShotType | undefined => {
+export const normalizeShotType = (
+	v: string | undefined,
+): ShotType | undefined => {
 	const allowed: ShotType[] = [
 		"wide",
 		"medium",
@@ -76,7 +78,9 @@ export const normalizeShotType = (v: string | undefined): ShotType | undefined =
 	return allowed.includes(v as ShotType) ? (v as ShotType) : undefined;
 };
 
-export const normalizeFrameRate = (v: number | undefined): FrameRate | undefined => {
+export const normalizeFrameRate = (
+	v: number | undefined,
+): FrameRate | undefined => {
 	const allowed: FrameRate[] = [24, 30, 60];
 	return allowed.includes(v as FrameRate) ? (v as FrameRate) : undefined;
 };
@@ -88,4 +92,3 @@ export const normalizeDurationSeconds = (
 	const clamped = Math.max(1, Math.min(60, Math.round(v)));
 	return clamped;
 };
-

@@ -1,5 +1,5 @@
 import { Icon } from "@/components/Icon";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { MessageItem, VersionNodeMetadata } from "./types";
 
 interface Version {
@@ -44,34 +44,39 @@ export function VersionHistoryModal({
 	// Close on Escape and handle keyboard navigation
 	useEffect(() => {
 		if (!open) return;
-		
+
 		const handleKeyDown = (e: KeyboardEvent) => {
 			if (e.key === "Escape") {
 				onClose();
 				return;
 			}
-			
+
 			// Arrow key navigation between cards
 			if (e.key === "ArrowDown" || e.key === "ArrowUp") {
 				e.preventDefault();
 				const direction = e.key === "ArrowDown" ? 1 : -1;
-				const newIndex = Math.max(0, Math.min(sortedVersions.length - 1, focusedIndex + direction));
+				const newIndex = Math.max(
+					0,
+					Math.min(sortedVersions.length - 1, focusedIndex + direction),
+				);
 				setFocusedIndex(newIndex);
 				cardRefs.current[newIndex]?.focus();
 			}
-			
+
 			// Enter or Space to expand/collapse
 			if (e.key === "Enter" || e.key === " ") {
 				if (document.activeElement === cardRefs.current[focusedIndex]) {
 					e.preventDefault();
 					const version = sortedVersions[focusedIndex];
 					if (version) {
-						setExpandedVersion(expandedVersion === version.id ? null : version.id);
+						setExpandedVersion(
+							expandedVersion === version.id ? null : version.id,
+						);
 					}
 				}
 			}
 		};
-		
+
 		document.addEventListener("keydown", handleKeyDown);
 		return () => document.removeEventListener("keydown", handleKeyDown);
 	}, [open, onClose, focusedIndex, expandedVersion, sortedVersions]);
@@ -79,9 +84,13 @@ export function VersionHistoryModal({
 	if (!open) return null;
 
 	// Helper to find output content by message ID
-	const getOutputContent = (outputMessageId: string | null | undefined): string | null => {
+	const getOutputContent = (
+		outputMessageId: string | null | undefined,
+	): string | null => {
 		if (!outputMessageId) return null;
-		const message = messages.find(m => m.id === outputMessageId && m.role === "assistant");
+		const message = messages.find(
+			(m) => m.id === outputMessageId && m.role === "assistant",
+		);
 		return message?.content ?? null;
 	};
 
@@ -97,7 +106,10 @@ export function VersionHistoryModal({
 		if (minutes < 60) return `${minutes}m`;
 		if (hours < 24) return `${hours}h`;
 		if (days < 7) return `${days}d`;
-		return new Date(timestamp).toLocaleDateString([], { month: "short", day: "numeric" });
+		return new Date(timestamp).toLocaleDateString([], {
+			month: "short",
+			day: "numeric",
+		});
 	};
 
 	const handleRestore = (versionId: string) => {
@@ -118,8 +130,8 @@ export function VersionHistoryModal({
 			ref={modalRef}
 		>
 			<div className="modal-backdrop-blur" onClick={onClose} />
-			<div 
-				className="modal-content modal-content--version-history" 
+			<div
+				className="modal-content modal-content--version-history"
 				onClick={(e) => e.stopPropagation()}
 				role="document"
 			>
@@ -140,16 +152,22 @@ export function VersionHistoryModal({
 				</header>
 
 				{/* Body */}
-				<div 
-					className="modal-body vh-modal-body" 
+				<div
+					className="modal-body vh-modal-body"
 					role="region"
-					aria-label={`${versions.length} version${versions.length !== 1 ? 's' : ''} available`}
+					aria-label={`${versions.length} version${versions.length !== 1 ? "s" : ""} available`}
 				>
 					{versions.length === 0 ? (
 						<div className="vh-empty" role="status">
-							<Icon name="folder-open" className="vh-empty-icon" aria-hidden="true" />
+							<Icon
+								name="folder-open"
+								className="vh-empty-icon"
+								aria-hidden="true"
+							/>
 							<div className="vh-empty-title">No versions yet</div>
-							<div className="vh-empty-desc">Run a prompt to create your first version</div>
+							<div className="vh-empty-desc">
+								Run a prompt to create your first version
+							</div>
 						</div>
 					) : (
 						<div className="vh-cards-container">
@@ -157,7 +175,11 @@ export function VersionHistoryModal({
 								const isActive = version.id === activeVersionId;
 								const outputContent = getOutputContent(version.outputMessageId);
 								const hasOutput = outputContent !== null;
-								const inputPreview = (version.originalInput || version.content || "").trim();
+								const inputPreview = (
+									version.originalInput ||
+									version.content ||
+									""
+								).trim();
 								const isExpanded = expandedVersion === version.id;
 								const runNumber = versions.length - index;
 								const isRefinement = version.metadata?.isRefinement === true;
@@ -175,12 +197,14 @@ export function VersionHistoryModal({
 								return (
 									<article
 										key={version.id}
-										ref={(el) => { cardRefs.current[index] = el; }}
+										ref={(el) => {
+											cardRefs.current[index] = el;
+										}}
 										className={`vh-card${isActive ? " vh-card--active" : ""}${isExpanded ? " vh-card--expanded" : ""}`}
 										tabIndex={0}
 										role="button"
 										aria-expanded={isExpanded}
-										aria-label={`Version ${runNumber}, ${versionType}${isActive ? ', current version' : ''}, created ${getRelativeTime(version.createdAt)}`}
+										aria-label={`Version ${runNumber}, ${versionType}${isActive ? ", current version" : ""}, created ${getRelativeTime(version.createdAt)}`}
 										onClick={() => toggleExpand(version.id)}
 										onKeyDown={(e) => {
 											if (e.key === "Enter" || e.key === " ") {
@@ -194,21 +218,25 @@ export function VersionHistoryModal({
 											<div className="vh-card-main">
 												{/* Base Icon (left of version number) */}
 												{isBase && (
-													<Icon 
-														name="file-text" 
-														className="vh-base-icon" 
+													<Icon
+														name="file-text"
+														className="vh-base-icon"
 														aria-label="Base version"
 													/>
 												)}
 
 												{/* Version Number */}
-												<span className="vh-version-number" aria-label={`Version ${runNumber}`}>
+												<span
+													className="vh-version-number"
+													aria-label={`Version ${runNumber}`}
+												>
 													v{runNumber}
 												</span>
 
 												{/* Preview Text */}
 												<span className="vh-preview-text">
-													{inputPreview.slice(0, 60) || "Empty"}{inputPreview.length > 60 ? "…" : ""}
+													{inputPreview.slice(0, 60) || "Empty"}
+													{inputPreview.length > 60 ? "…" : ""}
 												</span>
 											</div>
 
@@ -216,18 +244,21 @@ export function VersionHistoryModal({
 											<div className="vh-card-meta">
 												{/* Current/Selected Icon */}
 												{isActive && (
-													<Icon 
-														name="check" 
-														className="vh-current-icon" 
+													<Icon
+														name="check"
+														className="vh-current-icon"
 														aria-label="Current version"
 													/>
 												)}
-												
-												<span className="vh-timestamp" aria-label={`Created ${getRelativeTime(version.createdAt)}`}>
+
+												<span
+													className="vh-timestamp"
+													aria-label={`Created ${getRelativeTime(version.createdAt)}`}
+												>
 													{getRelativeTime(version.createdAt)}
 												</span>
-												<Icon 
-													name={isExpanded ? "chevron-up" : "chevron-down"} 
+												<Icon
+													name={isExpanded ? "chevron-up" : "chevron-down"}
 													className="vh-expand-icon"
 													aria-hidden="true"
 												/>
@@ -236,68 +267,91 @@ export function VersionHistoryModal({
 
 										{/* Card Body - Expanded View */}
 										{isExpanded && (
-											<div className="vh-card-body" onClick={(e) => e.stopPropagation()}>
-											{/* Input Section */}
-											<section className="vh-content-section">
-												<div className="vh-section-header">
-													<h3 className="vh-section-title">
-														<Icon name={isRefinement ? "refresh" : "edit"} aria-hidden="true" />
-														{isRefinement ? "REFINEMENT REQUEST" : "INITIAL INPUT"}
-													</h3>
-													{onCopy && inputPreview && (
-														<button
-															type="button"
-															onClick={(e) => {
-																e.stopPropagation();
-																onCopy(`${version.id}-input`, inputPreview);
-															}}
-															className="vh-copy-btn"
-															title="Copy input"
-															aria-label="Copy input"
-														>
-															<Icon
-																name={copiedMessageId === `${version.id}-input` ? "check" : "copy"}
-																style={{ width: 12, height: 12 }}
-															/>
-														</button>
-													)}
-												</div>
-												<div className="vh-section-text">
-													{inputPreview || <em className="vh-empty-text">Empty prompt</em>}
-												</div>
-											</section>
-
-											{/* Output Section */}
-											{hasOutput && (
-												<section className="vh-content-section vh-content-section--output">
+											<div
+												className="vh-card-body"
+												onClick={(e) => e.stopPropagation()}
+											>
+												{/* Input Section */}
+												<section className="vh-content-section">
 													<div className="vh-section-header">
 														<h3 className="vh-section-title">
-															<Icon name="comments" aria-hidden="true" />
-															{isRefinement ? "REFINED OUTPUT" : "GENERATED OUTPUT"}
+															<Icon
+																name={isRefinement ? "refresh" : "edit"}
+																aria-hidden="true"
+															/>
+															{isRefinement
+																? "REFINEMENT REQUEST"
+																: "INITIAL INPUT"}
 														</h3>
-														{onCopy && outputContent && (
+														{onCopy && inputPreview && (
 															<button
 																type="button"
 																onClick={(e) => {
 																	e.stopPropagation();
-																	onCopy(`${version.id}-output`, outputContent);
+																	onCopy(`${version.id}-input`, inputPreview);
 																}}
 																className="vh-copy-btn"
-																title="Copy output"
-																aria-label="Copy output"
+																title="Copy input"
+																aria-label="Copy input"
 															>
 																<Icon
-																	name={copiedMessageId === `${version.id}-output` ? "check" : "copy"}
+																	name={
+																		copiedMessageId === `${version.id}-input`
+																			? "check"
+																			: "copy"
+																	}
 																	style={{ width: 12, height: 12 }}
 																/>
 															</button>
 														)}
 													</div>
 													<div className="vh-section-text">
-														{outputContent}
+														{inputPreview || (
+															<em className="vh-empty-text">Empty prompt</em>
+														)}
 													</div>
 												</section>
-											)}
+
+												{/* Output Section */}
+												{hasOutput && (
+													<section className="vh-content-section vh-content-section--output">
+														<div className="vh-section-header">
+															<h3 className="vh-section-title">
+																<Icon name="comments" aria-hidden="true" />
+																{isRefinement
+																	? "REFINED OUTPUT"
+																	: "GENERATED OUTPUT"}
+															</h3>
+															{onCopy && outputContent && (
+																<button
+																	type="button"
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		onCopy(
+																			`${version.id}-output`,
+																			outputContent,
+																		);
+																	}}
+																	className="vh-copy-btn"
+																	title="Copy output"
+																	aria-label="Copy output"
+																>
+																	<Icon
+																		name={
+																			copiedMessageId === `${version.id}-output`
+																				? "check"
+																				: "copy"
+																		}
+																		style={{ width: 12, height: 12 }}
+																	/>
+																</button>
+															)}
+														</div>
+														<div className="vh-section-text">
+															{outputContent}
+														</div>
+													</section>
+												)}
 
 												{/* Restore Button */}
 												{!isActive && (

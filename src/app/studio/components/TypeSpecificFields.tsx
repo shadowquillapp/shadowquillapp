@@ -1,7 +1,7 @@
 "use client";
 
-import type { PresetOptions, TaskType } from "@/types";
 import { CustomSelect } from "@/components/CustomSelect";
+import type { PresetOptions, TaskType } from "@/types";
 import React from "react";
 
 interface TypeSpecificFieldsProps {
@@ -181,7 +181,7 @@ export default function TypeSpecificFields({
 								);
 								onFieldChange("durationSeconds", val);
 							}}
-							className="md-input w-full h-10 !rounded-lg py-2 px-3 text-sm"
+							className="md-input !rounded-lg h-10 w-full px-3 py-2 text-sm"
 						/>
 					</div>
 
@@ -205,12 +205,16 @@ export default function TypeSpecificFields({
 					<input
 						type="checkbox"
 						checked={options.includeStoryboard ?? false}
-						onChange={(e) => onFieldChange("includeStoryboard", e.target.checked)}
+						onChange={(e) =>
+							onFieldChange("includeStoryboard", e.target.checked)
+						}
 						className="md-checkbox"
 					/>
-					<span className="text-sm text-light">Include storyboard breakdown</span>
+					<span className="text-light text-sm">
+						Include storyboard breakdown
+					</span>
 				</label>
-				<p className="mt-1 ml-6 text-xs text-secondary opacity-80">
+				<p className="mt-1 ml-6 text-secondary text-xs opacity-80">
 					{(options.durationSeconds || 5) >= 10
 						? `Generate a scene-by-scene storyboard for the ${options.durationSeconds || 5}s video (recommended for longer videos)`
 						: `Add storyboard frames to visualize the ${options.durationSeconds || 5}s video sequence`}
@@ -231,11 +235,12 @@ export default function TypeSpecificFields({
 						value={(options as any).techStack || ""}
 						onChange={(e) => onFieldChange("techStack", e.target.value)}
 						placeholder="e.g., 'React, TypeScript, Node.js, PostgreSQL'. MUST specify the technologies to be used."
-						className="md-input w-full resize-none py-2 px-3 text-sm"
+						className="md-input w-full resize-none px-3 py-2 text-sm"
 						rows={2}
 					/>
-					<p className="mt-1 text-xs text-secondary opacity-80">
-						Specify technologies/frameworks. The prompt will STRICTLY restrict itself to this stack.
+					<p className="mt-1 text-secondary text-xs opacity-80">
+						Specify technologies/frameworks. The prompt will STRICTLY restrict
+						itself to this stack.
 					</p>
 				</div>
 
@@ -247,10 +252,10 @@ export default function TypeSpecificFields({
 						value={(options as any).projectContext || ""}
 						onChange={(e) => onFieldChange("projectContext", e.target.value)}
 						placeholder="Optional context: existing architecture, coding standards, design patterns you want followed, etc."
-						className="md-input w-full resize-none py-2 px-3 text-sm"
+						className="md-input w-full resize-none px-3 py-2 text-sm"
 						rows={3}
 					/>
-					<p className="mt-1 text-xs text-secondary opacity-80">
+					<p className="mt-1 text-secondary text-xs opacity-80">
 						Additional project-specific context to guide the implementation.
 					</p>
 				</div>
@@ -263,10 +268,10 @@ export default function TypeSpecificFields({
 						value={(options as any).codingConstraints || ""}
 						onChange={(e) => onFieldChange("codingConstraints", e.target.value)}
 						placeholder="Performance requirements, security considerations, accessibility needs, etc."
-						className="md-input w-full resize-none py-2 px-3 text-sm"
+						className="md-input w-full resize-none px-3 py-2 text-sm"
 						rows={2}
 					/>
-					<p className="mt-1 text-xs text-secondary opacity-80">
+					<p className="mt-1 text-secondary text-xs opacity-80">
 						Specific technical constraints or requirements.
 					</p>
 				</div>
@@ -278,9 +283,9 @@ export default function TypeSpecificFields({
 						onChange={(e) => onFieldChange("includeTests", e.target.checked)}
 						className="md-checkbox"
 					/>
-					<span className="text-sm text-light">Include test requirements</span>
+					<span className="text-light text-sm">Include test requirements</span>
 				</label>
-				<p className="mt-1 ml-6 text-xs text-secondary opacity-80">
+				<p className="mt-1 ml-6 text-secondary text-xs opacity-80">
 					Add testing requirements to the prompt
 				</p>
 			</div>
@@ -300,9 +305,9 @@ export default function TypeSpecificFields({
 						}
 						className="md-checkbox"
 					/>
-					<span className="text-sm text-light">Require citations</span>
+					<span className="text-light text-sm">Require citations</span>
 				</label>
-				<p className="mt-1 ml-6 text-xs text-secondary opacity-80">
+				<p className="mt-1 ml-6 text-secondary text-xs opacity-80">
 					Include source references and citations in the response
 				</p>
 			</div>
@@ -379,22 +384,20 @@ export default function TypeSpecificFields({
 									),
 								)
 							}
-							className="md-input w-full h-10 !rounded-lg py-2 px-3 text-sm"
+							className="md-input !rounded-lg h-10 w-full px-3 py-2 text-sm"
 						/>
 					</div>
 				</div>
 
-			<label className="flex cursor-pointer items-center gap-2">
-				<input
-					type="checkbox"
-					checked={options.includeHeadings ?? true}
-					onChange={(e) => onFieldChange("includeHeadings", e.target.checked)}
-					className="md-checkbox"
-				/>
-				<span className="text-sm text-light">
-					Include section headings
-				</span>
-			</label>
+				<label className="flex cursor-pointer items-center gap-2">
+					<input
+						type="checkbox"
+						checked={options.includeHeadings ?? true}
+						onChange={(e) => onFieldChange("includeHeadings", e.target.checked)}
+						className="md-checkbox"
+					/>
+					<span className="text-light text-sm">Include section headings</span>
+				</label>
 			</div>
 		);
 	}
@@ -444,7 +447,7 @@ export default function TypeSpecificFields({
 						value={options.valueProps || ""}
 						onChange={(e) => onFieldChange("valueProps", e.target.value)}
 						placeholder="List key value props, proof points, differentiators."
-						className="md-input w-full resize-none py-2 px-3 text-sm"
+						className="md-input w-full resize-none px-3 py-2 text-sm"
 						rows={3}
 					/>
 				</div>
@@ -457,7 +460,7 @@ export default function TypeSpecificFields({
 						value={options.complianceNotes || ""}
 						onChange={(e) => onFieldChange("complianceNotes", e.target.value)}
 						placeholder="Disclaimers or constraints to follow precisely."
-						className="md-input w-full resize-none py-2 px-3 text-sm"
+						className="md-input w-full resize-none px-3 py-2 text-sm"
 						rows={3}
 					/>
 				</div>
