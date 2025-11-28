@@ -395,7 +395,7 @@ input[type="checkbox"].md-checkbox:disabled{opacity:.5;cursor:not-allowed}
 .version-input-column,.version-output-column{padding:0}
 }
 .version-nav-vertical{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0;background:transparent;border:none;transition:all 200ms ease;width:32px;position:relative;z-index:10}
-.version-nav-vertical--compact{gap:2px;padding:4px 0;background:var(--color-surface-variant);border-radius:8px}
+.version-nav-vertical--compact{gap:2px;padding:4px 0;background:transparent;border-radius:8px}
 .version-nav-vertical--compact .version-nav-vertical__btn{opacity:.7}
 .version-nav-vertical--compact .version-nav-vertical__btn:hover:not(:disabled){opacity:1}
 .version-nav-vertical--empty{opacity:.4}
@@ -405,7 +405,7 @@ input[type="checkbox"].md-checkbox:disabled{opacity:.5;cursor:not-allowed}
 .version-nav-vertical__btn{display:flex;align-items:center;justify-content:center;width:32px;height:24px;border-radius:6px;border:none;background:transparent;color:var(--color-on-surface-variant);cursor:pointer;transition:all 150ms ease;opacity:.5}
 .version-nav-vertical__btn:hover:not(:disabled){color:var(--color-primary);opacity:1}
 .version-nav-vertical__btn:disabled{opacity:.15;cursor:not-allowed}
-.version-nav-vertical__btn svg{width:14px;height:14px}
+.version-nav-vertical__btn svg{width:20px;height:14px}
 .version-nav-vertical__center{display:flex;flex-direction:column;align-items:center;gap:0;padding:0;border-radius:6px;background:transparent;border:none;cursor:pointer;transition:all 150ms ease}
 .version-nav-vertical__center:hover{background:transparent}
 .version-nav-vertical__center:hover .version-nav-vertical__badge{opacity:.8}
