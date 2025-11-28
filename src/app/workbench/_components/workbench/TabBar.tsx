@@ -137,19 +137,6 @@ export function TabBar({
 				minHeight: embedded ? "auto" : "48px",
 			}}
 		>
-			{/* Tab counter */}
-			<div
-				style={{
-					fontSize: 10,
-					color: "var(--color-on-surface-variant)",
-					fontWeight: 500,
-					flexShrink: 0,
-					padding: "0 2px",
-				}}
-			>
-				{tabs.length}/{maxTabs}
-			</div>
-
 			{/* Left scroll button */}
 			{showLeftScroll && (
 				<button
@@ -454,7 +441,7 @@ export function TabBar({
 				{/* New tab button - positioned right after tabs */}
 				<button
 					type="button"
-					className={`md-btn ${noTabs ? "glow-animation" : ""}`}
+					className="md-btn"
 					onClick={onNewTab}
 					disabled={!canAddTab}
 					aria-label="New tab"
@@ -572,31 +559,7 @@ export function TabBar({
 					box-shadow: 0 0 8px rgba(var(--color-primary-rgb, 99, 102, 241), 0.6);
 				}
 				
-				@keyframes glow-pulse {
-					0%, 100% {
-						box-shadow: 0 0 10px var(--color-primary);
-						opacity: 0.8;
-					}
-					50% {
-						box-shadow: 0 0 20px var(--color-primary);
-						opacity: 1;
-					}
-				}
 				
-				:global(.glow-animation) {
-					position: relative;
-					z-index: 10;
-				}
-				
-				:global(.glow-animation::before) {
-					content: "";
-					position: absolute;
-					inset: -4px;
-					border-radius: inherit;
-					animation: glow-pulse 2s ease-in-out infinite;
-					z-index: -1;
-					pointer-events: none;
-				}
 			`}</style>
 		</div>
 	);
