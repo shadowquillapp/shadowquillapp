@@ -1026,16 +1026,16 @@ function DataLocationModalWrapper() {
 											className="text-secondary text-xs"
 											style={{ marginBottom: 10 }}
 										>
-											This will delete all local data (settings, sessions, presets)
-											PERMANENTLY. Only use this if you want to start fresh.
+											This will delete all local data (settings, workbenchs, presets)
+											PERMANENTLY and close the app. Reopen ShadowQuill to start fresh.
 										</div>
 										<button
 											className="md-btn md-btn--destructive"
 											onClick={async () => {
 												const ok = await confirm({
 													title: "Factory Reset",
-													message: "Delete ALL local data and restart?",
-													confirmText: "Delete & Restart",
+													message: "Delete ALL local data and close ShadowQuill? When you reopen the app, a fresh data save will be created automatically.",
+													confirmText: "Delete & Close",
 													cancelText: "Cancel",
 													tone: "destructive",
 												});
@@ -1048,12 +1048,8 @@ function DataLocationModalWrapper() {
 													if (!res?.ok) {
 														setError(res?.error || "Reset failed");
 														setLoading(false);
-														return;
 													}
-													// Give the factory reset a moment to fully complete
-													await new Promise(resolve => setTimeout(resolve, 500));
-													// Restart the app
-													await api?.restartApp?.();
+													// App will close automatically after factory reset
 												} catch (e: any) {
 													setError(e?.message || "Reset failed");
 													setLoading(false);

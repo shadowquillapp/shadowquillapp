@@ -330,10 +330,10 @@ function registerDataIPCHandlers() {
 		}
 	});
 
-	// Factory reset: clear Chromium storage (localStorage, IndexedDB, etc)
+	// Factory reset: clear Chromium storage (localStorage, IndexedDB, etc) and close app
 	ipcMain.handle("shadowquill:factoryReset", async () => {
 		try {
-			console.log("[Factory Reset] Triggered. Clearing session and restarting with cleanup flag...");
+			console.log("[Factory Reset] Triggered. Clearing all data and closing app...");
 			
 			// Clear all persistent storage for the default session
 			try {
@@ -343,12 +343,28 @@ function registerDataIPCHandlers() {
 				console.warn("[Factory Reset] Soft clear warning:", e);
 			}
 
-			// Relaunch the app with a flag to perform file deletion on startup
-			// This avoids EBUSY errors because the new process handles deletion 
-			// before locking any files.
-			const args = process.argv.slice(1).concat(["--factory-reset"]);
-			app.relaunch({ args });
-			app.exit(0);
+			// Wipe the user data directory
+			try {
+				const userData = app.getPath("userData");
+				if (fs.existsSync(userData)) {
+					// Try rename-then-delete strategy to avoid EBUSY locks
+					const trashPath = userData + "-trash-" + Date.now();
+					try {
+						fs.renameSync(userData, trashPath);
+						fs.rmSync(trashPath, { recursive: true, force: true });
+					} catch (e) {
+						// Fallback to direct delete if rename fails
+						console.warn("[Factory Reset] Rename failed, trying direct delete:", e.message);
+						fs.rmSync(userData, { recursive: true, force: true });
+					}
+				}
+				console.log("[Factory Reset] Data wiped successfully.");
+			} catch (e) {
+				console.warn("[Factory Reset] File wipe warning:", e);
+			}
+
+			// Close the app (user will manually reopen for fresh start)
+			app.quit();
 
 			return { ok: true };
 		} catch (e) {
@@ -407,8 +423,8 @@ ipcMain.handle("shadowquill:view:resetZoom", (e) => {
 	try {
 		const w = BrowserWindow.fromWebContents(e.sender);
 		if (!w) return { ok: false, error: "No window" };
-		w.webContents.setZoomFactor(1);
-		return { ok: true, zoomFactor: 1 };
+		w.webContents.setZoomFactor(1.1);
+		return { ok: true, zoomFactor: 1.1 };
 	} catch (err) {
 		return { ok: false, error: err?.message || "Failed to reset zoom" };
 	}
@@ -504,6 +520,9 @@ function createWindow() {
 
 	// Filter console messages to suppress harmless autofill errors
 	win.webContents.once("did-finish-load", () => {
+		// Set default zoom to 110%
+		win.webContents.setZoomFactor(1.1);
+		
 		win.webContents.executeJavaScript(`
       (function() {
         const originalError = console.error;
