@@ -11,6 +11,7 @@ import {
 	resetSystemPromptBuild,
 	setSystemPromptBuild,
 } from "@/lib/system-prompts";
+import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
 import { useEffect, useRef, useState } from "react";
 import { useDialog } from "./DialogProvider";
 import { Icon } from "./Icon";
@@ -1027,15 +1028,15 @@ function DataLocationModalWrapper() {
 											style={{ marginBottom: 10 }}
 										>
 											This will delete all local data (settings, workbenchs, presets)
-											PERMANENTLY and close the app. Reopen ShadowQuill to start fresh.
+											PERMANENTLY. The app will restart with a fresh state.
 										</div>
 										<button
 											className="md-btn md-btn--destructive"
 											onClick={async () => {
 												const ok = await confirm({
 													title: "Factory Reset",
-													message: "Delete ALL local data and close ShadowQuill? When you reopen the app, a fresh data save will be created automatically.",
-													confirmText: "Delete & Close",
+													message: "Delete ALL local data and restart? The app will restart with a completely fresh state.",
+													confirmText: "Delete & Restart",
 													cancelText: "Cancel",
 													tone: "destructive",
 												});
@@ -1043,6 +1044,10 @@ function DataLocationModalWrapper() {
 												setLoading(true);
 												setError(null);
 												try {
+													// CRITICAL: Clear all renderer storage FIRST to prevent
+													// beforeunload handlers from re-saving data
+													clearAllStorageForFactoryReset();
+													
 													const api = (window as any).shadowquill;
 													const res = await api?.factoryReset?.();
 													if (!res?.ok) {

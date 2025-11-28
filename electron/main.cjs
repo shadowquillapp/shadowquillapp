@@ -63,9 +63,10 @@ try {
 	// Handle --factory-reset flag: Wipe data before app fully loads to avoid EBUSY locks
 	if (process.argv.includes("--factory-reset")) {
 		console.log("[Factory Reset] Clean start detected. Wiping user data...");
+		let wipeSuccess = false;
 		try {
 			// Synchronous delay to ensure previous instance locks are released
-			const end = Date.now() + 1500;
+			const end = Date.now() + 2500;
 			while (Date.now() < end) { /* busy wait */ }
 
 			if (fs.existsSync(userDataDir)) {
@@ -74,29 +75,88 @@ try {
 				try {
 					fs.renameSync(userDataDir, trashPath);
 					fs.rmSync(trashPath, { recursive: true, force: true });
+					wipeSuccess = true;
 				} catch (e) {
 					// Fallback to direct delete if rename fails
 					console.warn("[Factory Reset] Rename failed, trying direct delete:", e.message);
 					fs.rmSync(userDataDir, { recursive: true, force: true });
+					wipeSuccess = true;
 				}
+			} else {
+				wipeSuccess = true; // Nothing to delete
 			}
-			console.log("[Factory Reset] Data wiped successfully. Shutting down.");
+			console.log("[Factory Reset] Data wiped successfully.");
 		} catch (e) {
 			console.error("[Factory Reset] Wipe failed:", e);
 		}
 
+		// Spawn a fresh app instance (works in both dev and production)
+		// In dev mode, the Next.js dev server is still running on :3000
+		if (wipeSuccess) {
+			console.log("[Factory Reset] Spawning fresh app instance...");
+			const { spawn } = require("node:child_process");
+			const argsWithoutReset = process.argv.slice(1).filter(arg => arg !== "--factory-reset");
+			// Spawn detached so the new process survives this one exiting
+			spawn(process.execPath, argsWithoutReset, {
+				detached: true,
+				stdio: "ignore",
+				env: { ...process.env },
+			}).unref();
+		}
 		app.exit(0);
 	}
-} catch (_) {
-	/* ignore */
-}
+} catch (_) { }
 
-// Treat anything not packaged as dev. Rely on app.isPackaged instead of NODE_ENV
-// because packaged builds often don't set NODE_ENV.
 const isDev = !app.isPackaged;
 
-// Suppress Electron security warnings in development (expected when using 'unsafe-eval' for Next.js HMR)
-// These warnings won't appear in production builds anyway, and suppressing them in dev keeps the console clean
+// Window state persistence helpers
+const WINDOW_STATE_FILE = "window-state.json";
+
+function getWindowStatePath() {
+	try {
+		return path.join(app.getPath("userData"), WINDOW_STATE_FILE);
+	} catch (_) {
+		return null;
+	}
+}
+
+function loadWindowState() {
+	const defaults = { width: 1280, height: 850, x: undefined, y: undefined, isMaximized: false };
+	try {
+		const statePath = getWindowStatePath();
+		if (!statePath || !fs.existsSync(statePath)) return defaults;
+		const data = fs.readFileSync(statePath, "utf8");
+		const state = JSON.parse(data);
+		// Validate loaded values
+		if (typeof state.width !== "number" || state.width < 1045) state.width = defaults.width;
+		if (typeof state.height !== "number" || state.height < 850) state.height = defaults.height;
+		// Ensure window is visible on screen (basic check)
+		if (typeof state.x !== "number" || state.x < -100) state.x = undefined;
+		if (typeof state.y !== "number" || state.y < -100) state.y = undefined;
+		return state;
+	} catch (_) {
+		return defaults;
+	}
+}
+
+function saveWindowState(win) {
+	try {
+		const statePath = getWindowStatePath();
+		if (!statePath || !win) return;
+		const isMaximized = win.isMaximized();
+		// Don't save dimensions if maximized - save the last normal bounds
+		const bounds = isMaximized ? (win._lastNormalBounds || win.getBounds()) : win.getBounds();
+		const state = {
+			width: bounds.width,
+			height: bounds.height,
+			x: bounds.x,
+			y: bounds.y,
+			isMaximized,
+		};
+		fs.writeFileSync(statePath, JSON.stringify(state, null, 2));
+	} catch (_) { }
+}
+
 if (isDev) {
 	process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = 'true';
 }
@@ -108,7 +168,6 @@ function checkAndOptionallyClearZoneIdentifier() {
 	const adsPath = `${execPath}:Zone.Identifier`;
 	try {
 		if (fs.existsSync(adsPath)) {
-			// Try read for diagnostics then remove
 			let removed = false;
 			try {
 				fs.readFileSync(adsPath, "utf8");
@@ -122,8 +181,6 @@ function checkAndOptionallyClearZoneIdentifier() {
 	} catch (_) {}
 	return { zoneIdentifierPresent: false, removed: false };
 }
-
-// Register IPC handlers early - before app.whenReady() to ensure they're available immediately
 
 // Check if Ollama is installed
 ipcMain.handle("shadowquill:checkOllamaInstalled", async () => {
@@ -159,7 +216,7 @@ ipcMain.handle("shadowquill:checkOllamaInstalled", async () => {
 			}
 			return { installed: false };
 		} else {
-			// Linux: Check if ollama command exists
+			// unix: Check if ollama command exists
 			const { execSync } = require("node:child_process");
 			try {
 				execSync("which ollama", { timeout: 3000 });
@@ -208,9 +265,7 @@ ipcMain.handle("shadowquill:openOllama", async () => {
 					spawn(ollamaPath, [], { detached: true, stdio: "ignore" });
 					launched = true;
 					break;
-				} catch (_) {
-					/* try next path */
-				}
+				} catch (_) { }
 			}
 
 			if (!launched) {
@@ -221,7 +276,8 @@ ipcMain.handle("shadowquill:openOllama", async () => {
 			}
 			return { ok: true };
 		}
-		// Linux: Try systemctl or direct command
+
+		// unix: Try systemctl or direct command
 		try {
 			spawn("systemctl", ["--user", "start", "ollama"], {
 				detached: true,
@@ -250,16 +306,21 @@ ipcMain.handle("shadowquill:restartApp", async () => {
 	try {
 		console.log("[Restart] Initiating app restart...");
 		
-		// Close HTTP server if running
+		// Close prod server if running
 		if (httpServer) {
-			console.log("[Restart] Closing HTTP server...");
+			console.log("[Restart] Closing production server...");
 			try {
 				httpServer.close();
 				httpServer = null;
 			} catch (_) {}
 		}
 		
-		// Close all windows and clean up
+		// Close all windows and clean up (only in production mode)
+		if (!app.isPackaged) {
+			console.log("[Restart] Dev mode - skipping window cleanup.");
+			return { ok: true };
+		}
+
 		const windows = BrowserWindow.getAllWindows();
 		console.log(`[Restart] Closing ${windows.length} window(s)...`);
 		for (const win of windows) {
@@ -330,41 +391,34 @@ function registerDataIPCHandlers() {
 		}
 	});
 
-	// Factory reset: clear Chromium storage (localStorage, IndexedDB, etc) and close app
+	// Factory reset: clear Chromium storage and relaunch with --factory-reset flag
+	// The flag handler at startup will delete files BEFORE they get locked
 	ipcMain.handle("shadowquill:factoryReset", async () => {
 		try {
-			console.log("[Factory Reset] Triggered. Clearing all data and closing app...");
+			console.log("[Factory Reset] Triggered. Clearing session data and relaunching...");
 			
 			// Clear all persistent storage for the default session
 			try {
 				await session.defaultSession.clearStorageData();
 				await session.defaultSession.clearCache();
 			} catch (e) {
-				console.warn("[Factory Reset] Soft clear warning:", e);
+				console.warn("[Factory Reset] Session clear warning:", e);
 			}
 
-			// Wipe the user data directory
-			try {
-				const userData = app.getPath("userData");
-				if (fs.existsSync(userData)) {
-					// Try rename-then-delete strategy to avoid EBUSY locks
-					const trashPath = userData + "-trash-" + Date.now();
-					try {
-						fs.renameSync(userData, trashPath);
-						fs.rmSync(trashPath, { recursive: true, force: true });
-					} catch (e) {
-						// Fallback to direct delete if rename fails
-						console.warn("[Factory Reset] Rename failed, trying direct delete:", e.message);
-						fs.rmSync(userData, { recursive: true, force: true });
-					}
-				}
-				console.log("[Factory Reset] Data wiped successfully.");
-			} catch (e) {
-				console.warn("[Factory Reset] File wipe warning:", e);
+			// Close production server if running
+			if (httpServer) {
+				console.log("[Factory Reset] Closing production server...");
+				try {
+					httpServer.close();
+					httpServer = null;
+				} catch (_) {}
 			}
 
-			// Close the app (user will manually reopen for fresh start)
-			app.quit();
+			// Relaunch the app with --factory-reset flag
+			// The startup handler will delete the userData directory BEFORE Electron locks the files
+			console.log("[Factory Reset] Relaunching app with --factory-reset flag...");
+			app.relaunch({ args: process.argv.slice(1).concat(["--factory-reset"]) });
+			app.exit(0);
 
 			return { ok: true };
 		} catch (e) {
@@ -491,11 +545,44 @@ ipcMain.handle("shadowquill:getSystemSpecs", async () => {
 	}
 });
 
+// Find in page IPC handlers
+ipcMain.handle("shadowquill:find:findInPage", (e, text, options = {}) => {
+	try {
+		const w = BrowserWindow.fromWebContents(e.sender);
+		if (!w || !text) return { ok: false };
+		const result = w.webContents.findInPage(text, {
+			forward: options.forward !== false,
+			findNext: options.findNext === true,
+			matchCase: options.matchCase === true,
+		});
+		return { ok: true, requestId: result };
+	} catch (err) {
+		return { ok: false, error: err?.message };
+	}
+});
+
+ipcMain.handle("shadowquill:find:stopFindInPage", (e, action = "clearSelection") => {
+	try {
+		const w = BrowserWindow.fromWebContents(e.sender);
+		if (w) {
+			w.webContents.stopFindInPage(action);
+		}
+		return { ok: true };
+	} catch (err) {
+		return { ok: false, error: err?.message };
+	}
+});
+
 function createWindow() {
+	// Load saved window state or use defaults
+	const windowState = loadWindowState();
+	
 	const win = new BrowserWindow({
-		width: 1280,
-		height: 850,
-			minWidth: 1045,
+		width: windowState.width,
+		height: windowState.height,
+		x: windowState.x,
+		y: windowState.y,
+		minWidth: 1045,
 		minHeight: 850,
 		// Use a frameless window on macOS and Windows so only our custom titlebar is visible.
 		...(process.platform === "darwin" || process.platform === "win32"
@@ -511,11 +598,45 @@ function createWindow() {
 		title: "",
 	});
 
+	// Restore maximized state if it was saved
+	if (windowState.isMaximized) {
+		win.maximize();
+	}
+
+	// Track normal bounds before maximize for proper state saving
+	win._lastNormalBounds = win.getBounds();
+
 	// Hard guard against programmatic or edge-case resize attempts below limits
 	win.on("will-resize", (event, newBounds) => {
 		if (newBounds.width < 1045 || newBounds.height < 850) {
 			event.preventDefault();
 		}
+	});
+
+	// Save window state on resize and move (debounced)
+	let saveStateTimeout = null;
+	const debouncedSaveState = () => {
+		if (saveStateTimeout) clearTimeout(saveStateTimeout);
+		saveStateTimeout = setTimeout(() => {
+			if (!win.isMaximized() && !win.isMinimized() && !win.isFullScreen()) {
+				win._lastNormalBounds = win.getBounds();
+			}
+			saveWindowState(win);
+		}, 500);
+	};
+
+	win.on("resize", debouncedSaveState);
+	win.on("move", debouncedSaveState);
+	win.on("maximize", debouncedSaveState);
+	win.on("unmaximize", () => {
+		win._lastNormalBounds = win.getBounds();
+		debouncedSaveState();
+	});
+
+	// Save state before close
+	win.on("close", () => {
+		if (saveStateTimeout) clearTimeout(saveStateTimeout);
+		saveWindowState(win);
 	});
 
 	// Filter console messages to suppress harmless autofill errors
@@ -546,6 +667,22 @@ function createWindow() {
 	} catch (e) {
 		/* ignore if not available */
 	}
+
+	// Forward found-in-page results to renderer
+	win.webContents.on("found-in-page", (_event, result) => {
+		try {
+			win.webContents.executeJavaScript(`
+				window.dispatchEvent(new CustomEvent('found-in-page', { 
+					detail: { 
+						activeMatchOrdinal: ${result.activeMatchOrdinal}, 
+						matches: ${result.matches} 
+					} 
+				}));
+			`);
+		} catch (_) {
+			/* ignore */
+		}
+	});
 
 	// Track spellcheck toggle state manually
 	let spellcheckEnabled = true;
@@ -729,6 +866,37 @@ app.whenReady().then(async () => {
 					{ role: "pasteAndMatchStyle" },
 					{ role: "delete" },
 					{ role: "selectAll" },
+					{ type: "separator" },
+					{
+						label: "Find",
+						accelerator: "CmdOrCtrl+F",
+						click: () => {
+							const win = BrowserWindow.getFocusedWindow();
+							if (win) {
+								win.webContents.send("shadowquill:find:show");
+							}
+						},
+					},
+					{
+						label: "Find Next",
+						accelerator: "CmdOrCtrl+G",
+						click: () => {
+							const win = BrowserWindow.getFocusedWindow();
+							if (win) {
+								win.webContents.send("shadowquill:find:next");
+							}
+						},
+					},
+					{
+						label: "Find Previous",
+						accelerator: "Shift+CmdOrCtrl+G",
+						click: () => {
+							const win = BrowserWindow.getFocusedWindow();
+							if (win) {
+								win.webContents.send("shadowquill:find:previous");
+							}
+						},
+					},
 				],
 			},
 			{
@@ -896,7 +1064,7 @@ app.whenReady().then(async () => {
 			}
 			const nextApp = nextFactory({ dev: false, dir: nextAppDir });
 			await nextApp.prepare();
-			console.log("[Electron] Next.js prepared. Creating HTTP server...");
+			console.log("[Electron] Next.js prepared. Creating production server...");
 			const handle = nextApp.getRequestHandler();
 			httpServer = http.createServer((req, res) => handle(req, res));
 			await new Promise((resolve) =>
@@ -963,12 +1131,12 @@ app.on("window-all-closed", () => {
 	app.quit();
 });
 
-// Cleanup before quitting - close HTTP servers and any background tasks
+// Cleanup before quitting - close production servers and any background tasks
 app.on("before-quit", (event) => {
 	try {
-		// Close HTTP server if it exists
+		// Close production server if it exists
 		if (httpServer) {
-			console.log("[Electron] Closing HTTP server...");
+			console.log("[Electron] Closing production server...");
 			httpServer.close();
 			httpServer = null;
 		}

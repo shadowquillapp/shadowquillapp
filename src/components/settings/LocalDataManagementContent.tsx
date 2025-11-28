@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { useDialog } from "../DialogProvider";
+import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
 
 export default function LocalDataManagementContent() {
 	const { confirm } = useDialog();
@@ -127,7 +128,7 @@ export default function LocalDataManagementContent() {
 							<p className="ollama-status-card__body">
 								Factory reset will permanently delete all local data including settings,
 								saved prompts, and presets. This action cannot be undone. The app will
-								close and you can reopen it to start fresh.
+								restart automatically with a fresh state.
 							</p>
 							<div className="ollama-status-card__actions">
 								<button
@@ -140,8 +141,8 @@ export default function LocalDataManagementContent() {
 									onClick={async () => {
 										const ok = await confirm({
 											title: "Factory Reset",
-											message: "Delete ALL local data and close ShadowQuill? When you reopen the app, a fresh data save will be created automatically.",
-											confirmText: "Delete & Close",
+											message: "Delete ALL local data and restart? The app will restart with a completely fresh state.",
+											confirmText: "Delete & Restart",
 											cancelText: "Cancel",
 											tone: "destructive",
 										});
@@ -149,6 +150,7 @@ export default function LocalDataManagementContent() {
 										setLoading(true);
 										setError(null);
 										try {
+											clearAllStorageForFactoryReset();
 											const api = (window as any).shadowquill;
 											const res = await api?.factoryReset?.();
 											if (!res?.ok) {
@@ -174,9 +176,8 @@ export default function LocalDataManagementContent() {
 			<aside className="ollama-guide">
 				<div className="ollama-guide-card">
 					<p className="ollama-panel__eyebrow">About Storage</p>
-					<h4>What's stored locally?</h4>
 					<ul>
-						<li>All conversation history and sessions</li>
+						<li>All workbench tabs and their history</li>
 						<li>Custom presets and configurations</li>
 						<li>Application settings and preferences</li>
 						<li>System prompt modifications</li>

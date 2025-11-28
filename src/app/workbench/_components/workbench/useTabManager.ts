@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
 import { createVersionGraph } from "./version-graph";
+import { isFactoryResetInProgress } from "@/lib/local-storage";
 import type {
 	MessageItem,
 	PromptPresetSummary,
@@ -277,6 +278,7 @@ export function useTabManager() {
 	// Persist state to localStorage
 	useEffect(() => {
 		if (!isInitialized.current) return; // Don't save during initial load
+		if (isFactoryResetInProgress()) return; // Don't save during factory reset
 		
 		const persistData = {
 			tabs: state.tabs.map((tab) => ({
@@ -302,6 +304,7 @@ export function useTabManager() {
 	useEffect(() => {
 		const handleBeforeUnload = () => {
 			if (!isInitialized.current) return;
+			if (isFactoryResetInProgress()) return; // Don't save during factory reset
 			
 			const persistData = {
 				tabs: state.tabs.map((tab) => ({
