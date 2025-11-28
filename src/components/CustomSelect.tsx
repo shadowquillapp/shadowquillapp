@@ -1,10 +1,12 @@
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Icon, type IconName } from "@/components/Icon";
 
 interface Option {
 	value: string;
 	label: string;
+	icon?: IconName;
 	disabled?: boolean;
 }
 
@@ -189,7 +191,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 					boxShadow: "var(--shadow-1)",
 				}}
 			>
-				<span className={selectedOption ? "" : "opacity-80"}>
+				<span className={`flex items-center gap-2 ${selectedOption ? "" : "opacity-80"}`}>
+					{selectedOption?.icon && (
+						<Icon name={selectedOption.icon} className="w-4 h-4 text-secondary" />
+					)}
 					{displayText}
 				</span>
 				<svg
@@ -247,7 +252,12 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 								role="menuitem"
 								disabled={option.disabled}
 							>
-								{option.label}
+								<span className="flex items-center gap-2">
+									{option.icon && (
+										<Icon name={option.icon} className="w-4 h-4" />
+									)}
+									{option.label}
+								</span>
 							</button>
 						))}
 					</div>,

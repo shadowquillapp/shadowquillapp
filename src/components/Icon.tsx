@@ -1,7 +1,10 @@
 "use client";
 import {
 	faBars,
+	faBriefcase,
 	faBrush,
+	faBullhorn,
+	faBullseye,
 	faCheck,
 	faChevronDown,
 	faChevronLeft,
@@ -12,8 +15,11 @@ import {
 	faComments,
 	faCopy,
 	faDatabase,
+	faEquals,
 	faEye,
+	faFaceSmile,
 	faFileLines,
+	faFlask,
 	faFolderOpen,
 	faGear,
 	faImage,
@@ -31,6 +37,7 @@ import {
 	faSliders,
 	faSquare,
 	faStar,
+	faTerminal,
 	faThumbsDown,
 	faThumbsUp,
 	faTrash,
@@ -38,6 +45,7 @@ import {
 	faUpRightAndDownLeftFromCenter,
 	faSun,
 	faMoon,
+	faVideo,
 	faWandMagicSparkles,
 	faXmark,
 } from "@fortawesome/free-solid-svg-icons";
@@ -88,6 +96,16 @@ const icons = {
 	settings: faGear,
 	sun: faSun,
 	moon: faMoon,
+	terminal: faTerminal,
+	// Task Type icons
+	bullseye: faBullseye,
+	video: faVideo,
+	flask: faFlask,
+	bullhorn: faBullhorn,
+	// Tone icons
+	equals: faEquals,
+	"face-smile": faFaceSmile,
+	briefcase: faBriefcase,
 } as const;
 
 export type _IconNameForceInclude = "edit";
