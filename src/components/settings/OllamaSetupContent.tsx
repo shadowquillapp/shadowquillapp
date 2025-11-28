@@ -417,35 +417,6 @@ export default function OllamaSetupContent() {
 						</div>
 					</div>
 
-					{hasModels && (
-						<div className="ollama-field">
-							<label className="ollama-label">
-								Choose a Gemma build
-								<span>
-									ShadowQuill will default to the first model if none is chosen.
-								</span>
-							</label>
-							<div style={{ maxWidth: "280px" }}>
-								<CustomSelect
-									value={model}
-									onChange={setModel}
-									options={availableModels.map((m) => ({
-										value: m,
-										label: m,
-									}))}
-									placeholder="Select model"
-									aria-label="Choose Gemma model"
-								/>
-							</div>
-							{selectedModelMetadata && (
-								<p className="ollama-field-hint">
-									Approx. download size: {formattedModelSize}GB · Path:{" "}
-									{selectedModelMetadata.name}
-								</p>
-							)}
-						</div>
-					)}
-
 					{!hasModels && statusTone === "success" && (
 						<div className="ollama-availability" aria-live="polite">
 							No Gemma 3 models detected yet. After installing Ollama, run{" "}

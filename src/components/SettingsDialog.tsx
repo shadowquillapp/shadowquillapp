@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { Icon } from "./Icon";
 import LocalDataManagementContent from "./settings/LocalDataManagementContent";
 import OllamaSetupContent from "./settings/OllamaSetupContent";
@@ -20,7 +20,12 @@ export default function SettingsDialog({
 	initialTab = "ollama",
 }: Props) {
 	const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
-	const contentRef = React.useRef<HTMLDivElement | null>(null);
+
+	// Handle tab switching
+	const handleTabChange = useCallback((newTab: SettingsTab) => {
+		if (newTab === activeTab) return;
+		setActiveTab(newTab);
+	}, [activeTab]);
 
 	useEffect(() => {
 		if (!open) return;
@@ -44,8 +49,8 @@ export default function SettingsDialog({
 		return (
 			<button
 				type="button"
-				onClick={() => setActiveTab(tab)}
-				className="text-left"
+				onClick={() => handleTabChange(tab)}
+				className={`text-left settings-tab-btn ${isActive ? "settings-tab-btn--active" : ""}`}
 				style={{
 					width: "100%",
 					textAlign: "left",
@@ -89,9 +94,9 @@ export default function SettingsDialog({
 
 	return (
 		<div className="modal-container">
-			<div className="modal-backdrop-blur" />
+			<div className="modal-backdrop-blur settings-backdrop-animated" />
 			<div
-				className="modal-content modal-content--large settings-dialog"
+				className="modal-content modal-content--large settings-dialog settings-dialog--entering"
 				onClick={(e) => e.stopPropagation()}
 				style={{ overflow: "hidden" }}
 			>
@@ -106,19 +111,47 @@ export default function SettingsDialog({
             display: none !important;
           }
           
-          .settings-tab-content {
-            animation: fadeInSlide 1s cubic-bezier(0.4, 0, 0.2, 1);
+          /* Modal opening animation */
+          .settings-dialog--entering {
+            animation: modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
           
-          @keyframes fadeInSlide {
+          @keyframes modalEnter {
             from {
               opacity: 0;
-              transform: translateY(4px);
+              transform: scale(0.96) translateY(8px);
             }
             to {
               opacity: 1;
-              transform: translateY(0);
+              transform: scale(1) translateY(0);
             }
+          }
+          
+          /* Backdrop fade in */
+          .settings-backdrop-animated {
+            animation: backdropFadeIn 0.35s ease-out forwards;
+          }
+          
+          @keyframes backdropFadeIn {
+            from {
+              opacity: 0;
+            }
+            to {
+              opacity: 1;
+            }
+          }
+          
+          /* Sidebar tab button transitions */
+          .settings-tab-btn {
+            transition: all 0.2s ease;
+          }
+          
+          .settings-tab-btn:hover {
+            background: rgba(108, 140, 255, 0.08);
+          }
+          
+          .settings-tab-btn--active {
+            background: rgba(108, 140, 255, 0.12);
           }
         `}</style>
 				<div className="modal-header">
@@ -147,7 +180,7 @@ export default function SettingsDialog({
 								flex: "0 0 220px",
 								display: "flex",
 								flexDirection: "column",
-								gap: 8,
+								gap: 6,
 								padding: 8,
 								border: "1px solid var(--color-outline)",
 								borderRadius: 12,
@@ -161,55 +194,33 @@ export default function SettingsDialog({
 						<TabItem tab="display" label="Display" />
 						</nav>
 						{/* Right content */}
-						<div style={{ flex: 1, minWidth: 0, overflow: "hidden" }}>
+						<div 
+							style={{ 
+								flex: 1, 
+								minWidth: 0,
+							}}
+						>
 							<div
-								ref={contentRef}
 								style={{
 									position: "relative",
-									overflow: "hidden",
 								}}
 							>
-								{/* Render all tabs, but only show the active one */}
-								<div
-									key={`system-${activeTab === "system" ? "active" : "hidden"}`}
-									className={
-										activeTab === "system" ? "settings-tab-content" : ""
-									}
-									style={{
-										display: activeTab === "system" ? "block" : "none",
-									}}
-								>
-									{renderContentFor("system")}
-								</div>
-								<div
-									key={`ollama-${activeTab === "ollama" ? "active" : "hidden"}`}
-									className={
-										activeTab === "ollama" ? "settings-tab-content" : ""
-									}
-									style={{
-										display: activeTab === "ollama" ? "block" : "none",
-									}}
-								>
-									{renderContentFor("ollama")}
-								</div>
-								<div
-									key={`data-${activeTab === "data" ? "active" : "hidden"}`}
-									className={activeTab === "data" ? "settings-tab-content" : ""}
-									style={{
-										display: activeTab === "data" ? "block" : "none",
-									}}
-								>
-									{renderContentFor("data")}
-								</div>
-								<div
-									key={`display-${activeTab === "display" ? "active" : "hidden"}`}
-									className={activeTab === "display" ? "settings-tab-content" : ""}
-									style={{
-										display: activeTab === "display" ? "block" : "none",
-									}}
-								>
-									{renderContentFor("display")}
-								</div>
+								{/* Render tabs - keep all mounted to avoid refresh */}
+								{(["system", "ollama", "data", "display"] as SettingsTab[]).map((tab) => {
+									const isActive = activeTab === tab;
+									
+									return (
+										<div
+											key={tab}
+											style={{
+												display: isActive ? "block" : "none",
+											}}
+											aria-hidden={!isActive}
+										>
+											{renderContentFor(tab)}
+										</div>
+									);
+								})}
 							</div>
 						</div>
 					</div>
