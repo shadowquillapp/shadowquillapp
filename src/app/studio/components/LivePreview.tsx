@@ -162,9 +162,53 @@ export default function LivePreview({
 
 	const hasExamples = preset.generatedExamples && preset.generatedExamples.length === 2;
 	const isAnyRegenerating = regeneratingIndex !== null;
+	const isAnyGenerating = isGenerating || isAnyRegenerating;
 
 	return (
-		<div className={`flex flex-col gap-4 ${className}`}>
+		<div className={`flex flex-col gap-4 ${className}`} style={{ position: 'relative' }}>
+			{/* Floating Generating Status - stays above the page overlay */}
+			{isAnyGenerating && (
+				<div 
+					className="generating-status-floating"
+					style={{
+						position: 'fixed',
+						top: '50%',
+						left: '50%',
+						transform: 'translate(-50%, -50%)',
+						zIndex: 150,
+						display: 'flex',
+						flexDirection: 'column',
+						alignItems: 'center',
+						justifyContent: 'center',
+						padding: '32px 48px',
+						borderRadius: '16px',
+						background: 'var(--color-surface)',
+						border: '1px solid var(--color-outline)',
+						boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)',
+					}}
+				>
+					{/* Loading spinner */}
+					<div className="relative w-16 h-16 mb-4">
+						<div className="absolute inset-0 rounded-full border-4 border-[var(--color-outline)]" />
+						<div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[var(--color-primary)] animate-spin" />
+						<div className="absolute inset-2 rounded-full border-4 border-transparent border-b-[var(--color-primary)] animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
+					</div>
+					<h4 className="text-sm font-semibold text-on-surface mb-1">
+						{isAnyRegenerating ? 'Regenerating Example' : 'Generating Examples'}
+					</h4>
+					<p className="text-xs text-secondary text-center max-w-sm">
+						{isAnyRegenerating 
+							? `Regenerating example ${(regeneratingIndex ?? 0) + 1} with AI...`
+							: 'Using AI to create example inputs and generate outputs...'
+						}
+					</p>
+					<div className="mt-4 flex gap-1.5">
+						<span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-bounce" style={{ animationDelay: '0ms' }} />
+						<span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-bounce" style={{ animationDelay: '150ms' }} />
+						<span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-bounce" style={{ animationDelay: '300ms' }} />
+					</div>
+				</div>
+			)}
 			{/* Header */}
 			<div className="flex items-center justify-between flex-wrap gap-2">
 				<div className="flex items-center gap-3">
@@ -245,49 +289,26 @@ export default function LivePreview({
 			) : (
 				/* No examples message */
 				<div className="flex flex-col items-center justify-center py-12 px-6 rounded-xl border-2 border-dashed border-[var(--color-outline)] bg-[var(--color-surface-variant)]/50">
-					{isGenerating ? (
-						<>
-							{/* Loading state */}
-							<div className="relative w-16 h-16 mb-4">
-								<div className="absolute inset-0 rounded-full border-4 border-[var(--color-outline)]" />
-								<div className="absolute inset-0 rounded-full border-4 border-transparent border-t-[var(--color-primary)] animate-spin" />
-								<div className="absolute inset-2 rounded-full border-4 border-transparent border-b-[var(--color-primary)] animate-spin" style={{ animationDirection: 'reverse', animationDuration: '0.8s' }} />
-							</div>
-							<h4 className="text-sm font-semibold text-on-surface mb-1">
-								Generating Examples
-							</h4>
-							<p className="text-xs text-secondary text-center max-w-sm">
-								Using AI to create example inputs and generate outputs...
-							</p>
-							<div className="mt-4 flex gap-1.5">
-								<span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-bounce" style={{ animationDelay: '0ms' }} />
-								<span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-bounce" style={{ animationDelay: '150ms' }} />
-								<span className="w-2 h-2 rounded-full bg-[var(--color-primary)] animate-bounce" style={{ animationDelay: '300ms' }} />
-							</div>
-						</>
-					) : (
-						<>
-							<div className="w-16 h-16 rounded-full bg-[var(--color-surface)] border border-[var(--color-outline)] flex items-center justify-center mb-4">
-								<Icon name="file-text" className="w-8 h-8 text-secondary/60" />
-							</div>
-							<h4 className="text-sm font-semibold text-on-surface mb-1">
-								No Examples Yet
-							</h4>
-							<p className="text-xs text-secondary text-center max-w-sm mb-4">
-								Generate AI-powered example prompts that demonstrate how this preset transforms different inputs.
-							</p>
-							
-							{onGenerateExamples && (
-								<button
-									type="button"
-									onClick={onGenerateExamples}
-									className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-on-primary font-medium text-sm hover:opacity-90 transition-opacity"
-								>
-									<Icon name="refresh" className="w-4 h-4" />
-									Generate Examples
-								</button>
-							)}
-						</>
+					<div className="w-16 h-16 rounded-full bg-[var(--color-surface)] border border-[var(--color-outline)] flex items-center justify-center mb-4">
+						<Icon name="file-text" className="w-8 h-8 text-secondary/60" />
+					</div>
+					<h4 className="text-sm font-semibold text-on-surface mb-1">
+						No Examples Yet
+					</h4>
+					<p className="text-xs text-secondary text-center max-w-sm mb-4">
+						Generate AI-powered example prompts that demonstrate how this preset transforms different inputs.
+					</p>
+					
+					{onGenerateExamples && (
+						<button
+							type="button"
+							onClick={onGenerateExamples}
+							disabled={isGenerating}
+							className="flex items-center gap-2 px-4 py-2 rounded-lg bg-[var(--color-primary)] text-on-primary font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50"
+						>
+							<Icon name="refresh" className="w-4 h-4" />
+							Generate Examples
+						</button>
 					)}
 				</div>
 			)}

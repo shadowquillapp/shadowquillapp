@@ -203,44 +203,24 @@ export default function TemperatureControl({
 				</div>
 			</div>
 
-			{/* Band description */}
-			<p
-				className="text-xs text-center py-1 rounded-md transition-all duration-200"
-				style={{
-					color: currentColors.text,
-					background: currentColors.bg,
-				}}
-			>
-				{band.description}
-			</p>
-
-			{/* Quick preset buttons */}
-			<div className="flex gap-2 pt-1">
-				{PRESETS.map((preset) => (
-					<button
-						key={preset.value}
-						type="button"
-						onClick={() => onChange(preset.value)}
-						className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-150 border ${
-							Math.abs(value - preset.value) < 0.05
-								? "border-primary bg-primary/10 text-primary"
-								: "border-[var(--color-outline)] bg-surface text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
-						}`}
-						title={preset.description}
-					>
-						{preset.label}
-					</button>
-				))}
-			</div>
-
-			{/* Scale markers */}
-			<div className="flex justify-between px-0.5 text-[9px] text-secondary/60 font-mono">
-				<span>0.0</span>
-				<span>0.25</span>
-				<span>0.50</span>
-				<span>0.75</span>
-				<span>1.0</span>
-			</div>
+		{/* Quick preset buttons */}
+		<div className="flex gap-2">
+			{PRESETS.map((preset) => (
+				<button
+					key={preset.value}
+					type="button"
+					onClick={() => onChange(preset.value)}
+					className={`flex-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all duration-150 border ${
+						Math.abs(value - preset.value) < 0.05
+							? "border-primary bg-primary/10 text-primary"
+							: "border-[var(--color-outline)] bg-[var(--color-surface-variant)] text-secondary hover:bg-[var(--color-surface)] hover:text-on-surface"
+					}`}
+					title={preset.description}
+				>
+					{preset.label}
+				</button>
+			))}
+		</div>
 
 			{/* Global styles for range input */}
 			<style jsx>{`

@@ -6,11 +6,9 @@ import StudioHeader from "@/app/studio/components/StudioHeader";
 import { usePresetManager } from "@/app/studio/hooks/usePresetManager";
 import type { PresetLite } from "@/types";
 import { useDialog } from "@/components/DialogProvider";
-import { useRouter } from "next/navigation";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 export default function PresetStudioPage() {
-	const router = useRouter();
 	const { confirm } = useDialog();
 	const { presets, isGeneratingExamples, regeneratingIndex, loadPresets, savePreset, deletePreset, duplicatePreset, generateExamplesOnly, regenerateExample } =
 		usePresetManager();
@@ -257,16 +255,6 @@ export default function PresetStudioPage() {
 		[duplicatePreset, savePreset, loadPresets, handleSelectPreset],
 	);
 
-	// Handle apply to workbench
-	const handleApplyToWorkbench = useCallback(
-		(preset: PresetLite) => {
-			// Store in sessionStorage for workbench to pick up
-			sessionStorage.setItem("PC_APPLY_PRESET", JSON.stringify(preset));
-			router.push("/workbench");
-		},
-		[router],
-	);
-
 	// Handle unsaved changes warning
 	useEffect(() => {
 		const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -304,11 +292,9 @@ export default function PresetStudioPage() {
 	return (
 	<>
 		<div
-			className="flex flex-col bg-surface-0 text-light h-full"
+			className="flex flex-col bg-surface-0 text-light h-full page-animate"
 		>
 		<StudioHeader
-				onNewPreset={handleNewPreset}
-				onBack={() => router.push("/workbench")}
 				isDirty={isDirty}
 				isSmallScreen={isSmallScreen}
 				onToggleSidebar={() => setSidebarOpen((v) => !v)}
@@ -328,15 +314,32 @@ export default function PresetStudioPage() {
 			)}
 
 			<main className="flex flex-1 flex-col overflow-hidden xl:flex-row" style={{ position: "relative" }}>
+				{/* Generation Overlay - blocks all interactions when generating examples */}
+				{(isGeneratingExamples || regeneratingIndex !== null) && (
+					<div 
+						className="generation-overlay"
+						style={{
+							position: 'absolute',
+							inset: 0,
+							backgroundColor: 'rgba(0, 0, 0, 0.35)',
+							zIndex: 100,
+							pointerEvents: 'auto',
+							cursor: 'not-allowed',
+							transition: 'opacity 0.2s ease',
+							backdropFilter: 'grayscale(0.5)',
+						}}
+						onClick={(e) => e.stopPropagation()}
+					/>
+				)}
 				{/* Row 1 / Col 1: Preset Library */}
-				<aside
-				className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
-					isSmallScreen
-						? `fixed top-12 left-0 h-[calc(100vh-3rem)] w-[min(90vw,320px)] z-30 border-r ${
-								sidebarOpen ? "translate-x-0" : "-translate-x-full"
-						  }`
-						: "flex-shrink-0 w-[320px] border-r"
-				}`}
+			<aside
+			className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
+				isSmallScreen
+					? `fixed top-12 left-0 h-[calc(100vh-3rem)] w-[min(90vw,420px)] z-30 border-r ${
+							sidebarOpen ? "translate-x-0" : "-translate-x-full"
+					  }`
+					: "flex-shrink-0 w-[420px] border-r"
+			}`}
 				style={{ 
 					background: 'var(--color-surface-variant)',
 				}}
@@ -361,9 +364,6 @@ export default function PresetStudioPage() {
 							onSave={handleSave}
 							onGenerateExamples={handleGenerateExamples}
 							onRegenerateExample={handleRegenerateExample}
-							onApplyToWorkbench={() =>
-								editingPreset && handleApplyToWorkbench(editingPreset)
-							}
 							onDuplicate={(id, name) => handleDuplicate(id, name)}
 							onDelete={(id) => handleDelete(id)}
 							className="flex h-full flex-1 flex-col overflow-hidden"

@@ -18,7 +18,6 @@ interface PresetEditorProps {
 	onSave: () => void;
 	onGenerateExamples?: () => void;
 	onRegenerateExample?: (index: 0 | 1) => void;
-	onApplyToWorkbench: () => void;
 	onDuplicate: (presetId: string, newName?: string) => void;
 	onDelete: (presetId: string) => void;
 	className?: string;
@@ -33,7 +32,6 @@ export default function PresetEditor({
 	onSave,
 	onGenerateExamples,
 	onRegenerateExample,
-	onApplyToWorkbench,
 	onDuplicate,
 	onDelete,
 	className = "",
@@ -77,9 +75,9 @@ export default function PresetEditor({
 			aria-label="Preset Editor"
 		>
 			<div className="flex h-full flex-col">
-				{/* Editor content */}
-				<div className="flex-1 overflow-y-auto px-6 py-4">
-					<div className="w-full">
+			{/* Editor content */}
+			<div className="flex-1 overflow-y-auto px-6 py-4">
+				<div className="mx-auto max-w-5xl">
 					{/* Tabs */}
 					<div className="flex flex-wrap items-center border-b border-[var(--color-outline)]">
 						<button
@@ -250,17 +248,18 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 					</div>
 				</div>
 
-				{/* Action bar */}
-				<div className="border-t border-[var(--color-outline)] bg-[var(--color-surface-variant)] px-6 py-4">
-					<div className="flex w-full items-center justify-between">
-						<div className="flex items-center gap-3">
-							<button
-								onClick={onApplyToWorkbench}
-								className="md-btn md-btn--primary font-medium text-sm"
-							>
-								Apply to Session
-							</button>
-						</div>
+			{/* Action bar */}
+			<div className="border-t border-[var(--color-outline)] bg-[var(--color-surface-variant)] px-6 py-4">
+				<div className="mx-auto flex max-w-5xl items-center justify-between">
+						<button
+							onClick={() => preset?.id && onDelete(preset.id)}
+							className="md-btn md-btn--destructive font-medium text-sm text-red-500"
+							disabled={!preset?.id || preset?.name === "Default"}
+							title="Delete preset"
+							style={{ color: "#ef4444" }}
+						>
+							Delete
+						</button>
 
 						<div className="flex gap-3">
 							<button
@@ -270,16 +269,6 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 								title="Duplicate preset"
 							>
 								Duplicate
-							</button>
-
-							<button
-								onClick={() => preset?.id && onDelete(preset.id)}
-								className="md-btn md-btn--destructive font-medium text-sm text-red-500"
-								disabled={!preset?.id || preset?.name === "Default"}
-								title="Delete preset"
-								style={{ color: "#ef4444" }}
-							>
-								Delete
 							</button>
 
 							<button

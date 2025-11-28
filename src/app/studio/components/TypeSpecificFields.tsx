@@ -51,6 +51,22 @@ export default function TypeSpecificFields({
 						]}
 					/>
 				</div>
+
+				<div>
+					<label className="mb-1 block font-medium text-secondary text-xs">
+						Target Resolution
+					</label>
+					<CustomSelect
+						value={options.targetResolution || "1080p"}
+						onChange={(v) => onFieldChange("targetResolution", v)}
+						options={[
+							{ value: "720p", label: "720p (HD)" },
+							{ value: "1080p", label: "1080p (Full HD)" },
+							{ value: "2K", label: "2K (QHD)" },
+							{ value: "4K", label: "4K (Ultra HD)" },
+						]}
+					/>
+				</div>
 			</div>
 		);
 	}
@@ -91,6 +107,22 @@ export default function TypeSpecificFields({
 								{ value: "16:9", label: "16:9 Landscape" },
 								{ value: "9:16", label: "9:16 Portrait" },
 								{ value: "4:3", label: "4:3 Classic" },
+							]}
+						/>
+					</div>
+
+					<div>
+						<label className="mb-1 block font-medium text-secondary text-xs">
+							Target Resolution
+						</label>
+						<CustomSelect
+							value={options.targetResolution || "1080p"}
+							onChange={(v) => onFieldChange("targetResolution", v)}
+							options={[
+								{ value: "720p", label: "720p (HD)" },
+								{ value: "1080p", label: "1080p (Full HD)" },
+								{ value: "2K", label: "2K (QHD)" },
+								{ value: "4K", label: "4K (Ultra HD)" },
 							]}
 						/>
 					</div>
