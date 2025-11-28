@@ -95,7 +95,12 @@ Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Relea
 - **Apply to Workbench** - Start new session with preset
 - **Duplicate & Delete** - Clone or remove presets
 
-**Default Presets:** Quick Answer, Deep Thinker, Code Architect, Quick Script, Photorealistic, Anime Art, Concept Art, Cinematic Shot, Social Clip, Deep Research, Storyteller, Blog Writer, Social Media Pro, Sales Copy
+**Pre-Packed with 16 ShadowQuill Default Presets**
+
+`Blog Writer` • `Brainstorm Partner` • `Bug Fixer` • `Code Architect`
+`Code Explainer` • `Concept Art` • `Daily Assistant` • `Deep Research`
+`Inbox Zero` • `Launch Copy` • `Meeting Minutes` • `Photorealistic`
+`Smart Summaries` • `Social Clip` • `Social Media Pro` • `Storyteller`
 
 #### Settings
 
@@ -124,10 +129,6 @@ npm run typecheck        # Type check
 
 ```bash
 npm run dev              # Development mode
-```
-
-```bash
-npm run dist:electron    # Build for production
 ```
 
 ## Privacy & Security
