@@ -32,9 +32,11 @@ export function VersionTimeline({ tab, onJump }: VersionTimelineProps) {
 					const prev = index > 0 ? versions[index - 1] : null;
 					const isActive = node.id === activeId;
 					const hasOutput = node.outputMessageId !== null;
+					const isRefinement = node.metadata?.isRefinement === true;
 					const nodeClass = ["ide-timeline__item"];
 					if (isActive) nodeClass.push("ide-timeline__item--active");
 					if (!hasOutput) nodeClass.push("ide-timeline__item--no-output");
+					if (isRefinement) nodeClass.push("ide-timeline__item--refinement");
 					return (
 						<button
 							key={node.id}
@@ -46,7 +48,7 @@ export function VersionTimeline({ tab, onJump }: VersionTimelineProps) {
 								isActive
 									? "Currently active version"
 									: hasOutput
-										? "Jump to this version"
+										? `Jump to this ${isRefinement ? "refinement" : "base"} version`
 										: "Manual save (no output yet)"
 							}
 						>
@@ -56,8 +58,11 @@ export function VersionTimeline({ tab, onJump }: VersionTimelineProps) {
 										v{index + 1}
 									</div>
 									{hasOutput ? (
-										<span className="text-green-500 text-[10px]" title="Has generated output">
-											<Icon name="check" className="w-3 h-3" />
+										<span 
+											className={`text-[10px] ${isRefinement ? "text-[var(--color-tertiary)]" : "text-green-500"}`} 
+											title={isRefinement ? "Refinement" : "Base version"}
+										>
+											<Icon name={isRefinement ? "refresh" : "check"} className="w-3 h-3" />
 										</span>
 									) : (
 										<span className="text-amber-500 text-[10px]" title="Manual save (no output)">
@@ -65,7 +70,22 @@ export function VersionTimeline({ tab, onJump }: VersionTimelineProps) {
 										</span>
 									)}
 								</div>
-								<div className="ide-timeline__label">{node.label}</div>
+								<div className="ide-timeline__label">
+									{hasOutput && (
+										<span 
+											className="text-[9px] font-bold uppercase mr-1.5 px-1 py-0.5 rounded"
+											style={{
+												background: isRefinement 
+													? "color-mix(in srgb, var(--color-tertiary) 20%, transparent)"
+													: "color-mix(in srgb, var(--color-save) 20%, transparent)",
+												color: isRefinement ? "var(--color-tertiary)" : "var(--color-save)",
+											}}
+										>
+											{isRefinement ? "Refine" : "Base"}
+										</span>
+									)}
+									{node.label}
+								</div>
 								<div className="ide-timeline__meta">
 									<span>{summarizeDelta(node, prev)}</span>
 									<span>

@@ -1,4 +1,6 @@
-import type { VersionGraph, VersionNode } from "./types";
+import type { VersionGraph, VersionNode, VersionNodeMetadata } from "./types";
+
+// Version graph utility functions for managing prompt versioning
 
 const makeId = () => {
 	if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
@@ -59,7 +61,7 @@ export function appendVersion(
 	label: string,
 	originalInput?: string,
 	outputMessageId?: string | null,
-	metadata?: { taskType?: string; options?: any },
+	metadata?: VersionNodeMetadata,
 ): VersionGraph {
 	const trimmed = content ?? "";
 	const cleaned = pruneForward(graph, graph.activeId);

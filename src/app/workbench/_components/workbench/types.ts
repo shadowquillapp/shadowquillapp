@@ -10,6 +10,13 @@ export interface PromptPresetSummary {
 	options?: PresetOptions;
 }
 
+export interface VersionNodeMetadata {
+	taskType?: string;
+	options?: any;
+	isRefinement?: boolean; // True if this version is a refinement of a previous output
+	refinedVersionId?: string; // ID of the version being refined (for refinements)
+}
+
 export interface VersionNode {
 	id: string;
 	label: string;
@@ -19,10 +26,7 @@ export interface VersionNode {
 	createdAt: number;
 	prevId: string | null;
 	nextId: string | null;
-	metadata?: {
-		taskType?: string;
-		options?: any;
-	};
+	metadata?: VersionNodeMetadata;
 }
 
 export interface VersionGraph {

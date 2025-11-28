@@ -21,7 +21,7 @@ import {
 } from "@/lib/local-db";
 import { callLocalModelClient } from "@/lib/model-client";
 import { getPresets } from "@/lib/presets";
-import { buildUnifiedPrompt } from "@/lib/prompt-builder-client";
+import { buildUnifiedPrompt, buildRefinementPrompt } from "@/lib/prompt-builder-client";
 import {
 	normalizeAspectRatio,
 	normalizeCameraMovement,
@@ -80,6 +80,7 @@ export default function PromptWorkbench() {
 	const [showVersionHistory, setShowVersionHistory] = useState(false);
 	const [showPresetInfo, setShowPresetInfo] = useState(false);
 	const [justCreatedVersion, setJustCreatedVersion] = useState(false);
+	const [showRefinementContext, setShowRefinementContext] = useState(false);
 	const [outputAnimateKey, setOutputAnimateKey] = useState(0);
 	const [leftPanelWidth, setLeftPanelWidth] = useState(() => 
 		getJSON<number>("shadowquill:panelWidth", 50)
@@ -574,11 +575,46 @@ export default function PromptWorkbench() {
 				...(examplesText && { examplesText }),
 			};
 
-			const built = await buildUnifiedPrompt({
-				input: text,
-				taskType,
-				options,
-			});
+			// Check if we're in refinement mode (has at least one version with output)
+			const existingVersions = versionList(graph).filter(v => v.label !== "Start");
+			const versionsWithOutput = existingVersions.filter(v => v.outputMessageId);
+			const isRefinementMode = versionsWithOutput.length > 0;
+			
+			let built: string;
+			let refinedVersionId: string | undefined;
+			
+			if (isRefinementMode) {
+				// REFINEMENT MODE: Use the last version's output as the base to refine
+				const lastVersionWithOutput = versionsWithOutput[versionsWithOutput.length - 1];
+				refinedVersionId = lastVersionWithOutput?.id;
+				const lastOutputMessage = activeTab.messages.find(
+					m => m.id === lastVersionWithOutput?.outputMessageId && m.role === "assistant"
+				);
+				
+				if (lastOutputMessage?.content) {
+					built = await buildRefinementPrompt({
+						previousOutput: lastOutputMessage.content,
+						refinementRequest: text,
+						taskType,
+						options,
+					});
+				} else {
+					// Fallback to initial mode if we can't find the previous output
+					built = await buildUnifiedPrompt({
+						input: text,
+						taskType,
+						options,
+					});
+				}
+			} else {
+				// INITIAL MODE: Generate base output from user input
+				built = await buildUnifiedPrompt({
+					input: text,
+					taskType,
+					options,
+				});
+			}
+			
 			const output = await callLocalModelClient(built, {
 				taskType,
 				options,
@@ -612,22 +648,35 @@ export default function PromptWorkbench() {
 				hour: '2-digit', 
 				minute: '2-digit' 
 			});
+			const versionLabel = isRefinementMode 
+				? `Refined ${timestamp}` 
+				: `Generated ${timestamp}`;
 			const updatedGraph = appendVersion(
 				currentGraph,
 				text,
-				`Generated ${timestamp}`,
+				versionLabel,
 				originalInput,
 				finalAssistantId,
-				{ taskType, options }
+				{ 
+					taskType, 
+					options,
+					isRefinement: isRefinementMode,
+					...(refinedVersionId && { refinedVersionId }),
+				}
 			);
 			tabManager.setVersionGraph(updatedGraph);
 			tabManager.markDirty(false);
 			
-			// Auto-sync tab name to the prompt input (truncated)
-			const truncatedLabel = originalInput.length > 40 
-				? originalInput.slice(0, 40).trim() + "…" 
-				: originalInput;
-			tabManager.updateTabLabel(activeTab.id, truncatedLabel);
+			// Clear the input after successful generation so user can enter refinement
+			tabManager.updateDraft("");
+			
+			// Auto-sync tab name to the prompt input (only for base version, not refinements)
+			if (!isRefinementMode) {
+				const truncatedLabel = originalInput.length > 40 
+					? originalInput.slice(0, 40).trim() + "…" 
+					: originalInput;
+				tabManager.updateTabLabel(activeTab.id, truncatedLabel);
+			}
 			
 			// Trigger version creation animation
 			setJustCreatedVersion(true);
@@ -695,8 +744,12 @@ export default function PromptWorkbench() {
 		const prevGraph = undoVersion(tab.versionGraph);
 		if (prevGraph) {
 			const prevNode = prevGraph.nodes[prevGraph.activeId];
-			if (prevNode) {
+			// Keep draft empty when navigating to a version that has output (refinement mode)
+			// The original input is shown in the context preview, not the editable field
+			if (prevNode && !prevNode.outputMessageId) {
 				tabManager.updateDraft(prevNode.originalInput || prevNode.content);
+			} else {
+				tabManager.updateDraft("");
 			}
 			tabManager.setVersionGraph(prevGraph);
 			tabManager.markDirty(false);
@@ -710,8 +763,12 @@ export default function PromptWorkbench() {
 		const nextGraph = redoVersion(tab.versionGraph);
 		if (nextGraph) {
 			const nextNode = nextGraph.nodes[nextGraph.activeId];
-			if (nextNode) {
+			// Keep draft empty when navigating to a version that has output (refinement mode)
+			// The original input is shown in the context preview, not the editable field
+			if (nextNode && !nextNode.outputMessageId) {
 				tabManager.updateDraft(nextNode.originalInput || nextNode.content);
+			} else {
+				tabManager.updateDraft("");
 			}
 			tabManager.setVersionGraph(nextGraph);
 			tabManager.markDirty(false);
@@ -826,16 +883,22 @@ export default function PromptWorkbench() {
 					}
 				}
 				
+				// Jump to the most recent version when opening a saved project
+				if (graph.tailId && graph.nodes[graph.tailId]) {
+					graph = { ...graph, activeId: graph.tailId };
+				}
+				
 				// Apply all data to the new tab using explicit tabId-based operations
 				tabManager.setMessagesForTab(newTabId, loaded);
 				tabManager.setVersionGraphForTab(newTabId, graph);
 				tabManager.attachProjectForTab(newTabId, id);
 				
-				// Set the draft from the active version's input
 				const activeNode = graph.nodes[graph.activeId];
-				if (activeNode) {
+				if (activeNode && !activeNode.outputMessageId) {
 					const draftContent = activeNode.originalInput || activeNode.content || "";
 					tabManager.updateDraftForTab(newTabId, draftContent);
+				} else {
+					tabManager.updateDraftForTab(newTabId, "");
 				}
 				
 				// Update tab label with project title
@@ -935,6 +998,41 @@ export default function PromptWorkbench() {
 	const versions = activeTab ? versionList(activeTab.versionGraph).filter(
 		(v) => v.label !== "Start",
 	) : [];
+	
+	// Refinement mode: true when there's at least one version with generated output
+	const versionsWithOutput = versions.filter(v => v.outputMessageId);
+	const isRefinementMode = versionsWithOutput.length > 0;
+	
+	// Get the currently ACTIVE version for context display
+	const activeVersionId = activeTab?.versionGraph.activeId;
+	const activeVersion = activeVersionId ? activeTab?.versionGraph.nodes[activeVersionId] : null;
+	const activeVersionIndex = versions.findIndex(v => v.id === activeVersionId);
+	const activeVersionNumber = activeVersionIndex >= 0 ? activeVersionIndex + 1 : 0;
+	
+	// Determine if the active version is a refinement
+	const activeVersionIsRefinement = activeVersion?.metadata?.isRefinement === true;
+	
+	// Get the version to show in context (for refinement, show what's being refined)
+	// When creating a new refinement, use the active version's output
+	// When viewing a refinement version, show the version it refined
+	const contextVersion = activeVersionIsRefinement && activeVersion?.metadata?.refinedVersionId
+		? activeTab?.versionGraph.nodes[activeVersion.metadata.refinedVersionId]
+		: activeVersion;
+	
+	// Get output and input for the context display
+	const contextOutput = contextVersion?.outputMessageId
+		? activeMessages.find(m => m.id === contextVersion.outputMessageId && m.role === "assistant")?.content
+		: null;
+	const contextInput = contextVersion?.originalInput ?? null;
+	
+	// For refinement mode display, show what will be refined (the active version's output)
+	const lastVersionWithOutput = versionsWithOutput[versionsWithOutput.length - 1];
+	const outputToRefine = activeVersion?.outputMessageId
+		? activeMessages.find(m => m.id === activeVersion.outputMessageId && m.role === "assistant")?.content
+		: null;
+	const inputThatGeneratedOutput = activeVersion?.originalInput ?? null;
+	
+	
 	// Live word count for the editor header
 	const wordCount = useMemo(() => {
 		const text = activeTab?.draft || "";
@@ -1017,10 +1115,17 @@ export default function PromptWorkbench() {
 	}, [activeTab, tabManager]);
 
 	// Panel resize handlers
+	const grabOffsetRef = useRef<number>(0);
 	const handleResizeStart = useCallback((e: React.MouseEvent) => {
 		e.preventDefault();
+		// Calculate and store the offset from the center divider to maintain cursor position
+		if (panelsRef.current) {
+			const rect = panelsRef.current.getBoundingClientRect();
+			const currentDividerX = rect.left + (rect.width * leftPanelWidth) / 100;
+			grabOffsetRef.current = e.clientX - currentDividerX;
+		}
 		setIsResizing(true);
-	}, []);
+	}, [leftPanelWidth]);
 
 	// Track the latest panel width in a ref for saving on resize end
 	const latestPanelWidthRef = useRef(leftPanelWidth);
@@ -1034,9 +1139,19 @@ export default function PromptWorkbench() {
 		const handleMouseMove = (e: MouseEvent) => {
 			if (!panelsRef.current) return;
 			const rect = panelsRef.current.getBoundingClientRect();
-			const newWidth = ((e.clientX - rect.left) / rect.width) * 100;
-			// Clamp between 25% and 75%
-			setLeftPanelWidth(Math.min(75, Math.max(25, newWidth)));
+			// Subtract the grab offset so cursor stays where the user grabbed
+			const adjustedX = e.clientX - grabOffsetRef.current;
+			const newWidth = ((adjustedX - rect.left) / rect.width) * 100;
+			
+			// Minimum pixel width for both panes
+			const MIN_PANE_WIDTH_PX = 417;
+			// Calculate minimum percentage based on container width
+			const minPercentage = (MIN_PANE_WIDTH_PX / rect.width) * 100;
+			// Max percentage for left pane = 100% - minPercentage (to leave room for right pane)
+			const maxPercentage = 100 - minPercentage;
+			
+			// Clamp between minPercentage and maxPercentage (ensuring both panes have at least 417px)
+			setLeftPanelWidth(Math.min(maxPercentage, Math.max(minPercentage, newWidth)));
 		};
 
 		const handleMouseUp = () => {
@@ -1172,7 +1287,8 @@ export default function PromptWorkbench() {
 						flexDirection: 'row',
 						height: '100%',
 						overflow: 'hidden',
-						position: 'relative'
+						position: 'relative',
+						marginRight: '8px',
 					}}
 				>
 					{/* LEFT PANE: Input */}
@@ -1181,7 +1297,7 @@ export default function PromptWorkbench() {
 						width: `${leftPanelWidth}%`,
 						flexShrink: 0,
 						flexGrow: 0,
-						minWidth: 0,
+						minWidth: 417,
 						opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
 						pointerEvents: tabManager.tabs.length === 0 ? 'none' : 'auto',
 						transition: isResizing ? 'none' : 'opacity 0.3s ease',
@@ -1208,7 +1324,7 @@ export default function PromptWorkbench() {
 							>
 								{/* Left: Badge & Stats */}
 								<div className="flex items-center gap-3 min-w-0">
-									{/* Editor Badge */}
+									{/* Editor Badge - Changes based on refinement mode */}
 									<div
 										style={{
 											display: "flex",
@@ -1216,14 +1332,29 @@ export default function PromptWorkbench() {
 											gap: "6px",
 											padding: "4px 10px",
 											borderRadius: "20px",
-											background: "var(--color-surface)",
-											border: "1px solid var(--color-outline)",
-											color: "var(--color-on-surface-variant)",
+											background: isRefinementMode 
+												? "linear-gradient(135deg, var(--color-tertiary), color-mix(in srgb, var(--color-tertiary), var(--color-surface) 30%))"
+												: "var(--color-surface)",
+											border: isRefinementMode 
+												? "none"
+												: "1px solid var(--color-outline)",
+											color: isRefinementMode 
+												? "var(--color-on-tertiary)" 
+												: "var(--color-on-surface-variant)",
+											boxShadow: isRefinementMode 
+												? "0 2px 6px color-mix(in srgb, var(--color-tertiary), transparent 60%)"
+												: "none",
 										}}
+										title={isRefinementMode 
+											? "Refinement mode: Your input will modify the previous output" 
+											: "Initial mode: Your input will generate a new prompt"}
 									>
-										<Icon name="edit" style={{ width: 11, height: 11, opacity: 0.7 }} />
+										<Icon 
+											name={isRefinementMode ? "refresh" : "edit"} 
+											style={{ width: 11, height: 11, opacity: isRefinementMode ? 1 : 0.7 }} 
+										/>
 										<span style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.02em" }}>
-											Input
+											{isRefinementMode ? "Refine" : "Input"}
 										</span>
 									</div>
 
@@ -1275,6 +1406,132 @@ export default function PromptWorkbench() {
 								</div>
 							</div>
 
+							{/* Refinement Context Panel - Version History Timeline */}
+							{isRefinementMode && outputToRefine && (
+								<div className={`refine-panel ${showRefinementContext ? "refine-panel--expanded" : ""}`}>
+									<button
+										type="button"
+										onClick={() => setShowRefinementContext(!showRefinementContext)}
+										className="refine-panel__header"
+									>
+										<div className="refine-panel__left">
+											<div className="refine-panel__badge">
+												<Icon name="refresh" className="refine-panel__badge-icon" />
+												<span className="refine-panel__badge-text">
+													v{activeVersionNumber} {activeVersionIsRefinement ? "Refinement" : "Base"}
+												</span>
+											</div>
+											<span className="refine-count" title={`${versions.length} versions`}>
+												<Icon name="layout" style={{ width: 11, height: 11, opacity: 0.85 }} />
+												{versions.length}
+											</span>
+										</div>
+										{!showRefinementContext && inputThatGeneratedOutput && (
+											<div className="refine-panel__preview">
+												<span className="refine-panel__preview-label">Previous Input:</span>
+												<span className="refine-panel__preview-text">
+													{inputThatGeneratedOutput.slice(0, 25)}{inputThatGeneratedOutput.length > 25 ? "..." : ""}
+												</span>
+											</div>
+										)}
+										<div className="refine-panel__toggle">
+											<span>{showRefinementContext ? "Hide" : "History"}</span>
+											<Icon name="chevron-down" className="refine-panel__toggle-icon" />
+										</div>
+									</button>
+
+									{showRefinementContext && (
+										<div className="refine-timeline">
+											{versions.map((version, index) => {
+												const versionNum = index + 1;
+												const isCurrentVersion = version.id === activeVersionId;
+												const isRefinement = version.metadata?.isRefinement === true;
+
+												const handleJumpToVersion = () => {
+													if (isCurrentVersion) return;
+													// Keep draft empty when jumping to a version that has output (refinement mode)
+													if (version.outputMessageId) {
+														tabManager.updateDraft("");
+													} else {
+														tabManager.updateDraft(version.originalInput || version.content);
+													}
+													// Update the version graph to point to this version
+													const updatedGraph = {
+														...activeTab!.versionGraph,
+														activeId: version.id,
+													};
+													tabManager.setVersionGraph(updatedGraph);
+													tabManager.markDirty(false);
+												};
+
+											const versionInput = version.originalInput || "";
+											const copyId = `refine-v-${version.id}`;
+
+											return (
+												<div
+													key={version.id}
+													className={`refine-timeline__item ${isCurrentVersion ? "refine-timeline__item--current" : ""}`}
+												>
+													<button
+														type="button"
+														onClick={handleJumpToVersion}
+														disabled={isCurrentVersion}
+														className="refine-timeline__item-btn"
+														title={isCurrentVersion ? "Current version" : `Jump to v${versionNum}`}
+													>
+														<div className={`refine-timeline__node ${isRefinement ? "refine-timeline__node--refinement" : "refine-timeline__node--base"}`}>
+															{versionNum}
+														</div>
+													</button>
+													<div className="refine-timeline__content">
+														<div className="refine-timeline__header">
+															<div className="refine-timeline__title">
+																<span className={`refine-timeline__type ${isRefinement ? "refine-timeline__type--refinement" : "refine-timeline__type--base"}`}>
+																	{isRefinement ? "Refinement" : "Base"}
+																</span>
+															</div>
+															<div className="refine-timeline__actions">
+																{isCurrentVersion && (
+																	<span className="refine-timeline__current-badge">Current</span>
+																)}
+																<button
+																	type="button"
+																	onClick={(e) => {
+																		e.stopPropagation();
+																		if (versionInput) {
+																			copyMessage(copyId, versionInput);
+																		}
+																	}}
+																	disabled={!versionInput}
+																	className="refine-timeline__copy-btn"
+																	title="Copy this input"
+																	aria-label="Copy input"
+																>
+																	<Icon
+																		name={copiedMessageId === copyId ? "check" : "copy"}
+																		style={{ width: 10, height: 10 }}
+																	/>
+																</button>
+															</div>
+														</div>
+														<button
+															type="button"
+															onClick={handleJumpToVersion}
+															disabled={isCurrentVersion}
+															className="refine-timeline__body"
+															title={isCurrentVersion ? "Current version" : `Jump to v${versionNum}`}
+														>
+															{versionInput || <em style={{ opacity: 0.5 }}>Empty</em>}
+														</button>
+													</div>
+												</div>
+											);
+											})}
+										</div>
+									)}
+								</div>
+							)}
+
 							<div 
 								ref={textareaContainerRef} 
 								className="relative flex-1 min-h-0 w-full"
@@ -1304,7 +1561,13 @@ export default function PromptWorkbench() {
 									}}
 									value={activeTab?.draft ?? ""}
 									onChange={(e) => tabManager.updateDraft(e.target.value)}
-									placeholder={activeTab ? "Describe your prompt & intent..." : "Create or open a tab to get started..."}
+									placeholder={
+										!activeTab 
+											? "Create or open a tab to get started..." 
+											: isRefinementMode 
+												? 'Enter refinement (e.g., "more minimal", "add details about X", "change aesthetic to minimalist")...' 
+												: "Describe your prompt & intent..."
+									}
 									disabled={!activeTab || isGenerating}
 								/>
 
@@ -1579,26 +1842,20 @@ export default function PromptWorkbench() {
 
 					{/* CENTER: Resize Handle + Version Navigator */}
 					<div 
-						className="hidden md:flex flex-col items-center justify-center relative"
+						className={`hidden md:flex flex-col items-center justify-center relative panel-resize-container ${isResizing ? 'panel-resize-container--active' : ''}`}
+						onMouseDown={handleResizeStart}
+						title="Drag to resize panels"
 						style={{
-							width: '20px',
+							width: '8px',
 							flexShrink: 0,
-							background: 'var(--color-surface-variant)',
 						}}
 					>
-						{/* Resize Handles - Both edges */}
-						<div
-							className={`panel-resize-handle panel-resize-handle--left ${isResizing ? 'panel-resize-handle--active' : ''}`}
-							onMouseDown={handleResizeStart}
-							title="Drag to resize panels"
-						/>
-						<div
-							className={`panel-resize-handle panel-resize-handle--right ${isResizing ? 'panel-resize-handle--active' : ''}`}
-							onMouseDown={handleResizeStart}
-							title="Drag to resize panels"
-						/>
+						{/* Single centered resize line - top segment */}
+						<div className="panel-resize-line panel-resize-line--top" />
+						{/* Single centered resize line - bottom segment */}
+						<div className="panel-resize-line panel-resize-line--bottom" />
 						
-						{/* Version Navigator */}
+						{/* Version Navigator - sits in the cutout */}
 						{activeTab && (
 							<VersionNavigator
 								versionGraph={activeTab.versionGraph}
@@ -1614,7 +1871,7 @@ export default function PromptWorkbench() {
 					{/* RIGHT PANE: Output */}
 					<section className="prompt-output-pane flex flex-col gap-4 p-4 md:p-6 h-full overflow-hidden relative" style={{
 						flex: 1,
-						minWidth: 0,
+						minWidth: 417,
 						opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
 						pointerEvents: tabManager.tabs.length === 0 ? 'none' : (isGenerating ? 'none' : 'auto'),
 						transition: isResizing ? 'none' : 'opacity 0.3s ease',
@@ -1688,43 +1945,6 @@ export default function PromptWorkbench() {
 								
 								{/* Right: Actions */}
 								<div className="flex items-center gap-1">
-									{/* Save Button */}
-									<button
-										type="button"
-										onClick={() => {
-											if (!activeTab) return;
-											const timestamp = new Date().toLocaleTimeString([], { 
-												hour: '2-digit', 
-												minute: '2-digit' 
-											});
-											const updatedGraph = appendVersion(
-												activeTab.versionGraph,
-												activeTab.draft,
-												`Manual save ${timestamp}`,
-												activeTab.draft,
-												null
-											);
-											tabManager.setVersionGraph(updatedGraph);
-											tabManager.markDirty(false);
-										}}
-										disabled={!activeTab || !activeTab.draft.trim() || !activeTab.isDirty}
-										className="flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
-										title="Save snapshot (⌘S)"
-										aria-label="Save snapshot"
-										style={{
-											width: 28,
-											height: 28,
-											borderRadius: "8px",
-											background: (!activeTab || !activeTab.draft.trim() || !activeTab.isDirty) 
-												? "transparent" 
-												: "var(--color-surface)",
-											border: "1px solid var(--color-outline)",
-											color: "var(--color-on-surface-variant)",
-										}}
-									>
-										<Icon name="save" style={{ width: 13, height: 13 }} />
-									</button>
-
 									{/* Copy Button */}
 									<button
 										type="button"
@@ -1867,11 +2087,14 @@ export default function PromptWorkbench() {
 					versions={versions}
 					activeVersionId={activeTab.versionGraph.activeId}
 					onJumpToVersion={(versionId) => {
-						// Get the version node to restore both input and update the graph
+						// Get the version node
 						const versionNode = activeTab.versionGraph.nodes[versionId];
-						if (versionNode) {
-							// Update the draft (input) with the version's original input
+						// Keep draft empty when jumping to a version that has output (refinement mode)
+						// The original input is shown in the context preview, not the editable field
+						if (versionNode && !versionNode.outputMessageId) {
 							tabManager.updateDraft(versionNode.originalInput || versionNode.content);
+						} else {
+							tabManager.updateDraft("");
 						}
 						// Update the version graph to point to this version
 						const updatedGraph = {
