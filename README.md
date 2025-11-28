@@ -130,8 +130,6 @@ npm run dev              # Development mode
 npm run dist:electron    # Build for production
 ```
 
-**Stack:** Electron, Next.js, React, Tailwind CSS, TypeScript, Vitest, Biome
-
 ## Privacy & Security
 
 - **Offline** - Works without internet (after model download)
