@@ -45,6 +45,8 @@ export type ImageStylePreset =
 
 export type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
 
+export type TargetResolution = "720p" | "1080p" | "2K" | "4K";
+
 // ============================================
 // Video Types
 // ============================================
@@ -125,6 +127,7 @@ export interface GenerationOptions {
 	// Image settings
 	stylePreset?: ImageStylePreset | VideoStylePreset;
 	aspectRatio?: AspectRatio;
+	targetResolution?: TargetResolution;
 
 	// Video settings
 	cameraMovement?: CameraMovement;
