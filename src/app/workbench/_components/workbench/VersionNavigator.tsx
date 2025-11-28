@@ -26,6 +26,12 @@ export function VersionNavigator({
 	const currentVersion = currentIndex >= 0 ? currentIndex + 1 : 0;
 	const totalVersions = versions.length;
 	
+	// Get current version's metadata for mode indication
+	const currentVersionNode = versions[currentIndex];
+	const isRefinement = currentVersionNode?.metadata?.isRefinement === true;
+	const versionsWithOutput = versions.filter(v => v.outputMessageId);
+	const hasBaseVersion = versionsWithOutput.length > 0;
+	
 	const canGoPrev = hasUndo(versionGraph);
 	const canGoNext = hasRedo(versionGraph);
 
@@ -42,32 +48,23 @@ export function VersionNavigator({
 		);
 	}
 
+	// Build tooltip text based on mode
+	const tooltipText = hasBaseVersion
+		? `v${currentVersion} ${isRefinement ? "(Refinement)" : "(Base)"} • Click to view history • Next input will refine this output`
+		: `v${currentVersion} • Click to view history`;
+
 	return (
-		<div className={`version-nav-vertical ${justCreatedVersion ? 'version-nav-vertical--pulse' : ''} ${isGenerating ? 'version-nav-vertical--generating' : ''}`}>
+		<div className={`version-nav-vertical version-nav-vertical--compact ${justCreatedVersion ? 'version-nav-vertical--pulse' : ''} ${isGenerating ? 'version-nav-vertical--generating' : ''}`}>
 			{/* Up: Previous button */}
 			<button
 				type="button"
 				className="version-nav-vertical__btn"
 				onClick={onPrev}
 				disabled={!canGoPrev || isGenerating}
-				title="Previous version"
+				title={`Previous version${tooltipText ? ` • ${tooltipText}` : ''}`}
 				aria-label="Go to previous version"
 			>
 				<Icon name="chevron-up" />
-			</button>
-
-			{/* Center: Version info */}
-			<button
-				type="button"
-				className="version-nav-vertical__center"
-				onClick={onOpenHistory}
-				title="View version history"
-			>
-				<div className={`version-nav-vertical__badge ${isGenerating ? 'version-nav-vertical__badge--generating' : ''}`}>
-					<span className="version-nav-vertical__current">
-						v{currentVersion}
-					</span>
-				</div>
 			</button>
 
 			{/* Down: Next button */}
@@ -76,7 +73,7 @@ export function VersionNavigator({
 				className="version-nav-vertical__btn"
 				onClick={onNext}
 				disabled={!canGoNext || isGenerating}
-				title="Next version"
+				title={`Next version${tooltipText ? ` • ${tooltipText}` : ''}`}
 				aria-label="Go to next version"
 			>
 				<Icon name="chevron-down" />

@@ -1,6 +1,6 @@
 import { Icon } from "@/components/Icon";
 import { useEffect, useState } from "react";
-import type { MessageItem } from "./types";
+import type { MessageItem, VersionNodeMetadata } from "./types";
 
 interface Version {
 	id: string;
@@ -9,6 +9,7 @@ interface Version {
 	originalInput?: string;
 	outputMessageId?: string | null;
 	createdAt: number;
+	metadata?: VersionNodeMetadata;
 }
 
 interface VersionHistoryModalProps {
@@ -79,27 +80,26 @@ export function VersionHistoryModal({
 			role="dialog"
 		>
 			<div className="modal-backdrop-blur" />
-			<div className="modal-content modal-content--medium" onClick={(e) => e.stopPropagation()}>
-				<div className="modal-header" style={{ padding: "12px 16px", borderBottom: "1px solid var(--color-outline)" }}>
-					<div className="modal-title" style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14 }}>
-						<Icon name="git-compare" style={{ width: 14, height: 14 }} />
+			<div className="modal-content modal-content--version-history" onClick={(e) => e.stopPropagation()}>
+				<div className="modal-header vh-modal-header">
+					<div className="vh-modal-title">
+						<Icon name="git-compare" />
 						<span>Version History</span>
 					</div>
 					<button
 						aria-label="Close"
-						className="md-btn"
+						className="vh-close-btn"
 						onClick={onClose}
-						style={{ width: 28, height: 28, padding: 0 }}
 					>
-						<Icon name="close" style={{ width: 14, height: 14 }} />
+						<Icon name="close" />
 					</button>
 				</div>
-				<div className="modal-body" style={{ padding: 0, maxHeight: "60vh", overflowY: "auto" }}>
+				<div className="modal-body" style={{ padding: 0, maxHeight: "70vh", overflowY: "auto" }}>
 					{versions.length === 0 ? (
-						<div style={{ padding: 32, textAlign: "center", color: "var(--color-on-surface-variant)" }}>
-							<Icon name="folder-open" style={{ width: 32, height: 32, opacity: 0.4, marginBottom: 8 }} />
-							<div style={{ fontSize: 13, fontWeight: 500 }}>No versions yet</div>
-							<div style={{ fontSize: 11, opacity: 0.7, marginTop: 4 }}>Run a prompt to create your first version</div>
+						<div className="vh-empty">
+							<Icon name="folder-open" className="vh-empty-icon" />
+							<div className="vh-empty-title">No versions yet</div>
+							<div className="vh-empty-desc">Run a prompt to create your first version</div>
 						</div>
 					) : (
 						<div className="vh-list">
@@ -110,6 +110,7 @@ export function VersionHistoryModal({
 								const inputPreview = (version.originalInput || version.content || "").trim();
 								const isExpanded = expandedVersion === version.id;
 								const runNumber = versions.length - index;
+								const isRefinement = version.metadata?.isRefinement === true;
 
 								return (
 									<div
@@ -124,7 +125,7 @@ export function VersionHistoryModal({
 										>
 											{/* Left: Version indicator */}
 											<div className="vh-row-left">
-												<div className={`vh-dot${isActive ? " vh-dot--active" : ""}${!hasOutput ? " vh-dot--draft" : ""}`} />
+												<div className={`vh-dot${isActive ? " vh-dot--active" : ""}${!hasOutput ? " vh-dot--draft" : ""}${isRefinement ? " vh-dot--refinement" : ""}`} />
 												<span className="vh-num">v{runNumber}</span>
 											</div>
 
@@ -138,6 +139,11 @@ export function VersionHistoryModal({
 											{/* Right: Time + badges */}
 											<div className="vh-row-right">
 												{isActive && <span className="vh-badge vh-badge--current">Current</span>}
+												{hasOutput && (
+													<span className={`vh-badge ${isRefinement ? "vh-badge--refinement" : "vh-badge--base"}`}>
+														{isRefinement ? "Refinement" : "Base"}
+													</span>
+												)}
 												{!hasOutput && <span className="vh-badge vh-badge--draft">Draft</span>}
 												<span className="vh-time-compact">{getRelativeTime(version.createdAt)}</span>
 												<Icon 
@@ -153,8 +159,8 @@ export function VersionHistoryModal({
 												{/* Input section */}
 												<div className="vh-section">
 													<div className="vh-section-label">
-														<Icon name="edit" />
-														Input
+														<Icon name={isRefinement ? "refresh" : "edit"} />
+														{isRefinement ? "Refinement Request" : "Initial Input"}
 													</div>
 													<div className="vh-section-content">
 														{inputPreview || <em style={{ opacity: 0.5 }}>Empty prompt</em>}
@@ -166,7 +172,7 @@ export function VersionHistoryModal({
 													<div className="vh-section vh-section--output">
 														<div className="vh-section-label">
 															<Icon name="comments" />
-															Output
+															{isRefinement ? "Refined Output" : "Generated Output"}
 														</div>
 														<div className="vh-section-content">
 															{outputContent}
