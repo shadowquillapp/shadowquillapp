@@ -38,7 +38,6 @@
 		"@types/react": "^19.1.11",
 		"@types/react-dom": "^19.0.0",
 		"@vitest/coverage-v8": "^4.0.14",
-		"baseline-browser-mapping": "^2.8.32",
 		"cross-env": "^7.0.3",
 		"electron": "^38.0.0",
 		"electron-builder": "^26.0.12",
@@ -99,7 +98,8 @@
 		}
 	},
 	"overrides": {
-		"glob": "^11.0.4"
+		"glob": "^11.0.4",
+		"baseline-browser-mapping": "^2.8.32"
 	},
 	"postcss": {
 		"plugins": {
