@@ -1144,13 +1144,13 @@ export default function PromptWorkbench() {
 			const newWidth = ((adjustedX - rect.left) / rect.width) * 100;
 			
 			// Minimum pixel width for both panes
-			const MIN_PANE_WIDTH_PX = 417;
+			const MIN_PANE_WIDTH_PX = 430;
 			// Calculate minimum percentage based on container width
 			const minPercentage = (MIN_PANE_WIDTH_PX / rect.width) * 100;
 			// Max percentage for left pane = 100% - minPercentage (to leave room for right pane)
 			const maxPercentage = 100 - minPercentage;
 			
-			// Clamp between minPercentage and maxPercentage (ensuring both panes have at least 417px)
+			// Clamp between minPercentage and maxPercentage (ensuring both panes have at least 430px)
 			setLeftPanelWidth(Math.min(maxPercentage, Math.max(minPercentage, newWidth)));
 		};
 
@@ -1297,7 +1297,7 @@ export default function PromptWorkbench() {
 						width: `${leftPanelWidth}%`,
 						flexShrink: 0,
 						flexGrow: 0,
-						minWidth: 417,
+						minWidth: 430,
 						opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
 						pointerEvents: tabManager.tabs.length === 0 ? 'none' : 'auto',
 						transition: isResizing ? 'none' : 'opacity 0.3s ease',
@@ -1871,7 +1871,7 @@ export default function PromptWorkbench() {
 					{/* RIGHT PANE: Output */}
 					<section className="prompt-output-pane flex flex-col gap-4 p-4 md:p-6 h-full overflow-hidden relative" style={{
 						flex: 1,
-						minWidth: 417,
+						minWidth: 430,
 						opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
 						pointerEvents: tabManager.tabs.length === 0 ? 'none' : (isGenerating ? 'none' : 'auto'),
 						transition: isResizing ? 'none' : 'opacity 0.3s ease',

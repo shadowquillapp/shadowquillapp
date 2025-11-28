@@ -394,20 +394,22 @@ input[type="checkbox"].md-checkbox:disabled{opacity:.5;cursor:not-allowed}
 .version-row:first-child .version-connector::before,.version-row:last-child .version-connector::before{top:50%;bottom:auto}
 .version-input-column,.version-output-column{padding:0}
 }
-.version-nav-vertical{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0;background:transparent;border:none;transition:all 200ms ease;width:32px;position:relative;z-index:10}
+.version-nav-vertical{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:0;background:transparent;border:none;transition:all 200ms ease;width:32px;position:relative;z-index:50}
 .version-nav-vertical--compact{gap:2px;padding:4px 0;background:transparent;border-radius:8px}
 .version-nav-vertical--compact .version-nav-vertical__btn{opacity:.7}
 .version-nav-vertical--compact .version-nav-vertical__btn:hover:not(:disabled){opacity:1}
 .version-nav-vertical--empty{opacity:.4}
 .version-nav-vertical--empty .version-nav-vertical__hint{display:none}
 .version-nav-vertical--pulse .version-nav-vertical__badge{animation:version-pulse 600ms ease-out}
-.version-nav-vertical--generating .version-nav-vertical__badge{box-shadow:0 0 0 2px color-mix(in srgb,var(--color-primary) 30%,transparent)}
+.version-nav-vertical--generating{display:none}
 .version-nav-vertical__btn{display:flex;align-items:center;justify-content:center;width:32px;height:24px;border-radius:6px;border:none;background:transparent;color:var(--color-on-surface-variant);cursor:pointer;transition:all 150ms ease;opacity:.5}
 .version-nav-vertical__btn:hover:not(:disabled){color:var(--color-primary);opacity:1}
 .version-nav-vertical__btn:disabled{opacity:.15;cursor:not-allowed}
 .version-nav-vertical__btn svg{width:20px;height:14px}
-.version-nav-vertical__center{display:flex;flex-direction:column;align-items:center;gap:0;padding:0;border-radius:6px;background:transparent;border:none;cursor:pointer;transition:all 150ms ease}
+.version-nav-vertical__center{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 0;border-radius:6px;background:transparent;border:none;cursor:pointer;transition:all 150ms ease}
 .version-nav-vertical__center:hover{background:transparent}
+.version-nav-vertical__center svg{color:var(--color-primary);opacity:.7;transition:opacity 150ms ease}
+.version-nav-vertical__center:hover svg{opacity:1}
 .version-nav-vertical__center:hover .version-nav-vertical__badge{opacity:.8}
 .version-nav-vertical__badge{display:flex;align-items:center;justify-content:center;width:36px;height:28px;border-radius:50%;background:transparent;border:none;transition:all 200ms ease}
 .version-nav-vertical__badge svg{width:16px;height:16px;color:var(--color-primary)}
@@ -416,12 +418,12 @@ input[type="checkbox"].md-checkbox:disabled{opacity:.5;cursor:not-allowed}
 .version-nav-vertical__badge--generating{animation:badge-pulse 1.5s ease-in-out infinite}
 .version-nav-vertical__badge--refinement{background:transparent}
 .version-nav-vertical__badge--refinement .version-nav-vertical__current{color:var(--color-tertiary)}
-.version-nav-vertical__current{font-size:12px;font-weight:700;color:var(--color-primary)}
+.version-nav-vertical__current{font-size:10px;font-weight:700;letter-spacing:0.02em;color:var(--color-primary)}
 @keyframes badge-pulse {
 0%,100%{transform:scale(1);box-shadow:0 0 0 0 var(--color-primary)}
 50%{transform:scale(1.05);box-shadow:0 0 0 3px color-mix(in srgb,var(--color-primary) 25%,transparent)}
 }
-.panel-resize-container{cursor:col-resize;overflow:hidden}
+.panel-resize-container{cursor:col-resize;overflow:visible}
 .panel-resize-line{position:absolute;left:50%;transform:translateX(-50%);width:2px;background:var(--color-outline);border-radius:1px;transition:background 150ms ease,box-shadow 150ms ease}
 .panel-resize-line--top{top:8px;bottom:calc(50% + 40px)}
 .panel-resize-line--bottom{top:calc(50% + 40px);bottom:8px}

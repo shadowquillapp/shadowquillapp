@@ -67,6 +67,17 @@ export function VersionNavigator({
 				<Icon name="chevron-up" />
 			</button>
 
+			{/* Center: Version indicator */}
+			<button
+				type="button"
+				className="version-nav-vertical__center"
+				onClick={onOpenHistory}
+				title={tooltipText}
+				aria-label="View version history"
+			>
+				<Icon name="code-compare" style={{ width: 16, height: 16 }} />
+			</button>
+
 			{/* Down: Next button */}
 			<button
 				type="button"
