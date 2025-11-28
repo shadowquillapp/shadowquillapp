@@ -25,6 +25,24 @@ contextBridge.exposeInMainWorld("shadowquill", {
 			ipcRenderer.invoke("shadowquill:view:setZoomFactor", factor),
 		resetZoom: () => ipcRenderer.invoke("shadowquill:view:resetZoom"),
 	},
+	find: {
+		findInPage: (text, options) =>
+			ipcRenderer.invoke("shadowquill:find:findInPage", text, options),
+		stopFindInPage: (action) =>
+			ipcRenderer.invoke("shadowquill:find:stopFindInPage", action),
+		onShow: (callback) => {
+			ipcRenderer.on("shadowquill:find:show", callback);
+			return () => ipcRenderer.removeListener("shadowquill:find:show", callback);
+		},
+		onNext: (callback) => {
+			ipcRenderer.on("shadowquill:find:next", callback);
+			return () => ipcRenderer.removeListener("shadowquill:find:next", callback);
+		},
+		onPrevious: (callback) => {
+			ipcRenderer.on("shadowquill:find:previous", callback);
+			return () => ipcRenderer.removeListener("shadowquill:find:previous", callback);
+		},
+	},
 });
 
 // Forward info notifications from main to renderer UI to show in-app dialogs

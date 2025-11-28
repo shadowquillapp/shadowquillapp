@@ -7,6 +7,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import { DialogProvider } from "@/components/DialogProvider";
+import FindBar from "@/components/FindBar";
 import OllamaConnectionMonitor from "@/components/OllamaConnectionMonitor";
 import Titlebar from "@/components/Titlebar";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
 						{children}
 					</div>
 					<OllamaConnectionMonitor />
+					<FindBar />
 				</DialogProvider>
 			</body>
 		</html>

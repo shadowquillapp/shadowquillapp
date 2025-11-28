@@ -298,6 +298,16 @@ declare global {
 			getDataPaths?: () => Promise<unknown>;
 			factoryReset?: () => Promise<unknown>;
 			restartApp?: () => Promise<unknown>;
+			find?: {
+				findInPage: (
+					text: string,
+					options?: { forward?: boolean; findNext?: boolean; matchCase?: boolean }
+				) => Promise<{ ok: boolean; requestId?: number }>;
+				stopFindInPage: (action?: string) => Promise<{ ok: boolean }>;
+				onShow: (callback: () => void) => () => void;
+				onNext: (callback: () => void) => () => void;
+				onPrevious: (callback: () => void) => () => void;
+			};
 		};
 	}
 }
