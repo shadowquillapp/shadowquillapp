@@ -328,7 +328,7 @@ export default function DisplayContent() {
 
 			<aside className="ollama-guide">
 				<div className="ollama-guide-card">
-					<p className="ollama-panel__eyebrow">About Theme</p>
+					<p className="ollama-panel__eyebrow">Themes</p>
 					<ul>
 						<li>Choose from 4 color schemes</li>
 						<li>Default (Earth) - warm, natural colors</li>

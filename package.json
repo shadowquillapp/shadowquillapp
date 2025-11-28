@@ -8,15 +8,15 @@
 	"type": "module",
 	"scripts": {
 		"build": "npm run build:electron",
-		"build:electron": "node electron/build-electron.cjs",
-		"dist:electron": "npm run build:electron && cross-env NEXT_PUBLIC_ELECTRON=1 electron-builder --win --mac --linux",
-		"dist:win": "npm run build:electron && cross-env NEXT_PUBLIC_ELECTRON=1 electron-builder --win",
+		"build:electron": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 node electron/build-electron.cjs",
+		"dist:electron": "npm run build:electron && cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 NEXT_PUBLIC_ELECTRON=1 electron-builder --win --mac",
+		"dist:win": "npm run build:electron && cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 NEXT_PUBLIC_ELECTRON=1 electron-builder --win",
 		"check": "biome check --config-path=config/biome.jsonc .",
 		"check:unsafe": "biome check --config-path=config/biome.jsonc --write --unsafe .",
 		"check:write": "biome check --config-path=config/biome.jsonc --write .",
-		"dev": "cross-env SKIP_ENV_VALIDATION=true ELECTRON=1 NEXT_PUBLIC_ELECTRON=1 node ./electron/start-electron.cjs",
+		"dev": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SKIP_ENV_VALIDATION=true ELECTRON=1 NEXT_PUBLIC_ELECTRON=1 node ./electron/start-electron.cjs",
 		"postinstall": "echo 'Installation complete'",
-		"start": "cross-env SKIP_ENV_VALIDATION=true ELECTRON=1 NEXT_PUBLIC_ELECTRON=1 node ./electron/start-electron.cjs --prod",
+		"start": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SKIP_ENV_VALIDATION=true ELECTRON=1 NEXT_PUBLIC_ELECTRON=1 node ./electron/start-electron.cjs --prod",
 		"test": "vitest run --config=config/vitest.config.ts",
 		"test:watch": "vitest --config=config/vitest.config.ts",
 		"test:coverage": "vitest run --config=config/vitest.config.ts --coverage",
@@ -84,22 +84,11 @@
 			"allowToChangeInstallationDirectory": true,
 			"createDesktopShortcut": true,
 			"createStartMenuShortcut": true
-		},
-		"linux": {
-			"target": [
-				"AppImage",
-				"deb"
-			],
-			"category": "Utility",
-			"maintainer": "ShadowQuill <info@shadowquill.org>",
-			"synopsis": "ShadowQuill prompt building AI tool",
-			"description": "ShadowQuill: build prompts local AI and storage",
-			"artifactName": "${productName}-${version}-${arch}.${ext}"
 		}
 	},
 	"overrides": {
 		"glob": "^11.0.4",
-		"baseline-browser-mapping": "^2.8.32"
+		"baseline-browser-mapping": "*"
 	},
 	"postcss": {
 		"plugins": {

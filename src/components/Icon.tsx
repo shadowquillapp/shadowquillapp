@@ -87,6 +87,7 @@ const icons = {
 	"folder-open": faFolderOpen,
 	save: faSave,
 	"git-compare": faCodeCompare,
+	"code-compare": faCodeCompare,
 	sparkles: faWandMagicSparkles,
 	warning: faTriangleExclamation,
 	cpu: faMicrochip,
