@@ -120,15 +120,23 @@ npm install              # Install dependencies
 ```
 
 ```bash
-npm test                 # Run tests
-```
-
-```bash
 npm run typecheck        # Type check
 ```
 
 ```bash
-npm run dev              # Development mode
+npm test                 # Run tests
+```
+
+```bash
+npm test                 # Run all tests once
+```
+
+```bash
+npm run test:coverage    # With coverage report
+```
+
+```bash
+npm run dev              # Open ShadowQuill in dev mode
 ```
 
 ## Privacy & Security
