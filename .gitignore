@@ -8,3 +8,4 @@ next-env.d.ts
 tsconfig.tsbuildinfo
 package-lock.json
 .markdownlint.json
+/coverage/
