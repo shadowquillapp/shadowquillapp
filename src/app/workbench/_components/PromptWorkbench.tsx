@@ -10,6 +10,7 @@ import {
 	readLocalModelConfig as readLocalModelConfigClient,
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
+import { getJSON, setJSON } from "@/lib/local-storage";
 import {
 	appendMessagesWithCap as localAppendMessages,
 	createProject as localCreateProject,
@@ -40,11 +41,11 @@ import {
 	useState,
 } from "react";
 import { MessageRenderer } from "./workbench/MessageRenderer";
-import { SavedSessionsModal } from "./workbench/SavedSessionsModal";
 import type { MessageItem, PromptPresetSummary } from "./workbench/types";
 import { useTabManager } from "./workbench/useTabManager";
-import { appendVersion, createVersionGraph, versionList, getOutputMessageId, migrateVersionGraph } from "./workbench/version-graph";
+import { appendVersion, createVersionGraph, versionList, getOutputMessageId, migrateVersionGraph, undoVersion, redoVersion } from "./workbench/version-graph";
 import { VersionHistoryModal } from "./workbench/VersionHistoryModal";
+import { VersionNavigator } from "./workbench/VersionNavigator";
 import { PresetInfoDialog } from "./workbench/PresetInfoDialog";
 import { TabBar } from "./workbench/TabBar";
 import { PresetPickerModal } from "./workbench/PresetPickerModal";
@@ -65,7 +66,7 @@ import type {
 } from "@/types";
 
 export default function PromptWorkbench() {
-	const { showInfo } = useDialog();
+	const { showInfo, confirm } = useDialog();
 	const router = useRouter();
 	const [modelLabel, setModelLabel] = useState<string>("Gemma 3 4B");
 	const [availableModels, setAvailableModels] = useState<
@@ -76,9 +77,15 @@ export default function PromptWorkbench() {
 	const [modelMenuUp, setModelMenuUp] = useState(false);
 	const modelBtnRef = useRef<HTMLButtonElement | null>(null);
 	const modelMenuRef = useRef<HTMLDivElement | null>(null);
-	const [showAllProjectsOpen, setShowAllProjectsOpen] = useState(false);
 	const [showVersionHistory, setShowVersionHistory] = useState(false);
 	const [showPresetInfo, setShowPresetInfo] = useState(false);
+	const [justCreatedVersion, setJustCreatedVersion] = useState(false);
+	const [outputAnimateKey, setOutputAnimateKey] = useState(0);
+	const [leftPanelWidth, setLeftPanelWidth] = useState(() => 
+		getJSON<number>("shadowquill:panelWidth", 50)
+	); // percentage - persisted
+	const [isResizing, setIsResizing] = useState(false);
+	const panelsRef = useRef<HTMLDivElement | null>(null);
 	const [currentTheme, setCurrentTheme] = useState<
 		"earth" | "purpledark" | "dark" | "light"
 	>("earth");
@@ -480,6 +487,28 @@ export default function PromptWorkbench() {
 		const text = activeTab.draft.trim();
 		if (!text || activeTab.sending) return;
 		
+		// Check if user is on a past version - if so, confirm before proceeding
+		const graph = activeTab.versionGraph;
+		if (graph.activeId !== graph.tailId) {
+			// Count how many versions will be removed
+			let versionsToRemove = 0;
+			let cursor = graph.nodes[graph.activeId]?.nextId;
+			while (cursor) {
+				versionsToRemove++;
+				cursor = graph.nodes[cursor]?.nextId ?? null;
+			}
+			
+			const confirmed = await confirm({
+				title: "Generate from Past Version",
+				message: `You are on a past version. Generating here will remove ${versionsToRemove} version${versionsToRemove === 1 ? '' : 's'} ahead of this point. This cannot be undone.`,
+				confirmText: "Continue & Revert",
+				cancelText: "Cancel",
+				tone: "destructive",
+			});
+			
+			if (!confirmed) return;
+		}
+		
 		// Capture original input before processing
 		const originalInput = text;
 		
@@ -593,6 +622,17 @@ export default function PromptWorkbench() {
 			);
 			tabManager.setVersionGraph(updatedGraph);
 			tabManager.markDirty(false);
+			
+			// Auto-sync tab name to the prompt input (truncated)
+			const truncatedLabel = originalInput.length > 40 
+				? originalInput.slice(0, 40).trim() + "…" 
+				: originalInput;
+			tabManager.updateTabLabel(activeTab.id, truncatedLabel);
+			
+			// Trigger version creation animation
+			setJustCreatedVersion(true);
+			setOutputAnimateKey(prev => prev + 1);
+			setTimeout(() => setJustCreatedVersion(false), 700);
 		} catch (e: any) {
 			if (e?.name === "AbortError" || e?.message?.includes("aborted")) {
 				// Silent abort
@@ -607,6 +647,7 @@ export default function PromptWorkbench() {
 		tabManager,
 		ensureProject,
 		refreshProjectList,
+		confirm,
 		taskType,
 		tone,
 		detail,
@@ -647,6 +688,37 @@ export default function PromptWorkbench() {
 		tabManager.setSending(false);
 	}, [tabManager]);
 
+	// Version navigation handlers
+	const goToPreviousVersion = useCallback(() => {
+		const tab = tabManager.activeTab;
+		if (!tab) return;
+		const prevGraph = undoVersion(tab.versionGraph);
+		if (prevGraph) {
+			const prevNode = prevGraph.nodes[prevGraph.activeId];
+			if (prevNode) {
+				tabManager.updateDraft(prevNode.originalInput || prevNode.content);
+			}
+			tabManager.setVersionGraph(prevGraph);
+			tabManager.markDirty(false);
+			setOutputAnimateKey(prev => prev + 1);
+		}
+	}, [tabManager]);
+
+	const goToNextVersion = useCallback(() => {
+		const tab = tabManager.activeTab;
+		if (!tab) return;
+		const nextGraph = redoVersion(tab.versionGraph);
+		if (nextGraph) {
+			const nextNode = nextGraph.nodes[nextGraph.activeId];
+			if (nextNode) {
+				tabManager.updateDraft(nextNode.originalInput || nextNode.content);
+			}
+			tabManager.setVersionGraph(nextGraph);
+			tabManager.markDirty(false);
+			setOutputAnimateKey(prev => prev + 1);
+		}
+	}, [tabManager]);
+
 	const endRef = useRef<HTMLDivElement | null>(null);
 
 	// Auto-scroll to bottom when messages change or when sending
@@ -685,7 +757,12 @@ export default function PromptWorkbench() {
 				
 				// Check if we can create a new tab
 				if (!tabManager.canCreateTab) {
-					tabManager.setError("Maximum number of tabs reached. Close a tab to open this project.");
+					// Use activeTab's error if available, otherwise show alert
+					if (tabManager.activeTab) {
+						tabManager.setError("Maximum number of tabs reached. Close a tab to open this project.");
+					} else {
+						showInfo({ title: "Tab Limit", message: "Maximum number of tabs reached. Close a tab to open this project." });
+					}
 					return;
 				}
 				
@@ -705,66 +782,76 @@ export default function PromptWorkbench() {
 					}
 				}
 				
-				// If no preset found, ask user to select one
+				// If no preset found, use first available preset
 				if (!projectPreset) {
-					// For now, use first preset or show picker
 					if (presets.length > 0) {
 						projectPreset = presets[0] ?? null;
 					}
 				}
 				
 				if (!projectPreset) {
-					tabManager.setError("No preset available to open this project");
+					showInfo({ title: "No Preset", message: "No preset available to open this project." });
 					return;
 				}
 				
 				// Apply preset configuration
 				applyPreset(projectPreset, { trackRecent: false });
 				
-				// Create new tab with project data
-				tabManager.createTab(projectPreset);
+				// Create new tab and capture the tab ID for synchronous operations
+				const newTabId = tabManager.createTab(projectPreset);
 				
-				// Wait for tab to be created and active
-				setTimeout(() => {
-					tabManager.setMessages(loaded);
+				// Build the version graph
+				let graph: any;
+				if (data.versionGraph) {
+					// Migrate version graph for backward compatibility
+					graph = migrateVersionGraph(data.versionGraph, loaded);
+				} else {
+					// Reconstruct history from user messages for legacy sessions
+					graph = createVersionGraph("", "Start", "", null);
+					const userMsgs = loaded.filter((m) => m.role === "user");
+					const assistantMsgs = loaded.filter((m) => m.role === "assistant");
 					
-					let graph: any;
-					if (data.versionGraph) {
-						// Migrate version graph for backward compatibility
-						graph = migrateVersionGraph(data.versionGraph, loaded);
-					} else {
-						// Reconstruct history from user messages for legacy sessions
-						graph = createVersionGraph("", "Start", "", null);
-						const userMsgs = loaded.filter((m) => m.role === "user");
-						const assistantMsgs = loaded.filter((m) => m.role === "assistant");
-						
-						if (userMsgs.length > 0) {
-							userMsgs.forEach((msg, i) => {
-								// Try to link with corresponding assistant message
-								const outputId = assistantMsgs[i]?.id ?? null;
-								graph = appendVersion(
-									graph, 
-									msg.content, 
-									`Version ${i + 1}`,
-									msg.content,
-									outputId
-								);
-							});
-						}
+					if (userMsgs.length > 0) {
+						userMsgs.forEach((msg, i) => {
+							// Try to link with corresponding assistant message
+							const outputId = assistantMsgs[i]?.id ?? null;
+							graph = appendVersion(
+								graph, 
+								msg.content, 
+								`Version ${i + 1}`,
+								msg.content,
+								outputId
+							);
+						});
 					}
-					tabManager.setVersionGraph(graph);
-					tabManager.attachProject(id);
-					
-					// Update tab label with project title
-					if (tabManager.activeTab && data.title) {
-						tabManager.updateTabLabel(tabManager.activeTab.id, data.title);
-					}
-				}, 50);
-			} catch {
-				tabManager.setError("Failed to load project");
+				}
+				
+				// Apply all data to the new tab using explicit tabId-based operations
+				tabManager.setMessagesForTab(newTabId, loaded);
+				tabManager.setVersionGraphForTab(newTabId, graph);
+				tabManager.attachProjectForTab(newTabId, id);
+				
+				// Set the draft from the active version's input
+				const activeNode = graph.nodes[graph.activeId];
+				if (activeNode) {
+					const draftContent = activeNode.originalInput || activeNode.content || "";
+					tabManager.updateDraftForTab(newTabId, draftContent);
+				}
+				
+				// Update tab label with project title
+				if (data.title) {
+					tabManager.updateTabLabel(newTabId, data.title);
+				}
+			} catch (e) {
+				// Use tabId-based error if we have a tab, otherwise show info dialog
+				if (tabManager.activeTab) {
+					tabManager.setError("Failed to load project");
+				} else {
+					showInfo({ title: "Error", message: "Failed to load project" });
+				}
 			}
 		},
-		[tabManager, presets, applyPreset],
+		[tabManager, presets, applyPreset, showInfo],
 	);
 
 	// Auto-save version graph
@@ -929,6 +1016,51 @@ export default function PromptWorkbench() {
 		return () => document.removeEventListener("keydown", onKeyDown);
 	}, [activeTab, tabManager]);
 
+	// Panel resize handlers
+	const handleResizeStart = useCallback((e: React.MouseEvent) => {
+		e.preventDefault();
+		setIsResizing(true);
+	}, []);
+
+	// Track the latest panel width in a ref for saving on resize end
+	const latestPanelWidthRef = useRef(leftPanelWidth);
+	useEffect(() => {
+		latestPanelWidthRef.current = leftPanelWidth;
+	}, [leftPanelWidth]);
+
+	useEffect(() => {
+		if (!isResizing) return;
+
+		const handleMouseMove = (e: MouseEvent) => {
+			if (!panelsRef.current) return;
+			const rect = panelsRef.current.getBoundingClientRect();
+			const newWidth = ((e.clientX - rect.left) / rect.width) * 100;
+			// Clamp between 25% and 75%
+			setLeftPanelWidth(Math.min(75, Math.max(25, newWidth)));
+		};
+
+		const handleMouseUp = () => {
+			setIsResizing(false);
+			// Persist the panel width to localStorage
+			setJSON("shadowquill:panelWidth", latestPanelWidthRef.current);
+		};
+
+		document.addEventListener("mousemove", handleMouseMove);
+		document.addEventListener("mouseup", handleMouseUp);
+		// Add cursor style to body during resize
+		document.body.style.cursor = "col-resize";
+		document.body.style.userSelect = "none";
+
+		return () => {
+			document.removeEventListener("mousemove", handleMouseMove);
+			document.removeEventListener("mouseup", handleMouseUp);
+			document.body.style.cursor = "";
+			document.body.style.userSelect = "";
+		};
+	}, [isResizing]);
+
+	const isGenerating = activeTab?.sending ?? false;
+
 	return (
 		<>
 			<style jsx global>{`
@@ -952,7 +1084,24 @@ export default function PromptWorkbench() {
 					}
 				}
 			`}</style>
-			<div className="simple-workbench">
+			<div className="simple-workbench" style={{ position: 'relative' }}>
+				{/* Generation Overlay - blocks all interactions except stop button in left panel */}
+				{isGenerating && (
+					<div 
+						className="generation-overlay"
+						style={{
+							position: 'absolute',
+							inset: 0,
+							backgroundColor: 'rgba(0, 0, 0, 0.35)',
+							zIndex: 100,
+							pointerEvents: 'auto',
+							cursor: 'not-allowed',
+							transition: 'opacity 0.2s ease',
+							backdropFilter: 'grayscale(0.5)',
+						}}
+						onClick={(e) => e.stopPropagation()}
+					/>
+				)}
 				<header className="simple-workbench__header" style={{ 
 					flexWrap: 'nowrap', 
 					gap: '8px',
@@ -1002,14 +1151,6 @@ export default function PromptWorkbench() {
 						<Icon name="brush" />
 					</button>
 					<button
-						type="button"
-						onClick={() => setShowAllProjectsOpen(true)}
-						className="md-btn"
-						title="View saved projects"
-					>
-						<Icon name="folder-open" />
-					</button>
-					<button
 						className="md-btn"
 						onClick={() => {
 							setSettingsOpen(true);
@@ -1023,21 +1164,27 @@ export default function PromptWorkbench() {
 
 				
 
-				<div className="simple-workbench__panels" style={{
-					display: 'flex',
-					flexDirection: 'row',
-					height: '100%',
-					overflow: 'hidden',
-					position: 'relative'
-				}}>
+				<div 
+					ref={panelsRef}
+					className="simple-workbench__panels" 
+					style={{
+						display: 'flex',
+						flexDirection: 'row',
+						height: '100%',
+						overflow: 'hidden',
+						position: 'relative'
+					}}
+				>
 					{/* LEFT PANE: Input */}
-					<section className="prompt-input-pane flex flex-col gap-4 p-4 md:p-6 bg-surface border-r border-outline h-full overflow-hidden" style={{ 
+					<section className="prompt-input-pane flex flex-col gap-4 p-4 md:p-6 bg-surface h-full overflow-hidden" style={{ 
 						backgroundColor: 'var(--color-surface)',
-						flex: '1 1 50%',
+						width: `${leftPanelWidth}%`,
+						flexShrink: 0,
+						flexGrow: 0,
 						minWidth: 0,
 						opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
 						pointerEvents: tabManager.tabs.length === 0 ? 'none' : 'auto',
-						transition: 'opacity 0.3s ease',
+						transition: isResizing ? 'none' : 'opacity 0.3s ease',
 						filter: tabManager.tabs.length === 0 ? 'grayscale(0.3)' : 'none'
 					}}>
 
@@ -1052,33 +1199,90 @@ export default function PromptWorkbench() {
 							}}
 						>
 							{/* Header bar inside the text area container */}
-							<div className="flex items-center justify-between gap-2 px-2 md:px-3 py-2 rounded-t-2xl">
-								{/* Left: label + live metrics */}
-								<div className="flex items-center gap-1 md:gap-2 text-on-surface-variant min-w-0">
-									<span className="text-[10px] md:text-[12px] font-bold tracking-wider uppercase truncate">
-										Prompt Editor
-									</span>
-									<span className="hidden sm:inline w-1.5 h-1.5 rounded-full bg-outline/60" />
-									<span className="text-[9px] md:text-[10px] whitespace-nowrap">
-										{wordCount} {wordCount === 1 ? "word" : "words"} · {charCount.toLocaleString()} {charCount === 1 ? "char" : "chars"}
-									</span>
+							<div 
+								className="flex items-center justify-between gap-3 px-3 md:px-4 py-2.5 rounded-t-2xl shrink-0"
+								style={{
+									background: "linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 50%) 0%, var(--color-surface-variant) 100%)",
+									borderBottom: "1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
+								}}
+							>
+								{/* Left: Badge & Stats */}
+								<div className="flex items-center gap-3 min-w-0">
+									{/* Editor Badge */}
+									<div
+										style={{
+											display: "flex",
+											alignItems: "center",
+											gap: "6px",
+											padding: "4px 10px",
+											borderRadius: "20px",
+											background: "var(--color-surface)",
+											border: "1px solid var(--color-outline)",
+											color: "var(--color-on-surface-variant)",
+										}}
+									>
+										<Icon name="edit" style={{ width: 11, height: 11, opacity: 0.7 }} />
+										<span style={{ fontSize: "10px", fontWeight: 600, letterSpacing: "0.02em" }}>
+											Input
+										</span>
+									</div>
+
+									{/* Stats - Hidden on very small screens */}
+									<div className="hidden sm:flex items-center gap-2 text-on-surface-variant/70">
+										<div className="flex items-center gap-1.5" style={{ fontSize: "10px" }}>
+											<Icon name="file-text" style={{ width: 10, height: 10, opacity: 0.6 }} />
+											<span style={{ fontVariantNumeric: "tabular-nums" }}>{wordCount.toLocaleString()}</span>
+											<span style={{ opacity: 0.5 }}>words</span>
+										</div>
+										<span style={{ opacity: 0.3 }}>•</span>
+										<div className="flex items-center gap-1" style={{ fontSize: "10px" }}>
+											<span style={{ fontVariantNumeric: "tabular-nums" }}>{charCount.toLocaleString()}</span>
+											<span style={{ opacity: 0.5 }}>chars</span>
+										</div>
+									</div>
 								</div>
-								{/* Right: controls */}
-								<div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-								<button
-									type="button"
-									onClick={() => copyMessage("prompt-draft", activeTab?.draft ?? "")}
-									className="w-6 h-6 md:w-8 md:h-8 p-0 hover:bg-surface rounded-md transition-all duration-150 text-on-surface-variant hover:text-on-surface"
-									title="Copy prompt"
-									aria-label="Copy prompt"
-									disabled={!activeTab}
-								>
-									<Icon name={copiedMessageId === "prompt-draft" ? "check" : "copy"} className="w-3 h-3 md:w-3.5 md:h-3.5" />
-								</button>
+
+								{/* Right: Actions */}
+								<div className="flex items-center gap-1">
+									{/* Copy Button */}
+									<button
+										type="button"
+										onClick={() => copyMessage("prompt-draft", activeTab?.draft ?? "")}
+										disabled={!activeTab}
+										className="flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+										title="Copy prompt"
+										aria-label="Copy prompt"
+										style={{
+											width: 28,
+											height: 28,
+											borderRadius: "8px",
+											background: copiedMessageId === "prompt-draft" 
+												? "var(--color-save)" 
+												: "var(--color-surface)",
+											border: copiedMessageId === "prompt-draft" 
+												? "1px solid var(--color-save)"
+												: "1px solid var(--color-outline)",
+											color: copiedMessageId === "prompt-draft" 
+												? "var(--color-on-save)" 
+												: "var(--color-on-surface-variant)",
+										}}
+									>
+										<Icon
+											name={copiedMessageId === "prompt-draft" ? "check" : "copy"}
+											style={{ width: 13, height: 13 }}
+										/>
+									</button>
 								</div>
 							</div>
 
-							<div ref={textareaContainerRef} className="relative flex-1 min-h-0 w-full">
+							<div 
+								ref={textareaContainerRef} 
+								className="relative flex-1 min-h-0 w-full"
+								style={{
+									// When generating, elevate this container above the overlay so the stop button is clickable
+									zIndex: isGenerating ? 150 : 'auto',
+								}}
+							>
 								<textarea
 									className="absolute inset-0 w-full h-full p-3 md:p-6 pt-3 md:pt-4 pb-24 md:pb-24 rounded-b-2xl resize-none focus:outline-none focus:ring-2 focus:ring-[var(--color-outline)] focus:border-[var(--color-outline)] transition-all duration-200 ease-out font-mono text-[10px] md:text-[11px] leading-[20px] md:leading-[24px] text-on-surface placeholder:text-on-surface-variant/50 shadow-none"
 									style={{
@@ -1095,11 +1299,13 @@ export default function PromptWorkbench() {
 											currentTheme === "light" ? undefined : "0 40px", // align after header (pt-4 ≈ 16px + header height)
 										caretColor: "var(--color-primary)",
 										boxShadow: "inset 0 0 0 1px color-mix(in srgb, var(--color-outline), white 18%)",
+										// Disable pointer events when generating
+										pointerEvents: isGenerating ? 'none' : 'auto',
 									}}
 									value={activeTab?.draft ?? ""}
 									onChange={(e) => tabManager.updateDraft(e.target.value)}
 									placeholder={activeTab ? "Describe your prompt & intent..." : "Create or open a tab to get started..."}
-									disabled={!activeTab}
+									disabled={!activeTab || isGenerating}
 								/>
 
 							{/* Model Selector - Bottom Left */}
@@ -1108,29 +1314,43 @@ export default function PromptWorkbench() {
 								style={{
 									left: '20px',
 									bottom: '20px',
+									// Disable during generation
+									pointerEvents: isGenerating ? 'none' : 'auto',
+									opacity: isGenerating ? 0.5 : 1,
 								}}
 							>
 								{/* Vertical Slider Model Selector */}
 								<div
 									className="relative"
 									style={{
-										width: "min(64px, 12.75vw)",
-										height: "min(64px, 12.75vw)",
-										minWidth: "43px",
-										minHeight: "43px",
+										width: "min(80px, 16vw)",
+										height: "min(80px, 16vw)",
+										minWidth: "54px",
+										minHeight: "54px",
 									}}
 								>
 									{/* Slider container */}
 									<div
-										className="absolute inset-0 rounded-[14px] border overflow-hidden"
+										className="absolute inset-0 rounded-[18px] border overflow-hidden"
 										style={{
 											borderColor: "var(--color-outline)",
 											background: "var(--color-surface)",
-											padding: "6px",
+											padding: "8px",
 										}}
 									>
+										{/* Header */}
+										<div 
+											className="text-center font-bold text-[10px] tracking-wider uppercase mb-1"
+											style={{
+												color: "var(--color-on-surface)",
+												opacity: 0.7,
+												lineHeight: 1,
+											}}
+										>
+											GEMMA 3
+										</div>
 										{/* Stops */}
-										<div className="flex flex-col justify-between items-stretch h-full relative z-[1]">
+										<div className="flex flex-col justify-between items-stretch h-full relative z-[1]" style={{ height: 'calc(100% - 16px)' }}>
 											{[
 												{ label: "4B", id: "gemma3:4b" },
 												{ label: "12B", id: "gemma3:12b" },
@@ -1160,7 +1380,7 @@ export default function PromptWorkbench() {
 																);
 															} catch {}
 														}}
-														className={`w-full h-[18px] flex items-center justify-center text-[11px] font-bold rounded-[10px] transition-colors ${
+														className={`w-full h-[22px] flex items-center justify-center text-[13px] font-bold rounded-[12px] transition-colors ${
 															!isInstalled ? "opacity-40 cursor-not-allowed" : ""
 														}`}
 														title={
@@ -1193,8 +1413,8 @@ export default function PromptWorkbench() {
 							<button
 								type="button"
 								onClick={() => (activeTab?.sending ? stopGenerating() : void send())}
-								disabled={!activeTab || !activeTab.draft.trim()}
-								className={`group absolute z-10 rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden flex items-center justify-center ${
+								disabled={!activeTab || (!activeTab.sending && !activeTab.draft.trim())}
+								className={`group absolute rounded-full transition-all duration-300 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none overflow-hidden flex items-center justify-center ${
 									activeTab?.sending
 										? "text-on-attention"
 										: "text-on-primary"
@@ -1208,6 +1428,8 @@ export default function PromptWorkbench() {
 									bottom: '20px',
 									border: '1px solid var(--color-outline)',
 									background: activeTab?.sending ? "var(--color-attention)" : "var(--color-primary)",
+									// High z-index to stay above the generation overlay
+									zIndex: activeTab?.sending ? 150 : 10,
 								}}
 								title={activeTab?.sending ? "Stop Generation" : "Run Prompt"}
 							>
@@ -1233,108 +1455,176 @@ export default function PromptWorkbench() {
 
 						{/* Preset Info Row - Moved Under Editor Area */}
 						{activeTab?.preset && (
-							<div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4 p-2 md:p-2.5 rounded-xl border border-[var(--color-outline)] bg-[var(--color-surface-variant)] shadow-sm transition-all hover:shadow-md">
-								{/* Header: Icon + Title + Type */}
-								<div className="flex items-center gap-2.5 min-w-0">
-									<div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary shadow-sm ring-1 ring-inset ring-primary/10">
-										<Icon
-											name={
-												activeTab.preset.taskType === "coding"
-													? "git-compare"
-													: activeTab.preset.taskType === "image"
-														? "palette"
-														: activeTab.preset.taskType === "video"
-															? "eye"
-															: activeTab.preset.taskType === "research"
-																? "search"
-																: activeTab.preset.taskType === "writing"
-																	? "edit"
-																	: activeTab.preset.taskType === "marketing"
-																		? "thumbsUp"
-																		: "folder-open"
-											}
-											className="h-3.5 w-3.5"
-										/>
-									</div>
-									<div className="flex flex-col min-w-0 gap-0">
-										<button
-											type="button"
-											onClick={() => setShowPresetInfo(true)}
-											className="flex items-center gap-1.5 group/btn text-left"
+							<div 
+								className="flex items-center gap-3 p-2.5 md:p-3 rounded-xl transition-all"
+								style={{
+									background: "linear-gradient(135deg, color-mix(in srgb, var(--color-primary), var(--color-surface-variant) 85%) 0%, var(--color-surface-variant) 100%)",
+									border: "1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
+									boxShadow: "0 2px 8px color-mix(in srgb, var(--color-primary), transparent 85%)",
+								}}
+							>
+								{/* Icon */}
+								<div 
+									className="flex shrink-0 items-center justify-center"
+									style={{
+										width: 36,
+										height: 36,
+										borderRadius: 10,
+										background: "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary), var(--color-surface) 30%))",
+										color: "var(--color-on-primary)",
+										boxShadow: "0 2px 6px color-mix(in srgb, var(--color-primary), transparent 50%)",
+									}}
+								>
+									<Icon
+										name={
+											activeTab.preset.taskType === "coding"
+												? "git-compare"
+												: activeTab.preset.taskType === "image"
+													? "palette"
+													: activeTab.preset.taskType === "video"
+														? "eye"
+														: activeTab.preset.taskType === "research"
+															? "search"
+															: activeTab.preset.taskType === "writing"
+																? "edit"
+																: activeTab.preset.taskType === "marketing"
+																	? "thumbsUp"
+																	: "folder-open"
+										}
+										style={{ width: 16, height: 16 }}
+									/>
+								</div>
+
+								{/* Title & Type */}
+								<div className="flex flex-col min-w-0 gap-0.5 flex-1">
+									<button
+										type="button"
+										onClick={() => setShowPresetInfo(true)}
+										className="flex items-center gap-1.5 group/btn text-left"
+									>
+										<span
+											className="text-[13px] font-bold text-on-surface truncate leading-tight group-hover/btn:text-primary transition-colors"
+											title="Click for full preset details"
 										>
-											<span
-												className="text-xs font-bold text-on-surface truncate leading-tight group-hover/btn:text-primary transition-colors"
-												title="Click for full preset details"
-											>
-												{activeTab.preset.name}
-											</span>
-											<Icon
-												name="info"
-												className="w-2.5 h-2.5 text-secondary/50 group-hover/btn:text-primary transition-colors"
-											/>
-										</button>
-										<span className="text-[9px] font-bold text-primary/80 uppercase tracking-wider leading-none mt-0.5">
+											{activeTab.preset.name}
+										</span>
+										<Icon
+											name="info"
+											className="text-on-surface-variant/40 group-hover/btn:text-primary transition-colors"
+											style={{ width: 10, height: 10 }}
+										/>
+									</button>
+									
+									{/* Tags Row */}
+									<div className="flex items-center gap-1.5 flex-wrap">
+										{/* Task Type Badge */}
+										<span 
+											style={{ 
+												fontSize: 9, 
+												fontWeight: 700, 
+												textTransform: "uppercase", 
+												letterSpacing: "0.05em",
+												color: "var(--color-primary)",
+												opacity: 0.9,
+											}}
+										>
 											{activeTab.preset.taskType}
 										</span>
+										
+										{/* Separator */}
+										{(activeTab.preset.options?.tone || activeTab.preset.options?.format || activeTab.preset.options?.detail || typeof activeTab.preset.options?.temperature === "number") && (
+											<span style={{ opacity: 0.3, fontSize: 9 }}>•</span>
+										)}
+										
+										{/* Metadata Tags - Inline */}
+										{activeTab.preset.options?.tone && (
+											<span style={{ fontSize: 9, color: "var(--color-on-surface-variant)", opacity: 0.7, textTransform: "capitalize" }}>
+												{activeTab.preset.options.tone}
+											</span>
+										)}
+										{activeTab.preset.options?.format && (
+											<span style={{ fontSize: 9, color: "var(--color-on-surface-variant)", opacity: 0.7 }}>
+												{activeTab.preset.options.format === "plain" ? "Plain" : activeTab.preset.options.format === "markdown" ? "MD" : activeTab.preset.options.format.toUpperCase()}
+											</span>
+										)}
+										{typeof activeTab.preset.options?.temperature === "number" && (
+											<span style={{ fontSize: 9, color: "var(--color-on-surface-variant)", opacity: 0.7, fontVariantNumeric: "tabular-nums" }}>
+												temp {activeTab.preset.options.temperature.toFixed(1)}
+											</span>
+										)}
 									</div>
 								</div>
 
-								{/* Metadata Tags */}
-								{(activeTab.preset.options?.tone ||
-									activeTab.preset.options?.format ||
-									activeTab.preset.options?.detail ||
-									typeof activeTab.preset.options?.temperature === "number") && (
-									<div className="flex flex-wrap justify-end gap-1.5">
-										{activeTab.preset.options?.tone && (
-											<div className="flex items-center px-1.5 py-0.5 rounded-md bg-surface/50 border border-[var(--color-outline)]/50">
-												<span className="text-[9px] font-medium text-secondary capitalize leading-none">
-													{activeTab.preset.options.tone}
-												</span>
-											</div>
-										)}
-										{activeTab.preset.options?.format && (
-											<div className="flex items-center px-1.5 py-0.5 rounded-md bg-surface/50 border border-[var(--color-outline)]/50">
-												<span className="text-[9px] font-medium text-secondary leading-none">
-													{activeTab.preset.options.format === "plain"
-														? "Plain"
-														: activeTab.preset.options.format === "markdown"
-															? "Markdown"
-															: activeTab.preset.options.format.toUpperCase()}
-												</span>
-											</div>
-										)}
-										{activeTab.preset.options?.detail && (
-											<div className="flex items-center px-1.5 py-0.5 rounded-md bg-surface/50 border border-[var(--color-outline)]/50">
-												<span className="text-[9px] font-medium text-secondary capitalize leading-none">
-													{activeTab.preset.options.detail}
-												</span>
-											</div>
-										)}
-										{typeof activeTab.preset.options?.temperature === "number" && (
-											<div className="flex items-center px-1.5 py-0.5 rounded-md bg-surface/50 border border-[var(--color-outline)]/50">
-												<span className="text-[9px] font-medium text-secondary capitalize leading-none">
-													{activeTab.preset.options.temperature.toFixed(1)}
-												</span>
-											</div>
-										)}
-									</div>
-								)}
+								{/* Edit Button */}
+								<button
+									type="button"
+									onClick={() => router.push("/studio")}
+									className="flex items-center justify-center shrink-0 transition-all duration-200 hover:scale-105 active:scale-95"
+									title="Edit preset in Studio"
+									aria-label="Edit preset in Studio"
+									style={{
+										width: 32,
+										height: 32,
+										borderRadius: 8,
+										background: "var(--color-surface)",
+										border: "1px solid var(--color-outline)",
+										color: "var(--color-on-surface-variant)",
+									}}
+								>
+									<Icon name="brush" style={{ width: 14, height: 14 }} />
+								</button>
 							</div>
 						)}
 					</section>
 
+					{/* CENTER: Resize Handle + Version Navigator */}
+					<div 
+						className="hidden md:flex flex-col items-center justify-center relative"
+						style={{
+							width: '20px',
+							flexShrink: 0,
+							background: 'var(--color-surface-variant)',
+						}}
+					>
+						{/* Resize Handles - Both edges */}
+						<div
+							className={`panel-resize-handle panel-resize-handle--left ${isResizing ? 'panel-resize-handle--active' : ''}`}
+							onMouseDown={handleResizeStart}
+							title="Drag to resize panels"
+						/>
+						<div
+							className={`panel-resize-handle panel-resize-handle--right ${isResizing ? 'panel-resize-handle--active' : ''}`}
+							onMouseDown={handleResizeStart}
+							title="Drag to resize panels"
+						/>
+						
+						{/* Version Navigator */}
+						{activeTab && (
+							<VersionNavigator
+								versionGraph={activeTab.versionGraph}
+								onPrev={goToPreviousVersion}
+								onNext={goToNextVersion}
+								onOpenHistory={() => setShowVersionHistory(true)}
+								isGenerating={activeTab.sending}
+								justCreatedVersion={justCreatedVersion}
+							/>
+						)}
+					</div>
+
 					{/* RIGHT PANE: Output */}
 					<section className="prompt-output-pane flex flex-col gap-4 p-4 md:p-6 h-full overflow-hidden relative" style={{
-						flex: '1 1 50%',
+						flex: 1,
 						minWidth: 0,
 						opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
-						pointerEvents: tabManager.tabs.length === 0 ? 'none' : 'auto',
-						transition: 'opacity 0.3s ease',
-						filter: tabManager.tabs.length === 0 ? 'grayscale(0.3)' : 'none'
+						pointerEvents: tabManager.tabs.length === 0 ? 'none' : (isGenerating ? 'none' : 'auto'),
+						transition: isResizing ? 'none' : 'opacity 0.3s ease',
+						filter: tabManager.tabs.length === 0 ? 'grayscale(0.3)' : 'none',
+						// Elevate above overlay when generating so the animation is visible
+						zIndex: isGenerating ? 150 : 'auto',
 					}}>
 						{/* Content Body with Integrated Toolbar Style */}
 						<div 
-							className="relative flex-1 min-h-0 flex flex-col group rounded-2xl"
+							className={`relative flex-1 min-h-0 flex flex-col group rounded-2xl ${activeTab?.sending ? 'output-generating' : ''}`}
 							style={{
 								background: "var(--color-surface-variant)",
 								border: "1px solid var(--color-outline)",
@@ -1342,89 +1632,131 @@ export default function PromptWorkbench() {
 							}}
 						>
 							{/* Toolbar Header inside container */}
-							<div className="flex items-center justify-between gap-2 px-2 md:px-3 py-2 rounded-t-2xl shrink-0 border-b border-[var(--color-outline)]/50 flex-wrap">
-								<div className="flex items-center gap-1 md:gap-2 text-on-surface-variant min-w-0">
-									<span className="text-[10px] md:text-[12px] font-bold tracking-wider uppercase truncate">
-										Response Output
-									</span>
-									<span className="hidden sm:inline w-1.5 h-1.5 rounded-full bg-outline/60" />
-									<span className="text-[9px] md:text-[10px] whitespace-nowrap">
-										{outputWordCount} {outputWordCount === 1 ? "word" : "words"} · {outputCharCount.toLocaleString()} {outputCharCount === 1 ? "char" : "chars"}
-									</span>
-								</div>
-								
-								{/* Actions */}
-								<div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+							<div 
+								className="flex items-center justify-between gap-3 px-3 md:px-4 py-2.5 rounded-t-2xl shrink-0"
+								style={{
+									background: "linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 50%) 0%, var(--color-surface-variant) 100%)",
+									borderBottom: "1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
+								}}
+							>
+								{/* Left: Title & Stats */}
+								<div className="flex items-center gap-3 min-w-0">
+									{/* Version Badge */}
 									<button
 										type="button"
-										className={`flex items-center gap-1.5 text-[10px] font-medium transition-colors bg-[var(--color-surface)] border border-[var(--color-outline)] rounded-md px-2 py-1 h-7 ${
+										className={`flex items-center gap-1.5 transition-all duration-200 ${
 											versions.length > 0
-												? "text-on-surface-variant hover:text-primary"
-												: "text-on-surface-variant/40 cursor-default"
+												? "opacity-100 cursor-pointer hover:scale-105"
+												: "opacity-40 cursor-default"
 										}`}
 										onClick={() => {
 											if (versions.length > 0) setShowVersionHistory(true);
 										}}
 										disabled={versions.length === 0}
-										title={
-											versions.length > 0
-												? "View output version history"
-												: "No versions available"
-										}
+										title={versions.length > 0 ? "View version history" : "No versions"}
+										style={{
+											padding: "4px 10px",
+											borderRadius: "20px",
+											background: versions.length > 0 
+												? "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary), var(--color-surface) 30%))"
+												: "var(--color-surface)",
+											color: versions.length > 0 ? "var(--color-on-primary)" : "var(--color-on-surface-variant)",
+											border: versions.length > 0 ? "none" : "1px solid var(--color-outline)",
+											boxShadow: versions.length > 0 ? "0 2px 8px color-mix(in srgb, var(--color-primary), transparent 60%)" : "none",
+										}}
 									>
-										<Icon name="git-compare" className="w-3 h-3" />
-										<span>
+										<Icon name="git-compare" style={{ width: 11, height: 11 }} />
+										<span style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.02em" }}>
 											v{versions.length > 0 && activeTab ? versions.findIndex(v => v.id === activeTab.versionGraph.activeId) + 1 : 0}
 										</span>
 									</button>
 
-								<div className="w-px h-4 bg-[var(--color-outline)]/50 mx-1" />
+									{/* Stats - Hidden on very small screens */}
+									<div className="hidden sm:flex items-center gap-2 text-on-surface-variant/70">
+										<div className="flex items-center gap-1.5" style={{ fontSize: "10px" }}>
+											<Icon name="file-text" style={{ width: 10, height: 10, opacity: 0.6 }} />
+											<span style={{ fontVariantNumeric: "tabular-nums" }}>{outputWordCount.toLocaleString()}</span>
+											<span style={{ opacity: 0.5 }}>words</span>
+										</div>
+										<span style={{ opacity: 0.3 }}>•</span>
+										<div className="flex items-center gap-1" style={{ fontSize: "10px" }}>
+											<span style={{ fontVariantNumeric: "tabular-nums" }}>{outputCharCount.toLocaleString()}</span>
+											<span style={{ opacity: 0.5 }}>chars</span>
+										</div>
+									</div>
+								</div>
+								
+								{/* Right: Actions */}
+								<div className="flex items-center gap-1">
+									{/* Save Button */}
+									<button
+										type="button"
+										onClick={() => {
+											if (!activeTab) return;
+											const timestamp = new Date().toLocaleTimeString([], { 
+												hour: '2-digit', 
+												minute: '2-digit' 
+											});
+											const updatedGraph = appendVersion(
+												activeTab.versionGraph,
+												activeTab.draft,
+												`Manual save ${timestamp}`,
+												activeTab.draft,
+												null
+											);
+											tabManager.setVersionGraph(updatedGraph);
+											tabManager.markDirty(false);
+										}}
+										disabled={!activeTab || !activeTab.draft.trim() || !activeTab.isDirty}
+										className="flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+										title="Save snapshot (⌘S)"
+										aria-label="Save snapshot"
+										style={{
+											width: 28,
+											height: 28,
+											borderRadius: "8px",
+											background: (!activeTab || !activeTab.draft.trim() || !activeTab.isDirty) 
+												? "transparent" 
+												: "var(--color-surface)",
+											border: "1px solid var(--color-outline)",
+											color: "var(--color-on-surface-variant)",
+										}}
+									>
+										<Icon name="save" style={{ width: 13, height: 13 }} />
+									</button>
 
-								<button
-									type="button"
-									onClick={() => {
-										if (!activeTab) return;
-										const timestamp = new Date().toLocaleTimeString([], { 
-											hour: '2-digit', 
-											minute: '2-digit' 
-										});
-										const updatedGraph = appendVersion(
-											activeTab.versionGraph,
-											activeTab.draft,
-											`Manual save ${timestamp}`,
-											activeTab.draft,
-											null
-										);
-										tabManager.setVersionGraph(updatedGraph);
-										tabManager.markDirty(false);
-									}}
-									disabled={!activeTab || !activeTab.draft.trim() || !activeTab.isDirty}
-									className="md-btn md-btn--primary w-8 h-8 p-0 rounded-full transition-all duration-200 transform hover:-translate-y-0.5 active:translate-y-0 shadow-sm hover:shadow-md disabled:opacity-60 disabled:cursor-not-allowed scale-90 origin-right"
-									title="Save snapshot (⌘S)"
-									aria-label="Save snapshot"
-								>
-									<Icon name="save" className="w-4 h-4" />
-								</button>
-								<div className="w-px h-4 bg-[var(--color-outline)]/50 mx-1" />
-								<button
-									type="button"
-									onClick={() => {
-										if (lastAssistantMessage?.content) {
-											copyMessage(lastAssistantMessage.id, lastAssistantMessage.content);
-										}
-									}}
-									disabled={!lastAssistantMessage}
-									className="w-8 h-8 p-0 hover:bg-surface rounded-md transition-all duration-150 text-on-surface-variant hover:text-on-surface flex items-center justify-center"
-									title="Copy response"
-									aria-label="Copy response"
-								>
-									<Icon
-										name={
-											copiedMessageId === lastAssistantMessage?.id ? "check" : "copy"
-										}
-										className="w-3.5 h-3.5"
-									/>
-								</button>
+									{/* Copy Button */}
+									<button
+										type="button"
+										onClick={() => {
+											if (lastAssistantMessage?.content) {
+												copyMessage(lastAssistantMessage.id, lastAssistantMessage.content);
+											}
+										}}
+										disabled={!lastAssistantMessage}
+										className="flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100"
+										title="Copy response"
+										aria-label="Copy response"
+										style={{
+											width: 28,
+											height: 28,
+											borderRadius: "8px",
+											background: copiedMessageId === lastAssistantMessage?.id 
+												? "var(--color-save)" 
+												: "var(--color-surface)",
+											border: copiedMessageId === lastAssistantMessage?.id 
+												? "1px solid var(--color-save)"
+												: "1px solid var(--color-outline)",
+											color: copiedMessageId === lastAssistantMessage?.id 
+												? "var(--color-on-save)" 
+												: "var(--color-on-surface-variant)",
+										}}
+									>
+										<Icon
+											name={copiedMessageId === lastAssistantMessage?.id ? "check" : "copy"}
+											style={{ width: 13, height: 13 }}
+										/>
+									</button>
 								</div>
 							</div>
 
@@ -1455,8 +1787,19 @@ export default function PromptWorkbench() {
 										: null;
 									
 									return (
-										<div className="flex flex-col gap-6 pb-2">
-											{activeOutput ? (
+										<div key={outputAnimateKey} className="flex flex-col gap-6 output-animate-in">
+											{activeTab?.sending ? (
+												<div 
+													className="flex flex-col items-center justify-center h-full min-h-[200px] gap-3 text-on-surface-variant"
+													style={{
+														// Ensure the crafting animation is fully visible and not grayed out
+														filter: 'none',
+														opacity: 1,
+													}}
+												>
+													<FeatherLoader />
+												</div>
+											) : activeOutput ? (
 												<div className="group relative flex flex-col gap-3">
 													{/* Message Content */}
 													<div className="max-w-none text-on-surface leading-relaxed text-[11px] font-mono">
@@ -1468,7 +1811,7 @@ export default function PromptWorkbench() {
 														/>
 													</div>
 												</div>
-											) : !activeTab?.sending && (
+											) : (
 												<div className="flex flex-col items-center justify-center py-12 gap-3 text-center opacity-60">
 													<div className="w-12 h-12 rounded-xl bg-surface flex items-center justify-center border border-[var(--color-outline)]">
 														<Icon name="file-text" className="w-6 h-6 opacity-50" />
@@ -1481,12 +1824,6 @@ export default function PromptWorkbench() {
 															This version is a manual save. Run the prompt to generate output.
 														</p>
 													</div>
-												</div>
-											)}
-
-											{activeTab?.sending && (
-												<div className="flex flex-col items-center justify-center py-4 gap-3 text-on-surface-variant opacity-70">
-													<FeatherLoader />
 												</div>
 											)}
 											<div ref={endRef} />
@@ -1530,25 +1867,23 @@ export default function PromptWorkbench() {
 					versions={versions}
 					activeVersionId={activeTab.versionGraph.activeId}
 					onJumpToVersion={(versionId) => {
+						// Get the version node to restore both input and update the graph
+						const versionNode = activeTab.versionGraph.nodes[versionId];
+						if (versionNode) {
+							// Update the draft (input) with the version's original input
+							tabManager.updateDraft(versionNode.originalInput || versionNode.content);
+						}
+						// Update the version graph to point to this version
 						const updatedGraph = {
 							...activeTab.versionGraph,
 							activeId: versionId,
 						};
 						tabManager.setVersionGraph(updatedGraph);
+						tabManager.markDirty(false);
 					}}
+					messages={activeMessages}
 				/>
 			)}
-
-			{/* All Projects Modal */}
-			<SavedSessionsModal
-				open={showAllProjectsOpen}
-				onClose={() => setShowAllProjectsOpen(false)}
-				sessions={recentProjects}
-				activeSessionId={activeTab?.projectId ?? null}
-				onLoadSession={loadProject}
-				onDeleteSession={deleteProject}
-				onDeleteAllSessions={deleteAllProjects}
-			/>
 
 			{/* Preset Info Dialog */}
 			{activeTab?.preset && (
@@ -1575,8 +1910,16 @@ export default function PromptWorkbench() {
 					setShowPresetPicker(false);
 					setPresetPickerForNewTab(false);
 				}}
+				onSelectProject={(projectId) => {
+					loadProject(projectId);
+					setShowPresetPicker(false);
+					setPresetPickerForNewTab(false);
+				}}
+				onDeleteProject={deleteProject}
+				onDeleteAllProjects={deleteAllProjects}
 				presets={presets}
-				title={presetPickerForNewTab ? "Select Preset for New Tab" : "Select a Preset"}
+				savedProjects={recentProjects}
+				title={presetPickerForNewTab ? "Open Workbench Tab" : "Select a Preset"}
 			/>
 		</>
 	);

@@ -28,7 +28,7 @@ interface TabManagerState {
 }
 
 type TabAction =
-	| { type: "CREATE_TAB"; payload: { preset: PromptPresetSummary } }
+	| { type: "CREATE_TAB"; payload: { preset: PromptPresetSummary; tabId: string } }
 	| { type: "CLOSE_TAB"; payload: { tabId: string } }
 	| { type: "SWITCH_TAB"; payload: { tabId: string } }
 	| { type: "UPDATE_TAB_LABEL"; payload: { tabId: string; label: string } }
@@ -65,9 +65,9 @@ function generateTabLabel(preset: PromptPresetSummary, existingTabs: Tab[]): str
 	return `${baseName} ${counter}`;
 }
 
-function createNewTab(preset: PromptPresetSummary, existingTabs: Tab[]): Tab {
+function createNewTab(preset: PromptPresetSummary, existingTabs: Tab[], tabId: string): Tab {
 	return {
-		id: `tab-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+		id: tabId,
 		label: generateTabLabel(preset, existingTabs),
 		preset,
 		projectId: null,
@@ -84,7 +84,7 @@ const reducer = (state: TabManagerState, action: TabAction): TabManagerState => 
 	switch (action.type) {
 		case "CREATE_TAB": {
 			if (state.tabs.length >= MAX_TABS) return state;
-			const newTab = createNewTab(action.payload.preset, state.tabs);
+			const newTab = createNewTab(action.payload.preset, state.tabs, action.payload.tabId);
 			return {
 				tabs: [...state.tabs, newTab],
 				activeTabId: newTab.id,
@@ -383,8 +383,10 @@ export function useTabManager() {
 	}, []);
 
 	// Tab management functions
-	const createTab = useCallback((preset: PromptPresetSummary) => {
-		dispatch({ type: "CREATE_TAB", payload: { preset } });
+	const createTab = useCallback((preset: PromptPresetSummary): string => {
+		const tabId = `tab-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+		dispatch({ type: "CREATE_TAB", payload: { preset, tabId } });
+		return tabId;
 	}, []);
 
 	const closeTab = useCallback((tabId: string) => {
@@ -498,6 +500,27 @@ export function useTabManager() {
 		[state.tabs]
 	);
 
+	// Explicit tabId-based setters (don't rely on activeTab - safe for async operations)
+	const updateDraftForTab = useCallback((tabId: string, draft: string) => {
+		dispatch({ type: "UPDATE_TAB_DRAFT", payload: { tabId, draft } });
+	}, []);
+
+	const setMessagesForTab = useCallback((tabId: string, messages: MessageItem[]) => {
+		dispatch({ type: "SET_TAB_MESSAGES", payload: { tabId, messages } });
+	}, []);
+
+	const setVersionGraphForTab = useCallback((tabId: string, versionGraph: VersionGraph) => {
+		dispatch({ type: "SET_TAB_VERSION_GRAPH", payload: { tabId, versionGraph } });
+	}, []);
+
+	const attachProjectForTab = useCallback((tabId: string, projectId: string | null) => {
+		dispatch({ type: "ATTACH_TAB_PROJECT", payload: { tabId, projectId } });
+	}, []);
+
+	const setErrorForTab = useCallback((tabId: string, error: string | null) => {
+		dispatch({ type: "SET_TAB_ERROR", payload: { tabId, error } });
+	}, []);
+
 	return {
 		tabs: state.tabs,
 		activeTabId: state.activeTabId,
@@ -524,6 +547,13 @@ export function useTabManager() {
 		setVersionGraph,
 		setPreset,
 		markDirty,
+
+		// Explicit tabId-based operations (for async-safe usage)
+		updateDraftForTab,
+		setMessagesForTab,
+		setVersionGraphForTab,
+		attachProjectForTab,
+		setErrorForTab,
 	};
 }
 

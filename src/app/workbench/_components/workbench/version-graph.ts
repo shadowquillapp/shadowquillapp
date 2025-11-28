@@ -99,6 +99,9 @@ export function jumpToVersion(
 export function undoVersion(graph: VersionGraph): VersionGraph | null {
 	const active = graph.nodes[graph.activeId];
 	if (!active?.prevId) return null;
+	// Don't go back to the "Start" version
+	const prevNode = graph.nodes[active.prevId];
+	if (prevNode?.label === "Start") return null;
 	return { ...graph, activeId: active.prevId };
 }
 
@@ -126,7 +129,11 @@ export function getActiveContent(graph: VersionGraph): string {
 
 export function hasUndo(graph: VersionGraph): boolean {
 	const active = graph.nodes[graph.activeId];
-	return Boolean(active?.prevId);
+	if (!active?.prevId) return false;
+	// Don't allow undo to "Start" version
+	const prevNode = graph.nodes[active.prevId];
+	if (prevNode?.label === "Start") return false;
+	return true;
 }
 
 export function hasRedo(graph: VersionGraph): boolean {
