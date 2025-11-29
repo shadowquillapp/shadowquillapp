@@ -1,12 +1,15 @@
 import {
 	LRUCache,
 	clearAllCaches,
+	clearSessionCache,
 	createPromptCacheKey,
+	getFromSessionCache,
 	getPromptCache,
 	getTemplateCache,
 	hashString,
+	saveToSessionCache,
 } from "@/lib/cache";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("LRUCache", () => {
 	describe("basic operations", () => {
@@ -304,5 +307,248 @@ describe("cache singletons", () => {
 
 		expect(promptCache.size).toBe(0);
 		expect(templateCache.size).toBe(0);
+	});
+});
+
+describe("session storage cache", () => {
+	const mockSessionStorage: Record<string, string> = {};
+
+	beforeEach(() => {
+		// Clear mock storage
+		for (const key of Object.keys(mockSessionStorage)) {
+			delete mockSessionStorage[key];
+		}
+
+		// Mock sessionStorage
+		vi.stubGlobal("sessionStorage", {
+			getItem: vi.fn((key: string) => mockSessionStorage[key] ?? null),
+			setItem: vi.fn((key: string, value: string) => {
+				mockSessionStorage[key] = value;
+			}),
+			removeItem: vi.fn((key: string) => {
+				delete mockSessionStorage[key];
+			}),
+		});
+	});
+
+	afterEach(() => {
+		vi.unstubAllGlobals();
+	});
+
+	describe("saveToSessionCache", () => {
+		it("should save a value to session storage", () => {
+			saveToSessionCache("test-key", "test-value");
+
+			const stored = JSON.parse(mockSessionStorage.SQ_PROMPT_CACHE ?? "{}");
+			expect(stored.entries).toHaveLength(1);
+			expect(stored.entries[0].key).toBe("test-key");
+			expect(stored.entries[0].value).toBe("test-value");
+		});
+
+		it("should update existing entry with same key", () => {
+			saveToSessionCache("test-key", "value-1");
+			saveToSessionCache("test-key", "value-2");
+
+			const stored = JSON.parse(mockSessionStorage.SQ_PROMPT_CACHE ?? "{}");
+			expect(stored.entries).toHaveLength(1);
+			expect(stored.entries[0].value).toBe("value-2");
+		});
+
+		it("should limit entries to maximum size", () => {
+			// Add 25 entries (max is 20)
+			for (let i = 0; i < 25; i++) {
+				saveToSessionCache(`key-${i}`, `value-${i}`);
+			}
+
+			const stored = JSON.parse(mockSessionStorage.SQ_PROMPT_CACHE ?? "{}");
+			expect(stored.entries).toHaveLength(20);
+
+			// Should keep most recent entries (5-24)
+			expect(stored.entries[0].key).toBe("key-5");
+			expect(stored.entries[19].key).toBe("key-24");
+		});
+
+		it("should include timestamp in entries", () => {
+			const before = Date.now();
+			saveToSessionCache("test-key", "test-value");
+			const after = Date.now();
+
+			const stored = JSON.parse(mockSessionStorage.SQ_PROMPT_CACHE ?? "{}");
+			expect(stored.entries[0].timestamp).toBeGreaterThanOrEqual(before);
+			expect(stored.entries[0].timestamp).toBeLessThanOrEqual(after);
+		});
+
+		it("should handle storage errors gracefully", () => {
+			vi.stubGlobal("sessionStorage", {
+				getItem: vi.fn(() => null),
+				setItem: vi.fn(() => {
+					throw new Error("QuotaExceededError");
+				}),
+				removeItem: vi.fn(),
+			});
+
+			// Should not throw
+			expect(() => {
+				saveToSessionCache("test-key", "test-value");
+			}).not.toThrow();
+		});
+
+		it("should do nothing in server-side environment", () => {
+			vi.stubGlobal("window", undefined);
+
+			// Should not throw
+			expect(() => {
+				saveToSessionCache("test-key", "test-value");
+			}).not.toThrow();
+		});
+	});
+
+	describe("getFromSessionCache", () => {
+		it("should retrieve a saved value", () => {
+			saveToSessionCache("test-key", "test-value");
+
+			const value = getFromSessionCache("test-key");
+			expect(value).toBe("test-value");
+		});
+
+		it("should return undefined for non-existent key", () => {
+			const value = getFromSessionCache("non-existent");
+			expect(value).toBeUndefined();
+		});
+
+		it("should return undefined when cache is empty", () => {
+			const value = getFromSessionCache("any-key");
+			expect(value).toBeUndefined();
+		});
+
+		it("should handle corrupted storage data gracefully", () => {
+			mockSessionStorage.SQ_PROMPT_CACHE = "not valid json";
+
+			const value = getFromSessionCache("test-key");
+			expect(value).toBeUndefined();
+		});
+
+		it("should handle storage errors gracefully", () => {
+			vi.stubGlobal("sessionStorage", {
+				getItem: vi.fn(() => {
+					throw new Error("SecurityError");
+				}),
+				setItem: vi.fn(),
+				removeItem: vi.fn(),
+			});
+
+			const value = getFromSessionCache("test-key");
+			expect(value).toBeUndefined();
+		});
+
+		it("should do nothing in server-side environment", () => {
+			vi.stubGlobal("window", undefined);
+
+			const value = getFromSessionCache("test-key");
+			expect(value).toBeUndefined();
+		});
+	});
+
+	describe("clearSessionCache", () => {
+		it("should remove cache from session storage", () => {
+			saveToSessionCache("test-key", "test-value");
+			expect(mockSessionStorage.SQ_PROMPT_CACHE).toBeDefined();
+
+			clearSessionCache();
+
+			expect(mockSessionStorage.SQ_PROMPT_CACHE).toBeUndefined();
+		});
+
+		it("should handle removal errors gracefully", () => {
+			vi.stubGlobal("sessionStorage", {
+				getItem: vi.fn(() => null),
+				setItem: vi.fn(),
+				removeItem: vi.fn(() => {
+					throw new Error("SecurityError");
+				}),
+			});
+
+			// Should not throw
+			expect(() => {
+				clearSessionCache();
+			}).not.toThrow();
+		});
+
+		it("should do nothing in server-side environment", () => {
+			vi.stubGlobal("window", undefined);
+
+			// Should not throw
+			expect(() => {
+				clearSessionCache();
+			}).not.toThrow();
+		});
+	});
+});
+
+describe("createPromptCacheKey edge cases", () => {
+	it("should handle nested objects in options", () => {
+		const key1 = createPromptCacheKey("test", "general", {
+			nested: { a: 1, b: { c: 2 } },
+		});
+		const key2 = createPromptCacheKey("test", "general", {
+			nested: { b: { c: 2 }, a: 1 },
+		});
+		expect(key1).toBe(key2);
+	});
+
+	it("should handle arrays in options", () => {
+		const key1 = createPromptCacheKey("test", "general", {
+			items: [1, 2, 3],
+		});
+		const key2 = createPromptCacheKey("test", "general", {
+			items: [1, 2, 3],
+		});
+		expect(key1).toBe(key2);
+	});
+
+	it("should handle null values in options", () => {
+		const key = createPromptCacheKey("test", "general", {
+			nullValue: null,
+		});
+		expect(typeof key).toBe("string");
+	});
+});
+
+describe("LRUCache edge cases", () => {
+	it("should handle delete on non-existent key", () => {
+		const cache = new LRUCache<string, string>({
+			maxEntries: 10,
+			ttlMs: 0,
+		});
+		const result = cache.delete("non-existent");
+		expect(result).toBe(false);
+	});
+
+	it("should handle empty cache correctly", () => {
+		const cache = new LRUCache<string, string>({
+			maxEntries: 10,
+			ttlMs: 0,
+		});
+		expect(cache.size).toBe(0);
+		expect(cache.get("any")).toBeUndefined();
+		expect(cache.has("any")).toBe(false);
+	});
+
+	it("should evict multiple items when significantly over capacity", () => {
+		const cache = new LRUCache<string, string>({
+			maxEntries: 2,
+			ttlMs: 0,
+		});
+
+		cache.set("key1", "value1");
+		cache.set("key2", "value2");
+		cache.set("key3", "value3"); // Evicts key1
+		cache.set("key4", "value4"); // Evicts key2
+
+		expect(cache.size).toBe(2);
+		expect(cache.get("key1")).toBeUndefined();
+		expect(cache.get("key2")).toBeUndefined();
+		expect(cache.get("key3")).toBe("value3");
+		expect(cache.get("key4")).toBe("value4");
 	});
 });

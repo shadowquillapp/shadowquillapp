@@ -10,6 +10,7 @@ import { buildMarketingDirectives } from "@/lib/prompt-directives/marketing";
 import { buildResearchDirectives } from "@/lib/prompt-directives/research";
 import { buildVideoDirectives } from "@/lib/prompt-directives/video";
 import { buildWritingDirectives } from "@/lib/prompt-directives/writing";
+import type { CameraMovement } from "@/types";
 import { describe, expect, it } from "vitest";
 
 describe("buildDirectives", () => {
@@ -295,6 +296,182 @@ describe("buildVideoDirectives", () => {
 		expect(result.some((d) => d.toLowerCase().includes("storyboard"))).toBe(
 			true,
 		);
+	});
+
+	it("should include aspect ratio", () => {
+		const result = buildVideoDirectives({ aspectRatio: "16:9" });
+		expect(result.some((d) => d.includes("16:9"))).toBe(true);
+	});
+
+	it("should include target resolution", () => {
+		const result = buildVideoDirectives({ targetResolution: "4K" });
+		expect(result.some((d) => d.includes("4K"))).toBe(true);
+	});
+
+	describe("2D animation styles", () => {
+		it("should use animation terminology for anime style", () => {
+			const result = buildVideoDirectives({
+				stylePreset: "anime",
+				cameraMovement: "pan",
+			});
+			expect(
+				result.some((d) => d.toLowerCase().includes("animation terminology")),
+			).toBe(true);
+			expect(result.some((d) => d.toLowerCase().includes("fast panning"))).toBe(
+				true,
+			);
+		});
+
+		it("should use animation terminology for animation style", () => {
+			const result = buildVideoDirectives({
+				stylePreset: "animation",
+				cameraMovement: "zoom",
+			});
+			expect(
+				result.some((d) => d.toLowerCase().includes("animation terminology")),
+			).toBe(true);
+			expect(result.some((d) => d.toLowerCase().includes("snap zoom"))).toBe(
+				true,
+			);
+		});
+
+		it("should use animation terminology for animation style with tracking", () => {
+			const result = buildVideoDirectives({
+				stylePreset: "animation",
+				cameraMovement: "tracking",
+			});
+			expect(
+				result.some((d) => d.toLowerCase().includes("animation terminology")),
+			).toBe(true);
+			expect(
+				result.some((d) => d.toLowerCase().includes("perspective shifts")),
+			).toBe(true);
+		});
+
+		it("should use animation terminology for anime style with static", () => {
+			const result = buildVideoDirectives({
+				stylePreset: "anime",
+				cameraMovement: "static",
+			});
+			expect(
+				result.some((d) => d.toLowerCase().includes("animation terminology")),
+			).toBe(true);
+			expect(
+				result.some((d) => d.toLowerCase().includes("static framing")),
+			).toBe(true);
+		});
+
+		it("should handle dolly movement for 2D animation", () => {
+			const result = buildVideoDirectives({
+				stylePreset: "anime",
+				cameraMovement: "dolly",
+			});
+			expect(
+				result.some((d) => d.toLowerCase().includes("dynamic perspective")),
+			).toBe(true);
+		});
+
+		it("should handle tilt movement for 2D animation", () => {
+			const result = buildVideoDirectives({
+				stylePreset: "anime",
+				cameraMovement: "tilt",
+			});
+			expect(
+				result.some((d) => d.toLowerCase().includes("dramatic angle")),
+			).toBe(true);
+		});
+
+		it("should handle handheld movement for 2D animation", () => {
+			const result = buildVideoDirectives({
+				stylePreset: "anime",
+				cameraMovement: "handheld",
+			});
+			expect(result.some((d) => d.toLowerCase().includes("energetic"))).toBe(
+				true,
+			);
+		});
+
+		it("should handle unknown camera movement for 2D animation", () => {
+			const result = buildVideoDirectives({
+				stylePreset: "anime",
+				cameraMovement: "orbit" as CameraMovement,
+			});
+			expect(
+				result.some((d) => d.toLowerCase().includes("animation techniques")),
+			).toBe(true);
+		});
+	});
+
+	describe("cinematic styles", () => {
+		it("should use cinematic terminology for non-2D styles", () => {
+			const result = buildVideoDirectives({
+				stylePreset: "cinematic",
+				cameraMovement: "dolly",
+			});
+			expect(
+				result.some((d) => d.toLowerCase().includes("cinematic terminology")),
+			).toBe(true);
+			expect(result.some((d) => d.toLowerCase().includes("camera"))).toBe(true);
+		});
+
+		it("should use cinematic terminology when no style preset", () => {
+			const result = buildVideoDirectives({
+				cameraMovement: "pan",
+			});
+			expect(
+				result.some((d) => d.toLowerCase().includes("cinematic terminology")),
+			).toBe(true);
+		});
+
+		it("should use cinematic terminology for photorealistic style", () => {
+			const result = buildVideoDirectives({
+				stylePreset: "photorealistic",
+				cameraMovement: "tracking",
+			});
+			expect(
+				result.some((d) => d.toLowerCase().includes("cinematic terminology")),
+			).toBe(true);
+		});
+	});
+
+	describe("storyboard calculations", () => {
+		it("should calculate frames for short duration (< 10 seconds)", () => {
+			const result = buildVideoDirectives({
+				includeStoryboard: true,
+				durationSeconds: 5,
+			});
+			// For 5 seconds: ceil(5/2) = 3 frames
+			expect(result.some((d) => d.includes("3 frames"))).toBe(true);
+		});
+
+		it("should calculate frames for longer duration (>= 10 seconds)", () => {
+			const result = buildVideoDirectives({
+				includeStoryboard: true,
+				durationSeconds: 15,
+			});
+			// For 15 seconds: ceil(15/3) = 5 frames
+			expect(result.some((d) => d.includes("5 frames"))).toBe(true);
+		});
+
+		it("should use default duration of 5 seconds when not specified", () => {
+			const result = buildVideoDirectives({
+				includeStoryboard: true,
+			});
+			// Default 5 seconds: ceil(5/2) = 3 frames
+			expect(result.some((d) => d.includes("3 frames"))).toBe(true);
+		});
+	});
+
+	describe("default mood", () => {
+		it("should always include default positive mood directive", () => {
+			const result = buildVideoDirectives({});
+			expect(result.some((d) => d.toLowerCase().includes("default mood"))).toBe(
+				true,
+			);
+			expect(
+				result.some((d) => d.toLowerCase().includes("bright, positive")),
+			).toBe(true);
+		});
 	});
 });
 

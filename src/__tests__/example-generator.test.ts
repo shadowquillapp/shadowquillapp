@@ -400,4 +400,641 @@ describe("example-generator", () => {
 			});
 		}
 	});
+
+	describe("marketing-specific options", () => {
+		it("should include marketing channel in prompt", async () => {
+			const preset: PresetLite = {
+				name: "Marketing Channel Test",
+				taskType: "marketing",
+				options: {
+					marketingChannel: "email",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("email");
+		});
+
+		it("should include CTA style in prompt", async () => {
+			const preset: PresetLite = {
+				name: "CTA Style Test",
+				taskType: "marketing",
+				options: {
+					ctaStyle: "strong",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("strong");
+		});
+
+		it("should include value props in prompt", async () => {
+			const preset: PresetLite = {
+				name: "Value Props Test",
+				taskType: "marketing",
+				options: {
+					valueProps: "Save time, reduce costs, increase efficiency",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("Save time");
+		});
+
+		it("should include compliance notes in prompt", async () => {
+			const preset: PresetLite = {
+				name: "Compliance Notes Test",
+				taskType: "marketing",
+				options: {
+					complianceNotes: "GDPR compliant, no personal data collection",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("GDPR");
+		});
+	});
+
+	describe("research-specific options", () => {
+		it("should include require citations in prompt", async () => {
+			const preset: PresetLite = {
+				name: "Citations Test",
+				taskType: "research",
+				options: {
+					requireCitations: true,
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("citation");
+		});
+	});
+
+	describe("additional directive building", () => {
+		it("should include detail level", async () => {
+			const preset: PresetLite = {
+				name: "Detail Test",
+				taskType: "general",
+				options: {
+					detail: "detailed",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("detailed");
+		});
+
+		it("should include format", async () => {
+			const preset: PresetLite = {
+				name: "Format Test",
+				taskType: "general",
+				options: {
+					format: "markdown",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("markdown");
+		});
+
+		it("should include language", async () => {
+			const preset: PresetLite = {
+				name: "Language Test",
+				taskType: "general",
+				options: {
+					language: "Spanish",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("Spanish");
+		});
+
+		it("should include audience", async () => {
+			const preset: PresetLite = {
+				name: "Audience Test",
+				taskType: "general",
+				options: {
+					audience: "developers",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("developers");
+		});
+
+		it("should include temperature setting", async () => {
+			const preset: PresetLite = {
+				name: "Temperature Test",
+				taskType: "general",
+				options: {
+					temperature: 0.7,
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("0.7");
+		});
+
+		it("should include delimiter requirement", async () => {
+			const preset: PresetLite = {
+				name: "Delimiters Test",
+				taskType: "general",
+				options: {
+					useDelimiters: true,
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("delimiter");
+		});
+
+		it("should include verification requirement", async () => {
+			const preset: PresetLite = {
+				name: "Verification Test",
+				taskType: "general",
+				options: {
+					includeVerification: true,
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("verification");
+		});
+
+		it("should include reasoning style", async () => {
+			const preset: PresetLite = {
+				name: "Reasoning Test",
+				taskType: "general",
+				options: {
+					reasoningStyle: "cot",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("cot");
+		});
+
+		it("should include end of prompt token", async () => {
+			const preset: PresetLite = {
+				name: "Token Test",
+				taskType: "general",
+				options: {
+					endOfPromptToken: "<END>",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("<END>");
+		});
+
+		it("should include XML schema requirement", async () => {
+			const preset: PresetLite = {
+				name: "XML Schema Test",
+				taskType: "general",
+				options: {
+					outputXMLSchema: "<response><content/></response>",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("XML");
+		});
+
+		it("should include additional context", async () => {
+			const preset: PresetLite = {
+				name: "Context Test",
+				taskType: "general",
+				options: {
+					additionalContext: "This is for a technical blog post",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("technical blog");
+		});
+
+		it("should include examples text", async () => {
+			const preset: PresetLite = {
+				name: "Examples Test",
+				taskType: "general",
+				options: {
+					examplesText: "Example: Write a greeting message",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("greeting message");
+		});
+
+		it("should include style guidelines", async () => {
+			const preset: PresetLite = {
+				name: "Style Test",
+				taskType: "general",
+				options: {
+					styleGuidelines: "Use active voice and short sentences",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("active voice");
+		});
+
+		it("should include coding project context", async () => {
+			const preset: PresetLite = {
+				name: "Project Context Test",
+				taskType: "coding",
+				options: {
+					projectContext: "Building a React e-commerce platform",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("e-commerce");
+		});
+
+		it("should include coding constraints", async () => {
+			const preset: PresetLite = {
+				name: "Constraints Test",
+				taskType: "coding",
+				options: {
+					codingConstraints: "Must be WCAG 2.1 compliant",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("WCAG");
+		});
+
+		it("should include writing POV", async () => {
+			const preset: PresetLite = {
+				name: "POV Test",
+				taskType: "writing",
+				options: {
+					pointOfView: "third",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("third");
+		});
+
+		it("should include reading level", async () => {
+			const preset: PresetLite = {
+				name: "Reading Level Test",
+				taskType: "writing",
+				options: {
+					readingLevel: "intermediate",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("intermediate");
+		});
+
+		it("should include headings requirement", async () => {
+			const preset: PresetLite = {
+				name: "Headings Test",
+				taskType: "writing",
+				options: {
+					includeHeadings: true,
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("heading");
+		});
+
+		it("should include target resolution for image", async () => {
+			const preset: PresetLite = {
+				name: "Resolution Test",
+				taskType: "image",
+				options: {
+					targetResolution: "4K",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("4K");
+		});
+
+		it("should include shot type for video", async () => {
+			const preset: PresetLite = {
+				name: "Shot Type Test",
+				taskType: "video",
+				options: {
+					shotType: "wide",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("wide");
+		});
+
+		it("should include storyboard requirement for video", async () => {
+			const preset: PresetLite = {
+				name: "Storyboard Test",
+				taskType: "video",
+				options: {
+					includeStoryboard: true,
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("storyboard");
+		});
+
+		it("should handle preset with no options", async () => {
+			const preset: PresetLite = {
+				name: "No Options Test",
+				taskType: "general",
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			const [example1, example2] = await generatePresetExamples(preset);
+
+			expect(example1.input).toBeDefined();
+			expect(example2.input).toBeDefined();
+		});
+	});
+
+	describe("text summarization", () => {
+		it("should truncate long text values", async () => {
+			const longText = "A".repeat(300);
+			const preset: PresetLite = {
+				name: "Long Text Test",
+				taskType: "general",
+				options: {
+					additionalContext: longText,
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			// Should contain truncated text with ellipsis
+			expect(firstCallArgs?.[0]).toContain("...");
+		});
+
+		it("should handle empty string values", async () => {
+			const preset: PresetLite = {
+				name: "Empty String Test",
+				taskType: "general",
+				options: {
+					additionalContext: "",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			const [example1, example2] = await generatePresetExamples(preset);
+
+			expect(example1.input).toBeDefined();
+			expect(example2.input).toBeDefined();
+		});
+
+		it("should handle whitespace-only string values", async () => {
+			const preset: PresetLite = {
+				name: "Whitespace Test",
+				taskType: "general",
+				options: {
+					additionalContext: "   \n\t  ",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			const [example1, example2] = await generatePresetExamples(preset);
+
+			expect(example1.input).toBeDefined();
+			expect(example2.input).toBeDefined();
+		});
+	});
 });

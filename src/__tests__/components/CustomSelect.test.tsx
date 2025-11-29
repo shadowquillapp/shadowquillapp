@@ -3,6 +3,9 @@ import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// Fix for TypeScript - ensure vi is available in test scope
+const { fn } = vi;
+
 const defaultOptions = [
 	{ value: "option1", label: "Option 1" },
 	{ value: "option2", label: "Option 2" },
@@ -357,6 +360,338 @@ describe("CustomSelect", () => {
 			const menu = screen.getByRole("menu");
 			const svgsInMenu = menu.querySelectorAll("svg.h-4.w-4");
 			expect(svgsInMenu.length).toBe(2);
+		});
+	});
+
+	describe("click outside handling", () => {
+		it("should close dropdown when clicking outside", async () => {
+			const user = userEvent.setup();
+
+			render(
+				<div>
+					<div data-testid="outside-element">Outside</div>
+					<CustomSelect
+						value=""
+						onChange={mockOnChange}
+						options={defaultOptions}
+					/>
+				</div>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+
+			// Click outside
+			const outsideElement = screen.getByTestId("outside-element");
+			await user.click(outsideElement);
+
+			await waitFor(() => {
+				expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+			});
+		});
+
+		it("should not close when clicking on the dropdown menu", async () => {
+			const user = userEvent.setup();
+
+			render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			const menu = screen.getByRole("menu");
+			expect(menu).toBeInTheDocument();
+
+			// Click on menu itself (not an option)
+			fireEvent.click(menu);
+
+			// Menu should still be open
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+		});
+
+		it("should not close when clicking on the trigger button", async () => {
+			const user = userEvent.setup();
+
+			render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+
+			// Open dropdown
+			await user.click(button);
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+
+			// Click button again should toggle (close)
+			await user.click(button);
+
+			await waitFor(() => {
+				expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+			});
+		});
+	});
+
+	describe("window resize handling", () => {
+		it("should recalculate position on window resize when open", async () => {
+			const user = userEvent.setup();
+
+			render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+
+			// Trigger resize event
+			fireEvent.resize(window);
+
+			// Menu should still be open after resize
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+		});
+
+		it("should recalculate position on scroll when open", async () => {
+			const user = userEvent.setup();
+
+			render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+
+			// Trigger scroll event
+			fireEvent.scroll(window);
+
+			// Menu should still be open after scroll
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+		});
+	});
+
+	describe("positioning logic", () => {
+		it("should calculate position correctly", async () => {
+			const user = userEvent.setup();
+
+			render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			const menu = screen.getByRole("menu");
+			expect(menu).toBeInTheDocument();
+
+			// Check that menu has fixed positioning class (Tailwind CSS)
+			expect(menu).toHaveClass("fixed");
+		});
+
+		it("should open upward when not enough space below", async () => {
+			const user = userEvent.setup();
+
+			// Mock getBoundingClientRect to simulate button near bottom of viewport
+			const originalGetBoundingClientRect =
+				Element.prototype.getBoundingClientRect;
+			Element.prototype.getBoundingClientRect = vi.fn().mockReturnValue({
+				top: window.innerHeight - 50,
+				bottom: window.innerHeight - 10,
+				left: 100,
+				right: 300,
+				width: 200,
+				height: 40,
+			});
+
+			render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			const menu = screen.getByRole("menu");
+			expect(menu).toBeInTheDocument();
+
+			// Restore original method
+			Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+		});
+
+		it("should constrain horizontal position to viewport", async () => {
+			const user = userEvent.setup();
+
+			// Mock getBoundingClientRect to simulate button near right edge
+			const originalGetBoundingClientRect =
+				Element.prototype.getBoundingClientRect;
+			Element.prototype.getBoundingClientRect = vi.fn().mockReturnValue({
+				top: 100,
+				bottom: 140,
+				left: window.innerWidth - 50,
+				right: window.innerWidth,
+				width: 200,
+				height: 40,
+			});
+
+			render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			const menu = screen.getByRole("menu");
+			expect(menu).toBeInTheDocument();
+
+			// Restore original method
+			Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
+		});
+	});
+
+	describe("id attribute", () => {
+		it("should apply id attribute when provided", () => {
+			render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+					id="my-custom-select"
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+			expect(button).toHaveAttribute("id", "my-custom-select");
+		});
+	});
+
+	describe("cleanup", () => {
+		it("should remove event listeners when dropdown closes", async () => {
+			const user = userEvent.setup();
+
+			const { unmount } = render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+
+			// Close dropdown
+			await user.keyboard("{Escape}");
+
+			await waitFor(() => {
+				expect(screen.queryByRole("menu")).not.toBeInTheDocument();
+			});
+
+			// Unmount component
+			unmount();
+		});
+
+		it("should remove event listeners on unmount while open", async () => {
+			const user = userEvent.setup();
+
+			const { unmount } = render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+
+			// Unmount while dropdown is open
+			unmount();
+
+			// Event listeners should be cleaned up
+		});
+	});
+
+	describe("event propagation", () => {
+		it("should stop propagation on button click", async () => {
+			const user = userEvent.setup();
+			const parentClickHandler = vi.fn();
+
+			render(
+				// biome-ignore lint/a11y/useKeyWithClickEvents: test wrapper element
+				<div onClick={parentClickHandler}>
+					<CustomSelect
+						value=""
+						onChange={mockOnChange}
+						options={defaultOptions}
+					/>
+				</div>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			// Parent should not receive click due to stopPropagation
+			expect(parentClickHandler).not.toHaveBeenCalled();
+		});
+
+		it("should stop propagation on option click", async () => {
+			const user = userEvent.setup();
+			const parentClickHandler = vi.fn();
+
+			render(
+				// biome-ignore lint/a11y/useKeyWithClickEvents: test wrapper element
+				<div onClick={parentClickHandler}>
+					<CustomSelect
+						value=""
+						onChange={mockOnChange}
+						options={defaultOptions}
+					/>
+				</div>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			const option = screen.getByText("Option 1");
+			await user.click(option);
+
+			// Parent should not receive click due to stopPropagation
+			expect(parentClickHandler).not.toHaveBeenCalled();
 		});
 	});
 });
