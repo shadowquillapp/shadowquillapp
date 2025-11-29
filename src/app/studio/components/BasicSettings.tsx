@@ -15,21 +15,21 @@ interface BasicSettingsProps {
 const DETAIL_LEVELS = {
 	brief: {
 		label: "Brief",
-		words: "100-150",
+		words: "75-150",
 		description: "Concise and to the point",
 		icon: "minus",
 		color: "#3b82f6",
 	},
 	normal: {
 		label: "Normal",
-		words: "200-300",
+		words: "200-250",
 		description: "Standard level of detail",
 		icon: "sliders",
 		color: "#22c55e",
 	},
 	detailed: {
 		label: "Detailed",
-		words: "350-500",
+		words: "300-375",
 		description: "Comprehensive coverage",
 		icon: "plus",
 		color: "#f59e0b",

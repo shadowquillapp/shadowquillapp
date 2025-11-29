@@ -25,8 +25,8 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 			{ min: number; max: number; description: string }
 		> = {
 			brief: { min: 75, max: 150, description: "Brief (75-150 words)" },
-			normal: { min: 200, max: 300, description: "Normal (200-300 words)" },
-			detailed: { min: 350, max: 500, description: "Detailed (350-500 words)" },
+			normal: { min: 200, max: 250, description: "Normal (200-250 words)" },
+			detailed: { min: 300, max: 375, description: "Detailed (300-375 words)" },
 		};
 		const limit = wordLimits[options.detail];
 		if (limit) {
