@@ -1140,8 +1140,8 @@ function DataLocationModalWrapper() {
 											style={{ marginBottom: 10 }}
 										>
 											This will delete all local data (settings, workbenchs,
-											presets) PERMANENTLY. The app will restart with a fresh
-											state.
+											presets) PERMANENTLY. The app will close. Reopen to start
+											fresh.
 										</div>
 										<button
 											type="button"
@@ -1150,8 +1150,8 @@ function DataLocationModalWrapper() {
 												const ok = await confirm({
 													title: "Factory Reset",
 													message:
-														"Delete ALL local data and restart? The app will restart with a completely fresh state.",
-													confirmText: "Delete & Restart",
+														"Delete ALL local data and close? The app will close completely. Reopen to start fresh.",
+													confirmText: "Delete & Close",
 													cancelText: "Cancel",
 													tone: "destructive",
 												});
@@ -1170,7 +1170,7 @@ function DataLocationModalWrapper() {
 														setError(res?.error || "Reset failed");
 														setLoading(false);
 													}
-													// App will close automatically after factory reset
+													// App will close after factory reset
 												} catch (e: unknown) {
 													const err = e as Error;
 													setError(err?.message || "Reset failed");

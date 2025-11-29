@@ -408,13 +408,14 @@ function registerDataIPCHandlers() {
 		}
 	});
 
-	// Factory reset: clear Chromium storage and relaunch with --factory-reset flag
-	// The flag handler at startup will delete files BEFORE they get locked
+	// Factory reset: clear all data and close the app
 	ipcMain.handle("shadowquill:factoryReset", async () => {
 		try {
 			console.log(
-				"[Factory Reset] Triggered. Clearing session data and relaunching...",
+				"[Factory Reset] Triggered. Clearing all data and closing...",
 			);
+
+			const userData = app.getPath("userData");
 
 			// Clear all persistent storage for the default session
 			try {
@@ -433,13 +434,24 @@ function registerDataIPCHandlers() {
 				} catch (_) {}
 			}
 
-			// Relaunch the app with --factory-reset flag
-			// The startup handler will delete the userData directory BEFORE Electron locks the files
-			console.log(
-				"[Factory Reset] Relaunching app with --factory-reset flag...",
-			);
-			app.relaunch({ args: process.argv.slice(1).concat(["--factory-reset"]) });
-			app.exit(0);
+			// Delete user data directory (best effort - some files may be locked)
+			console.log("[Factory Reset] Deleting user data directory...");
+			try {
+				if (fs.existsSync(userData)) {
+					fs.rmSync(userData, { recursive: true, force: true });
+					console.log("[Factory Reset] User data deleted successfully.");
+				}
+			} catch (e) {
+				console.warn(
+					"[Factory Reset] Could not fully delete user data:",
+					e.message,
+				);
+				// Continue to quit even if deletion is partial
+			}
+
+			// Quit the app (do not restart)
+			console.log("[Factory Reset] Closing application...");
+			app.quit();
 
 			return { ok: true };
 		} catch (e) {
