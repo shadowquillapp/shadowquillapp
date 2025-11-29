@@ -801,7 +801,7 @@ describe("ModelConfigGate", () => {
 			await waitFor(
 				() => {
 					const submitBtn = screen.queryByRole("button", {
-						name: /start shadowquill/i,
+						name: /get started/i,
 					});
 					return submitBtn !== null;
 				},
@@ -809,7 +809,7 @@ describe("ModelConfigGate", () => {
 			).catch(() => {});
 
 			const submitBtn = screen.queryByRole("button", {
-				name: /start shadowquill/i,
+				name: /get started/i,
 			});
 			if (submitBtn && !submitBtn.hasAttribute("disabled")) {
 				await user.click(submitBtn);
@@ -866,7 +866,7 @@ describe("ModelConfigGate", () => {
 			await waitFor(
 				() => {
 					const submitBtn = screen.queryByRole("button", {
-						name: /start shadowquill/i,
+						name: /get started/i,
 					});
 					return submitBtn !== null && !submitBtn.hasAttribute("disabled");
 				},
@@ -875,7 +875,7 @@ describe("ModelConfigGate", () => {
 
 			// Submit the form
 			const submitBtn = screen.getByRole("button", {
-				name: /start shadowquill/i,
+				name: /get started/i,
 			});
 			await user.click(submitBtn);
 
@@ -928,7 +928,7 @@ describe("ModelConfigGate", () => {
 			await waitFor(
 				() => {
 					const submitBtn = screen.queryByRole("button", {
-						name: /start shadowquill/i,
+						name: /get started/i,
 					});
 					return submitBtn !== null && !submitBtn.hasAttribute("disabled");
 				},
@@ -936,7 +936,7 @@ describe("ModelConfigGate", () => {
 			);
 
 			const submitBtn = screen.getByRole("button", {
-				name: /start shadowquill/i,
+				name: /get started/i,
 			});
 			await user.click(submitBtn);
 
@@ -987,7 +987,7 @@ describe("ModelConfigGate", () => {
 			await waitFor(
 				() => {
 					const submitBtn = screen.queryByRole("button", {
-						name: /start shadowquill/i,
+						name: /get started/i,
 					});
 					return submitBtn !== null && !submitBtn.hasAttribute("disabled");
 				},
@@ -995,7 +995,7 @@ describe("ModelConfigGate", () => {
 			);
 
 			const submitBtn = screen.getByRole("button", {
-				name: /start shadowquill/i,
+				name: /get started/i,
 			});
 			await user.click(submitBtn);
 
@@ -1459,13 +1459,13 @@ describe("ModelConfigGate", () => {
 				// Now submit the form
 				await waitFor(() => {
 					const submitBtn = screen.queryByRole("button", {
-						name: /start shadowquill/i,
+						name: /get started/i,
 					});
 					return submitBtn !== null && !submitBtn.hasAttribute("disabled");
 				}).catch(() => {});
 
 				const submitBtn = screen.queryByRole("button", {
-					name: /start shadowquill/i,
+					name: /get started/i,
 				});
 				if (submitBtn && !submitBtn.hasAttribute("disabled")) {
 					await user.click(submitBtn);
@@ -1561,13 +1561,13 @@ describe("ModelConfigGate", () => {
 
 					await waitFor(() => {
 						const submitBtn = screen.queryByRole("button", {
-							name: /start shadowquill/i,
+							name: /get started/i,
 						});
 						return submitBtn !== null && !submitBtn.hasAttribute("disabled");
 					}).catch(() => {});
 
 					const submitBtn = screen.queryByRole("button", {
-						name: /start shadowquill/i,
+						name: /get started/i,
 					});
 					if (submitBtn && !submitBtn.hasAttribute("disabled")) {
 						await user.click(submitBtn);
@@ -3286,7 +3286,7 @@ describe("ModelConfigGate", () => {
 				return setupText !== null;
 			});
 
-			// The submit button should show "Start ShadowQuill" when not saving (line 707)
+			// The submit button should show "Get Started" when not saving (line 707)
 			// First, we need to have a model selected
 			const user = userEvent.setup();
 			const portInput = screen.getByPlaceholderText("11434");
@@ -3299,20 +3299,20 @@ describe("ModelConfigGate", () => {
 				expect(mockListAvailableModels).toHaveBeenCalled();
 			});
 
-			// Now check for the submit button with "Start ShadowQuill" text
+			// Now check for the submit button with "Get Started" text
 			await waitFor(() => {
 				const submitBtn = screen.queryByRole("button", {
-					name: /start shadowquill/i,
+					name: /get started/i,
 				});
 				return submitBtn !== null;
 			});
 
 			const submitBtn = screen.getByRole("button", {
-				name: /start shadowquill/i,
+				name: /get started/i,
 			});
 			expect(submitBtn).toBeInTheDocument();
 			// The button should contain the text (with Icon, which covers line 707)
-			expect(submitBtn.textContent).toContain("Start ShadowQuill");
+			expect(submitBtn.textContent).toContain("Get Started");
 
 			global.fetch = originalFetch;
 		});
