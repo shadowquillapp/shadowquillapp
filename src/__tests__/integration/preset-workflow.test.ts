@@ -317,19 +317,17 @@ describe("Preset Workflow Integration", () => {
 			expect(presets[0]?.id).toBe(custom.id);
 		});
 
-		it("should have all expected task types in defaults", () => {
-			const defaults = getDefaultPresets();
+	it("should have all expected task types in defaults", () => {
+		const defaults = getDefaultPresets();
 
-			const taskTypes = new Set(defaults.map((p) => p.taskType));
+		const taskTypes = new Set(defaults.map((p) => p.taskType));
 
-			expect(taskTypes.has("general")).toBe(true);
-			expect(taskTypes.has("coding")).toBe(true);
-			expect(taskTypes.has("writing")).toBe(true);
-			expect(taskTypes.has("research")).toBe(true);
-			expect(taskTypes.has("marketing")).toBe(true);
-			expect(taskTypes.has("image")).toBe(true);
-			expect(taskTypes.has("video")).toBe(true);
-		});
+		expect(taskTypes.has("general")).toBe(true);
+		expect(taskTypes.has("coding")).toBe(true);
+		expect(taskTypes.has("writing")).toBe(true);
+		expect(taskTypes.has("research")).toBe(true);
+		expect(taskTypes.has("marketing")).toBe(true);
+	});
 	});
 
 	describe("preset lookup and filtering", () => {

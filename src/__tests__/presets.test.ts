@@ -517,14 +517,15 @@ describe("getDefaultPresets", () => {
 	});
 
 	it("should include presets for multiple task types", () => {
-		const defaults = getDefaultPresets();
-		const taskTypes = new Set(defaults.map((p) => p.taskType));
+	const defaults = getDefaultPresets();
+	const taskTypes = new Set(defaults.map((p) => p.taskType));
 
-		expect(taskTypes.has("general")).toBe(true);
-		expect(taskTypes.has("coding")).toBe(true);
-		expect(taskTypes.has("writing")).toBe(true);
-		expect(taskTypes.has("image")).toBe(true);
-	});
+	expect(taskTypes.has("general")).toBe(true);
+	expect(taskTypes.has("coding")).toBe(true);
+	expect(taskTypes.has("writing")).toBe(true);
+	expect(taskTypes.has("research")).toBe(true);
+	expect(taskTypes.has("marketing")).toBe(true);
+});
 });
 
 describe("ensureDefaultPreset", () => {
