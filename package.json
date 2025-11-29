@@ -35,6 +35,7 @@
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/react": "^16.3.0",
 		"@testing-library/user-event": "^14.6.1",
+		"@types/estree": "^1.0.8",
 		"@types/node": "^20.19.10",
 		"@types/react": "^19.1.11",
 		"@types/react-dom": "^19.0.0",
@@ -51,8 +52,16 @@
 	"build": {
 		"appId": "com.shadowquill.app",
 		"productName": "ShadowQuill",
-		"files": ["**/*", "!node_modules/.cache/**/*", "!**/*.map"],
-		"asarUnpack": ["**/*.node", ".next/**", "node_modules/next/**"],
+		"files": [
+			"**/*",
+			"!node_modules/.cache/**/*",
+			"!**/*.map"
+		],
+		"asarUnpack": [
+			"**/*.node",
+			".next/**",
+			"node_modules/next/**"
+		],
 		"directories": {
 			"buildResources": "build"
 		},
@@ -64,7 +73,10 @@
 			"icon": "public/branding/icon.icns"
 		},
 		"win": {
-			"target": ["nsis", "portable"],
+			"target": [
+				"nsis",
+				"portable"
+			],
 			"icon": "public/branding/favicon.ico",
 			"publisherName": "ShadowQuill",
 			"signAndEditExecutable": true
