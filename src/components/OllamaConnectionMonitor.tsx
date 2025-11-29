@@ -4,7 +4,7 @@ import {
 	readLocalModelConfig,
 	validateLocalModelConnection,
 } from "@/lib/local-config";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useDialog } from "./DialogProvider";
 
 interface WindowWithShadowQuill extends Window {
@@ -17,22 +17,64 @@ interface WindowWithShadowQuill extends Window {
 export default function OllamaConnectionMonitor() {
 	const { confirm } = useDialog();
 	const [isMonitoring, setIsMonitoring] = useState(false);
-	const [lastKnownStatus, setLastKnownStatus] = useState<boolean | null>(null);
+	// Use ref for lastKnownStatus to avoid stale closures in callbacks
+	const lastKnownStatusRef = useRef<boolean | null>(null);
 	const [isOpeningOllama, setIsOpeningOllama] = useState(false);
-	const [ollamaInstalled, setOllamaInstalled] = useState<boolean | null>(null);
+	// Use ref for ollamaInstalled to avoid stale closures
+	const ollamaInstalledRef = useRef<boolean | null>(null);
 
-	const checkOllamaInstalled = useCallback(async () => {
+	const checkOllamaInstalled = useCallback(async (): Promise<
+		boolean | null
+	> => {
 		try {
 			const win = window as WindowWithShadowQuill;
 			if (!win.shadowquill?.checkOllamaInstalled) {
-				return;
+				return null;
 			}
 			const result = await win.shadowquill.checkOllamaInstalled();
-			setOllamaInstalled(result.installed);
+			ollamaInstalledRef.current = result.installed;
+			return result.installed;
 		} catch (e) {
 			console.error("Failed to check Ollama installation:", e);
+			return null;
 		}
 	}, []);
+
+	const handleOpenOrInstallOllama = useCallback(
+		async (isInstalled: boolean | null) => {
+			setIsOpeningOllama(true);
+
+			try {
+				const win = window as WindowWithShadowQuill;
+
+				if (isInstalled === false) {
+					// Open download page
+					window.open("https://ollama.com/download", "_blank");
+					setIsOpeningOllama(false);
+					return;
+				}
+
+				if (!win.shadowquill?.openOllama) {
+					setIsOpeningOllama(false);
+					return;
+				}
+
+				const result = await win.shadowquill.openOllama();
+
+				if (result.ok) {
+					// Wait 3 seconds then recheck - schedule via returned promise
+					return new Promise<void>((resolve) => {
+						setTimeout(resolve, 3000);
+					});
+				}
+			} catch (e: unknown) {
+				console.error("Failed to open Ollama:", e);
+			} finally {
+				setIsOpeningOllama(false);
+			}
+		},
+		[],
+	);
 
 	const checkConnection = useCallback(async () => {
 		const config = readLocalModelConfig();
@@ -46,14 +88,15 @@ export default function OllamaConnectionMonitor() {
 		const result = await validateLocalModelConnection(config);
 
 		// If we had a connection and now we don't, alert the user
-		if (lastKnownStatus === true && !result.ok) {
-			// Check if Ollama is installed
-			if (ollamaInstalled === null) {
-				await checkOllamaInstalled();
+		if (lastKnownStatusRef.current === true && !result.ok) {
+			// Check if Ollama is installed - use returned value since state is async
+			let isInstalled = ollamaInstalledRef.current;
+			if (isInstalled === null) {
+				isInstalled = await checkOllamaInstalled();
 			}
 
 			const buttonText =
-				ollamaInstalled === false ? "Install Ollama" : "Open Ollama";
+				isInstalled === false ? "Install Ollama" : "Open Ollama";
 			const shouldOpen = await confirm({
 				title: "Ollama Connection Lost",
 				message:
@@ -64,49 +107,21 @@ export default function OllamaConnectionMonitor() {
 			});
 
 			if (shouldOpen) {
-				await handleOpenOrInstallOllama();
+				// handleOpenOrInstallOllama may return a promise that resolves after 3 seconds
+				await handleOpenOrInstallOllama(isInstalled);
+				// After opening Ollama and waiting, recheck connection once
+				const recheckConfig = readLocalModelConfig();
+				if (recheckConfig) {
+					const recheckResult =
+						await validateLocalModelConnection(recheckConfig);
+					lastKnownStatusRef.current = recheckResult.ok;
+				}
+				return;
 			}
 		}
 
-		setLastKnownStatus(result.ok);
-	}, [lastKnownStatus, ollamaInstalled, confirm, checkOllamaInstalled]);
-
-	const handleOpenOrInstallOllama = async () => {
-		setIsOpeningOllama(true);
-
-		try {
-			const win = window as WindowWithShadowQuill;
-
-			// Check if installed first
-			if (ollamaInstalled === null) {
-				await checkOllamaInstalled();
-			}
-
-			if (ollamaInstalled === false) {
-				// Open download page
-				window.open("https://ollama.com/download", "_blank");
-				setIsOpeningOllama(false);
-				return;
-			}
-
-			if (!win.shadowquill?.openOllama) {
-				return;
-			}
-
-			const result = await win.shadowquill.openOllama();
-
-			if (result.ok) {
-				// Wait 3 seconds then recheck
-				setTimeout(() => {
-					void checkConnection();
-				}, 3000);
-			}
-		} catch (e: unknown) {
-			console.error("Failed to open Ollama:", e);
-		} finally {
-			setIsOpeningOllama(false);
-		}
-	};
+		lastKnownStatusRef.current = result.ok;
+	}, [confirm, checkOllamaInstalled, handleOpenOrInstallOllama]);
 
 	// Initial check after a short delay (intentionally run once on mount)
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional run-once on mount

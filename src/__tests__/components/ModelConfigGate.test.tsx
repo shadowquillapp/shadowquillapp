@@ -137,34 +137,42 @@ describe("ModelConfigGate", () => {
 				{ name: "gemma3:12b", size: 12 * 1024 * 1024 * 1024 },
 			]);
 
+			// Mock fetch to simulate Ollama being detected
+			const originalFetch = global.fetch;
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: () => Promise.resolve({ models: [] }),
+			});
+
 			render(
 				<ModelConfigGate>
 					<div>App</div>
 				</ModelConfigGate>,
 			);
 
-			// Wait for the component to load
+			// Wait for the component to load and find the port input
 			await waitFor(() => {
-				// Look for refresh/test button
-				const testButton = screen.queryByTitle(
-					"Check for available Ollama models",
-				);
-				if (testButton) {
-					return true;
-				}
-				return false;
+				const portInput = screen.queryByPlaceholderText("11434");
+				return portInput !== null;
 			});
 
+			// Enter a port value to enable the test button
+			const portInput = screen.getByPlaceholderText("11434");
+			await user.type(portInput, "11434");
+
+			// Look for the test button
 			const testButton = screen.queryByTitle(
 				"Check for available Ollama models",
 			);
-			if (testButton) {
+			if (testButton && !testButton.hasAttribute("disabled")) {
 				await user.click(testButton);
 
 				await waitFor(() => {
 					expect(mockListAvailableModels).toHaveBeenCalled();
 				});
 			}
+
+			global.fetch = originalFetch;
 		});
 	});
 

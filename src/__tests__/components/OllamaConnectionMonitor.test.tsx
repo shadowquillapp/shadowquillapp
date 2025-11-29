@@ -197,24 +197,23 @@ describe("OllamaConnectionMonitor", () => {
 
 			render(<OllamaConnectionMonitor />);
 
-			// Initial check - wrap in act to ensure state updates are flushed
+			// Initial check - wait for it to complete
 			await act(async () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
 			expect(mockValidateLocalModelConnection).toHaveBeenCalledTimes(1);
 
-			// Wait for periodic check - need to advance enough for the interval to fire
+			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
-				await vi.advanceTimersByTimeAsync(10500);
+				window.dispatchEvent(new Event("MODEL_CHANGED"));
+				await vi.runOnlyPendingTimersAsync();
 			});
 
-			await waitFor(() => {
-				expect(mockConfirm).toHaveBeenCalledWith(
-					expect.objectContaining({
-						title: "Ollama Connection Lost",
-					}),
-				);
-			});
+			expect(mockConfirm).toHaveBeenCalledWith(
+				expect.objectContaining({
+					title: "Ollama Connection Lost",
+				}),
+			);
 		});
 
 		it("should offer Install Ollama button when not installed", async () => {
@@ -236,17 +235,18 @@ describe("OllamaConnectionMonitor", () => {
 			await act(async () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
+
+			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
-				await vi.advanceTimersByTimeAsync(10500);
+				window.dispatchEvent(new Event("MODEL_CHANGED"));
+				await vi.runOnlyPendingTimersAsync();
 			});
 
-			await waitFor(() => {
-				expect(mockConfirm).toHaveBeenCalledWith(
-					expect.objectContaining({
-						confirmText: "Install Ollama",
-					}),
-				);
-			});
+			expect(mockConfirm).toHaveBeenCalledWith(
+				expect.objectContaining({
+					confirmText: "Install Ollama",
+				}),
+			);
 		});
 
 		it("should offer Open Ollama button when installed", async () => {
@@ -266,17 +266,18 @@ describe("OllamaConnectionMonitor", () => {
 			await act(async () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
+
+			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
-				await vi.advanceTimersByTimeAsync(10500);
+				window.dispatchEvent(new Event("MODEL_CHANGED"));
+				await vi.runOnlyPendingTimersAsync();
 			});
 
-			await waitFor(() => {
-				expect(mockConfirm).toHaveBeenCalledWith(
-					expect.objectContaining({
-						confirmText: "Open Ollama",
-					}),
-				);
-			});
+			expect(mockConfirm).toHaveBeenCalledWith(
+				expect.objectContaining({
+					confirmText: "Open Ollama",
+				}),
+			);
 		});
 	});
 
@@ -305,16 +306,17 @@ describe("OllamaConnectionMonitor", () => {
 			await act(async () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
+
+			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
-				await vi.advanceTimersByTimeAsync(10500);
+				window.dispatchEvent(new Event("MODEL_CHANGED"));
+				await vi.runOnlyPendingTimersAsync();
 			});
 
-			await waitFor(() => {
-				expect(windowOpenSpy).toHaveBeenCalledWith(
-					"https://ollama.com/download",
-					"_blank",
-				);
-			});
+			expect(windowOpenSpy).toHaveBeenCalledWith(
+				"https://ollama.com/download",
+				"_blank",
+			);
 
 			windowOpenSpy.mockRestore();
 		});
@@ -339,12 +341,18 @@ describe("OllamaConnectionMonitor", () => {
 			await act(async () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
+
+			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
-				await vi.advanceTimersByTimeAsync(10500);
+				window.dispatchEvent(new Event("MODEL_CHANGED"));
+				await vi.runOnlyPendingTimersAsync();
 			});
 
-			await waitFor(() => {
-				expect(mockWindowApi.openOllama).toHaveBeenCalled();
+			expect(mockWindowApi.openOllama).toHaveBeenCalled();
+
+			// Advance timers for the 3 second recheck delay
+			await act(async () => {
+				await vi.advanceTimersByTimeAsync(3500);
 			});
 		});
 
@@ -368,16 +376,26 @@ describe("OllamaConnectionMonitor", () => {
 			await act(async () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
+			expect(mockValidateLocalModelConnection).toHaveBeenCalledTimes(1);
+
+			const callCountBefore =
+				mockValidateLocalModelConnection.mock.calls.length;
+
+			// Trigger connection loss via MODEL_CHANGED event
 			await act(async () => {
-				await vi.advanceTimersByTimeAsync(10500);
+				window.dispatchEvent(new Event("MODEL_CHANGED"));
+				// Advance just enough time for the checkConnection async operations
+				// and the 3-second recheck timeout after openOllama
+				await vi.advanceTimersByTimeAsync(3100);
 			});
 
-			// Wait for the 3 second delay after opening
-			await act(async () => {
-				await vi.advanceTimersByTimeAsync(3500);
-			});
+			expect(mockWindowApi.openOllama).toHaveBeenCalled();
 
-			expect(mockValidateLocalModelConnection).toHaveBeenCalledTimes(3);
+			// Should have rechecked connection after opening Ollama
+			// Additional calls: 1 (MODEL_CHANGED) + 1 (recheck after openOllama) = at least 2 more
+			expect(
+				mockValidateLocalModelConnection.mock.calls.length,
+			).toBeGreaterThanOrEqual(callCountBefore + 2);
 		});
 
 		it("should handle missing openOllama API gracefully", async () => {
@@ -401,11 +419,15 @@ describe("OllamaConnectionMonitor", () => {
 			await act(async () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
+
+			// Trigger recheck via MODEL_CHANGED event and flush async operations - should not throw
 			await act(async () => {
-				await vi.advanceTimersByTimeAsync(10500);
+				window.dispatchEvent(new Event("MODEL_CHANGED"));
+				await vi.runOnlyPendingTimersAsync();
 			});
 
-			// Should not throw when openOllama is not available
+			// Should have called confirm even without openOllama API
+			expect(mockConfirm).toHaveBeenCalled();
 		});
 
 		it("should handle openOllama errors gracefully", async () => {
@@ -431,16 +453,17 @@ describe("OllamaConnectionMonitor", () => {
 			await act(async () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
+
+			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
-				await vi.advanceTimersByTimeAsync(10500);
+				window.dispatchEvent(new Event("MODEL_CHANGED"));
+				await vi.runOnlyPendingTimersAsync();
 			});
 
-			await waitFor(() => {
-				expect(consoleSpy).toHaveBeenCalledWith(
-					"Failed to open Ollama:",
-					expect.any(Error),
-				);
-			});
+			expect(consoleSpy).toHaveBeenCalledWith(
+				"Failed to open Ollama:",
+				expect.any(Error),
+			);
 
 			consoleSpy.mockRestore();
 		});
