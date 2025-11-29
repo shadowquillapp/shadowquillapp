@@ -14,6 +14,19 @@
 
 Desktop AI prompt studio running 100% locally via **Ollama** and **Gemma 3** models. No data leaves your device.
 
+## Tech Stack
+
+### Nextron
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Next.js + Electron |
+| UI | React & Heroicons & Tailwind CSS |
+| Language | TypeScript |
+| Testing | Vitest |
+| Linting | Biome |
+| Icons | Heroicons |
+
 ## Key Features
 
 - **100% Local & Private** - All processing via Ollama on your machine
