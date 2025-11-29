@@ -1153,17 +1153,25 @@ export default function PromptWorkbench() {
 		[activeMessages],
 	);
 
+	// Get the active version's output message for word/char counts
+	const activeVersionOutput = useMemo(() => {
+		if (!activeVersion?.outputMessageId) return null;
+		return activeMessages.find(
+			(m) => m.id === activeVersion.outputMessageId && m.role === "assistant",
+		);
+	}, [activeVersion?.outputMessageId, activeMessages]);
+
 	const outputWordCount = useMemo(() => {
-		const text = lastAssistantMessage?.content || "";
+		const text = activeVersionOutput?.content || "";
 		const trimmed = text.trim();
 		if (!trimmed) return 0;
 		return trimmed.split(/\s+/).filter(Boolean).length;
-	}, [lastAssistantMessage]);
+	}, [activeVersionOutput]);
 
 	const outputCharCount = useMemo(() => {
-		const text = lastAssistantMessage?.content || "";
+		const text = activeVersionOutput?.content || "";
 		return text.length;
-	}, [lastAssistantMessage]);
+	}, [activeVersionOutput]);
 
 	// Global keyboard shortcut for saving (Cmd+S / Ctrl+S) and tabs
 	useEffect(() => {
@@ -1595,7 +1603,7 @@ export default function PromptWorkbench() {
 										{!showRefinementContext && inputThatGeneratedOutput && (
 											<div className="refine-panel__preview">
 												<span className="refine-panel__preview-label">
-													Previous Input:
+													Preview:
 												</span>
 												<span className="refine-panel__preview-text">
 													{inputThatGeneratedOutput.slice(0, 25)}
@@ -1612,120 +1620,123 @@ export default function PromptWorkbench() {
 										</div>
 									</button>
 
-									{showRefinementContext && (
-										<div className="refine-timeline">
-											{versions.map((version, index) => {
-												const versionNum = index + 1;
-												const isCurrentVersion = version.id === activeVersionId;
-												const isRefinement =
-													version.metadata?.isRefinement === true;
+									<div className="refine-panel__content-wrapper">
+										<div className="refine-panel__content-inner">
+											<div className="refine-timeline">
+												{versions.map((version, index) => {
+													const versionNum = index + 1;
+													const isCurrentVersion =
+														version.id === activeVersionId;
+													const isRefinement =
+														version.metadata?.isRefinement === true;
 
-												const handleJumpToVersion = () => {
-													if (isCurrentVersion) return;
-													// Keep draft empty when jumping to a version that has output (refinement mode)
-													if (version.outputMessageId) {
-														tabManager.updateDraft("");
-													} else {
-														tabManager.updateDraft(
-															version.originalInput || version.content,
-														);
-													}
-													// Update the version graph to point to this version
-													if (activeTab?.versionGraph) {
-														const updatedGraph: VersionGraph = {
-															...activeTab.versionGraph,
-															activeId: version.id,
-														};
-														tabManager.setVersionGraph(updatedGraph);
-													}
-													tabManager.markDirty(false);
-												};
+													const handleJumpToVersion = () => {
+														if (isCurrentVersion) return;
+														// Keep draft empty when jumping to a version that has output (refinement mode)
+														if (version.outputMessageId) {
+															tabManager.updateDraft("");
+														} else {
+															tabManager.updateDraft(
+																version.originalInput || version.content,
+															);
+														}
+														// Update the version graph to point to this version
+														if (activeTab?.versionGraph) {
+															const updatedGraph: VersionGraph = {
+																...activeTab.versionGraph,
+																activeId: version.id,
+															};
+															tabManager.setVersionGraph(updatedGraph);
+														}
+														tabManager.markDirty(false);
+													};
 
-												const versionInput = version.originalInput || "";
-												const copyId = `refine-v-${version.id}`;
+													const versionInput = version.originalInput || "";
+													const copyId = `refine-v-${version.id}`;
 
-												return (
-													<div
-														key={version.id}
-														className={`refine-timeline__item ${isCurrentVersion ? "refine-timeline__item--current" : ""}`}
-													>
-														<button
-															type="button"
-															onClick={handleJumpToVersion}
-															disabled={isCurrentVersion}
-															className="refine-timeline__item-btn"
-															title={
-																isCurrentVersion
-																	? "Current version"
-																	: `Jump to v${versionNum}`
-															}
+													return (
+														<div
+															key={version.id}
+															className={`refine-timeline__item ${isCurrentVersion ? "refine-timeline__item--current" : ""}`}
 														>
-															<div
-																className={`refine-timeline__node ${isRefinement ? "refine-timeline__node--refinement" : "refine-timeline__node--base"}`}
-															>
-																{versionNum}
-															</div>
-														</button>
-														<div className="refine-timeline__content">
-															<div className="refine-timeline__header">
-																<div className="refine-timeline__title">
-																	<span
-																		className={`refine-timeline__type ${isRefinement ? "refine-timeline__type--refinement" : "refine-timeline__type--base"}`}
-																	>
-																		{isRefinement ? "Refinement" : "Base"}
-																	</span>
-																</div>
-																<div className="refine-timeline__actions">
-																	{isCurrentVersion && (
-																		<span className="refine-timeline__current-badge">
-																			Current
-																		</span>
-																	)}
-																	<button
-																		type="button"
-																		onClick={(e) => {
-																			e.stopPropagation();
-																			if (versionInput) {
-																				copyMessage(copyId, versionInput);
-																			}
-																		}}
-																		disabled={!versionInput}
-																		className="refine-timeline__copy-btn"
-																		title="Copy this input"
-																		aria-label="Copy input"
-																	>
-																		<Icon
-																			name={
-																				copiedMessageId === copyId
-																					? "check"
-																					: "copy"
-																			}
-																			style={{ width: 10, height: 10 }}
-																		/>
-																	</button>
-																</div>
-															</div>
 															<button
 																type="button"
 																onClick={handleJumpToVersion}
 																disabled={isCurrentVersion}
-																className="refine-timeline__body"
+																className="refine-timeline__item-btn"
 																title={
 																	isCurrentVersion
 																		? "Current version"
 																		: `Jump to v${versionNum}`
 																}
 															>
-																{versionInput || (
-																	<em style={{ opacity: 0.5 }}>Empty</em>
-																)}
+																<div
+																	className={`refine-timeline__node ${isRefinement ? "refine-timeline__node--refinement" : "refine-timeline__node--base"}`}
+																>
+																	{versionNum}
+																</div>
 															</button>
+															<div className="refine-timeline__content">
+																<div className="refine-timeline__header">
+																	<div className="refine-timeline__title">
+																		<span
+																			className={`refine-timeline__type ${isRefinement ? "refine-timeline__type--refinement" : "refine-timeline__type--base"}`}
+																		>
+																			{isRefinement ? "Refinement" : "Base"}
+																		</span>
+																	</div>
+																	<div className="refine-timeline__actions">
+																		{isCurrentVersion && (
+																			<span className="refine-timeline__current-badge">
+																				Current
+																			</span>
+																		)}
+																		<button
+																			type="button"
+																			onClick={(e) => {
+																				e.stopPropagation();
+																				if (versionInput) {
+																					copyMessage(copyId, versionInput);
+																				}
+																			}}
+																			disabled={!versionInput}
+																			className="refine-timeline__copy-btn"
+																			title="Copy this input"
+																			aria-label="Copy input"
+																		>
+																			<Icon
+																				name={
+																					copiedMessageId === copyId
+																						? "check"
+																						: "copy"
+																				}
+																				style={{ width: 10, height: 10 }}
+																			/>
+																		</button>
+																	</div>
+																</div>
+																<button
+																	type="button"
+																	onClick={handleJumpToVersion}
+																	disabled={isCurrentVersion}
+																	className="refine-timeline__body"
+																	title={
+																		isCurrentVersion
+																			? "Current version"
+																			: `Jump to v${versionNum}`
+																	}
+																>
+																	{versionInput || (
+																		<em style={{ opacity: 0.5 }}>Empty</em>
+																	)}
+																</button>
+															</div>
 														</div>
-													</div>
-												);
-											})}
+													);
+												})}
+											</div>
 										</div>
-									)}
+									</div>
 								</div>
 							)}
 
@@ -1795,8 +1806,12 @@ export default function PromptWorkbench() {
 										<div
 											className="absolute inset-0 overflow-hidden rounded-[18px] border"
 											style={{
-												borderColor: "var(--color-outline)",
-												background: "var(--color-surface)",
+												borderColor:
+													"color-mix(in srgb, var(--color-outline), transparent 40%)",
+												background:
+													"color-mix(in srgb, var(--color-surface), transparent 70%)",
+												backdropFilter: "blur(4px)",
+												WebkitBackdropFilter: "blur(4px)",
 												padding: "8px",
 											}}
 										>
@@ -1888,42 +1903,58 @@ export default function PromptWorkbench() {
 										!activeTab ||
 										(!activeTab.sending && !activeTab.draft.trim())
 									}
-									className={`group absolute flex items-center justify-center overflow-hidden rounded-full transition-all duration-300 active:scale-95 disabled:transform-none disabled:cursor-not-allowed disabled:opacity-50 ${
-										activeTab?.sending ? "text-on-attention" : "text-on-primary"
+									className={`absolute flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${
+										activeTab?.sending
+											? "bg-transparent hover:opacity-80"
+											: "rounded-full bg-[var(--color-primary)] text-on-primary hover:bg-[var(--color-primary-variant)]"
 									}`}
 									style={{
-										width: "min(48px, 10vw)",
-										height: "min(48px, 10vw)",
-										minWidth: "36px",
-										minHeight: "36px",
+										width: activeTab?.sending ? "auto" : "min(48px, 10vw)",
+										height: activeTab?.sending ? "auto" : "min(48px, 10vw)",
+										minWidth: activeTab?.sending ? "auto" : "36px",
+										minHeight: activeTab?.sending ? "auto" : "36px",
 										right: "20px",
 										bottom: "20px",
-										border: "1px solid var(--color-outline)",
-										background: activeTab?.sending
-											? "var(--color-attention)"
-											: "var(--color-primary)",
+										border: activeTab?.sending
+											? "none"
+											: "1px solid var(--color-outline)",
+										boxShadow: activeTab?.sending ? "none" : "var(--shadow-1)",
+										transition:
+											"background 120ms ease, border-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease",
 										// High z-index to stay above the generation overlay
 										zIndex: activeTab?.sending ? 150 : 10,
 									}}
+									onMouseEnter={(e) => {
+										if (!activeTab?.sending) {
+											e.currentTarget.style.boxShadow = "var(--shadow-2)";
+											e.currentTarget.style.borderColor =
+												"var(--color-primary)";
+										}
+									}}
+									onMouseLeave={(e) => {
+										if (!activeTab?.sending) {
+											e.currentTarget.style.boxShadow = "var(--shadow-1)";
+											e.currentTarget.style.borderColor =
+												"var(--color-outline)";
+										}
+									}}
 									title={activeTab?.sending ? "Stop Generation" : "Run Prompt"}
 								>
-									{/* Subtle shimmer effect */}
-									<div className="pointer-events-none absolute inset-0 translate-y-full rounded-full bg-white/5 transition-transform duration-500 ease-out group-hover:translate-y-0" />
-
 									{activeTab?.sending ? (
 										<Icon
 											name="stop"
 											className="relative z-10"
 											style={{
-												width: "22px",
-												height: "22px",
-												fontSize: "22px",
+												width: "28px",
+												height: "28px",
+												fontSize: "28px",
+												color: "#dc6b6b",
 											}}
 										/>
 									) : (
 										<Icon
 											name="chevron-right"
-											className="relative z-10 transition-transform group-hover:translate-x-0.5"
+											className="relative z-10"
 											style={{
 												width: "22px",
 												height: "22px",
@@ -1937,8 +1968,11 @@ export default function PromptWorkbench() {
 
 						{/* Preset Info Row - Moved Under Editor Area */}
 						{activeTab?.preset && (
-							<div
-								className="flex items-center gap-3 rounded-xl p-2.5 transition-all md:p-3"
+							<button
+								type="button"
+								className="flex cursor-pointer items-center gap-3 rounded-xl p-2.5 text-left transition-all hover:opacity-90 md:p-3"
+								onClick={() => setShowPresetInfo(true)}
+								title="Click for full preset details"
 								style={{
 									background:
 										"linear-gradient(135deg, color-mix(in srgb, var(--color-primary), var(--color-surface-variant) 85%) 0%, var(--color-surface-variant) 100%)",
@@ -1952,14 +1986,7 @@ export default function PromptWorkbench() {
 								<div
 									className="flex shrink-0 items-center justify-center"
 									style={{
-										width: 36,
-										height: 36,
-										borderRadius: 10,
-										background:
-											"linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary), var(--color-surface) 30%))",
-										color: "var(--color-on-primary)",
-										boxShadow:
-											"0 2px 6px color-mix(in srgb, var(--color-primary), transparent 50%)",
+										color: "var(--color-primary)",
 									}}
 								>
 									<Icon
@@ -1984,23 +2011,16 @@ export default function PromptWorkbench() {
 
 								{/* Title & Type */}
 								<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-									<button
-										type="button"
-										onClick={() => setShowPresetInfo(true)}
-										className="group/btn flex items-center gap-1.5 text-left"
-									>
-										<span
-											className="truncate font-bold text-[13px] text-on-surface leading-tight transition-colors group-hover/btn:text-primary"
-											title="Click for full preset details"
-										>
+									<div className="flex items-center gap-1.5">
+										<span className="truncate font-bold text-[13px] text-on-surface leading-tight">
 											{activeTab.preset.name}
 										</span>
 										<Icon
 											name="info"
-											className="text-on-surface-variant/40 transition-colors group-hover/btn:text-primary"
+											className="text-on-surface-variant/40"
 											style={{ width: 10, height: 10 }}
 										/>
-									</button>
+									</div>
 
 									{/* Tags Row */}
 									<div className="flex flex-wrap items-center gap-1.5">
@@ -2055,6 +2075,18 @@ export default function PromptWorkbench() {
 														: activeTab.preset.options.format.toUpperCase()}
 											</span>
 										)}
+										{activeTab.preset.options?.detail && (
+											<span
+												style={{
+													fontSize: 9,
+													color: "var(--color-on-surface-variant)",
+													opacity: 0.7,
+													textTransform: "capitalize",
+												}}
+											>
+												{activeTab.preset.options.detail}
+											</span>
+										)}
 										{typeof activeTab.preset.options?.temperature ===
 											"number" && (
 											<span
@@ -2065,7 +2097,7 @@ export default function PromptWorkbench() {
 													fontVariantNumeric: "tabular-nums",
 												}}
 											>
-												temp {activeTab.preset.options.temperature.toFixed(1)}
+												{activeTab.preset.options.temperature.toFixed(1)}
 											</span>
 										)}
 									</div>
@@ -2074,22 +2106,18 @@ export default function PromptWorkbench() {
 								{/* Edit Button */}
 								<button
 									type="button"
-									onClick={() => router.push("/studio")}
-									className="flex shrink-0 items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+									onClick={(e) => {
+										e.stopPropagation();
+										router.push("/studio");
+									}}
+									className="md-btn md-btn--primary"
 									title="Edit preset in Studio"
 									aria-label="Edit preset in Studio"
-									style={{
-										width: 32,
-										height: 32,
-										borderRadius: 8,
-										background: "var(--color-surface)",
-										border: "1px solid var(--color-outline)",
-										color: "var(--color-on-surface-variant)",
-									}}
+									style={{ minWidth: 0 }}
 								>
-									<Icon name="brush" style={{ width: 14, height: 14 }} />
+									<Icon name="brush" />
 								</button>
-							</div>
+							</button>
 						)}
 					</section>
 
@@ -2164,9 +2192,9 @@ export default function PromptWorkbench() {
 									{/* Version Badge */}
 									<button
 										type="button"
-										className={`flex items-center gap-1.5 transition-all duration-200 ${
+										className={`flex items-center gap-1.5 ${
 											versions.length > 0
-												? "cursor-pointer opacity-100 hover:scale-105"
+												? "cursor-pointer opacity-100"
 												: "cursor-default opacity-40"
 										}`}
 										onClick={() => {
@@ -2183,7 +2211,7 @@ export default function PromptWorkbench() {
 											borderRadius: "20px",
 											background:
 												versions.length > 0
-													? "linear-gradient(135deg, var(--color-primary), color-mix(in srgb, var(--color-primary), var(--color-surface) 30%))"
+													? "var(--color-primary)"
 													: "var(--color-surface)",
 											color:
 												versions.length > 0
@@ -2191,12 +2219,28 @@ export default function PromptWorkbench() {
 													: "var(--color-on-surface-variant)",
 											border:
 												versions.length > 0
-													? "none"
+													? "1px solid transparent"
 													: "1px solid var(--color-outline)",
-											boxShadow:
-												versions.length > 0
-													? "0 2px 8px color-mix(in srgb, var(--color-primary), transparent 60%)"
-													: "none",
+											boxShadow: "var(--shadow-1)",
+											transition:
+												"background 120ms ease, border-color 120ms ease, box-shadow 120ms ease",
+										}}
+										onMouseEnter={(e) => {
+											if (versions.length > 0) {
+												e.currentTarget.style.background =
+													"var(--color-primary-variant)";
+												e.currentTarget.style.boxShadow = "var(--shadow-2)";
+												e.currentTarget.style.borderColor =
+													"var(--color-primary)";
+											}
+										}}
+										onMouseLeave={(e) => {
+											if (versions.length > 0) {
+												e.currentTarget.style.background =
+													"var(--color-primary)";
+												e.currentTarget.style.boxShadow = "var(--shadow-1)";
+												e.currentTarget.style.borderColor = "transparent";
+											}
 										}}
 									>
 										<Icon
