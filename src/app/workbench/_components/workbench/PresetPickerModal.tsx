@@ -53,6 +53,11 @@ export function PresetPickerModal({
 	const [activeSection, setActiveSection] = useState<"presets" | "saved">(
 		"presets",
 	);
+	const [isAnimating, setIsAnimating] = useState(false);
+	const [slideDirection, setSlideDirection] = useState<"left" | "right">(
+		"left",
+	);
+	const [contentHeight, setContentHeight] = useState<number | "auto">("auto");
 	const [deletingProjectId, setDeletingProjectId] = useState<string | null>(
 		null,
 	);
@@ -61,6 +66,7 @@ export function PresetPickerModal({
 	const gridRef = useRef<HTMLDivElement | null>(null);
 	const modalContentRef = useRef<HTMLDivElement | null>(null);
 	const lastActiveEl = useRef<HTMLElement | null>(null);
+	const contentWrapperRef = useRef<HTMLDivElement | null>(null);
 
 	const handleDeleteProject = async (
 		e: React.MouseEvent,
@@ -141,12 +147,47 @@ export function PresetPickerModal({
 			setSearchQuery("");
 			setSelectedTaskType(null);
 			setActiveSection("presets");
+			setIsAnimating(false);
+			setContentHeight("auto");
 			// Restore focus back to opener
 			try {
 				lastActiveEl.current?.focus();
 			} catch {}
 		}
 	}, [open]);
+
+	// Handle tab switching with animation
+	const handleTabSwitch = (newSection: "presets" | "saved") => {
+		if (newSection === activeSection || isAnimating) return;
+
+		// Capture current height before animating
+		const currentHeight = contentWrapperRef.current?.offsetHeight;
+		if (currentHeight) {
+			setContentHeight(currentHeight);
+		}
+
+		setSlideDirection(newSection === "saved" ? "left" : "right");
+		setIsAnimating(true);
+
+		// After exit animation, switch content and trigger enter animation
+		setTimeout(() => {
+			setActiveSection(newSection);
+			// Measure new content height after DOM update
+			requestAnimationFrame(() => {
+				const newHeight = contentWrapperRef.current?.scrollHeight;
+				if (newHeight) {
+					setContentHeight(newHeight);
+				}
+				setTimeout(() => {
+					setIsAnimating(false);
+					// After animation completes, reset to auto for dynamic content
+					setTimeout(() => {
+						setContentHeight("auto");
+					}, 200);
+				}, 20);
+			});
+		}, 150);
+	};
 
 	// Autofocus the search input when the modal opens
 	useEffect(() => {
@@ -357,7 +398,7 @@ export function PresetPickerModal({
 						>
 							<button
 								type="button"
-								onClick={() => setActiveSection("presets")}
+								onClick={() => handleTabSwitch("presets")}
 								style={{
 									flex: 1,
 									padding: "8px 12px",
@@ -386,7 +427,7 @@ export function PresetPickerModal({
 							</button>
 							<button
 								type="button"
-								onClick={() => setActiveSection("saved")}
+								onClick={() => handleTabSwitch("saved")}
 								style={{
 									flex: 1,
 									padding: "8px 12px",
@@ -484,229 +525,53 @@ export function PresetPickerModal({
 					{/* End Tab Switcher + Search Bar */}
 
 					{/* Content based on active section */}
-					{activeSection === "presets" ? (
-						/* Preset Grid */
-						filteredPresets.length === 0 ? (
-							<div
-								className="text-secondary"
-								style={{
-									display: "flex",
-									flexDirection: "column",
-									alignItems: "center",
-									gap: 10,
-									fontSize: 13,
-									padding: 24,
-									textAlign: "center",
-								}}
-							>
-								No presets found.
-								<div style={{ opacity: 0.8 }}>
-									Try a different search or reset filters.
-								</div>
-								<div style={{ display: "flex", gap: 8 }}>
-									{searchQuery && (
-										<button
-											type="button"
-											className="md-btn"
-											onClick={() => {
-												setSearchQuery("");
-											}}
-											style={{
-												padding: "6px 10px",
-												fontSize: 12,
-												borderRadius: 8,
-												border: "1px solid var(--color-outline-variant)",
-												background: "var(--color-surface)",
-												color: "var(--color-on-surface)",
-											}}
-										>
-											Reset
-										</button>
-									)}
-								</div>
-							</div>
-						) : (
-							<div
-								ref={gridRef}
-								style={{
-									display: "grid",
-									gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))",
-									gap: 10,
-								}}
-							>
-								{filteredPresets.map((preset) => (
-									<button
-										key={preset.id ?? preset.name}
-										type="button"
-										className="md-btn"
-										onClick={() => {
-											onSelectPreset(preset);
-											onClose();
-										}}
-										title={preset.name}
-										aria-label={`${preset.name} preset (${preset.taskType})`}
-										ref={(el) => {
-											itemRefs.current[preset.id ?? preset.name] = el;
-										}}
-										onKeyDown={(e) =>
-											onCardKeyDown(preset.id ?? preset.name, e)
-										}
+					<div
+						style={{
+							overflow: "hidden",
+							position: "relative",
+							height: contentHeight === "auto" ? "auto" : contentHeight,
+							transition: "height 0.25s ease-out",
+						}}
+					>
+						<div
+							ref={contentWrapperRef}
+							style={{
+								transform: isAnimating
+									? slideDirection === "left"
+										? "translateX(-20px)"
+										: "translateX(20px)"
+									: "translateX(0)",
+								opacity: isAnimating ? 0 : 1,
+								transition: "transform 0.2s ease-out, opacity 0.15s ease-out",
+							}}
+						>
+							{activeSection === "presets" ? (
+								/* Preset Grid */
+								filteredPresets.length === 0 ? (
+									<div
+										className="text-secondary"
 										style={{
 											display: "flex",
+											flexDirection: "column",
 											alignItems: "center",
 											gap: 10,
-											padding: "10px 12px",
-											textAlign: "left",
-											height: "auto",
-											background: "var(--color-surface-variant)",
-											border: "1px solid var(--color-outline)",
-											borderRadius: 10,
-											transition:
-												"transform 0.15s, box-shadow 0.15s, border-color 0.15s",
-											overflow: "hidden",
-										}}
-										onMouseEnter={(e) => {
-											e.currentTarget.style.transform = "translateY(-1px)";
-											e.currentTarget.style.boxShadow =
-												"0 2px 8px rgba(0,0,0,0.1)";
-											e.currentTarget.style.borderColor =
-												"var(--color-primary)";
-										}}
-										onMouseLeave={(e) => {
-											e.currentTarget.style.transform = "translateY(0)";
-											e.currentTarget.style.boxShadow = "none";
-											e.currentTarget.style.borderColor =
-												"var(--color-outline)";
-										}}
-										onFocus={(e) => {
-											e.currentTarget.style.boxShadow =
-												"0 0 0 2px var(--focus-ring, rgba(99,102,241,0.25))";
-											e.currentTarget.style.borderColor =
-												"var(--color-primary)";
-										}}
-										onBlur={(e) => {
-											e.currentTarget.style.boxShadow = "none";
-											e.currentTarget.style.borderColor =
-												"var(--color-outline)";
+											fontSize: 13,
+											padding: 24,
+											textAlign: "center",
 										}}
 									>
-										<div
-											style={{
-												display: "flex",
-												alignItems: "center",
-												justifyContent: "center",
-												width: 28,
-												height: 28,
-												borderRadius: 6,
-												background:
-													"color-mix(in oklab, var(--color-primary) 18%, transparent)",
-												color: "var(--color-primary)",
-												flexShrink: 0,
-											}}
-										>
-											<Icon
-												name={getTaskTypeIcon(preset.taskType)}
-												style={{ width: 14, height: 14 }}
-											/>
+										No presets found.
+										<div style={{ opacity: 0.8 }}>
+											Try a different search or reset filters.
 										</div>
-										<div style={{ flex: 1, minWidth: 0 }}>
-											<div
-												style={{
-													fontSize: 13,
-													fontWeight: 600,
-													color: "var(--color-on-surface)",
-													overflow: "hidden",
-													textOverflow: "ellipsis",
-													whiteSpace: "nowrap",
-												}}
-											>
-												{preset.name}
-											</div>
-											<div
-												style={{
-													fontSize: 10,
-													fontWeight: 500,
-													color: "var(--color-on-surface-variant)",
-													textTransform: "capitalize",
-												}}
-											>
-												{preset.taskType}
-											</div>
-										</div>
-									</button>
-								))}
-							</div>
-						)
-					) : (
-						/* Saved Projects List */
-						<>
-							{/* Delete All button when there are projects */}
-							{savedProjects.length > 0 && onDeleteAllProjects && (
-								<div
-									style={{
-										display: "flex",
-										justifyContent: "flex-end",
-										marginBottom: 12,
-									}}
-								>
-									<button
-										type="button"
-										className="md-btn md-btn--destructive"
-										onClick={handleDeleteAllProjects}
-										style={{
-											padding: "6px 12px",
-											fontSize: 11,
-											fontWeight: 600,
-											borderRadius: 6,
-											display: "flex",
-											alignItems: "center",
-											gap: 6,
-											color: "#ef4444",
-											border: "1px solid rgba(239, 68, 68, 0.3)",
-											background: "rgba(239, 68, 68, 0.08)",
-										}}
-									>
-										<Icon name="trash" style={{ width: 12, height: 12 }} />
-										Delete All
-									</button>
-								</div>
-							)}
-
-							{filteredProjects.length === 0 ? (
-								<div
-									className="text-secondary"
-									style={{
-										display: "flex",
-										flexDirection: "column",
-										alignItems: "center",
-										gap: 10,
-										fontSize: 13,
-										padding: 24,
-										textAlign: "center",
-									}}
-								>
-									{savedProjects.length === 0 ? (
-										<>
-											<Icon
-												name="folder-open"
-												style={{ width: 32, height: 32, opacity: 0.4 }}
-											/>
-											No saved workbenches yet.
-											<div style={{ opacity: 0.8 }}>
-												Run a prompt to create your first workbench.
-											</div>
-										</>
-									) : (
-										<>
-											No matching workbenches found.
-											<div style={{ opacity: 0.8 }}>
-												Try a different search term.
-											</div>
+										<div style={{ display: "flex", gap: 8 }}>
 											{searchQuery && (
 												<button
 													type="button"
 													className="md-btn"
-													onClick={() => setSearchQuery("")}
+													onClick={() => {
+														setSearchQuery("");
+													}}
 													style={{
 														padding: "6px 10px",
 														fontSize: 12,
@@ -719,203 +584,401 @@ export function PresetPickerModal({
 													Reset
 												</button>
 											)}
-										</>
-									)}
-								</div>
-							) : (
-								<div
-									style={{
-										display: "flex",
-										flexDirection: "column",
-										gap: 8,
-									}}
-								>
-									{filteredProjects.map((project) => {
-										const isDeleting = deletingProjectId === project.id;
-										return (
-											<div
-												key={project.id}
+										</div>
+									</div>
+								) : (
+									<div
+										ref={gridRef}
+										style={{
+											display: "grid",
+											gridTemplateColumns:
+												"repeat(auto-fill, minmax(160px, 1fr))",
+											gap: 10,
+										}}
+									>
+										{filteredPresets.map((preset) => (
+											<button
+												key={preset.id ?? preset.name}
+												type="button"
+												className="md-btn"
+												onClick={() => {
+													onSelectPreset(preset);
+													onClose();
+												}}
+												title={preset.name}
+												aria-label={`${preset.name} preset (${preset.taskType})`}
+												ref={(el) => {
+													itemRefs.current[preset.id ?? preset.name] = el;
+												}}
+												onKeyDown={(e) =>
+													onCardKeyDown(preset.id ?? preset.name, e)
+												}
 												style={{
 													display: "flex",
 													alignItems: "center",
-													gap: 8,
-													opacity: isDeleting ? 0.5 : 1,
-													transition: "opacity 0.2s",
+													gap: 10,
+													padding: "10px 12px",
+													textAlign: "left",
+													height: "auto",
+													background: "var(--color-surface-variant)",
+													border: "1px solid var(--color-outline)",
+													borderRadius: 10,
+													transition: "box-shadow 0.15s, border-color 0.15s",
+													overflow: "hidden",
+												}}
+												onMouseEnter={(e) => {
+													e.currentTarget.style.boxShadow =
+														"0 2px 8px rgba(0,0,0,0.1)";
+													e.currentTarget.style.borderColor =
+														"var(--color-primary)";
+												}}
+												onMouseLeave={(e) => {
+													e.currentTarget.style.boxShadow = "none";
+													e.currentTarget.style.borderColor =
+														"var(--color-outline)";
+												}}
+												onFocus={(e) => {
+													e.currentTarget.style.boxShadow =
+														"0 0 0 2px var(--focus-ring, rgba(99,102,241,0.25))";
+													e.currentTarget.style.borderColor =
+														"var(--color-primary)";
+												}}
+												onBlur={(e) => {
+													e.currentTarget.style.boxShadow = "none";
+													e.currentTarget.style.borderColor =
+														"var(--color-outline)";
 												}}
 											>
-												<button
-													type="button"
-													className="md-btn"
-													onClick={() => {
-														if (onSelectProject) {
-															onSelectProject(project.id);
-														}
-														onClose();
-													}}
-													disabled={isDeleting}
+												<div
 													style={{
 														display: "flex",
 														alignItems: "center",
-														gap: 12,
-														padding: "12px 14px",
-														textAlign: "left",
-														background: "var(--color-surface-variant)",
-														border: "1px solid var(--color-outline)",
-														borderRadius: 10,
-														transition:
-															"transform 0.15s, box-shadow 0.15s, border-color 0.15s",
-														flex: 1,
-														height: "auto",
-														minHeight: 56,
-													}}
-													onMouseEnter={(e) => {
-														if (isDeleting) return;
-														e.currentTarget.style.transform =
-															"translateY(-1px)";
-														e.currentTarget.style.boxShadow =
-															"0 2px 8px rgba(0,0,0,0.08)";
-														e.currentTarget.style.borderColor =
-															"var(--color-outline-variant)";
-													}}
-													onMouseLeave={(e) => {
-														e.currentTarget.style.transform = "translateY(0)";
-														e.currentTarget.style.boxShadow = "none";
-														e.currentTarget.style.borderColor =
-															"var(--color-outline)";
-													}}
-													onFocus={(e) => {
-														e.currentTarget.style.boxShadow =
-															"0 0 0 3px var(--focus-ring, rgba(99,102,241,0.25))";
-														e.currentTarget.style.borderColor =
-															"var(--color-primary)";
-													}}
-													onBlur={(e) => {
-														e.currentTarget.style.boxShadow = "none";
-														e.currentTarget.style.borderColor =
-															"var(--color-outline)";
+														justifyContent: "center",
+														width: 28,
+														height: 28,
+														borderRadius: 6,
+														background:
+															"color-mix(in oklab, var(--color-primary) 18%, transparent)",
+														color: "var(--color-primary)",
+														flexShrink: 0,
 													}}
 												>
-													<div
-														style={{
-															display: "flex",
-															alignItems: "center",
-															justifyContent: "center",
-															width: 36,
-															height: 36,
-															borderRadius: 8,
-															background:
-																"color-mix(in oklab, var(--color-secondary) 15%, transparent)",
-															color: "var(--color-secondary)",
-															flexShrink: 0,
-														}}
-													>
-														<Icon
-															name="file-text"
-															style={{ width: 18, height: 18 }}
-														/>
-													</div>
-													<div
-														style={{ flex: 1, minWidth: 0, overflow: "hidden" }}
-													>
-														<div
-															style={{
-																fontSize: 14,
-																fontWeight: 600,
-																color: "var(--color-on-surface)",
-																overflow: "hidden",
-																textOverflow: "ellipsis",
-																whiteSpace: "nowrap",
-																maxWidth: "100%",
-															}}
-														>
-															{project.title ?? "Untitled"}
-														</div>
-														<div
-															style={{
-																fontSize: 11,
-																color: "var(--color-on-surface-variant)",
-																opacity: 0.75,
-															}}
-														>
-															{new Date(project.updatedAt).toLocaleDateString(
-																undefined,
-																{
-																	month: "short",
-																	day: "numeric",
-																	year: "numeric",
-																},
-															)}
-															{" · "}
-															{new Date(project.updatedAt).toLocaleTimeString(
-																undefined,
-																{
-																	hour: "2-digit",
-																	minute: "2-digit",
-																},
-															)}
-														</div>
-													</div>
 													<Icon
-														name="chevron-right"
-														style={{
-															width: 16,
-															height: 16,
-															opacity: 0.4,
-															flexShrink: 0,
-														}}
+														name={getTaskTypeIcon(preset.taskType)}
+														style={{ width: 14, height: 14 }}
 													/>
-												</button>
-
-												{/* Delete button */}
-												{onDeleteProject && (
-													<button
-														type="button"
-														className="md-btn"
-														onClick={(e) => handleDeleteProject(e, project.id)}
-														disabled={isDeleting}
-														title="Delete workbench"
-														aria-label="Delete workbench"
+												</div>
+												<div style={{ flex: 1, minWidth: 0 }}>
+													<div
 														style={{
-															width: 36,
-															height: 36,
-															padding: 0,
-															display: "flex",
-															alignItems: "center",
-															justifyContent: "center",
-															borderRadius: 8,
-															border: "1px solid rgba(239, 68, 68, 0.2)",
-															background: "rgba(239, 68, 68, 0.06)",
-															color: "#ef4444",
-															flexShrink: 0,
-															transition: "all 0.15s",
-														}}
-														onMouseEnter={(e) => {
-															if (isDeleting) return;
-															e.currentTarget.style.background =
-																"rgba(239, 68, 68, 0.15)";
-															e.currentTarget.style.borderColor =
-																"rgba(239, 68, 68, 0.4)";
-														}}
-														onMouseLeave={(e) => {
-															e.currentTarget.style.background =
-																"rgba(239, 68, 68, 0.06)";
-															e.currentTarget.style.borderColor =
-																"rgba(239, 68, 68, 0.2)";
+															fontSize: 13,
+															fontWeight: 600,
+															color: "var(--color-on-surface)",
+															overflow: "hidden",
+															textOverflow: "ellipsis",
+															whiteSpace: "nowrap",
 														}}
 													>
-														<Icon
-															name="trash"
-															style={{ width: 14, height: 14 }}
-														/>
-													</button>
-												)}
-											</div>
-										);
-									})}
-								</div>
+														{preset.name}
+													</div>
+													<div
+														style={{
+															fontSize: 10,
+															fontWeight: 500,
+															color: "var(--color-on-surface-variant)",
+															textTransform: "capitalize",
+														}}
+													>
+														{preset.taskType}
+													</div>
+												</div>
+											</button>
+										))}
+									</div>
+								)
+							) : (
+								/* Saved Projects List */
+								<>
+									{/* Delete All button when there are projects */}
+									{savedProjects.length > 0 && onDeleteAllProjects && (
+										<div
+											style={{
+												display: "flex",
+												justifyContent: "flex-end",
+												marginBottom: 12,
+											}}
+										>
+											<button
+												type="button"
+												className="md-btn md-btn--destructive"
+												onClick={handleDeleteAllProjects}
+												style={{
+													padding: "6px 12px",
+													fontSize: 11,
+													fontWeight: 600,
+													borderRadius: 6,
+													display: "flex",
+													alignItems: "center",
+													gap: 6,
+													color: "#ef4444",
+													border: "1px solid rgba(239, 68, 68, 0.3)",
+													background: "rgba(239, 68, 68, 0.08)",
+												}}
+											>
+												<Icon name="trash" style={{ width: 12, height: 12 }} />
+												Delete All
+											</button>
+										</div>
+									)}
+
+									{filteredProjects.length === 0 ? (
+										<div
+											className="text-secondary"
+											style={{
+												display: "flex",
+												flexDirection: "column",
+												alignItems: "center",
+												gap: 10,
+												fontSize: 13,
+												padding: 24,
+												textAlign: "center",
+											}}
+										>
+											{savedProjects.length === 0 ? (
+												<>
+													<Icon
+														name="folder-open"
+														style={{ width: 32, height: 32, opacity: 0.4 }}
+													/>
+													No saved workbenches yet.
+													<div style={{ opacity: 0.8 }}>
+														Run a prompt to create your first workbench.
+													</div>
+												</>
+											) : (
+												<>
+													No matching workbenches found.
+													<div style={{ opacity: 0.8 }}>
+														Try a different search term.
+													</div>
+													{searchQuery && (
+														<button
+															type="button"
+															className="md-btn"
+															onClick={() => setSearchQuery("")}
+															style={{
+																padding: "6px 10px",
+																fontSize: 12,
+																borderRadius: 8,
+																border:
+																	"1px solid var(--color-outline-variant)",
+																background: "var(--color-surface)",
+																color: "var(--color-on-surface)",
+															}}
+														>
+															Reset
+														</button>
+													)}
+												</>
+											)}
+										</div>
+									) : (
+										<div
+											style={{
+												display: "flex",
+												flexDirection: "column",
+												gap: 8,
+											}}
+										>
+											{filteredProjects.map((project) => {
+												const isDeleting = deletingProjectId === project.id;
+												return (
+													<div
+														key={project.id}
+														style={{
+															display: "flex",
+															alignItems: "center",
+															gap: 8,
+															opacity: isDeleting ? 0.5 : 1,
+															transition: "opacity 0.2s",
+														}}
+													>
+														<button
+															type="button"
+															className="md-btn"
+															onClick={() => {
+																if (onSelectProject) {
+																	onSelectProject(project.id);
+																}
+																onClose();
+															}}
+															disabled={isDeleting}
+															style={{
+																display: "flex",
+																alignItems: "center",
+																gap: 12,
+																padding: "12px 14px",
+																textAlign: "left",
+																background: "var(--color-surface-variant)",
+																border: "1px solid var(--color-outline)",
+																borderRadius: 10,
+																transition:
+																	"box-shadow 0.15s, border-color 0.15s",
+																flex: 1,
+																height: "auto",
+																minHeight: 56,
+															}}
+															onMouseEnter={(e) => {
+																if (isDeleting) return;
+																e.currentTarget.style.boxShadow =
+																	"0 2px 8px rgba(0,0,0,0.08)";
+																e.currentTarget.style.borderColor =
+																	"var(--color-outline-variant)";
+															}}
+															onMouseLeave={(e) => {
+																e.currentTarget.style.boxShadow = "none";
+																e.currentTarget.style.borderColor =
+																	"var(--color-outline)";
+															}}
+															onFocus={(e) => {
+																e.currentTarget.style.boxShadow =
+																	"0 0 0 3px var(--focus-ring, rgba(99,102,241,0.25))";
+																e.currentTarget.style.borderColor =
+																	"var(--color-primary)";
+															}}
+															onBlur={(e) => {
+																e.currentTarget.style.boxShadow = "none";
+																e.currentTarget.style.borderColor =
+																	"var(--color-outline)";
+															}}
+														>
+															<div
+																style={{
+																	display: "flex",
+																	alignItems: "center",
+																	justifyContent: "center",
+																	width: 36,
+																	height: 36,
+																	borderRadius: 8,
+																	background:
+																		"color-mix(in oklab, var(--color-secondary) 15%, transparent)",
+																	color: "var(--color-secondary)",
+																	flexShrink: 0,
+																}}
+															>
+																<Icon
+																	name="file-text"
+																	style={{ width: 18, height: 18 }}
+																/>
+															</div>
+															<div
+																style={{
+																	flex: 1,
+																	minWidth: 0,
+																	overflow: "hidden",
+																}}
+															>
+																<div
+																	style={{
+																		fontSize: 14,
+																		fontWeight: 600,
+																		color: "var(--color-on-surface)",
+																		overflow: "hidden",
+																		textOverflow: "ellipsis",
+																		whiteSpace: "nowrap",
+																		maxWidth: "100%",
+																	}}
+																>
+																	{project.title ?? "Untitled"}
+																</div>
+																<div
+																	style={{
+																		fontSize: 11,
+																		color: "var(--color-on-surface-variant)",
+																		opacity: 0.75,
+																	}}
+																>
+																	{new Date(
+																		project.updatedAt,
+																	).toLocaleDateString(undefined, {
+																		month: "short",
+																		day: "numeric",
+																		year: "numeric",
+																	})}
+																	{" · "}
+																	{new Date(
+																		project.updatedAt,
+																	).toLocaleTimeString(undefined, {
+																		hour: "2-digit",
+																		minute: "2-digit",
+																	})}
+																</div>
+															</div>
+															<Icon
+																name="chevron-right"
+																style={{
+																	width: 16,
+																	height: 16,
+																	opacity: 0.4,
+																	flexShrink: 0,
+																}}
+															/>
+														</button>
+
+														{/* Delete button */}
+														{onDeleteProject && (
+															<button
+																type="button"
+																className="md-btn"
+																onClick={(e) =>
+																	handleDeleteProject(e, project.id)
+																}
+																disabled={isDeleting}
+																title="Delete workbench"
+																aria-label="Delete workbench"
+																style={{
+																	width: 36,
+																	height: 36,
+																	padding: 0,
+																	display: "flex",
+																	alignItems: "center",
+																	justifyContent: "center",
+																	borderRadius: 8,
+																	border: "1px solid rgba(239, 68, 68, 0.2)",
+																	background: "rgba(239, 68, 68, 0.06)",
+																	color: "#ef4444",
+																	flexShrink: 0,
+																	transition: "all 0.15s",
+																}}
+																onMouseEnter={(e) => {
+																	if (isDeleting) return;
+																	e.currentTarget.style.background =
+																		"rgba(239, 68, 68, 0.15)";
+																	e.currentTarget.style.borderColor =
+																		"rgba(239, 68, 68, 0.4)";
+																}}
+																onMouseLeave={(e) => {
+																	e.currentTarget.style.background =
+																		"rgba(239, 68, 68, 0.06)";
+																	e.currentTarget.style.borderColor =
+																		"rgba(239, 68, 68, 0.2)";
+																}}
+															>
+																<Icon
+																	name="trash"
+																	style={{ width: 14, height: 14 }}
+																/>
+															</button>
+														)}
+													</div>
+												);
+											})}
+										</div>
+									)}
+								</>
 							)}
-						</>
-					)}
+						</div>
+					</div>
 				</div>
 			</div>
 		</dialog>

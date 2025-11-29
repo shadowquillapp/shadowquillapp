@@ -29,12 +29,20 @@ export default function SettingsDialog({
 	const [transitionDirection, setTransitionDirection] = useState<"up" | "down">(
 		"down",
 	);
+	const [contentHeight, setContentHeight] = useState<number | "auto">("auto");
 	const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+	const contentWrapperRef = useRef<HTMLDivElement | null>(null);
 
 	// Handle tab switching with animation
 	const handleTabChange = useCallback(
 		(newTab: SettingsTab) => {
 			if (newTab === activeTab || isTransitioning) return;
+
+			// Capture current height before animating
+			const currentHeight = contentWrapperRef.current?.offsetHeight;
+			if (currentHeight) {
+				setContentHeight(currentHeight);
+			}
 
 			// Determine direction based on tab order
 			const currentIndex = TAB_ORDER.indexOf(activeTab);
@@ -53,10 +61,18 @@ export default function SettingsDialog({
 			// After exit animation, switch displayed content and start enter animation
 			transitionTimeoutRef.current = setTimeout(() => {
 				setDisplayedTab(newTab);
-				// Small delay to ensure the new content renders before animation starts
+				// Measure new content height after DOM update
 				requestAnimationFrame(() => {
+					const newHeight = contentWrapperRef.current?.scrollHeight;
+					if (newHeight) {
+						setContentHeight(newHeight);
+					}
 					transitionTimeoutRef.current = setTimeout(() => {
 						setIsTransitioning(false);
+						// After animation completes, reset to auto for dynamic content
+						setTimeout(() => {
+							setContentHeight("auto");
+						}, 200);
 					}, 450); // Duration of enter animation
 				});
 			}, 300); // Duration of exit animation
@@ -69,6 +85,7 @@ export default function SettingsDialog({
 		setActiveTab(initialTab);
 		setDisplayedTab(initialTab);
 		setIsTransitioning(false);
+		setContentHeight("auto");
 	}, [open, initialTab]);
 
 	// Cleanup timeout on unmount
@@ -333,11 +350,16 @@ export default function SettingsDialog({
 								className="settings-tab-content"
 								style={{
 									position: "relative",
+									height: contentHeight === "auto" ? "auto" : contentHeight,
+									transition: "height 0.25s ease-out",
+									overflow: "hidden",
 								}}
 							>
-								{/* Render only the displayed tab with animations */}
-								{(["system", "ollama", "data", "display"] as SettingsTab[]).map(
-									(tab) => {
+								<div ref={contentWrapperRef}>
+									{/* Render only the displayed tab with animations */}
+									{(
+										["system", "ollama", "data", "display"] as SettingsTab[]
+									).map((tab) => {
 										const isDisplayed = displayedTab === tab;
 										const isTargetTab = activeTab === tab;
 
@@ -371,8 +393,8 @@ export default function SettingsDialog({
 												{renderContentFor(tab)}
 											</div>
 										);
-									},
-								)}
+									})}
+								</div>
 							</div>
 						</div>
 					</div>
