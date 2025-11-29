@@ -16,8 +16,6 @@ Desktop AI prompt studio running 100% locally via **Ollama** and **Gemma 3** mod
 
 ## Tech Stack
 
-### Nextron
-
 | Layer | Technology |
 |-------|------------|
 | Framework | Nextron _(Next.js + Electron)_ |
