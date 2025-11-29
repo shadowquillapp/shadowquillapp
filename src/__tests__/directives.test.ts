@@ -60,7 +60,7 @@ describe("buildBaseDirectives", () => {
 	it("should include output length requirement for detailed level", () => {
 		const result = buildBaseDirectives({ detail: "detailed" });
 		expect(
-			result.some((d) => d.includes("350-500") && d.includes("OUTPUT LENGTH")),
+			result.some((d) => d.includes("300-375") && d.includes("OUTPUT LENGTH")),
 		).toBe(true);
 	});
 
