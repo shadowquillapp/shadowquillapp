@@ -2642,26 +2642,28 @@ input[type="checkbox"].md-checkbox:disabled {
 .vh-card--expanded .vh-expand-icon {
 	transform: rotate(180deg);
 }
+.vh-card-body-wrapper {
+	display: grid;
+	grid-template-rows: 0fr;
+	opacity: 0;
+	transition:
+		grid-template-rows 250ms ease-out,
+		opacity 200ms ease-out;
+}
+.vh-card-body-wrapper[data-expanded="true"] {
+	grid-template-rows: 1fr;
+	opacity: 1;
+}
 .vh-card-body {
-	margin-top: 16px;
-	padding-top: 16px;
-	border-top: 1px solid var(--color-outline);
+	overflow: hidden;
 	display: flex;
 	flex-direction: column;
 	gap: 12px;
-	animation: vh-card-expand 200ms ease-out;
 }
-@keyframes vh-card-expand {
-	from {
-		opacity: 0;
-		margin-top: 0;
-		padding-top: 0;
-	}
-	to {
-		opacity: 1;
-		margin-top: 16px;
-		padding-top: 16px;
-	}
+.vh-card-body-wrapper[data-expanded="true"] .vh-card-body {
+	margin-top: 16px;
+	padding-top: 16px;
+	border-top: 1px solid var(--color-outline);
 }
 .vh-content-section {
 	padding: 12px 16px;

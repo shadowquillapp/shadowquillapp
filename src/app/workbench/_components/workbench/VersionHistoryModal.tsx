@@ -272,7 +272,10 @@ export function VersionHistoryModal({
 										</div>
 
 										{/* Card Body - Expanded View */}
-										{isExpanded && (
+										<div
+											className="vh-card-body-wrapper"
+											data-expanded={isExpanded}
+										>
 											<div
 												className="vh-card-body"
 												onClick={(e) => e.stopPropagation()}
@@ -378,7 +381,7 @@ export function VersionHistoryModal({
 													</div>
 												)}
 											</div>
-										)}
+										</div>
 									</article>
 								);
 							})}
