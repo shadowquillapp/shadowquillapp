@@ -7,6 +7,9 @@ interface ShadowQuillViewApi {
 	view?: {
 		getZoomFactor?: () => Promise<number>;
 		setZoomFactor?: (factor: number) => Promise<void>;
+		onZoomChanged?: (
+			callback: (event: unknown, factor: number) => void,
+		) => () => void;
 	};
 	window?: {
 		getSize?: () => Promise<{
@@ -112,9 +115,23 @@ export default function DisplayContent() {
 		return () => window.removeEventListener("resize", onResize);
 	}, []);
 
+	// Listen for zoom changes from keyboard shortcuts
+	React.useEffect(() => {
+		const api = (window as WindowWithShadowQuill).shadowquill;
+		if (!api?.view?.onZoomChanged) return;
+
+		const unsubscribe = api.view.onZoomChanged((_event, factor) => {
+			if (typeof factor === "number" && Number.isFinite(factor)) {
+				setZoomFactor(factor);
+			}
+		});
+
+		return unsubscribe;
+	}, []);
+
 	const applyZoom = async (factor: number) => {
 		const api = (window as WindowWithShadowQuill).shadowquill;
-		const clamped = Math.max(0.5, Math.min(3, factor));
+		const clamped = Math.max(0.8, Math.min(1.5, factor));
 		setZoomFactor(clamped);
 		try {
 			await api?.view?.setZoomFactor?.(clamped);
@@ -245,10 +262,10 @@ export default function DisplayContent() {
 							</button>
 							<input
 								type="range"
-								min={50}
-								max={200}
+								min={80}
+								max={150}
 								step={10}
-								value={Math.max(50, Math.min(200, percent))}
+								value={Math.max(80, Math.min(150, percent))}
 								onChange={(e) => {
 									const v = Number(e.target.value) || 100;
 									void applyZoom(v / 100);

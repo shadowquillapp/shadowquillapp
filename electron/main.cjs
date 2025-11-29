@@ -486,8 +486,8 @@ ipcMain.handle("shadowquill:view:setZoomFactor", (e, factor) => {
 		if (!w) return { ok: false, error: "No window" };
 		let f = Number(factor);
 		if (!Number.isFinite(f)) f = 1;
-		// Clamp to a sensible range
-		f = Math.max(0.5, Math.min(3, f));
+		// Clamp to 80-150% range
+		f = Math.max(0.8, Math.min(1.5, f));
 		w.webContents.setZoomFactor(f);
 		return { ok: true, zoomFactor: f };
 	} catch (err) {
@@ -691,6 +691,49 @@ function createWindow() {
 	} catch (e) {
 		/* ignore if not available */
 	}
+
+	// Intercept keyboard shortcuts for zoom to enforce 80-150% limits
+	win.webContents.on("before-input-event", (event, input) => {
+		if (input.type !== "keyDown") return;
+		const isModified = input.control || input.meta;
+		if (!isModified) return;
+
+		// Handle zoom in (Ctrl/Cmd + Plus, Ctrl/Cmd + =, Ctrl/Cmd + Shift + =, Ctrl/Cmd + NumpadAdd)
+		if (
+			input.key === "+" ||
+			input.key === "=" ||
+			input.key === "Add" ||
+			(input.shift && input.key === "=")
+		) {
+			event.preventDefault();
+			const current = win.webContents.getZoomFactor();
+			const newZoom = Math.min(1.5, current + 0.1);
+			win.webContents.setZoomFactor(newZoom);
+			// Notify renderer of zoom change
+			win.webContents.send("shadowquill:zoom:changed", newZoom);
+			return;
+		}
+
+		// Handle zoom out (Ctrl/Cmd + Minus, Ctrl/Cmd + NumpadSubtract)
+		if (input.key === "-" || input.key === "Subtract") {
+			event.preventDefault();
+			const current = win.webContents.getZoomFactor();
+			const newZoom = Math.max(0.8, current - 0.1);
+			win.webContents.setZoomFactor(newZoom);
+			// Notify renderer of zoom change
+			win.webContents.send("shadowquill:zoom:changed", newZoom);
+			return;
+		}
+
+		// Handle reset zoom (Ctrl/Cmd + 0)
+		if (input.key === "0") {
+			event.preventDefault();
+			win.webContents.setZoomFactor(1.1);
+			// Notify renderer of zoom change
+			win.webContents.send("shadowquill:zoom:changed", 1.1);
+			return;
+		}
+	});
 
 	// Forward found-in-page results to renderer
 	win.webContents.on("found-in-page", (_event, result) => {
@@ -929,9 +972,43 @@ app.whenReady().then(async () => {
 					{ role: "reload" },
 					{ role: "forceReload" },
 					{ type: "separator" },
-					{ role: "resetZoom" },
-					{ role: "zoomIn" },
-					{ role: "zoomOut" },
+					{
+						label: "Reset Zoom",
+						accelerator: "CmdOrCtrl+0",
+						click: () => {
+							const w = BrowserWindow.getFocusedWindow();
+							if (w) {
+								w.webContents.setZoomFactor(1.1);
+								w.webContents.send("shadowquill:zoom:changed", 1.1);
+							}
+						},
+					},
+					{
+						label: "Zoom In",
+						accelerator: "CmdOrCtrl+Plus",
+						click: () => {
+							const w = BrowserWindow.getFocusedWindow();
+							if (w) {
+								const current = w.webContents.getZoomFactor();
+								const newZoom = Math.min(1.5, current + 0.1);
+								w.webContents.setZoomFactor(newZoom);
+								w.webContents.send("shadowquill:zoom:changed", newZoom);
+							}
+						},
+					},
+					{
+						label: "Zoom Out",
+						accelerator: "CmdOrCtrl+-",
+						click: () => {
+							const w = BrowserWindow.getFocusedWindow();
+							if (w) {
+								const current = w.webContents.getZoomFactor();
+								const newZoom = Math.max(0.8, current - 0.1);
+								w.webContents.setZoomFactor(newZoom);
+								w.webContents.send("shadowquill:zoom:changed", newZoom);
+							}
+						},
+					},
 					{ type: "separator" },
 					{ role: "togglefullscreen" },
 					// Intentionally omitted: toggleDevTools

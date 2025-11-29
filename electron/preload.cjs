@@ -23,6 +23,11 @@ contextBridge.exposeInMainWorld("shadowquill", {
 		setZoomFactor: (factor) =>
 			ipcRenderer.invoke("shadowquill:view:setZoomFactor", factor),
 		resetZoom: () => ipcRenderer.invoke("shadowquill:view:resetZoom"),
+		onZoomChanged: (callback) => {
+			ipcRenderer.on("shadowquill:zoom:changed", callback);
+			return () =>
+				ipcRenderer.removeListener("shadowquill:zoom:changed", callback);
+		},
 	},
 	find: {
 		findInPage: (text, options) =>
