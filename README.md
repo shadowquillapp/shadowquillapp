@@ -97,10 +97,9 @@ Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Relea
 
 **Pre-Packed with 16 ShadowQuill Default Presets**
 
-`Blog Writer` • `Brainstorm Partner` • `Bug Fixer` • `Code Architect`
-`Code Explainer` • `Concept Art` • `Daily Assistant` • `Deep Research`
-`Inbox Zero` • `Launch Copy` • `Meeting Minutes` • `Photorealistic`
-`Smart Summaries` • `Social Clip` • `Social Media Pro` • `Storyteller`
+`Daily Helper` • `Brainstormer` • `Summary Ultra`
+`Code Architect` • `Bug Fixer` • `Code Explainer`
+`Blog Writer` • `Email Pro` • `Deep Research` • `Social Media`
 
 #### Settings
 

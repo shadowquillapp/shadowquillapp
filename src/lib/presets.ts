@@ -185,7 +185,7 @@ export function getDefaultPresets(): Preset[] {
 		},
 		{
 			id: "smart-summarizer",
-			name: "Smart Summary",
+			name: "Summary Ultra",
 			taskType: "general",
 			options: {
 				tone: "neutral",
