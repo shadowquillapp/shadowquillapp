@@ -140,11 +140,12 @@ npm run test:coverage    # With coverage report
 npm run dev              # Open ShadowQuill app in dev mode
 ```
 
-## Privacy & Security
+## Our Development Philosophy
 
-- **Offline** - Works without internet (after model download)
+- **Offline** - Works without internet (after ShadowQuill and Ollama+Gemma 3 download)
 - **No Telemetry** - Zero tracking
-- **Local Storage** - All data saved to OS local user directory
+- **Local Storage** - All data saved to user's local userdata directory
+- **Lean Package Build** - Only 5 dependencies and 18 dev dependencies (23 total)
 
 ## Contributing
 
