@@ -118,6 +118,12 @@
 	color: var(--color-on-surface);
 }
 
+.modal-title svg {
+	width: 20px;
+	height: 20px;
+	flex-shrink: 0;
+}
+
 /* ========================================
  * RESPONSIVE ADJUSTMENTS
  * ======================================== */

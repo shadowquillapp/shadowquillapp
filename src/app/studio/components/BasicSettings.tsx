@@ -189,13 +189,13 @@ export default function BasicSettings({
 						value={options.language || "English"}
 						onChange={(v) => onFieldChange("language", v)}
 						options={[
-							{ value: "English", label: "🇬🇧 English" },
-							{ value: "Dutch", label: "🇳🇱 Dutch" },
-							{ value: "German", label: "🇩🇪 German" },
-							{ value: "French", label: "🇫🇷 French" },
-							{ value: "Spanish", label: "🇪🇸 Spanish" },
-							{ value: "Arabic", label: "🇸🇦 Arabic" },
-							{ value: "Mandarin", label: "🇨🇳 Mandarin" },
+							{ value: "English", label: "English" },
+							{ value: "Dutch", label: "Dutch" },
+							{ value: "German", label: "German" },
+							{ value: "French", label: "French" },
+							{ value: "Spanish", label: "Spanish" },
+							{ value: "Arabic", label: "Arabic" },
+							{ value: "Mandarin", label: "Mandarin" },
 						]}
 					/>
 				</div>
