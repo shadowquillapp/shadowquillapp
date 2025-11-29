@@ -1,11 +1,10 @@
 "use client";
 
 import {
-	faChevronDown,
-	faChevronUp,
-	faTimes,
-} from "@fortawesome/free-solid-svg-icons";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+	ChevronDownIcon,
+	ChevronUpIcon,
+	XMarkIcon,
+} from "@heroicons/react/24/solid";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const HIGHLIGHT_CLASS = "find-highlight";
@@ -336,7 +335,7 @@ export default function FindBar() {
 				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:bg-surface-a20 hover:text-[var(--color-on-surface)] disabled:cursor-not-allowed disabled:opacity-40"
 				title="Previous (Shift+Enter)"
 			>
-				<FontAwesomeIcon icon={faChevronUp} className="h-3 w-3" />
+				<ChevronUpIcon className="h-3 w-3" />
 			</button>
 
 			<button
@@ -346,7 +345,7 @@ export default function FindBar() {
 				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:bg-surface-a20 hover:text-[var(--color-on-surface)] disabled:cursor-not-allowed disabled:opacity-40"
 				title="Next (Enter)"
 			>
-				<FontAwesomeIcon icon={faChevronDown} className="h-3 w-3" />
+				<ChevronDownIcon className="h-3 w-3" />
 			</button>
 
 			<button
@@ -355,7 +354,7 @@ export default function FindBar() {
 				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:bg-surface-a20 hover:text-[var(--color-on-surface)]"
 				title="Close (Escape)"
 			>
-				<FontAwesomeIcon icon={faTimes} className="h-3 w-3" />
+				<XMarkIcon className="h-3 w-3" />
 			</button>
 		</div>
 	);
