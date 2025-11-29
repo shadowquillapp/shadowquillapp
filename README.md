@@ -37,7 +37,7 @@ Desktop AI prompt studio running 100% locally via **Ollama** and **Gemma 3** mod
 
 ## Getting Started
 
-### 1. Prerequisites
+### 1. <ins>Prerequisites</ins>
 
 #### Install Ollama
 
@@ -77,11 +77,11 @@ ollama pull gemma3:27b # Gemma 3 27B Model
 
 > **Note:** Download models through Ollama (CLI or chat interface), not ShadowQuill. ShadowQuill auto-detects installed Gemma 3 models.
 
-### 2. Install ShadowQuill
+### 2. <ins>Install ShadowQuill</ins>
 
 Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Releases](https://github.com/shadowquillapp/shadowquillapp/releases)
 
-### 3. Usage
+### 3. <ins>Usage</ins>
 
 #### Prompt Workbench
 
@@ -110,18 +110,7 @@ Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Relea
 
 `Daily Helper` • `Brainstormer` • `Summary Ultra` • `Code Architect` • `Bug Fixer` • `Code Explainer` • `Blog Writer` • `Email Pro` • `Deep Research` • `Social Media`
 
-#### Settings
-
-Access via gear icon.
-
-| Tab | Description |
-|-----|-------------|
-| **Ollama Setup** | Connection, view/manage Gemma 3 models (4b/12b/27b) |
-| **System Prompt** | Customize base system prompt |
-| **Data Management** | Storage paths, export/import, factory reset |
-| **Display** | Themes, zoom (50%-200%) |
-
-## Development
+## Development `npm` Commands
 
 ```bash
 npm install              # Install dependencies
