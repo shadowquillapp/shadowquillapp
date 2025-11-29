@@ -1,0 +1,74 @@
+/**
+ * ==========================================================================
+ * LOADER COMPONENTS
+ * ==========================================================================
+ *
+ * Loading indicators and spinners.
+ *
+ * COMPONENT CLASSES:
+ * - .luxury-loader: Animated loading indicator
+ * - .md-spin: Spinning animation utility
+ * ==========================================================================
+ */
+
+/* ========================================
+ * LUXURY LOADER (.luxury-loader)
+ * Animated loading indicator with text
+ * ======================================== */
+
+.luxury-loader {
+	display: flex;
+	align-items: center;
+	gap: 16px;
+	padding: 8px 0;
+}
+
+.luxury-loader__icon {
+	width: 32px;
+	height: 32px;
+	color: var(--color-primary);
+	animation: luxury-float 3.5s ease-in-out infinite;
+	filter: drop-shadow(0 0 12px var(--color-primary-variant));
+}
+
+.luxury-loader__text {
+	font-weight: 700;
+	font-size: 16px;
+	letter-spacing: .5px;
+	background: linear-gradient(
+		90deg,
+		var(--color-on-surface-variant) 0%,
+		var(--color-primary) 50%,
+		var(--color-on-surface-variant) 100%
+	);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
+	animation: luxury-shimmer 3s linear infinite;
+}
+
+/* ========================================
+ * LUXURY LOADER ANIMATIONS
+ * ======================================== */
+
+@keyframes luxury-float {
+	0%,
+	100% {
+		transform: translateY(0) rotate(0deg);
+		opacity: 0.85;
+	}
+	50% {
+		transform: translateY(-5px) rotate(8deg);
+		opacity: 1;
+	}
+}
+
+@keyframes luxury-shimmer {
+	0% {
+		background-position: 100% 0;
+	}
+	100% {
+		background-position: -100% 0;
+	}
+}

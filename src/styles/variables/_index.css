@@ -1,0 +1,18 @@
+/**
+ * ==========================================================================
+ * VARIABLES INDEX
+ * ==========================================================================
+ *
+ * Entry point for all CSS custom property definitions.
+ * Import this file to access the complete design token system.
+ *
+ * STRUCTURE:
+ * - _typography.css: Font families and text-related tokens
+ * - _colors.css: Color palette and semantic color tokens
+ * - _spacing.css: Spacing scale, radius, and shadows
+ * ==========================================================================
+ */
+
+@import "./_typography.css";
+@import "./_colors.css";
+@import "./_spacing.css";

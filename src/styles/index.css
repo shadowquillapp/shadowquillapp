@@ -1,0 +1,133 @@
+/**
+ * ==========================================================================
+ * SHADOWQUILL STYLES - MAIN ENTRY POINT
+ * ==========================================================================
+ *
+ * This is the main entry point for all application styles. It imports
+ * Tailwind CSS and all modular style files in the correct order.
+ *
+ * ARCHITECTURE:
+ *
+ * 0. TAILWIND
+ *    Tailwind CSS base, components, and utilities.
+ *
+ * 1. VARIABLES
+ *    CSS custom properties for colors, spacing, typography, and shadows.
+ *    These establish the design token system used throughout the app.
+ *
+ * 2. THEMES
+ *    Theme-specific variable overrides for different color schemes.
+ *    Themes are activated via data-theme attribute on the root element.
+ *
+ * 3. BASE
+ *    Foundational styles including reset, scrollbars, and typography.
+ *    These normalize browser defaults and set up core element styling.
+ *
+ * 4. COMPONENTS
+ *    Reusable UI components like buttons, inputs, cards, modals, etc.
+ *    These are self-contained and can be used across the application.
+ *
+ * 5. FEATURES
+ *    Feature-specific styles for complete UI sections like the workbench,
+ *    version history, Ollama setup, etc.
+ *
+ * 6. UTILITIES
+ *    Single-purpose utility classes for common styling needs like
+ *    spacing, text alignment, etc.
+ *
+ * 7. ANIMATIONS
+ *    Keyframe definitions and animation utility classes.
+ *
+ * USAGE:
+ * Import this file in your main app entry point (layout.tsx).
+ *
+ * THEMES:
+ * - default (earth): Warm, earthy tones (no data-theme needed)
+ * - purpledark: Vibrant purple accents
+ * - dark: Neutral dark with blue accents
+ * - light: Clean light theme
+ *
+ * Set theme via: <html data-theme="dark">
+ *
+ * FILE STRUCTURE:
+ *
+ * src/styles/
+ * ├── index.css              # This file - main entry point
+ * ├── variables/             # CSS custom properties (design tokens)
+ * │   ├── _colors.css        # Color palette and semantic colors
+ * │   ├── _spacing.css       # Spacing scale, radius, shadows
+ * │   └── _typography.css    # Font families
+ * ├── themes/                # Theme-specific overrides
+ * │   ├── _purpledark.css    # Purple dark theme
+ * │   ├── _dark.css          # Standard dark theme
+ * │   └── _light.css         # Light theme
+ * ├── base/                  # Foundational styles
+ * │   ├── _reset.css         # Browser reset & defaults
+ * │   ├── _scrollbar.css     # Custom scrollbar styling
+ * │   └── _typography.css    # Text utilities
+ * ├── components/            # Reusable UI components
+ * │   ├── _buttons.css       # Button variants
+ * │   ├── _inputs.css        # Form inputs
+ * │   ├── _chips.css         # Chip/tag components
+ * │   ├── _cards.css         # Card containers
+ * │   ├── _modals.css        # Modal dialogs
+ * │   ├── _menus.css         # Dropdown menus
+ * │   ├── _links.css         # Styled links
+ * │   ├── _loaders.css       # Loading indicators
+ * │   ├── _code-blocks.css   # Code display & syntax
+ * │   ├── _toasts.css        # Toast notifications
+ * │   ├── _mode-toggle.css   # Toggle switches
+ * │   └── _message-bubble.css # Chat bubbles
+ * ├── features/              # Feature-specific styles
+ * │   ├── _ollama.css        # Ollama setup UI
+ * │   ├── _workbench.css     # Prompt workbench
+ * │   ├── _version-history.css # Version history
+ * │   ├── _refine-panel.css  # Refinement panel
+ * │   └── _find-highlight.css # Search highlighting
+ * ├── utilities/             # Utility classes
+ * │   └── _spacing.css       # Padding/gap utilities
+ * └── animations/            # Animation definitions
+ *     └── _index.css         # Keyframes & animation classes
+ *
+ * ==========================================================================
+ */
+
+/* ========================================
+ * 0. TAILWIND CSS
+ * ======================================== */
+@import "tailwindcss";
+
+/* ========================================
+ * 1. VARIABLES (Design Tokens)
+ * ======================================== */
+@import "./variables/_index.css";
+
+/* ========================================
+ * 2. THEMES (Variable Overrides)
+ * ======================================== */
+@import "./themes/_index.css";
+
+/* ========================================
+ * 3. BASE (Reset & Defaults)
+ * ======================================== */
+@import "./base/_index.css";
+
+/* ========================================
+ * 4. COMPONENTS (Reusable UI)
+ * ======================================== */
+@import "./components/_index.css";
+
+/* ========================================
+ * 5. FEATURES (Feature-specific UI)
+ * ======================================== */
+@import "./features/_index.css";
+
+/* ========================================
+ * 6. UTILITIES (Helper Classes)
+ * ======================================== */
+@import "./utilities/_index.css";
+
+/* ========================================
+ * 7. ANIMATIONS (Keyframes & Utilities)
+ * ======================================== */
+@import "./animations/_index.css";

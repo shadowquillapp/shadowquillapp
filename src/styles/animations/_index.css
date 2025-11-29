@@ -1,0 +1,176 @@
+/**
+ * ==========================================================================
+ * ANIMATIONS
+ * ==========================================================================
+ *
+ * Keyframe animations and animation utility classes.
+ *
+ * CONTENTS:
+ * - Core animations (spin, pulse, fade)
+ * - Feature-specific animations (version, output, page)
+ * - Animation utility classes
+ * ==========================================================================
+ */
+
+/* ========================================
+ * CORE ANIMATIONS
+ * ======================================== */
+
+/* Spin animation */
+@keyframes md-spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.md-spin {
+	animation: md-spin 1s linear infinite;
+}
+
+/* ========================================
+ * UI ELEMENT ANIMATIONS
+ * ======================================== */
+
+/* Dropdown arrow rotation */
+.dropdown-arrow {
+	transition: transform 200ms ease;
+}
+
+.dropdown-arrow--open {
+	transform: rotate(180deg);
+}
+
+/* ========================================
+ * VERSION/OUTPUT ANIMATIONS
+ * ======================================== */
+
+/* Version pulse on update */
+@keyframes version-pulse {
+	0% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 var(--color-primary);
+	}
+	50% {
+		transform: scale(1.02);
+		box-shadow: 0 0 0 4px
+			color-mix(in srgb, var(--color-primary) 30%, transparent);
+	}
+	100% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 transparent;
+	}
+}
+
+/* Badge pulse for generating state */
+@keyframes badge-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+		box-shadow: 0 0 0 0 var(--color-primary);
+	}
+	50% {
+		transform: scale(1.05);
+		box-shadow: 0 0 0 3px
+			color-mix(in srgb, var(--color-primary) 25%, transparent);
+	}
+}
+
+/* Status indicator pulse */
+@keyframes status-pulse {
+	0%,
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+	50% {
+		opacity: 0.5;
+		transform: scale(0.8);
+	}
+}
+
+/* Version created entrance */
+@keyframes version-created {
+	0% {
+		opacity: 0;
+		transform: translateY(-10px) scale(0.95);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+}
+
+.version-just-created {
+	animation: version-created 400ms ease-out;
+}
+
+/* Output fade in */
+@keyframes output-fade-in {
+	0% {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.output-animate-in {
+	animation: output-fade-in 300ms ease-out;
+}
+
+/* Version switch transition */
+@keyframes version-switch {
+	0% {
+		opacity: 0.5;
+		transform: scale(0.98);
+	}
+	100% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.version-switching {
+	animation: version-switch 200ms ease-out;
+}
+
+/* Generating border pulse */
+@keyframes generating-pulse {
+	0%,
+	100% {
+		border-color: var(--color-outline);
+	}
+	50% {
+		border-color: var(--color-primary);
+	}
+}
+
+.output-generating {
+	animation: generating-pulse 1.5s ease-in-out infinite;
+}
+
+/* ========================================
+ * PAGE ANIMATIONS
+ * ======================================== */
+
+/* Page entrance */
+@keyframes page-fade-in {
+	0% {
+		opacity: 0;
+		transform: translateY(12px);
+	}
+	100% {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.simple-workbench,
+.page-animate {
+	animation: page-fade-in 800ms cubic-bezier(0.16, 1, 0.3, 1);
+}

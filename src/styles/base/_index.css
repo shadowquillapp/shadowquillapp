@@ -1,0 +1,18 @@
+/**
+ * ==========================================================================
+ * BASE STYLES INDEX
+ * ==========================================================================
+ *
+ * Entry point for base/foundational styles.
+ * These establish the baseline for the entire application.
+ *
+ * IMPORT ORDER:
+ * 1. Reset - Normalize browser defaults
+ * 2. Scrollbar - Custom scrollbar styling
+ * 3. Typography - Text utilities
+ * ==========================================================================
+ */
+
+@import "./_reset.css";
+@import "./_scrollbar.css";
+@import "./_typography.css";

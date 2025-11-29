@@ -1,0 +1,112 @@
+/**
+ * ==========================================================================
+ * INPUT COMPONENTS
+ * ==========================================================================
+ *
+ * Form input elements including text inputs, selects, and checkboxes.
+ *
+ * COMPONENT CLASSES:
+ * - .md-input: Text input field
+ * - .md-select: Dropdown select
+ * - .md-checkbox: Custom checkbox
+ * ==========================================================================
+ */
+
+/* ========================================
+ * TEXT INPUT (.md-input)
+ * ======================================== */
+
+.md-input {
+	background: var(--color-surface-variant);
+	color: var(--color-on-surface);
+	border: 1px solid var(--color-outline);
+	border-radius: 12px;
+	padding: 12px 16px;
+	box-shadow: var(--shadow-1);
+}
+
+.md-input:focus {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 0;
+	border-color: var(--color-primary);
+}
+
+/* ========================================
+ * SELECT DROPDOWN (.md-select)
+ * ======================================== */
+
+.md-select {
+	height: 40px;
+	border-radius: 12px;
+	border: 1px solid var(--color-outline);
+	background: var(--color-surface-variant);
+	color: var(--color-on-surface);
+	padding: 0 40px 0 16px;
+	appearance: none;
+	position: relative;
+	font-size: 13px;
+	width: 100%;
+	cursor: pointer;
+}
+
+.md-select:focus {
+	border-color: var(--color-primary);
+	outline: 2px solid var(--color-primary);
+	outline-offset: 0;
+}
+
+/* ========================================
+ * CHECKBOX (.md-checkbox)
+ * Custom styled checkbox
+ * ======================================== */
+
+input[type="checkbox"].md-checkbox {
+	appearance: none !important;
+	-webkit-appearance: none !important;
+	-moz-appearance: none !important;
+	width: 18px !important;
+	height: 18px !important;
+	min-width: 18px;
+	min-height: 18px;
+	border: 2px solid var(--color-outline) !important;
+	border-radius: 4px !important;
+	background: var(--color-surface-variant) !important;
+	cursor: pointer;
+	position: relative;
+	transition: all 150ms ease;
+	flex-shrink: 0;
+	margin: 0;
+}
+
+input[type="checkbox"].md-checkbox:hover {
+	border-color: var(--color-primary) !important;
+	background: var(--color-surface) !important;
+}
+
+input[type="checkbox"].md-checkbox:checked {
+	background: var(--color-primary) !important;
+	border-color: var(--color-primary) !important;
+}
+
+input[type="checkbox"].md-checkbox:checked::after {
+	content: "" !important;
+	position: absolute;
+	left: 5px;
+	top: 2px;
+	width: 4px;
+	height: 8px;
+	border: solid var(--color-on-primary);
+	border-width: 0 2px 2px 0;
+	transform: rotate(45deg);
+	display: block;
+}
+
+input[type="checkbox"].md-checkbox:focus-visible {
+	outline: 2px solid var(--color-primary) !important;
+	outline-offset: 2px;
+}
+
+input[type="checkbox"].md-checkbox:disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
+}

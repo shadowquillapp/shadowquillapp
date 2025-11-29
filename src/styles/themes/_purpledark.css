@@ -1,0 +1,80 @@
+/**
+ * ==========================================================================
+ * PURPLE DARK THEME
+ * ==========================================================================
+ *
+ * A vibrant dark theme with purple accents.
+ * Provides high contrast and a modern aesthetic.
+ *
+ * ACTIVATION: Set data-theme="purpledark" on the root element
+ * ==========================================================================
+ */
+
+[data-theme="purpledark"] {
+	/* Surface colors */
+	--color-surface: #0f0f17;
+	--color-surface-variant: #1a1a2e;
+	--color-outline: #2a2a3e;
+
+	/* Text colors */
+	--color-on-surface: #e8e8f0;
+	--color-on-surface-variant: #a8a8bd;
+
+	/* Primary colors */
+	--color-primary: #8b7cf6;
+	--color-primary-variant: #6d5bf0;
+	--color-on-primary: #fff;
+
+	/* Status colors */
+	--color-save: #65a15f;
+	--color-save-variant: #288020;
+	--color-on-save: #fff;
+	--color-attention: #e4a14a;
+	--color-attention-variant: #a76d21;
+	--color-on-attention: #fff;
+
+	/* Tab colors */
+	--color-tab-active: #e056a0;
+	--color-tab-active-variant: #c44588;
+
+	/* Special UI colors */
+	--color-titlebar-background: #5450a8;
+	--workbench-composer-background: #2e2a4bef;
+
+	/* Palette colors */
+	--darka0: #0f0f17;
+	--lighta0: #e8e8f0;
+	--primarya0: #8b7cf6;
+	--primarya10: #6d5bf0;
+	--primarya20: #5a4fcf;
+	--primarya30: #a594f7;
+	--primarya40: #c4b9f8;
+	--primarya50: #e8e4fc;
+	--accenta0: #6d5bf0;
+
+	/* Surface palette */
+	--surfacea0: #0f0f17;
+	--surfacea10: #1a1a2e;
+	--surfacea20: #2a2a3e;
+	--surfacea30: #3a3a4e;
+	--surfacea40: #2a2a3e;
+	--surfacea50: #a8a8bd;
+
+	/* Surface tonal palette */
+	--surfacetonala0: #0f0f17;
+	--surfacetonala10: #1a1a2e;
+	--surfacetonala20: #2a2a3e;
+	--surfacetonala30: #3a3a4e;
+	--surfacetonala40: #2a2a3e;
+	--surfacetonala50: #a8a8bd;
+
+	/* Component colors */
+	--buttonbg: #8b7cf6;
+	--buttontext: #fff;
+	--dropdownbg: #1a1a2e;
+	--cardbg: #1a1a2e;
+
+	/* Shadows */
+	--shadow-1: 0 2px 8px #0f0f1766;
+	--shadow-2: 0 6px 16px #0f0f1780;
+}

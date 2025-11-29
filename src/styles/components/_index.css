@@ -1,0 +1,36 @@
+/**
+ * ==========================================================================
+ * COMPONENTS INDEX
+ * ==========================================================================
+ *
+ * Entry point for all reusable UI components.
+ * Components are organized by functionality and type.
+ *
+ * STRUCTURE:
+ * - buttons: All button variants
+ * - inputs: Form inputs (text, select, checkbox)
+ * - chips: Tag/chip components
+ * - cards: Card and surface containers
+ * - modals: Modal dialog components
+ * - menus: Dropdown menus
+ * - links: Styled anchor links
+ * - loaders: Loading indicators
+ * - code-blocks: Code display and syntax highlighting
+ * - toasts: Toast notifications
+ * - mode-toggle: Toggle switch component
+ * - message-bubble: Chat message bubbles
+ * ==========================================================================
+ */
+
+@import "./_buttons.css";
+@import "./_inputs.css";
+@import "./_chips.css";
+@import "./_cards.css";
+@import "./_modals.css";
+@import "./_menus.css";
+@import "./_links.css";
+@import "./_loaders.css";
+@import "./_code-blocks.css";
+@import "./_toasts.css";
+@import "./_mode-toggle.css";
+@import "./_message-bubble.css";

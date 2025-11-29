@@ -1,4 +1,4 @@
-import "@/styles/globals.css";
+import "@/styles/index.css";
 // Removed old theme overrides for fresh Material baseline
 // Local Font Awesome CSS (installed via @fortawesome/fontawesome-free for offline use)
 // Using tree-shaken SVG Font Awesome via react component; no global CSS import needed.

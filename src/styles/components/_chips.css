@@ -1,0 +1,43 @@
+/**
+ * ==========================================================================
+ * CHIP COMPONENTS
+ * ==========================================================================
+ *
+ * Chip/tag-style components for displaying labels and status.
+ *
+ * COMPONENT CLASSES:
+ * - .md-chip: Standard chip
+ * - .workbench-chip: Workbench-specific chip
+ * ==========================================================================
+ */
+
+/* ========================================
+ * STANDARD CHIP (.md-chip)
+ * ======================================== */
+
+.md-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 8px 12px;
+	border-radius: 999px;
+	background: var(--color-surface-variant);
+	border: 1px solid var(--color-outline);
+	color: var(--color-on-surface);
+	cursor: pointer;
+}
+
+/* ========================================
+ * WORKBENCH CHIP
+ * Smaller chip variant for workbench UI
+ * ======================================== */
+
+.workbench-chip {
+	border: 1px solid var(--color-outline);
+	border-radius: 999px;
+	padding: 2px 8px;
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+	color: var(--color-on-surface-variant);
+}

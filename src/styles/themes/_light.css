@@ -1,0 +1,80 @@
+/**
+ * ==========================================================================
+ * LIGHT THEME
+ * ==========================================================================
+ *
+ * A clean light theme with blue accents.
+ * Optimal for daytime use and high ambient light conditions.
+ *
+ * ACTIVATION: Set data-theme="light" on the root element
+ * ==========================================================================
+ */
+
+[data-theme="light"] {
+	/* Surface colors */
+	--color-surface: #fafbfc;
+	--color-surface-variant: #fff;
+	--color-outline: #d1d9e0;
+
+	/* Text colors */
+	--color-on-surface: #1a202c;
+	--color-on-surface-variant: #4a5568;
+
+	/* Primary colors */
+	--color-primary: #2563eb;
+	--color-primary-variant: #1e40af;
+	--color-on-primary: #fff;
+
+	/* Status colors */
+	--color-save: #059669;
+	--color-save-variant: #047857;
+	--color-on-save: #fff;
+	--color-attention: #dc2626;
+	--color-attention-variant: #b91c1c;
+	--color-on-attention: #fff;
+
+	/* Tab colors */
+	--color-tab-active: #0891b2;
+	--color-tab-active-variant: #0e7490;
+
+	/* Special UI colors */
+	--color-titlebar-background: #e5e9f0;
+	--workbench-composer-background: #fffe;
+
+	/* Palette colors */
+	--darka0: #fafbfc;
+	--lighta0: #1a202c;
+	--primarya0: #2563eb;
+	--primarya10: #1e40af;
+	--primarya20: #1e3a8a;
+	--primarya30: #60a5fa;
+	--primarya40: #93c5fd;
+	--primarya50: #dbeafe;
+	--accenta0: #1e40af;
+
+	/* Surface palette */
+	--surfacea0: #fafbfc;
+	--surfacea10: #fff;
+	--surfacea20: #f3f4f6;
+	--surfacea30: #e5e7eb;
+	--surfacea40: #d1d5db;
+	--surfacea50: #6b7280;
+
+	/* Surface tonal palette */
+	--surfacetonala0: #fafbfc;
+	--surfacetonala10: #f9fafb;
+	--surfacetonala20: #f3f4f6;
+	--surfacetonala30: #e5e7eb;
+	--surfacetonala40: #d1d5db;
+	--surfacetonala50: #6b7280;
+
+	/* Component colors */
+	--buttonbg: #2563eb;
+	--buttontext: #fff;
+	--dropdownbg: #fff;
+	--cardbg: #fff;
+
+	/* Shadows - softer for light theme */
+	--shadow-1: 0 1px 3px #0000000d, 0 1px 2px #0000000f;
+	--shadow-2: 0 4px 6px -1px #0000001a, 0 2px 4px -1px #0000000f;
+}

@@ -1,0 +1,73 @@
+/**
+ * ==========================================================================
+ * MODE TOGGLE COMPONENT
+ * ==========================================================================
+ *
+ * Sliding toggle switch for mode selection.
+ *
+ * COMPONENT CLASSES:
+ * - .mode-toggle: Container
+ * - .mode-toggle-option: Individual toggle option
+ * - .mode-toggle-slider: Sliding indicator
+ * ==========================================================================
+ */
+
+/* ========================================
+ * MODE TOGGLE (.mode-toggle)
+ * Container for the toggle switch
+ * ======================================== */
+
+.mode-toggle {
+	display: flex;
+	background: var(--color-surface);
+	border: 1px solid var(--color-outline);
+	border-radius: 20px;
+	padding: 2px;
+	position: relative;
+	width: 200px;
+	height: 36px;
+}
+
+/* ========================================
+ * TOGGLE OPTION (.mode-toggle-option)
+ * Individual selectable option
+ * ======================================== */
+
+.mode-toggle-option {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 14px;
+	font-weight: 500;
+	cursor: pointer;
+	border-radius: 18px;
+	transition: all 200ms ease;
+	z-index: 2;
+	position: relative;
+}
+
+.mode-toggle-option--active {
+	color: var(--color-on-primary);
+}
+
+.mode-toggle-option--inactive {
+	color: var(--color-on-surface-variant);
+}
+
+/* ========================================
+ * TOGGLE SLIDER (.mode-toggle-slider)
+ * Animated sliding indicator
+ * ======================================== */
+
+.mode-toggle-slider {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: calc(50% - 2px);
+	height: calc(100% - 4px);
+	background: var(--color-primary);
+	border-radius: 18px;
+	transition: transform 200ms ease;
+	z-index: 1;
+}

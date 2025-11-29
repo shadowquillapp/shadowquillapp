@@ -1,0 +1,20 @@
+/**
+ * ==========================================================================
+ * TYPOGRAPHY UTILITIES
+ * ==========================================================================
+ *
+ * Text-related utility classes for consistent typography styling.
+ * ==========================================================================
+ */
+
+/* ========================================
+ * TEXT COLOR UTILITIES
+ * ======================================== */
+
+.text-secondary {
+	color: var(--color-on-surface-variant) !important;
+}
+
+.text-primary {
+	color: var(--color-primary) !important;
+}

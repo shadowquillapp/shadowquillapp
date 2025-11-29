@@ -1,0 +1,482 @@
+/**
+ * ==========================================================================
+ * REFINE PANEL FEATURE STYLES
+ * ==========================================================================
+ *
+ * Styles for the refinement panel and timeline components.
+ *
+ * COMPONENT CLASSES:
+ * - .refine-panel: Main refinement panel container
+ * - .refine-timeline: Refinement history timeline
+ * ==========================================================================
+ */
+
+/* ========================================
+ * REFINE PANEL CONTAINER
+ * ======================================== */
+
+.refine-panel {
+	border-bottom: 1px solid
+		color-mix(in srgb, var(--color-primary), transparent 75%);
+	background: linear-gradient(
+		135deg,
+		color-mix(in srgb, var(--color-primary), var(--color-surface) 95%) 0%,
+		color-mix(in srgb, var(--color-primary), var(--color-surface) 97%) 100%
+	);
+}
+
+/* ========================================
+ * CONTENT WRAPPER (Collapsible)
+ * ======================================== */
+
+.refine-panel__content-wrapper {
+	display: grid;
+	grid-template-rows: 0fr;
+	transition: grid-template-rows 200ms ease-out;
+}
+
+.refine-panel--expanded .refine-panel__content-wrapper {
+	grid-template-rows: 1fr;
+}
+
+.refine-panel__content-inner {
+	overflow: hidden;
+}
+
+.refine-panel__content-inner > .refine-timeline {
+	opacity: 0;
+	transform: translateY(-8px);
+	transition: opacity 150ms ease-out, transform 150ms ease-out;
+	transition-delay: 0ms;
+}
+
+.refine-panel--expanded .refine-panel__content-inner > .refine-timeline {
+	opacity: 1;
+	transform: translateY(0);
+	transition-delay: 50ms;
+}
+
+/* ========================================
+ * PANEL HEADER
+ * ======================================== */
+
+.refine-panel__header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 10px;
+	min-height: 28px;
+	cursor: pointer;
+	user-select: none;
+	transition: background 120ms ease;
+	border: none;
+	background: none;
+	width: 100%;
+	text-align: left;
+}
+
+.refine-panel__header:hover {
+	background: transparent;
+}
+
+.refine-panel__header:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
+
+.refine-panel__left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	flex-shrink: 0;
+}
+
+.refine-panel__badge {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.refine-panel__badge-icon {
+	width: 10px;
+	height: 10px;
+	color: var(--color-primary);
+}
+
+.refine-panel__badge-text {
+	font-size: 10px;
+	font-weight: 600;
+	color: var(--color-primary);
+	letter-spacing: .01em;
+}
+
+.refine-panel__meta {
+	font-size: 9px;
+	color: var(--color-on-surface-variant);
+	opacity: 0.6;
+}
+
+.refine-count {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 10px;
+	color: var(--color-on-surface-variant);
+}
+
+/* ========================================
+ * TOGGLE CONTROL
+ * ======================================== */
+
+.refine-panel__toggle {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+	padding: 2px 6px 2px 12px;
+	border-radius: 4px;
+	color: var(--color-on-surface-variant);
+	opacity: 0.4;
+	transition: opacity 120ms ease, background 120ms ease;
+	font-size: 9px;
+	font-weight: 500;
+	margin-left: auto;
+	flex-shrink: 0;
+}
+
+.refine-panel__header:hover .refine-panel__toggle {
+	opacity: 0.8;
+}
+
+.refine-panel__toggle:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
+
+.refine-panel__toggle-icon {
+	width: 9px;
+	height: 9px;
+	transition: transform 150ms ease;
+}
+
+.refine-panel--expanded .refine-panel__toggle-icon {
+	transform: rotate(180deg);
+}
+
+/* ========================================
+ * PREVIEW (collapsed state)
+ * ======================================== */
+
+.refine-panel__preview {
+	flex: 1;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 4px;
+	min-width: 0;
+	font-size: 9px;
+	color: var(--color-on-surface-variant);
+	opacity: 0.6;
+	overflow: hidden;
+}
+
+.refine-panel__preview-label {
+	font-weight: 600;
+	flex-shrink: 0;
+}
+
+.refine-panel__preview-text {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-style: italic;
+}
+
+/* ========================================
+ * REFINE TIMELINE
+ * ======================================== */
+
+.refine-timeline {
+	padding: 2px 10px 8px;
+	max-height: 220px;
+	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
+}
+
+.refine-timeline::-webkit-scrollbar {
+	width: 4px;
+}
+
+.refine-timeline::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+.refine-timeline::-webkit-scrollbar-thumb {
+	background: color-mix(in srgb, var(--color-outline), transparent 40%);
+	border-radius: 2px;
+}
+
+.refine-timeline::-webkit-scrollbar-thumb:hover {
+	background: var(--color-outline);
+}
+
+/* ========================================
+ * TIMELINE ITEM
+ * ======================================== */
+
+.refine-timeline__item {
+	display: flex;
+	gap: 8px;
+	position: relative;
+	padding: 4px 0;
+	transition: background 100ms ease;
+	border: none;
+	background: none;
+	width: 100%;
+	text-align: left;
+}
+
+.refine-timeline__item:hover {
+	background: color-mix(in srgb, var(--color-primary), transparent 96%);
+	border-radius: 6px;
+	margin: 0 -4px;
+	padding: 4px;
+}
+
+/* Timeline line */
+.refine-timeline__item::before {
+	content: "";
+	position: absolute;
+	left: 9px;
+	top: 0;
+	bottom: 0;
+	width: 1.5px;
+	background: color-mix(in srgb, var(--color-outline), transparent 50%);
+	z-index: 0;
+	transition: background 100ms ease;
+}
+
+.refine-timeline__item:hover::before {
+	left: 13px;
+}
+
+.refine-timeline__item:first-child::before {
+	top: 50%;
+}
+
+.refine-timeline__item:last-child::before {
+	bottom: 50%;
+}
+
+.refine-timeline__item:only-child::before {
+	display: none;
+}
+
+/* ========================================
+ * TIMELINE NODE
+ * ======================================== */
+
+.refine-timeline__node {
+	position: relative;
+	z-index: 1;
+	width: 20px;
+	height: 20px;
+	border-radius: 50%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	font-size: 8px;
+	font-weight: 700;
+	transition: all 100ms ease;
+	border: 1.5px solid;
+}
+
+.refine-timeline__node--base {
+	background: color-mix(in srgb, var(--color-save), var(--color-surface) 88%);
+	border-color: var(--color-save);
+	color: var(--color-save);
+}
+
+.refine-timeline__node--refinement {
+	background: color-mix(in srgb, var(--color-primary), var(--color-surface) 88%);
+	border-color: var(--color-primary);
+	color: var(--color-primary);
+}
+
+.refine-timeline__item--current .refine-timeline__node {
+	transform: scale(1.1);
+	box-shadow: 0 0 0 2px
+		color-mix(in srgb, var(--color-primary), transparent 75%);
+}
+
+.refine-timeline__item--current .refine-timeline__node--base {
+	box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-save), transparent 75%);
+}
+
+.refine-timeline__item:hover .refine-timeline__node {
+	transform: scale(1.08);
+}
+
+/* ========================================
+ * TIMELINE CONTENT
+ * ======================================== */
+
+.refine-timeline__content {
+	flex: 1;
+	min-width: 0;
+	background: color-mix(
+		in srgb,
+		var(--color-surface),
+		var(--color-surface-variant) 70%
+	);
+	border: 1px solid color-mix(in srgb, var(--color-outline), transparent 70%);
+	border-radius: 6px;
+	overflow: hidden;
+	transition: border-color 100ms ease, box-shadow 100ms ease;
+}
+
+.refine-timeline__item:hover .refine-timeline__content {
+	border-color: color-mix(in srgb, var(--color-outline), transparent 40%);
+}
+
+.refine-timeline__item--current .refine-timeline__content {
+	background: color-mix(in srgb, var(--color-primary), var(--color-surface) 95%);
+	border-color: color-mix(in srgb, var(--color-primary), transparent 60%);
+	box-shadow: 0 1px 4px
+		color-mix(in srgb, var(--color-primary), transparent 85%);
+}
+
+.refine-timeline__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 1px 6px;
+	background: color-mix(in srgb, var(--color-surface-variant), transparent 60%);
+	border-bottom: 1px solid
+		color-mix(in srgb, var(--color-outline), transparent 80%);
+}
+
+.refine-timeline__item--current .refine-timeline__header {
+	background: color-mix(in srgb, var(--color-primary), transparent 92%);
+}
+
+.refine-timeline__title {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.refine-timeline__type {
+	font-size: 8px;
+	font-weight: 600;
+	text-transform: uppercase;
+	letter-spacing: .03em;
+}
+
+.refine-timeline__type--base {
+	color: var(--color-save);
+}
+
+.refine-timeline__type--refinement {
+	color: var(--color-primary);
+}
+
+.refine-timeline__current-badge {
+	font-size: 8px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: .03em;
+	color: var(--color-primary);
+}
+
+.refine-timeline__actions {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+/* ========================================
+ * TIMELINE COPY BUTTON
+ * ======================================== */
+
+.refine-timeline__copy-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 18px;
+	height: 18px;
+	border-radius: 4px;
+	border: none;
+	background: color-mix(in srgb, var(--color-outline), transparent 80%);
+	color: var(--color-on-surface);
+	opacity: 0.6;
+	cursor: pointer;
+	transition: all 100ms ease;
+}
+
+.refine-timeline__copy-btn:hover:not(:disabled) {
+	opacity: 1;
+	background: color-mix(in srgb, var(--color-primary), transparent 75%);
+	color: var(--color-primary);
+	transform: scale(1.1);
+}
+
+.refine-timeline__copy-btn:active:not(:disabled) {
+	transform: scale(0.95);
+}
+
+.refine-timeline__copy-btn:disabled {
+	cursor: not-allowed;
+	opacity: 0.3;
+}
+
+/* ========================================
+ * TIMELINE ITEM BUTTON
+ * ======================================== */
+
+.refine-timeline__item-btn {
+	display: flex;
+	align-items: flex-start;
+	justify-content: center;
+	border: none;
+	background: none;
+	cursor: pointer;
+	padding: 0;
+	flex-shrink: 0;
+}
+
+.refine-timeline__item-btn:disabled {
+	cursor: default;
+}
+
+/* ========================================
+ * TIMELINE BODY
+ * ======================================== */
+
+.refine-timeline__body {
+	padding: 6px 8px;
+	font-size: 10px;
+	line-height: 1.45;
+	color: var(--color-on-surface);
+	white-space: pre-wrap;
+	word-break: break-word;
+	max-height: 36px;
+	overflow: hidden;
+	opacity: 0.8;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+	border: none;
+	background: none;
+	width: 100%;
+	text-align: left;
+	cursor: pointer;
+}
+
+.refine-timeline__body:disabled {
+	cursor: default;
+}
+
+.refine-timeline__item--current .refine-timeline__body {
+	max-height: 72px;
+	opacity: 1;
+}

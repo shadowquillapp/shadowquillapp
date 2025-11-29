@@ -1,0 +1,111 @@
+/**
+ * ==========================================================================
+ * COLOR VARIABLES
+ * ==========================================================================
+ *
+ * Central color system for the application. All color values are defined
+ * here to ensure consistency across the entire application.
+ *
+ * NAMING CONVENTION:
+ * - Semantic colors: --color-{purpose} (e.g., --color-surface, --color-primary)
+ * - Palette colors: --{category}a{shade} (e.g., --primarya0, --surfacea10)
+ *
+ * USAGE:
+ * - Use semantic colors for component styling
+ * - Use palette colors for fine-tuned adjustments
+ *
+ * NOTE: These are the default (earth theme) values. Theme overrides are
+ * defined in the themes/ directory.
+ * ==========================================================================
+ */
+
+:root {
+	/* ========================================
+	 * SEMANTIC COLORS
+	 * Core colors used throughout the application
+	 * ======================================== */
+
+	/* Surface colors - backgrounds */
+	--color-surface: #1a1a1a;
+	--color-surface-variant: #21252b;
+	--color-outline: #2f3a44;
+
+	/* Text colors on surfaces */
+	--color-on-surface: #eee8d5;
+	--color-on-surface-variant: #b8a882;
+
+	/* Primary action colors */
+	--color-primary: #6d5a3d;
+	--color-primary-variant: #543d22;
+	--color-on-primary: #eee8d5;
+
+	/* Save/success action colors */
+	--color-save: #5a8a55;
+	--color-save-variant: #3d6639;
+	--color-on-save: #eee8d5;
+
+	/* Attention/warning colors */
+	--color-attention: #c89850;
+	--color-attention-variant: #9a7338;
+	--color-on-attention: #1a1a1a;
+
+	/* Tab state colors */
+	--color-tab-active: #4a7c6f;
+	--color-tab-active-variant: #3a6359;
+
+	/* Special UI colors */
+	--color-titlebar-background: #3d4958;
+	--workbench-composer-background: #21252bf3;
+
+	/* Elevation colors */
+	--color-elevation-1: #0000003d;
+	--color-elevation-2: #00000059;
+
+	/* ========================================
+	 * COLOR PALETTE
+	 * Extended palette for fine-tuned styling
+	 * ======================================== */
+
+	/* Base dark/light anchors */
+	--darka0: #1a1a1a;
+	--lighta0: #eee8d5;
+
+	/* Primary palette */
+	--primarya0: #6d5a3d;
+	--primarya10: #543d22;
+	--primarya20: #4a3520;
+	--primarya30: #8a7050;
+	--primarya40: #a38968;
+	--primarya50: #eee8d5;
+
+	/* Accent color */
+	--accenta0: #543d22;
+
+	/* Surface palette */
+	--surfacea0: #1a1a1a;
+	--surfacea10: #21252b;
+	--surfacea20: #192226;
+	--surfacea30: #15130b;
+	--surfacea40: #2f3a44;
+	--surfacea50: #eee8d5;
+
+	/* Surface tonal palette */
+	--surfacetonala0: #1a1a1a;
+	--surfacetonala10: #21252b;
+	--surfacetonala20: #192226;
+	--surfacetonala30: #15130b;
+	--surfacetonala40: #192226;
+	--surfacetonala50: #eee8d5;
+
+	/* ========================================
+	 * COMPONENT COLORS
+	 * Semantic colors for specific components
+	 * ======================================== */
+
+	--buttonbg: #6d5a3d;
+	--buttontext: #eee8d5;
+	--dropdownbg: #21252b;
+	--cardbg: #21252b;
+	--sliderbg: #3a3f48;
+	--shadowcolor: #000000b3;
+}
