@@ -2646,9 +2646,7 @@ input[type="checkbox"].md-checkbox:disabled {
 	display: grid;
 	grid-template-rows: 0fr;
 	opacity: 0;
-	transition:
-		grid-template-rows 250ms ease-out,
-		opacity 200ms ease-out;
+	transition: grid-template-rows 250ms ease-out, opacity 200ms ease-out;
 }
 .vh-card-body-wrapper[data-expanded="true"] {
 	grid-template-rows: 1fr;
@@ -2754,7 +2752,8 @@ input[type="checkbox"].md-checkbox:disabled {
 	background: var(--color-primary);
 	color: var(--color-on-primary);
 	box-shadow: var(--shadow-1);
-	transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
+	transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms
+		ease;
 	cursor: pointer;
 	font-size: 13px;
 	height: 32px;
