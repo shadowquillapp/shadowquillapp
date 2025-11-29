@@ -2745,25 +2745,25 @@ input[type="checkbox"].md-checkbox:disabled {
 	display: inline-flex;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
-	padding: 10px 20px;
+	gap: var(--space-2);
+	padding: 6px 12px;
 	border-radius: 8px;
-	border: none;
+	border: 1px solid transparent;
 	background: var(--color-primary);
 	color: var(--color-on-primary);
-	font-size: 13px;
-	font-weight: 600;
+	box-shadow: var(--shadow-1);
+	transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms ease;
 	cursor: pointer;
-	transition: box-shadow 150ms ease, transform 150ms ease;
-	box-shadow: 0 2px 4px #00000024;
+	font-size: 13px;
+	height: 32px;
 }
 .vh-restore-btn:hover {
-	box-shadow: 0 4px 8px #0003;
-	transform: translateY(-1px);
+	background: var(--color-primary-variant);
+	border-color: var(--color-primary);
+	box-shadow: var(--shadow-2);
 }
 .vh-restore-btn:active {
-	box-shadow: 0 1px 2px #0000001f;
-	transform: translateY(0);
+	box-shadow: var(--shadow-1);
 }
 .vh-restore-btn:focus-visible {
 	outline: 2px solid var(--color-primary);
