@@ -345,19 +345,17 @@ describe("CustomSelect", () => {
 				/>,
 			);
 
-			// Icon should appear in the selected display
-			const svgInButton = screen
-				.getByRole("button")
-				.querySelector("svg.svg-inline--fa");
+			// Icon should appear in the selected display (Heroicons render as SVG with h-4 w-4 classes)
+			const button = screen.getByRole("button");
+			const svgInButton = button.querySelector("svg.text-secondary");
 			expect(svgInButton).toBeInTheDocument();
 
 			// Open dropdown
-			const button = screen.getByRole("button");
 			await user.click(button);
 
-			// Icons should appear in dropdown options
+			// Icons should appear in dropdown options (Icon uses h-4 w-4 class)
 			const menu = screen.getByRole("menu");
-			const svgsInMenu = menu.querySelectorAll("svg.svg-inline--fa");
+			const svgsInMenu = menu.querySelectorAll("svg.h-4.w-4");
 			expect(svgsInMenu.length).toBe(2);
 		});
 	});

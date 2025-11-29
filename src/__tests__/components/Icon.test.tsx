@@ -41,7 +41,7 @@ describe("Icon", () => {
 	});
 
 	it("should accept title prop", () => {
-		// FontAwesomeIcon may handle title differently - just verify render doesn't throw
+		// Heroicons handle title as a standard SVG attribute - just verify render doesn't throw
 		expect(() =>
 			render(<Icon name="copy" title="Copy to clipboard" />),
 		).not.toThrow();
@@ -62,7 +62,6 @@ describe("Icon", () => {
 		const originalError = console.error;
 		const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-		// @ts-expect-error Testing invalid icon name
 		const { container } = render(<Icon name={"invalid-icon"} />);
 		expect(container.firstChild).toBeNull();
 		expect(errorSpy).toHaveBeenCalled();
