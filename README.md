@@ -125,11 +125,11 @@ npm run check            # biome check
 ```
 
 ```bash
-npm test -- --silent     # Run tests with minimal output
+npm run check:write      # audit & fix biome lint errors (SAFE changes)
 ```
 
 ```bash
-npm test                 # Run tests with all output
+npm run test             # Run tests with all output
 ```
 
 ```bash
@@ -140,7 +140,7 @@ npm run test:coverage    # With coverage report
 npm run dev              # Open ShadowQuill app in dev mode
 ```
 
-## Our Development Philosophy
+## Value Sensitive Design (VSD) Philosophy
 
 - **Offline** - Works without internet (after ShadowQuill and Ollama+Gemma 3 download)
 - **No Telemetry** - Zero tracking
