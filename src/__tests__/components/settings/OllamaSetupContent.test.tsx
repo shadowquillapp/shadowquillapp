@@ -350,4 +350,302 @@ describe("OllamaSetupContent", () => {
 			});
 		});
 	});
+
+	describe("normalizeToBaseUrl edge cases", () => {
+		it("should handle localhost:port format", async () => {
+			const user = userEvent.setup();
+			mockListAvailableModels.mockResolvedValue([]);
+
+			render(<OllamaSetupContent />);
+
+			const portInput = screen.getByLabelText("Ollama localhost Port");
+			await user.clear(portInput);
+			// This will be filtered to just digits
+			await user.type(portInput, "8080");
+
+			expect(screen.getByText("http://localhost:8080")).toBeInTheDocument();
+		});
+	});
+
+	describe("checkOllamaInstalled edge cases", () => {
+		it("should handle missing checkOllamaInstalled API", async () => {
+			(window as unknown as { shadowquill?: unknown }).shadowquill = {};
+
+			render(<OllamaSetupContent />);
+
+			// Should not throw and should render normally
+			expect(screen.getByText("Secure Ollama bridge")).toBeInTheDocument();
+		});
+
+		it("should handle checkOllamaInstalled throwing error", async () => {
+			const consoleSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => {});
+			mockWindowApi.checkOllamaInstalled.mockRejectedValue(
+				new Error("API error"),
+			);
+
+			render(<OllamaSetupContent />);
+
+			await waitFor(() => {
+				expect(consoleSpy).toHaveBeenCalledWith(
+					"Failed to check Ollama installation:",
+					expect.any(Error),
+				);
+			});
+
+			consoleSpy.mockRestore();
+		});
+	});
+
+	describe("handleOpenOrInstallOllama edge cases", () => {
+		it("should open download page when Ollama is not installed", async () => {
+			const user = userEvent.setup();
+			const windowOpenSpy = vi
+				.spyOn(window, "open")
+				.mockImplementation(() => null);
+			mockWindowApi.checkOllamaInstalled.mockResolvedValue({
+				installed: false,
+			});
+			mockListAvailableModels.mockRejectedValue(new Error("Connection failed"));
+
+			render(<OllamaSetupContent />);
+
+			await user.click(screen.getByTitle("Check for available Ollama models"));
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /install ollama/i }),
+				).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("button", { name: /install ollama/i }));
+
+			expect(windowOpenSpy).toHaveBeenCalledWith(
+				"https://ollama.com/download",
+				"_blank",
+			);
+
+			windowOpenSpy.mockRestore();
+		});
+
+		it("should show error when openOllama API is not available", async () => {
+			const user = userEvent.setup();
+			(window as unknown as { shadowquill?: unknown }).shadowquill = {
+				checkOllamaInstalled: vi.fn().mockResolvedValue({ installed: true }),
+				// openOllama is not defined
+			};
+			mockListAvailableModels.mockRejectedValue(new Error("Connection failed"));
+
+			render(<OllamaSetupContent />);
+
+			await user.click(screen.getByTitle("Check for available Ollama models"));
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /open ollama/i }),
+				).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("button", { name: /open ollama/i }));
+
+			await waitFor(() => {
+				expect(
+					screen.getByText(/only available in the desktop app/i),
+				).toBeInTheDocument();
+			});
+		});
+
+		it("should handle openOllama returning error", async () => {
+			const user = userEvent.setup();
+			mockWindowApi.openOllama.mockResolvedValue({
+				ok: false,
+				error: "Ollama failed to start",
+			});
+			mockListAvailableModels.mockRejectedValue(new Error("Connection failed"));
+
+			render(<OllamaSetupContent />);
+
+			await user.click(screen.getByTitle("Check for available Ollama models"));
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /open ollama/i }),
+				).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("button", { name: /open ollama/i }));
+
+			await waitFor(() => {
+				expect(screen.getByText("Ollama failed to start")).toBeInTheDocument();
+			});
+		});
+
+		it("should handle openOllama throwing exception", async () => {
+			const user = userEvent.setup();
+			mockWindowApi.openOllama.mockRejectedValue(new Error("Unexpected error"));
+			mockListAvailableModels.mockRejectedValue(new Error("Connection failed"));
+
+			render(<OllamaSetupContent />);
+
+			await user.click(screen.getByTitle("Check for available Ollama models"));
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /open ollama/i }),
+				).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("button", { name: /open ollama/i }));
+
+			await waitFor(() => {
+				expect(screen.getByText("Unexpected error")).toBeInTheDocument();
+			});
+		});
+
+		it("should retest connection after successfully opening Ollama", async () => {
+			vi.useFakeTimers({ shouldAdvanceTime: true });
+			const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+			mockWindowApi.openOllama.mockResolvedValue({ ok: true });
+			mockListAvailableModels.mockRejectedValue(new Error("Connection failed"));
+
+			render(<OllamaSetupContent />);
+
+			await user.click(screen.getByTitle("Check for available Ollama models"));
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /open ollama/i }),
+				).toBeInTheDocument();
+			});
+
+			mockListAvailableModels.mockClear();
+
+			await user.click(screen.getByRole("button", { name: /open ollama/i }));
+
+			// Advance time to trigger the setTimeout
+			vi.advanceTimersByTime(3500);
+
+			await waitFor(() => {
+				expect(mockListAvailableModels).toHaveBeenCalled();
+			});
+
+			vi.useRealTimers();
+		});
+
+		it("should check Ollama installation if ollamaInstalled is null", async () => {
+			const user = userEvent.setup();
+			// Initially set to null by not calling checkOllamaInstalled
+			(window as unknown as { shadowquill?: unknown }).shadowquill = {
+				checkOllamaInstalled: vi.fn().mockResolvedValue({ installed: true }),
+				openOllama: vi.fn().mockResolvedValue({ ok: true }),
+			};
+			mockListAvailableModels.mockRejectedValue(new Error("Connection failed"));
+
+			render(<OllamaSetupContent />);
+
+			await user.click(screen.getByTitle("Check for available Ollama models"));
+
+			await waitFor(() => {
+				expect(
+					screen.getByRole("button", { name: /open ollama/i }),
+				).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("button", { name: /open ollama/i }));
+
+			await waitFor(() => {
+				expect(
+					(
+						window as unknown as {
+							shadowquill: { checkOllamaInstalled: ReturnType<typeof vi.fn> };
+						}
+					).shadowquill.checkOllamaInstalled,
+				).toHaveBeenCalled();
+			});
+		});
+	});
+
+	describe("form validation errors", () => {
+		it("should show generic connection error after save", async () => {
+			const user = userEvent.setup();
+			mockListAvailableModels.mockResolvedValue([
+				{ name: "gemma3:4b", size: 4 * 1024 * 1024 * 1024 },
+			]);
+			mockValidateLocalModelConnection.mockResolvedValue({
+				ok: false,
+				error: "unreachable",
+			});
+
+			render(<OllamaSetupContent />);
+
+			await user.click(screen.getByTitle("Check for available Ollama models"));
+
+			await waitFor(() => {
+				expect(screen.getByText("Connected")).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+			await waitFor(() => {
+				expect(screen.getByRole("alert")).toHaveTextContent("unreachable");
+			});
+		});
+
+		it("should handle save throwing exception", async () => {
+			const user = userEvent.setup();
+			mockListAvailableModels.mockResolvedValue([
+				{ name: "gemma3:4b", size: 4 * 1024 * 1024 * 1024 },
+			]);
+			mockWriteLocalModelConfig.mockImplementation(() => {
+				throw new Error("Storage full");
+			});
+
+			render(<OllamaSetupContent />);
+
+			await user.click(screen.getByTitle("Check for available Ollama models"));
+
+			await waitFor(() => {
+				expect(screen.getByText("Connected")).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByRole("button", { name: /save changes/i }));
+
+			await waitFor(() => {
+				expect(screen.getByText("Storage full")).toBeInTheDocument();
+			});
+		});
+	});
+
+	describe("model display", () => {
+		it("should display model size", async () => {
+			const user = userEvent.setup();
+			mockListAvailableModels.mockResolvedValue([
+				{ name: "gemma3:4b", size: 4 * 1024 * 1024 * 1024 },
+			]);
+
+			render(<OllamaSetupContent />);
+
+			await user.click(screen.getByTitle("Check for available Ollama models"));
+
+			await waitFor(() => {
+				expect(screen.getByText("4.0GB")).toBeInTheDocument();
+			});
+		});
+
+		it("should show empty models message when connected but no Gemma models", async () => {
+			const user = userEvent.setup();
+			mockListAvailableModels.mockResolvedValue([]);
+
+			render(<OllamaSetupContent />);
+
+			await user.click(screen.getByTitle("Check for available Ollama models"));
+
+			await waitFor(() => {
+				expect(
+					screen.getByText(/Gemma 3 models have not been pulled yet/),
+				).toBeInTheDocument();
+			});
+		});
+	});
 });

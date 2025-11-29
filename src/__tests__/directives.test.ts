@@ -10,7 +10,7 @@ import { buildMarketingDirectives } from "@/lib/prompt-directives/marketing";
 import { buildResearchDirectives } from "@/lib/prompt-directives/research";
 import { buildVideoDirectives } from "@/lib/prompt-directives/video";
 import { buildWritingDirectives } from "@/lib/prompt-directives/writing";
-import type { CameraMovement } from "@/types";
+import type { CameraMovement, ImageStylePreset } from "@/types";
 import { describe, expect, it } from "vitest";
 
 describe("buildDirectives", () => {
@@ -42,6 +42,43 @@ describe("buildDirectives", () => {
 	it("should filter out empty strings", () => {
 		const result = buildDirectives("general", { tone: "neutral" });
 		expect(result.every((d) => d.length > 0)).toBe(true);
+	});
+
+	describe("all task types", () => {
+		it("should include image directives for image task", () => {
+			const result = buildDirectives("image", { stylePreset: "anime" });
+			expect(result.some((d) => d.toLowerCase().includes("anime"))).toBe(true);
+		});
+
+		it("should include video directives for video task", () => {
+			const result = buildDirectives("video", { cameraMovement: "pan" });
+			expect(result.some((d) => d.toLowerCase().includes("pan"))).toBe(true);
+		});
+
+		it("should include writing directives for writing task", () => {
+			const result = buildDirectives("writing", { writingStyle: "narrative" });
+			expect(result.some((d) => d.toLowerCase().includes("narrative"))).toBe(
+				true,
+			);
+		});
+
+		it("should include research directives for research task", () => {
+			const result = buildDirectives("research", { requireCitations: true });
+			expect(result.some((d) => d.toLowerCase().includes("citation"))).toBe(
+				true,
+			);
+		});
+
+		it("should include marketing directives for marketing task", () => {
+			const result = buildDirectives("marketing", { ctaStyle: "strong" });
+			expect(result.some((d) => d.toLowerCase().includes("strong"))).toBe(true);
+		});
+
+		it("should handle general task with no additional directives", () => {
+			const result = buildDirectives("general", { tone: "formal" });
+			// Should only have base directives
+			expect(result.some((d) => d.toLowerCase().includes("formal"))).toBe(true);
+		});
 	});
 });
 
@@ -260,6 +297,71 @@ describe("buildImageDirectives", () => {
 		expect(result.some((d) => d.toLowerCase().includes("do not invent"))).toBe(
 			true,
 		);
+	});
+
+	it("should include illustration style guidance", () => {
+		const result = buildImageDirectives({ stylePreset: "illustration" });
+		expect(result.some((d) => d.toLowerCase().includes("illustration"))).toBe(
+			true,
+		);
+		expect(result.some((d) => d.toLowerCase().includes("linework"))).toBe(true);
+	});
+
+	it("should include watercolor style guidance", () => {
+		const result = buildImageDirectives({ stylePreset: "watercolor" });
+		expect(result.some((d) => d.toLowerCase().includes("watercolor"))).toBe(
+			true,
+		);
+		expect(result.some((d) => d.toLowerCase().includes("washes"))).toBe(true);
+	});
+
+	it("should include 3D style guidance", () => {
+		const result = buildImageDirectives({ stylePreset: "3d" });
+		expect(result.some((d) => d.toLowerCase().includes("3d render"))).toBe(
+			true,
+		);
+		expect(result.some((d) => d.toLowerCase().includes("ray tracing"))).toBe(
+			true,
+		);
+	});
+
+	it("should handle unknown style preset", () => {
+		const result = buildImageDirectives({
+			stylePreset: "custom-style" as ImageStylePreset,
+		});
+		expect(result.some((d) => d.toLowerCase().includes("visual style"))).toBe(
+			true,
+		);
+		expect(result.some((d) => d.includes("custom-style"))).toBe(true);
+	});
+
+	it("should include only aspect ratio when no resolution", () => {
+		const result = buildImageDirectives({ aspectRatio: "1:1" });
+		expect(result.some((d) => d.includes("1:1"))).toBe(true);
+		expect(result.some((d) => d.includes("REQUIRED"))).toBe(true);
+	});
+
+	it("should include only resolution when no aspect ratio", () => {
+		const result = buildImageDirectives({ targetResolution: "4K" });
+		expect(result.some((d) => d.includes("4K"))).toBe(true);
+		expect(result.some((d) => d.includes("REQUIRED"))).toBe(true);
+	});
+
+	it("should always include default mood directive", () => {
+		const result = buildImageDirectives({});
+		expect(result.some((d) => d.toLowerCase().includes("default mood"))).toBe(
+			true,
+		);
+		expect(
+			result.some((d) => d.toLowerCase().includes("bright, positive")),
+		).toBe(true);
+	});
+
+	it("should always include prompt structure guidance", () => {
+		const result = buildImageDirectives({});
+		expect(
+			result.some((d) => d.toLowerCase().includes("focused and concise")),
+		).toBe(true);
 	});
 });
 
@@ -515,6 +617,25 @@ describe("buildResearchDirectives", () => {
 		expect(
 			result.some((d) => d.toLowerCase().includes("without citation")),
 		).toBe(true);
+	});
+
+	it("should always include research methodology guidance", () => {
+		const result = buildResearchDirectives({});
+		expect(
+			result.some((d) => d.toLowerCase().includes("depth of analysis")),
+		).toBe(true);
+		expect(result.some((d) => d.toLowerCase().includes("methodology"))).toBe(
+			true,
+		);
+	});
+
+	it("should not include citation directive when undefined", () => {
+		const result = buildResearchDirectives({});
+		// Should only have the base directive, not citation-specific ones
+		expect(result.length).toBe(1);
+		expect(
+			result.some((d) => d.toLowerCase().includes("require citations")),
+		).toBe(false);
 	});
 });
 

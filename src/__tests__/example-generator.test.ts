@@ -365,6 +365,29 @@ describe("example-generator", () => {
 			expect(firstCallArgs?.[0]).toContain("60");
 			expect(firstCallArgs?.[0]).toContain("15");
 		});
+
+		it("should include video stylePreset and targetResolution options", async () => {
+			const preset: PresetLite = {
+				name: "Video Style Resolution Test",
+				taskType: "video",
+				options: {
+					stylePreset: "cinematic",
+					targetResolution: "1080p",
+				},
+			};
+
+			mockCallLocalModelClient.mockResolvedValueOnce(
+				"Input 1\n---SPLIT---\nInput 2",
+			);
+			mockBuildPromptPreview.mockResolvedValue("Enhanced");
+			mockCallLocalModelClient.mockResolvedValue("Output");
+
+			await generatePresetExamples(preset);
+
+			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
+			expect(firstCallArgs?.[0]).toContain("cinematic");
+			expect(firstCallArgs?.[0]).toContain("1080p");
+		});
 	});
 
 	describe("fallback examples", () => {

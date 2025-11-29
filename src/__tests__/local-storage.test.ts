@@ -197,4 +197,184 @@ describe("SSR safety", () => {
 		expect(() => setJSON("key", "value")).not.toThrow();
 		expect(() => remove("key")).not.toThrow();
 	});
+
+	describe("when window is undefined", () => {
+		const originalWindow = global.window;
+
+		beforeEach(() => {
+			// @ts-expect-error - intentionally setting window to undefined for SSR testing
+			global.window = undefined;
+		});
+
+		afterEach(() => {
+			global.window = originalWindow;
+		});
+
+		it("getJSON should return default value when window is undefined", async () => {
+			const freshModule = await resetModule();
+			const result = freshModule.getJSON("any-key", { ssr: true });
+			expect(result).toEqual({ ssr: true });
+		});
+
+		it("setJSON should not throw when window is undefined", async () => {
+			const freshModule = await resetModule();
+			expect(() =>
+				freshModule.setJSON("any-key", { data: "value" }),
+			).not.toThrow();
+		});
+
+		it("remove should not throw when window is undefined", async () => {
+			const freshModule = await resetModule();
+			expect(() => freshModule.remove("any-key")).not.toThrow();
+		});
+
+		it("clearAllStorageForFactoryReset should return early when window is undefined", async () => {
+			const freshModule = await resetModule();
+			// Should not throw and should not set the flag (returns early)
+			expect(() => freshModule.clearAllStorageForFactoryReset()).not.toThrow();
+			// The flag should not be set since we returned early
+			expect(freshModule.isFactoryResetInProgress()).toBe(false);
+		});
+	});
+});
+
+describe("localStorage error handling", () => {
+	it("should return default value when localStorage throws on getItem", () => {
+		const originalGetItem = Storage.prototype.getItem;
+		Storage.prototype.getItem = () => {
+			throw new Error("localStorage disabled");
+		};
+
+		const result = getJSON("test-key", { fallback: true });
+		expect(result).toEqual({ fallback: true });
+
+		Storage.prototype.getItem = originalGetItem;
+	});
+
+	it("should silently fail when localStorage throws on setItem", () => {
+		const originalSetItem = Storage.prototype.setItem;
+		Storage.prototype.setItem = () => {
+			throw new Error("QuotaExceededError");
+		};
+
+		// Should not throw
+		expect(() => setJSON("test-key", { data: "value" })).not.toThrow();
+
+		Storage.prototype.setItem = originalSetItem;
+	});
+
+	it("should silently fail when localStorage throws on removeItem", () => {
+		const originalRemoveItem = Storage.prototype.removeItem;
+		Storage.prototype.removeItem = () => {
+			throw new Error("localStorage disabled");
+		};
+
+		// Should not throw
+		expect(() => remove("test-key")).not.toThrow();
+
+		Storage.prototype.removeItem = originalRemoveItem;
+	});
+});
+
+describe("clearAllStorageForFactoryReset error handling", () => {
+	it("should handle errors when removing individual keys", async () => {
+		const freshModule = await resetModule();
+
+		// Mock removeItem to throw for specific keys
+		const originalRemoveItem = Storage.prototype.removeItem;
+		let callCount = 0;
+		Storage.prototype.removeItem = (key: string) => {
+			callCount++;
+			if (callCount % 2 === 0) {
+				throw new Error(`Failed to remove ${key}`);
+			}
+			return originalRemoveItem.call(localStorage, key);
+		};
+
+		localStorage.setItem("PC_PRESETS", "[]");
+		localStorage.setItem("theme-preference", "dark");
+
+		// Should not throw even when individual removes fail
+		expect(() => freshModule.clearAllStorageForFactoryReset()).not.toThrow();
+
+		Storage.prototype.removeItem = originalRemoveItem;
+	});
+
+	it("should handle errors when clearing localStorage", async () => {
+		const freshModule = await resetModule();
+
+		const originalClear = Storage.prototype.clear;
+		Storage.prototype.clear = () => {
+			throw new Error("Clear failed");
+		};
+
+		// Should not throw
+		expect(() => freshModule.clearAllStorageForFactoryReset()).not.toThrow();
+
+		Storage.prototype.clear = originalClear;
+	});
+
+	it("should handle errors when clearing sessionStorage", async () => {
+		const freshModule = await resetModule();
+
+		const originalClear = sessionStorage.clear.bind(sessionStorage);
+		sessionStorage.clear = () => {
+			throw new Error("Session clear failed");
+		};
+
+		// Should not throw
+		expect(() => freshModule.clearAllStorageForFactoryReset()).not.toThrow();
+
+		sessionStorage.clear = originalClear;
+	});
+});
+
+describe("getJSON with complex data", () => {
+	beforeEach(() => {
+		localStorage.clear();
+	});
+
+	it("should handle nested objects", () => {
+		const complexData = {
+			level1: {
+				level2: {
+					level3: {
+						value: "deep",
+					},
+				},
+			},
+		};
+		localStorage.setItem("complex", JSON.stringify(complexData));
+
+		const result = getJSON("complex", {});
+		expect(result).toEqual(complexData);
+	});
+
+	it("should handle arrays of objects", () => {
+		const arrayData = [
+			{ id: 1, name: "first" },
+			{ id: 2, name: "second" },
+		];
+		localStorage.setItem("array-obj", JSON.stringify(arrayData));
+
+		const result = getJSON("array-obj", []);
+		expect(result).toEqual(arrayData);
+	});
+});
+
+describe("setJSON during factory reset", () => {
+	it("should block setJSON calls after clearAllStorageForFactoryReset", async () => {
+		const freshModule = await resetModule();
+
+		// First set some data
+		freshModule.setJSON("before-reset", { data: "exists" });
+		expect(localStorage.getItem("before-reset")).not.toBeNull();
+
+		// Trigger factory reset
+		freshModule.clearAllStorageForFactoryReset();
+
+		// Now try to set - should be blocked
+		freshModule.setJSON("after-reset", { data: "should-not-exist" });
+		expect(localStorage.getItem("after-reset")).toBeNull();
+	});
 });

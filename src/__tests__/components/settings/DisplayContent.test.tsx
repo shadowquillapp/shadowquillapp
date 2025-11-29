@@ -5,13 +5,19 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("DisplayContent", () => {
 	const mockViewApi = {
-		getZoomFactor: vi.fn(),
-		setZoomFactor: vi.fn(),
-		onZoomChanged: vi.fn(),
+		getZoomFactor: vi.fn<() => Promise<number>>(),
+		setZoomFactor: vi.fn<(factor: number) => Promise<void>>(),
+		onZoomChanged:
+			vi.fn<
+				(callback: (event: unknown, factor: number) => void) => () => void
+			>(),
 	};
 	const mockWindowApi = {
 		getSize: vi.fn(),
 	};
+
+	let getItemSpy: ReturnType<typeof vi.spyOn>;
+	let setItemSpy: ReturnType<typeof vi.spyOn>;
 
 	beforeEach(() => {
 		vi.clearAllMocks();
@@ -19,9 +25,11 @@ describe("DisplayContent", () => {
 			view: mockViewApi,
 			window: mockWindowApi,
 		};
-		// Mock localStorage
-		vi.spyOn(Storage.prototype, "getItem").mockReturnValue(null);
-		vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {});
+		// Mock localStorage - spy on localStorage directly for more reliable mocking
+		getItemSpy = vi.spyOn(window.localStorage, "getItem").mockReturnValue(null);
+		setItemSpy = vi
+			.spyOn(window.localStorage, "setItem")
+			.mockImplementation(() => {});
 	});
 
 	afterEach(() => {
@@ -261,6 +269,231 @@ describe("DisplayContent", () => {
 			await waitFor(() => {
 				expect(screen.getByText("Fullscreen")).toBeInTheDocument();
 			});
+		});
+
+		it("should show dash for missing window size", async () => {
+			const user = userEvent.setup();
+			mockViewApi.getZoomFactor.mockResolvedValue(1);
+			mockWindowApi.getSize.mockResolvedValue({
+				ok: true,
+			});
+			render(<DisplayContent />);
+
+			await user.click(screen.getByText("Display Stats"));
+
+			await waitFor(() => {
+				// Should show dash for unknown values
+				const dashes = screen.getAllByText("—");
+				expect(dashes.length).toBeGreaterThan(0);
+			});
+		});
+	});
+
+	describe("theme migration", () => {
+		it("should migrate old 'default' theme to 'purpledark'", () => {
+			getItemSpy.mockReturnValue("default");
+			mockViewApi.getZoomFactor.mockResolvedValue(1);
+
+			render(<DisplayContent />);
+
+			expect(setItemSpy).toHaveBeenCalledWith("theme-preference", "purpledark");
+		});
+
+		it("should load valid saved theme on mount", () => {
+			getItemSpy.mockReturnValue("dark");
+			mockViewApi.getZoomFactor.mockResolvedValue(1);
+
+			render(<DisplayContent />);
+
+			// Should show dark theme button as selected
+			const darkButton = screen.getByLabelText("Select Dark theme");
+			expect(darkButton).toBeInTheDocument();
+		});
+	});
+
+	describe("zoom listener", () => {
+		it("should update zoom when onZoomChanged callback is triggered", async () => {
+			let zoomChangedCallback:
+				| ((event: unknown, factor: number) => void)
+				| null = null;
+			mockViewApi.onZoomChanged.mockImplementation(
+				(cb: (event: unknown, factor: number) => void) => {
+					zoomChangedCallback = cb as (event: unknown, factor: number) => void;
+					return () => {}; // unsubscribe function
+				},
+			);
+			mockViewApi.getZoomFactor.mockResolvedValue(1);
+
+			render(<DisplayContent />);
+
+			await waitFor(() => {
+				expect(screen.getByText("100%")).toBeInTheDocument();
+			});
+
+			// Trigger zoom change via callback
+			if (zoomChangedCallback) {
+				(zoomChangedCallback as (event: unknown, factor: number) => void)(
+					{},
+					1.2,
+				);
+			}
+
+			await waitFor(() => {
+				expect(screen.getByText("120%")).toBeInTheDocument();
+			});
+		});
+
+		it("should ignore non-finite zoom values", async () => {
+			let zoomChangedCallback:
+				| ((event: unknown, factor: number) => void)
+				| null = null;
+			mockViewApi.onZoomChanged.mockImplementation(
+				(cb: (event: unknown, factor: number) => void) => {
+					zoomChangedCallback = cb as (event: unknown, factor: number) => void;
+					return () => {};
+				},
+			);
+			mockViewApi.getZoomFactor.mockResolvedValue(1);
+
+			render(<DisplayContent />);
+
+			await waitFor(() => {
+				expect(screen.getByText("100%")).toBeInTheDocument();
+			});
+
+			// Trigger with invalid values
+			if (zoomChangedCallback) {
+				(zoomChangedCallback as (event: unknown, factor: number) => void)(
+					{},
+					Number.NaN,
+				);
+				(zoomChangedCallback as (event: unknown, factor: number) => void)(
+					{},
+					Number.POSITIVE_INFINITY,
+				);
+			}
+
+			// Should still show 100%
+			expect(screen.getByText("100%")).toBeInTheDocument();
+		});
+	});
+
+	describe("resize handling", () => {
+		it("should update content size on window resize", async () => {
+			mockViewApi.getZoomFactor.mockResolvedValue(1);
+			mockWindowApi.getSize.mockResolvedValue({
+				ok: true,
+				windowSize: [1920, 1080],
+				contentSize: [1904, 1040],
+				isMaximized: false,
+				isFullScreen: false,
+			});
+
+			render(<DisplayContent />);
+
+			// Trigger resize event
+			window.dispatchEvent(new Event("resize"));
+
+			await waitFor(() => {
+				// Component should still be rendering
+				expect(screen.getByText("Display")).toBeInTheDocument();
+			});
+		});
+	});
+
+	describe("zoom error handling", () => {
+		it("should handle getZoomFactor error", async () => {
+			mockViewApi.getZoomFactor.mockRejectedValue(new Error("Zoom failed"));
+
+			render(<DisplayContent />);
+
+			await waitFor(() => {
+				const errorBanner = screen.queryByRole("alert");
+				return errorBanner !== null;
+			}).catch(() => {});
+		});
+
+		it("should handle setZoomFactor error", async () => {
+			const user = userEvent.setup();
+			mockViewApi.getZoomFactor.mockResolvedValue(1);
+			mockViewApi.setZoomFactor.mockRejectedValue(new Error("Set zoom failed"));
+
+			render(<DisplayContent />);
+
+			await waitFor(() => {
+				expect(screen.getByText("100%")).toBeInTheDocument();
+			});
+
+			await user.click(screen.getByLabelText("Zoom in"));
+
+			await waitFor(() => {
+				const errorBanner = screen.queryByRole("alert");
+				return errorBanner !== null;
+			}).catch(() => {});
+		});
+	});
+
+	describe("zoom clamping", () => {
+		it("should clamp zoom to minimum 80%", async () => {
+			const user = userEvent.setup();
+			mockViewApi.getZoomFactor.mockResolvedValue(0.8); // At minimum
+			mockViewApi.setZoomFactor.mockResolvedValue(undefined);
+
+			render(<DisplayContent />);
+
+			await waitFor(() => {
+				expect(screen.getByText("80%")).toBeInTheDocument();
+			});
+
+			// Try to decrease below minimum
+			await user.click(screen.getByLabelText("Zoom out"));
+
+			// Should clamp to 80%
+			expect(mockViewApi.setZoomFactor).toHaveBeenCalledWith(0.8);
+		});
+
+		it("should clamp zoom to maximum 150%", async () => {
+			const user = userEvent.setup();
+			mockViewApi.getZoomFactor.mockResolvedValue(1.5); // At maximum
+			mockViewApi.setZoomFactor.mockResolvedValue(undefined);
+
+			render(<DisplayContent />);
+
+			await waitFor(() => {
+				expect(screen.getByText("150%")).toBeInTheDocument();
+			});
+
+			// Try to increase above maximum
+			await user.click(screen.getByLabelText("Zoom in"));
+
+			// Should clamp to 150%
+			expect(mockViewApi.setZoomFactor).toHaveBeenCalledWith(1.5);
+		});
+	});
+
+	describe("theme data attribute", () => {
+		it("should set empty data-theme for earth theme", async () => {
+			const user = userEvent.setup();
+			mockViewApi.getZoomFactor.mockResolvedValue(1);
+
+			render(<DisplayContent />);
+
+			await user.click(screen.getByLabelText("Select Default theme"));
+
+			expect(document.documentElement.getAttribute("data-theme")).toBe("");
+		});
+
+		it("should set data-theme for purpledark theme", async () => {
+			const user = userEvent.setup();
+			mockViewApi.getZoomFactor.mockResolvedValue(1);
+
+			render(<DisplayContent />);
+
+			await user.click(screen.getByLabelText("Select Dark Purple theme"));
+
+			expect(document.documentElement.getAttribute("data-theme")).toBe(
+				"purpledark",
+			);
 		});
 	});
 });

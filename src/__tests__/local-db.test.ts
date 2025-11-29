@@ -387,6 +387,32 @@ describe("local-db", () => {
 			expect(result.deletedIds).toEqual([]);
 		});
 
+		it("should handle cap enforcement when exactly at cap", async () => {
+			vi.useFakeTimers();
+			const project = await createProject("Test");
+
+			// Add exactly cap number of messages
+			for (let i = 0; i < 3; i++) {
+				vi.setSystemTime(new Date(2024, 0, 1, 0, 0, i));
+				await appendMessagesWithCap(
+					project.id,
+					[{ role: "user", content: `Message ${i}` }],
+					3,
+				);
+			}
+
+			const retrieved = await getProject(project.id);
+			expect(retrieved.messages).toHaveLength(3);
+			// No deletions should have occurred
+			expect(retrieved.messages.map((m) => m.content)).toEqual([
+				"Message 0",
+				"Message 1",
+				"Message 2",
+			]);
+
+			vi.useRealTimers();
+		});
+
 		it("should update project timestamp when adding messages", async () => {
 			vi.useFakeTimers();
 
@@ -593,6 +619,47 @@ describe("local-db", () => {
 			const retrieved = await getProject(project.id);
 			expect(retrieved.messages).toHaveLength(1);
 			expect(retrieved.messages[0]?.id).toMatch(/^msg-\d+-[a-z0-9]+$/);
+
+			// Restore crypto
+			Object.defineProperty(global, "crypto", {
+				value: originalCrypto,
+				writable: true,
+			});
+		});
+
+		it("should handle crypto.getRandomValues returning sparse array", async () => {
+			const originalCrypto = global.crypto;
+
+			// Mock crypto to return array-like object with undefined values
+			Object.defineProperty(global, "crypto", {
+				value: {
+					getRandomValues: (array: Uint32Array) => {
+						// Create a proxy that returns undefined for index access
+						// to simulate the ?? 0 fallback
+						return new Proxy(array, {
+							get(target, prop) {
+								if (prop === "0" || prop === "1") {
+									return undefined;
+								}
+								return Reflect.get(target, prop);
+							},
+						});
+					},
+				},
+				writable: true,
+			});
+
+			const project = await createProject("Test");
+			await appendMessagesWithCap(
+				project.id,
+				[{ role: "user", content: "Test" }],
+				100,
+			);
+
+			const retrieved = await getProject(project.id);
+			expect(retrieved.messages).toHaveLength(1);
+			// ID should still be valid even with fallback to 0
+			expect(retrieved.messages[0]?.id).toMatch(/^msg-\d+-/);
 
 			// Restore crypto
 			Object.defineProperty(global, "crypto", {

@@ -623,4 +623,63 @@ describe("DialogProvider", () => {
 			expect(result).toBe(false);
 		});
 	});
+
+	describe("event listener edge cases", () => {
+		it("should handle window.addEventListener throwing error", async () => {
+			const originalAddEventListener = window.addEventListener;
+			let callCount = 0;
+
+			// Make addEventListener throw on "app-info" event registration
+			window.addEventListener = vi.fn((type, listener, options) => {
+				callCount++;
+				if (type === "app-info") {
+					throw new Error("addEventListener failed");
+				}
+				return originalAddEventListener.call(window, type, listener, options);
+			}) as typeof window.addEventListener;
+
+			// Should not throw
+			expect(() => {
+				render(
+					<DialogProvider>
+						<div>Content</div>
+					</DialogProvider>,
+				);
+			}).not.toThrow();
+
+			// Restore
+			window.addEventListener = originalAddEventListener;
+		});
+	});
+
+	describe("dialog keydown propagation", () => {
+		it("should stop keydown event propagation on dialog", async () => {
+			let dialogApi: ReturnType<typeof useDialog> | null = null;
+
+			render(
+				<DialogProvider>
+					<TestConsumer
+						onReady={(d) => {
+							dialogApi = d;
+						}}
+					/>
+				</DialogProvider>,
+			);
+
+			await act(async () => {
+				dialogApi?.showInfo({ message: "Test" });
+			});
+
+			const dialog = screen.getByRole("dialog");
+			expect(dialog).toBeInTheDocument();
+
+			// Dispatch keydown on the dialog
+			const event = new KeyboardEvent("keydown", { key: "Tab", bubbles: true });
+			const stopPropagationSpy = vi.spyOn(event, "stopPropagation");
+
+			dialog.dispatchEvent(event);
+
+			expect(stopPropagationSpy).toHaveBeenCalled();
+		});
+	});
 });

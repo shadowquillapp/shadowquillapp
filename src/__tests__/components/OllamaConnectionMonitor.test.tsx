@@ -179,6 +179,71 @@ describe("OllamaConnectionMonitor", () => {
 				render(<OllamaConnectionMonitor />);
 			}).not.toThrow();
 		});
+
+		it("should return null when checkOllamaInstalled API is missing during connection loss", async () => {
+			(window as unknown as { shadowquill?: unknown }).shadowquill = {};
+			mockReadLocalModelConfig.mockReturnValue({
+				provider: "ollama",
+				baseUrl: "http://localhost:11434",
+				model: "gemma3:4b",
+			});
+			mockValidateLocalModelConnection
+				.mockResolvedValueOnce({ ok: true })
+				.mockResolvedValueOnce({ ok: false, error: "Connection lost" });
+			mockConfirm.mockResolvedValue(false);
+
+			render(<OllamaConnectionMonitor />);
+
+			await act(async () => {
+				await vi.advanceTimersByTimeAsync(3500);
+			});
+
+			// Trigger connection loss
+			await act(async () => {
+				window.dispatchEvent(new Event("MODEL_CHANGED"));
+				await vi.runOnlyPendingTimersAsync();
+			});
+
+			// Should still show dialog even without checkOllamaInstalled API
+			expect(mockConfirm).toHaveBeenCalled();
+		});
+
+		it("should log error when checkOllamaInstalled throws during connection loss", async () => {
+			const consoleSpy = vi
+				.spyOn(console, "error")
+				.mockImplementation(() => {});
+			mockWindowApi.checkOllamaInstalled.mockRejectedValue(
+				new Error("IPC failed"),
+			);
+			mockReadLocalModelConfig.mockReturnValue({
+				provider: "ollama",
+				baseUrl: "http://localhost:11434",
+				model: "gemma3:4b",
+			});
+			mockValidateLocalModelConnection
+				.mockResolvedValueOnce({ ok: true })
+				.mockResolvedValueOnce({ ok: false, error: "Connection lost" });
+			mockConfirm.mockResolvedValue(false);
+
+			render(<OllamaConnectionMonitor />);
+
+			await act(async () => {
+				await vi.advanceTimersByTimeAsync(3500);
+			});
+
+			// Trigger connection loss
+			await act(async () => {
+				window.dispatchEvent(new Event("MODEL_CHANGED"));
+				await vi.runOnlyPendingTimersAsync();
+			});
+
+			expect(consoleSpy).toHaveBeenCalledWith(
+				"Failed to check Ollama installation:",
+				expect.any(Error),
+			);
+
+			consoleSpy.mockRestore();
+		});
 	});
 
 	describe("connection loss detection", () => {

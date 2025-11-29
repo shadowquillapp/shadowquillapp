@@ -154,4 +154,137 @@ describe("SettingsDialog", () => {
 			).toBeInTheDocument();
 		});
 	});
+
+	describe("tab animation transitions", () => {
+		it("should handle rapid tab switching", async () => {
+			vi.useFakeTimers({ shouldAdvanceTime: true });
+			const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+			render(<SettingsDialog open={true} onClose={mockOnClose} />);
+
+			// Click multiple tabs rapidly
+			await user.click(screen.getByText("Display"));
+			await user.click(screen.getByText("System Prompt"));
+			await user.click(screen.getByText("Data Management"));
+
+			// Advance timers to complete animations
+			vi.advanceTimersByTime(1500);
+
+			// Should end up on the last clicked tab
+			expect(screen.getByTestId("data-content")).toBeInTheDocument();
+
+			vi.useRealTimers();
+		});
+
+		it("should not switch tabs when clicking the same tab", async () => {
+			const user = userEvent.setup();
+			render(<SettingsDialog open={true} onClose={mockOnClose} />);
+
+			// Click the already active tab
+			await user.click(screen.getByText("Ollama Setup"));
+
+			// Should still show ollama content
+			expect(screen.getByTestId("ollama-content")).toBeInTheDocument();
+		});
+
+		it("should animate upward when switching to earlier tab", async () => {
+			vi.useFakeTimers({ shouldAdvanceTime: true });
+			const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+			render(
+				<SettingsDialog
+					open={true}
+					onClose={mockOnClose}
+					initialTab="display"
+				/>,
+			);
+
+			// Switch to an earlier tab
+			await user.click(screen.getByText("Ollama Setup"));
+
+			// Advance timers
+			vi.advanceTimersByTime(1500);
+
+			expect(screen.getByTestId("ollama-content")).toBeInTheDocument();
+
+			vi.useRealTimers();
+		});
+	});
+
+	describe("state reset on open", () => {
+		it("should reset state when dialog reopens", () => {
+			const { rerender } = render(
+				<SettingsDialog
+					open={true}
+					onClose={mockOnClose}
+					initialTab="display"
+				/>,
+			);
+
+			// Close the dialog
+			rerender(<SettingsDialog open={false} onClose={mockOnClose} />);
+
+			// Reopen with different initial tab
+			rerender(
+				<SettingsDialog
+					open={true}
+					onClose={mockOnClose}
+					initialTab="system"
+				/>,
+			);
+
+			expect(screen.getByTestId("system-content")).toBeInTheDocument();
+		});
+	});
+
+	describe("cleanup", () => {
+		it("should cleanup transition timeout on unmount", async () => {
+			vi.useFakeTimers({ shouldAdvanceTime: true });
+			const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
+			const { unmount } = render(
+				<SettingsDialog open={true} onClose={mockOnClose} />,
+			);
+
+			// Start a tab transition
+			await user.click(screen.getByText("Display"));
+
+			// Unmount while transition is in progress
+			unmount();
+
+			// Advance timers - should not throw
+			vi.advanceTimersByTime(1500);
+
+			vi.useRealTimers();
+		});
+	});
+
+	describe("event propagation", () => {
+		it("should stop event propagation on dialog keydown", () => {
+			render(<SettingsDialog open={true} onClose={mockOnClose} />);
+
+			const modalContent = document.querySelector(".modal-content");
+			expect(modalContent).toBeInTheDocument();
+
+			// Dispatch keydown on the dialog
+			const event = new KeyboardEvent("keydown", { key: "a", bubbles: true });
+			const stopPropagationSpy = vi.spyOn(event, "stopPropagation");
+
+			modalContent?.dispatchEvent(event);
+
+			expect(stopPropagationSpy).toHaveBeenCalled();
+		});
+
+		it("should stop event propagation on dialog click", () => {
+			render(<SettingsDialog open={true} onClose={mockOnClose} />);
+
+			const modalContent = document.querySelector(".modal-content");
+			expect(modalContent).toBeInTheDocument();
+
+			// Dispatch click on the dialog
+			const event = new MouseEvent("click", { bubbles: true });
+			const stopPropagationSpy = vi.spyOn(event, "stopPropagation");
+
+			modalContent?.dispatchEvent(event);
+
+			expect(stopPropagationSpy).toHaveBeenCalled();
+		});
+	});
 });

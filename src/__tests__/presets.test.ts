@@ -306,6 +306,19 @@ describe("deletePresetByIdOrName", () => {
 		const remaining = getPresets();
 		expect(remaining).toHaveLength(1);
 	});
+
+	it("should keep all presets when neither id nor name is provided", () => {
+		const presets: Preset[] = [
+			{ id: "test-1", name: "First", taskType: "general" },
+			{ id: "test-2", name: "Second", taskType: "coding" },
+		];
+		localStorage.setItem("PC_PRESETS", JSON.stringify(presets));
+
+		deletePresetByIdOrName(undefined, undefined);
+
+		const remaining = getPresets();
+		expect(remaining).toHaveLength(2);
+	});
 });
 
 describe("rollbackPreset", () => {

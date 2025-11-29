@@ -5,7 +5,7 @@ import {
 	resetSystemPromptBuild,
 	setSystemPromptBuild,
 } from "@/lib/system-prompts";
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const STORAGE_KEY = "SYSTEM_PROMPT_BUILD";
 
@@ -214,28 +214,21 @@ Line 3`;
 			expect(() => getSystemPromptBuild()).not.toThrow();
 			expect(getSystemPromptBuild()).toBe(DEFAULT_BUILD_PROMPT);
 		});
+
+		it("should normalize null prompt to DEFAULT_BUILD_PROMPT via setSystemPromptBuild", () => {
+			// @ts-expect-error - intentionally passing null to test normalization
+			const result = setSystemPromptBuild(null);
+			expect(result).toBe(DEFAULT_BUILD_PROMPT);
+		});
+
+		it("should normalize undefined prompt to DEFAULT_BUILD_PROMPT via setSystemPromptBuild", () => {
+			// @ts-expect-error - intentionally passing undefined to test normalization
+			const result = setSystemPromptBuild(undefined);
+			expect(result).toBe(DEFAULT_BUILD_PROMPT);
+		});
 	});
 
 	describe("localStorage edge cases", () => {
-		it("should handle localStorage errors gracefully in getSystemPromptBuild", () => {
-			// Simulate localStorage being unavailable in SSR context
-			const originalLocalStorage = global.localStorage;
-			const originalWindow = global.window;
-
-			// Make window undefined (simulating SSR)
-			// @ts-ignore - intentionally testing edge case
-			global.window = undefined as unknown as Window & typeof globalThis;
-
-			// The function should still work and return empty string in SSR
-			// Re-import to test SSR behavior
-			// Note: In actual SSR, readRawPrompt returns "", which gets normalized,
-			// and if empty, returns DEFAULT_BUILD_PROMPT
-
-			// Restore
-			global.window = originalWindow;
-			global.localStorage = originalLocalStorage;
-		});
-
 		it("should handle very long prompts", () => {
 			const longPrompt = "x".repeat(100000);
 
@@ -252,6 +245,106 @@ Line 3`;
 
 			expect(result).toBe(unicodePrompt);
 			expect(getSystemPromptBuild()).toBe(unicodePrompt);
+		});
+	});
+
+	describe("localStorage error handling", () => {
+		it("should return DEFAULT_BUILD_PROMPT when localStorage.getItem throws", async () => {
+			// Reset module to get fresh instance that will use our mocked localStorage
+			vi.resetModules();
+
+			const originalGetItem = localStorage.getItem.bind(localStorage);
+			localStorage.getItem = () => {
+				throw new Error("localStorage disabled");
+			};
+
+			const freshModule = await import("@/lib/system-prompts");
+			const result = freshModule.getSystemPromptBuild();
+			expect(result).toBe(freshModule.DEFAULT_BUILD_PROMPT);
+
+			localStorage.getItem = originalGetItem;
+		});
+
+		it("should not throw when localStorage.setItem throws", async () => {
+			vi.resetModules();
+
+			const originalSetItem = localStorage.setItem.bind(localStorage);
+			localStorage.setItem = () => {
+				throw new Error("QuotaExceededError");
+			};
+
+			const freshModule = await import("@/lib/system-prompts");
+			expect(() =>
+				freshModule.setSystemPromptBuild("test prompt"),
+			).not.toThrow();
+			expect(() => freshModule.resetSystemPromptBuild()).not.toThrow();
+
+			localStorage.setItem = originalSetItem;
+		});
+
+		it("should handle ensureSystemPromptBuild when localStorage.setItem throws", async () => {
+			vi.resetModules();
+
+			const originalSetItem = localStorage.setItem.bind(localStorage);
+			localStorage.setItem = () => {
+				throw new Error("QuotaExceededError");
+			};
+
+			const freshModule = await import("@/lib/system-prompts");
+			// Should not throw and should return DEFAULT_BUILD_PROMPT
+			expect(() => freshModule.ensureSystemPromptBuild()).not.toThrow();
+			const result = freshModule.ensureSystemPromptBuild();
+			expect(result).toBe(freshModule.DEFAULT_BUILD_PROMPT);
+
+			localStorage.setItem = originalSetItem;
+		});
+	});
+
+	describe("SSR safety (window undefined)", () => {
+		const originalWindow = global.window;
+
+		beforeEach(() => {
+			// @ts-expect-error - intentionally setting window to undefined for SSR testing
+			global.window = undefined;
+		});
+
+		afterEach(() => {
+			global.window = originalWindow;
+		});
+
+		it("getSystemPromptBuild should return DEFAULT_BUILD_PROMPT when window is undefined", async () => {
+			vi.resetModules();
+			const freshModule = await import("@/lib/system-prompts");
+			const result = freshModule.getSystemPromptBuild();
+			expect(result).toBe(freshModule.DEFAULT_BUILD_PROMPT);
+		});
+
+		it("ensureSystemPromptBuild should return DEFAULT_BUILD_PROMPT when window is undefined", async () => {
+			vi.resetModules();
+			const freshModule = await import("@/lib/system-prompts");
+			const result = freshModule.ensureSystemPromptBuild();
+			expect(result).toBe(freshModule.DEFAULT_BUILD_PROMPT);
+		});
+
+		it("setSystemPromptBuild should return normalized prompt when window is undefined", async () => {
+			vi.resetModules();
+			const freshModule = await import("@/lib/system-prompts");
+			const result = freshModule.setSystemPromptBuild("  my prompt  ");
+			expect(result).toBe("my prompt");
+		});
+
+		it("setSystemPromptBuild should return DEFAULT_BUILD_PROMPT for empty prompt when window is undefined", async () => {
+			vi.resetModules();
+			const freshModule = await import("@/lib/system-prompts");
+			const result = freshModule.setSystemPromptBuild("");
+			expect(result).toBe(freshModule.DEFAULT_BUILD_PROMPT);
+		});
+
+		it("resetSystemPromptBuild should return DEFAULT_BUILD_PROMPT when window is undefined", async () => {
+			vi.resetModules();
+			const freshModule = await import("@/lib/system-prompts");
+			const result = freshModule.resetSystemPromptBuild();
+			expect(result).toBe(freshModule.DEFAULT_BUILD_PROMPT);
 		});
 	});
 });

@@ -235,6 +235,23 @@ describe("callLocalModelClient", () => {
 			expect(result).toContain("<root>");
 		});
 
+		it("should unwrap outer fence for XML responses", async () => {
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: () =>
+					Promise.resolve({
+						response: "```xml\n<root><item>value</item></root>\n```",
+					}),
+			});
+
+			const result = await callLocalModelClient("prompt", {
+				options: { format: "xml" },
+			});
+
+			// Should unwrap and re-wrap
+			expect(result).toBe("```xml\n<root><item>value</item></root>\n```");
+		});
+
 		it("should return plain text without wrapping", async () => {
 			global.fetch = vi.fn().mockResolvedValue({
 				ok: true,
@@ -268,6 +285,17 @@ describe("callLocalModelClient", () => {
 				baseUrl: "http://localhost:11434",
 				model: "gemma3:4b",
 			});
+		});
+
+		it("should handle empty response text", async () => {
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: () => Promise.resolve({ response: "" }),
+			});
+
+			const result = await callLocalModelClient("prompt");
+
+			expect(result).toBe("");
 		});
 
 		it("should strip word count lines from output", async () => {

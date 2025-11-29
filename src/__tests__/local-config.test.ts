@@ -233,6 +233,25 @@ describe("local-config", () => {
 			expect(result).toEqual({ ok: true });
 		});
 
+		it("should match model by id when name is empty string", async () => {
+			const config = {
+				provider: "ollama" as const,
+				baseUrl: "http://localhost:11434",
+				model: "gemma3:4b",
+			};
+
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: () =>
+					Promise.resolve({
+						models: [{ name: "", id: "gemma3:4b" }],
+					}),
+			});
+
+			const result = await validateLocalModelConnection(config);
+			expect(result).toEqual({ ok: true });
+		});
+
 		it("should return timeout error when fetch is aborted", async () => {
 			const config = {
 				provider: "ollama" as const,
@@ -401,6 +420,23 @@ describe("local-config", () => {
 				"gemma3:12b",
 				"gemma3:27b",
 			]);
+		});
+
+		it("should sort two models correctly", async () => {
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: () =>
+					Promise.resolve({
+						models: [
+							{ name: "gemma3:12b", size: 2000 },
+							{ name: "gemma3:4b", size: 1000 },
+						],
+					}),
+			});
+
+			const result = await listAvailableModels("http://localhost:11434");
+
+			expect(result.map((m) => m.name)).toEqual(["gemma3:4b", "gemma3:12b"]);
 		});
 
 		it("should use model id as fallback when name is not available", async () => {

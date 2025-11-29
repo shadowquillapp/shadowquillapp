@@ -441,6 +441,28 @@ describe("session storage cache", () => {
 			expect(value).toBeUndefined();
 		});
 
+		it("should catch errors when entries.find throws", () => {
+			// Mock sessionStorage to return data that causes find() to fail
+			vi.stubGlobal("sessionStorage", {
+				getItem: vi.fn(() => {
+					// Return valid JSON that will cause an error when accessing entries.find
+					return JSON.stringify({
+						entries: {
+							// entries is an object with a throwing find getter
+							get find() {
+								throw new Error("find error");
+							},
+						},
+					});
+				}),
+				setItem: vi.fn(),
+				removeItem: vi.fn(),
+			});
+
+			const value = getFromSessionCache("test-key");
+			expect(value).toBeUndefined();
+		});
+
 		it("should do nothing in server-side environment", () => {
 			vi.stubGlobal("window", undefined);
 
@@ -550,5 +572,41 @@ describe("LRUCache edge cases", () => {
 		expect(cache.get("key2")).toBeUndefined();
 		expect(cache.get("key3")).toBe("value3");
 		expect(cache.get("key4")).toBe("value4");
+	});
+
+	it("should handle edge case when cache map returns undefined on first key", () => {
+		const cache = new LRUCache<string, string>({
+			maxEntries: 1,
+			ttlMs: 0,
+		});
+
+		// Add one item to fill cache
+		cache.set("key1", "value1");
+
+		// Mock the internal map's keys().next().value to return undefined
+		// by accessing the private cache property
+		const internalCache = (cache as unknown as { cache: Map<string, unknown> })
+			.cache;
+		const originalKeys = internalCache.keys.bind(internalCache);
+		let callCount = 0;
+		internalCache.keys = () => {
+			callCount++;
+			// On the second call (during the while loop), return an iterator that yields undefined
+			if (callCount > 1) {
+				return {
+					next: () => ({ value: undefined, done: false }),
+					[Symbol.iterator]: function () {
+						return this;
+					},
+				} as unknown as IterableIterator<string>;
+			}
+			return originalKeys();
+		};
+
+		// This should trigger the break statement when firstKey is undefined
+		cache.set("key2", "value2");
+
+		// Cache should still work
+		expect(cache.size).toBeGreaterThanOrEqual(1);
 	});
 });

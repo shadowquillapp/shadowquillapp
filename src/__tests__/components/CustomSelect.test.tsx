@@ -646,6 +646,40 @@ describe("CustomSelect", () => {
 		});
 	});
 
+	describe("handleClickOutside trigger button check", () => {
+		it("should handle document click on trigger button via event dispatch", async () => {
+			const user = userEvent.setup();
+
+			render(
+				<CustomSelect
+					value=""
+					onChange={mockOnChange}
+					options={defaultOptions}
+				/>,
+			);
+
+			const button = screen.getByRole("button");
+			await user.click(button);
+
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+
+			// Dispatch a click event on the document that targets the button
+			// This simulates a click that bypasses the button's React onClick handler
+			const clickEvent = new MouseEvent("click", {
+				bubbles: true,
+				cancelable: true,
+			});
+			Object.defineProperty(clickEvent, "target", {
+				value: button,
+				writable: false,
+			});
+			document.dispatchEvent(clickEvent);
+
+			// Menu should still be open because we're clicking on the trigger button
+			expect(screen.getByRole("menu")).toBeInTheDocument();
+		});
+	});
+
 	describe("event propagation", () => {
 		it("should stop propagation on button click", async () => {
 			const user = userEvent.setup();

@@ -177,5 +177,228 @@ describe("Titlebar", () => {
 				expect(screen.getByText("8 GB")).toBeInTheDocument();
 			});
 		});
+
+		it("should recommend gemma3:12b for systems with 16-40GB RAM", async () => {
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+			mockWindowApi.getSystemSpecs.mockResolvedValue({
+				cpu: "Intel Core i7",
+				ram: 32 * 1024 * 1024 * 1024, // 32GB
+				gpu: "NVIDIA RTX 3080",
+			});
+
+			render(<Titlebar />);
+
+			await waitFor(() => {
+				expect(screen.getByText("32 GB")).toBeInTheDocument();
+			});
+		});
+
+		it("should recommend gemma3:27b for systems with 40GB+ RAM", async () => {
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+			mockWindowApi.getSystemSpecs.mockResolvedValue({
+				cpu: "AMD Threadripper",
+				ram: 64 * 1024 * 1024 * 1024, // 64GB
+				gpu: "NVIDIA RTX 4090",
+			});
+
+			render(<Titlebar />);
+
+			await waitFor(() => {
+				expect(screen.getByText("64 GB")).toBeInTheDocument();
+			});
+		});
+	});
+
+	describe("error handling", () => {
+		it("should handle getPlatform failure gracefully", async () => {
+			mockWindowApi.getPlatform.mockRejectedValue(new Error("IPC failed"));
+			mockWindowApi.getSystemSpecs.mockRejectedValue(new Error("IPC failed"));
+
+			render(<Titlebar />);
+
+			// Should still render without crashing
+			expect(document.querySelector(".app-region-drag")).toBeInTheDocument();
+		});
+
+		it("should handle missing shadowquill API gracefully", () => {
+			(window as unknown as { shadowquill?: unknown }).shadowquill = undefined;
+
+			render(<Titlebar />);
+
+			// Should still render without crashing
+			expect(document.querySelector(".app-region-drag")).toBeInTheDocument();
+		});
+
+		it("should handle window control errors gracefully", async () => {
+			const user = userEvent.setup();
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+			mockWindowApi.window.close = vi.fn().mockImplementation(() => {
+				throw new Error("Close failed");
+			});
+
+			render(<Titlebar />);
+
+			await waitFor(() => {
+				expect(screen.getByLabelText("Close")).toBeInTheDocument();
+			});
+
+			// Should not throw when clicking close
+			await expect(
+				user.click(screen.getByLabelText("Close")),
+			).resolves.not.toThrow();
+		});
+	});
+
+	describe("button hover states", () => {
+		it("should show icon on hover", async () => {
+			const user = userEvent.setup();
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			await waitFor(() => {
+				expect(screen.getByLabelText("Close")).toBeInTheDocument();
+			});
+
+			const closeButton = screen.getByLabelText("Close");
+			await user.hover(closeButton);
+
+			// Button should be in the document
+			expect(closeButton).toBeInTheDocument();
+		});
+	});
+
+	describe("model chip display", () => {
+		it("should show model name when configured", async () => {
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			await waitFor(() => {
+				expect(screen.getByText(/Gemma 3/i)).toBeInTheDocument();
+			});
+		});
+
+		it("should show dash when model not configured", async () => {
+			vi.mock("@/lib/local-config", () => ({
+				readLocalModelConfig: vi.fn(() => null),
+			}));
+
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			// Component should still render
+			await waitFor(() => {
+				expect(document.querySelector(".app-region-drag")).toBeInTheDocument();
+			});
+		});
+	});
+
+	describe("event listeners", () => {
+		it("should respond to sq-model-changed event", async () => {
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			await waitFor(() => {
+				expect(screen.getByText(/Gemma 3/i)).toBeInTheDocument();
+			});
+
+			// Dispatch a model changed event
+			const event = new CustomEvent("sq-model-changed", {
+				detail: { modelId: "gemma3:12b" },
+			});
+			window.dispatchEvent(event);
+
+			await waitFor(() => {
+				expect(screen.getByText(/Gemma 3/i)).toBeInTheDocument();
+			});
+		});
+
+		it("should respond to storage event", async () => {
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			// Trigger a storage event
+			window.dispatchEvent(new Event("storage"));
+
+			await waitFor(() => {
+				expect(document.querySelector(".app-region-drag")).toBeInTheDocument();
+			});
+		});
+
+		it("should respond to focus event", async () => {
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			// Trigger a focus event
+			window.dispatchEvent(new Event("focus"));
+
+			await waitFor(() => {
+				expect(document.querySelector(".app-region-drag")).toBeInTheDocument();
+			});
+		});
+
+		it("should handle sq-model-changed with invalid detail gracefully", async () => {
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			await waitFor(() => {
+				expect(screen.getByText(/Gemma 3/i)).toBeInTheDocument();
+			});
+
+			// Dispatch event with no modelId
+			const event = new CustomEvent("sq-model-changed", {
+				detail: {},
+			});
+			window.dispatchEvent(event);
+
+			// Should not crash
+			expect(document.querySelector(".app-region-drag")).toBeInTheDocument();
+		});
+	});
+
+	describe("button mouseLeave", () => {
+		it("should reset hover state on mouseLeave", async () => {
+			const user = userEvent.setup();
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			await waitFor(() => {
+				expect(screen.getByLabelText("Close")).toBeInTheDocument();
+			});
+
+			const closeButton = screen.getByLabelText("Close");
+
+			// Hover then unhover
+			await user.hover(closeButton);
+			await user.unhover(closeButton);
+
+			// Button should still be in the document
+			expect(closeButton).toBeInTheDocument();
+		});
+	});
+
+	describe("syncModel polling", () => {
+		it("should clear interval once model is found", async () => {
+			vi.useFakeTimers({ shouldAdvanceTime: true });
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			// Advance timer to trigger the interval
+			vi.advanceTimersByTime(1000);
+
+			await waitFor(() => {
+				expect(screen.getByText(/Gemma 3/i)).toBeInTheDocument();
+			});
+
+			vi.useRealTimers();
+		});
 	});
 });

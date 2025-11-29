@@ -312,3 +312,169 @@ describe("formatErrorLog", () => {
 		expect(log).toBe("string error");
 	});
 });
+
+describe("userMessage for all error codes", () => {
+	it("should return correct message for GENERATION_ERROR", () => {
+		const error = new ShadowQuillError("GENERATION_ERROR", "test");
+		expect(error.userMessage).toBe("Failed to generate the prompt.");
+	});
+
+	it("should return correct message for STORAGE_ERROR", () => {
+		const error = new ShadowQuillError("STORAGE_ERROR", "test");
+		expect(error.userMessage).toBe("Failed to save or load data.");
+	});
+
+	it("should return correct message for MODEL_ERROR", () => {
+		const error = new ShadowQuillError("MODEL_ERROR", "test");
+		expect(error.userMessage).toBe("The AI model encountered an error.");
+	});
+
+	it("should return correct message for CACHE_ERROR", () => {
+		const error = new ShadowQuillError("CACHE_ERROR", "test");
+		expect(error.userMessage).toBe("Cache operation failed.");
+	});
+
+	it("should return correct message for NETWORK_ERROR", () => {
+		const error = new ShadowQuillError("NETWORK_ERROR", "test");
+		expect(error.userMessage).toBe("Network connection failed.");
+	});
+
+	it("should return correct message for PRESET_ERROR", () => {
+		const error = new ShadowQuillError("PRESET_ERROR", "test");
+		expect(error.userMessage).toBe("Preset operation failed.");
+	});
+});
+
+describe("NetworkError full options", () => {
+	it("should include all network error properties", () => {
+		const cause = new Error("Connection reset");
+		const error = new NetworkError("Request failed", {
+			endpoint: "http://example.com/api",
+			statusCode: 503,
+			isTimeout: true,
+			details: { retryCount: 3 },
+			cause,
+		});
+
+		expect(error.endpoint).toBe("http://example.com/api");
+		expect(error.statusCode).toBe(503);
+		expect(error.isTimeout).toBe(true);
+		expect(error.details).toEqual({ retryCount: 3 });
+		expect(error.cause).toBe(cause);
+	});
+});
+
+describe("PresetError full options", () => {
+	it("should include all preset error properties", () => {
+		const cause = new Error("Disk full");
+		const error = new PresetError("Failed to save preset", {
+			presetId: "preset_456",
+			presetName: "My Preset",
+			operation: "update",
+			details: { size: 5000 },
+			cause,
+		});
+
+		expect(error.presetId).toBe("preset_456");
+		expect(error.presetName).toBe("My Preset");
+		expect(error.operation).toBe("update");
+		expect(error.details).toEqual({ size: 5000 });
+		expect(error.cause).toBe(cause);
+	});
+});
+
+describe("CacheError with cause", () => {
+	it("should include cause in cache error", () => {
+		const cause = new Error("Memory limit exceeded");
+		const error = new CacheError("Cache write failed", {
+			cacheType: "memory",
+			cause,
+		});
+
+		expect(error.cause).toBe(cause);
+	});
+});
+
+describe("StorageError with cause", () => {
+	it("should include cause in storage error", () => {
+		const cause = new Error("Disk error");
+		const error = new StorageError("Write failed", {
+			operation: "write",
+			key: "settings",
+			cause,
+		});
+
+		expect(error.cause).toBe(cause);
+	});
+});
+
+describe("GenerationError with cause", () => {
+	it("should include cause in generation error", () => {
+		const cause = new Error("Token limit exceeded");
+		const error = new GenerationError("Generation failed", {
+			taskType: "coding",
+			inputLength: 50000,
+			details: { model: "gemma3:4b" },
+			cause,
+		});
+
+		expect(error.cause).toBe(cause);
+		expect(error.details).toEqual({ model: "gemma3:4b" });
+	});
+});
+
+describe("ModelError with cause", () => {
+	it("should include cause in model error", () => {
+		const cause = new Error("GPU OOM");
+		const error = new ModelError("Model crashed", {
+			modelId: "gemma3:27b",
+			statusCode: 500,
+			isTimeout: false,
+			details: { gpuMemory: "8GB" },
+			cause,
+		});
+
+		expect(error.cause).toBe(cause);
+		expect(error.details).toEqual({ gpuMemory: "8GB" });
+	});
+});
+
+describe("ValidationError with details", () => {
+	it("should include details in validation error", () => {
+		const error = new ValidationError("Field validation failed", {
+			field: "temperature",
+			value: 2.5,
+			details: { min: 0, max: 2 },
+		});
+
+		expect(error.details).toEqual({ min: 0, max: 2 });
+	});
+});
+
+describe("Error.captureStackTrace", () => {
+	it("should maintain stack trace", () => {
+		const error = new ShadowQuillError("VALIDATION_ERROR", "Test error");
+		expect(error.stack).toBeDefined();
+		expect(error.stack).toContain("Test error");
+	});
+});
+
+describe("wrapError edge cases", () => {
+	it("should handle null error", () => {
+		const wrapped = wrapError(null);
+		expect(isShadowQuillError(wrapped)).toBe(true);
+		expect(wrapped.message).toBe("An unexpected error occurred");
+	});
+
+	it("should handle number error", () => {
+		const wrapped = wrapError(404);
+		expect(isShadowQuillError(wrapped)).toBe(true);
+		expect(wrapped.details?.originalType).toBe("number");
+	});
+
+	it("should handle object error", () => {
+		const wrapped = wrapError({ code: 500, msg: "error" });
+		expect(isShadowQuillError(wrapped)).toBe(true);
+		expect(wrapped.details?.originalType).toBe("object");
+	});
+});
