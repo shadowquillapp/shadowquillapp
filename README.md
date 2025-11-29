@@ -123,6 +123,10 @@ npm run typecheck        # Type check
 ```
 
 ```bash
+npm run check            # biome check
+```
+
+```bash
 npm test                 # Run tests
 ```
 
@@ -135,7 +139,7 @@ npm run test:coverage    # With coverage report
 ```
 
 ```bash
-npm run dev              # Open ShadowQuill in dev mode
+npm run dev              # Open ShadowQuill app in dev mode
 ```
 
 ## Privacy & Security
