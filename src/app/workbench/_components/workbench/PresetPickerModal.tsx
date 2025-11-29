@@ -817,17 +817,16 @@ export function PresetPickerModal({
 															style={{
 																display: "flex",
 																alignItems: "center",
-																gap: 12,
-																padding: "12px 14px",
+																gap: 8,
+																padding: "12px",
 																textAlign: "left",
 																background: "var(--color-surface-variant)",
 																border: "1px solid var(--color-outline)",
-																borderRadius: 10,
+																borderRadius: 8,
 																transition:
 																	"box-shadow 0.15s, border-color 0.15s",
 																flex: 1,
-																height: "auto",
-																minHeight: 56,
+																height: 44,
 															}}
 															onMouseEnter={(e) => {
 																if (isDeleting) return;
@@ -858,9 +857,9 @@ export function PresetPickerModal({
 																	display: "flex",
 																	alignItems: "center",
 																	justifyContent: "center",
-																	width: 36,
-																	height: 36,
-																	borderRadius: 8,
+																	width: 24,
+																	height: 24,
+																	borderRadius: 6,
 																	background:
 																		"color-mix(in oklab, var(--color-secondary) 15%, transparent)",
 																	color: "var(--color-secondary)",
@@ -869,7 +868,7 @@ export function PresetPickerModal({
 															>
 																<Icon
 																	name="file-text"
-																	style={{ width: 18, height: 18 }}
+																	style={{ width: 14, height: 14 }}
 																/>
 															</div>
 															<div
@@ -877,26 +876,30 @@ export function PresetPickerModal({
 																	flex: 1,
 																	minWidth: 0,
 																	overflow: "hidden",
+																	paddingRight: 8, // Ensure space for ellipsis
 																}}
 															>
 																<div
 																	style={{
-																		fontSize: 14,
+																		fontSize: 12,
 																		fontWeight: 600,
 																		color: "var(--color-on-surface)",
 																		overflow: "hidden",
 																		textOverflow: "ellipsis",
 																		whiteSpace: "nowrap",
-																		maxWidth: "100%",
+																		maxWidth: "200px", // Force truncation to show ellipsis
+																		paddingTop: 2,
 																	}}
 																>
 																	{project.title ?? "Untitled"}
 																</div>
 																<div
 																	style={{
-																		fontSize: 11,
+																		fontSize: 10,
 																		color: "var(--color-on-surface-variant)",
 																		opacity: 0.75,
+																		paddingBottom: 2,
+																		marginTop: -2,
 																	}}
 																>
 																	{new Date(
@@ -918,8 +921,8 @@ export function PresetPickerModal({
 															<Icon
 																name="chevron-right"
 																style={{
-																	width: 16,
-																	height: 16,
+																	width: 14,
+																	height: 14,
 																	opacity: 0.4,
 																	flexShrink: 0,
 																}}
@@ -938,8 +941,8 @@ export function PresetPickerModal({
 																title="Delete workbench"
 																aria-label="Delete workbench"
 																style={{
-																	width: 36,
-																	height: 36,
+																	width: 44,
+																	height: 44,
 																	padding: 0,
 																	display: "flex",
 																	alignItems: "center",
