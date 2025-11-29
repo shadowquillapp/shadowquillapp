@@ -237,7 +237,6 @@
 }
 
 .refine-timeline__item:hover {
-	background: color-mix(in srgb, var(--color-primary), transparent 96%);
 	border-radius: 6px;
 	margin: 0 -4px;
 	padding: 4px;
@@ -338,8 +337,6 @@
 .refine-timeline__item--current .refine-timeline__content {
 	background: color-mix(in srgb, var(--color-primary), var(--color-surface) 95%);
 	border-color: color-mix(in srgb, var(--color-primary), transparent 60%);
-	box-shadow: 0 1px 4px
-		color-mix(in srgb, var(--color-primary), transparent 85%);
 }
 
 .refine-timeline__header {
