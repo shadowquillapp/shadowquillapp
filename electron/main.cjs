@@ -133,7 +133,7 @@ function loadWindowState() {
 		height: 850,
 		x: undefined,
 		y: undefined,
-		isMaximized: false,
+		isMaximized: true,
 	};
 	try {
 		const statePath = getWindowStatePath();
