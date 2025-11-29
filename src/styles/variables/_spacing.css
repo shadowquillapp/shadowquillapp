@@ -1,0 +1,50 @@
+/**
+ * ==========================================================================
+ * SPACING & DIMENSION VARIABLES
+ * ==========================================================================
+ *
+ * Consistent spacing scale and dimension tokens used throughout the app.
+ * Based on a 4px grid system for visual harmony.
+ *
+ * USAGE:
+ * - Use --space-{n} for margins, paddings, and gaps
+ * - Use --radius-{size} for border-radius
+ * - Use --shadow-{level} for box shadows
+ * ==========================================================================
+ */
+
+:root {
+	/* ========================================
+	 * SPACING SCALE
+	 * 4px base unit, increments of 4px
+	 * ======================================== */
+
+	--space-0: 0;
+	--space-1: 4px;
+	--space-2: 8px;
+	--space-3: 12px;
+	--space-4: 16px;
+	--space-5: 20px;
+	--space-6: 24px;
+	--space-7: 28px;
+	--space-8: 32px;
+	--space-9: 36px;
+	--space-10: 40px;
+
+	/* ========================================
+	 * BORDER RADIUS
+	 * Consistent rounding for UI elements
+	 * ======================================== */
+
+	--radius-sm: 8px;
+	--radius-md: 12px;
+	--radius-lg: 16px;
+
+	/* ========================================
+	 * SHADOWS
+	 * Elevation system for depth
+	 * ======================================== */
+
+	--shadow-1: 0 2px 8px #00000040;
+	--shadow-2: 0 6px 16px #00000059;
+}

@@ -1,0 +1,31 @@
+/**
+ * ==========================================================================
+ * LINK COMPONENTS
+ * ==========================================================================
+ *
+ * Styled link elements.
+ *
+ * COMPONENT CLASSES:
+ * - .md-link: Styled anchor link
+ * ==========================================================================
+ */
+
+/* ========================================
+ * LINK (.md-link)
+ * Underlined link with hover effect
+ * ======================================== */
+
+.md-link {
+	color: var(--color-on-surface-variant);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+	transition: color 120ms ease, background-color 120ms ease;
+	border-radius: 4px;
+	padding: 2px 4px;
+}
+
+.md-link:hover {
+	color: var(--color-on-primary);
+	background: var(--color-primary);
+	text-decoration: none;
+}

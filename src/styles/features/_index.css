@@ -1,0 +1,22 @@
+/**
+ * ==========================================================================
+ * FEATURES INDEX
+ * ==========================================================================
+ *
+ * Entry point for feature-specific styles.
+ * These styles are for complete UI features rather than generic components.
+ *
+ * STRUCTURE:
+ * - ollama: Ollama setup and configuration UI
+ * - workbench: Prompt workbench and related components
+ * - version-history: Version history display and navigation
+ * - refine-panel: Refinement panel and timeline
+ * - find-highlight: Search result highlighting
+ * ==========================================================================
+ */
+
+@import "./_ollama.css";
+@import "./_workbench.css";
+@import "./_version-history.css";
+@import "./_refine-panel.css";
+@import "./_find-highlight.css";

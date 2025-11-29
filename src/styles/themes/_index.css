@@ -1,0 +1,23 @@
+/**
+ * ==========================================================================
+ * THEMES INDEX
+ * ==========================================================================
+ *
+ * Entry point for all theme definitions.
+ * The default theme (earth) is defined in variables/_colors.css.
+ * These files provide theme-specific overrides.
+ *
+ * AVAILABLE THEMES:
+ * - default (earth): Warm, earthy tones (no data-theme attribute needed)
+ * - purpledark: Vibrant purple accents on dark background
+ * - dark: Neutral dark with blue accents
+ * - light: Clean light theme for daytime use
+ *
+ * USAGE: Set data-theme attribute on <html> or <body> element
+ * Example: <html data-theme="dark">
+ * ==========================================================================
+ */
+
+@import "./_purpledark.css";
+@import "./_dark.css";
+@import "./_light.css";

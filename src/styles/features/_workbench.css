@@ -1,0 +1,329 @@
+/**
+ * ==========================================================================
+ * WORKBENCH FEATURE STYLES
+ * ==========================================================================
+ *
+ * Styles for the prompt workbench and related UI components.
+ *
+ * COMPONENT CLASSES:
+ * - .simple-workbench: Main workbench container
+ * - .prompt-input-*: Prompt input pane
+ * - .prompt-output-*: Output display pane
+ * - .workbench-empty: Empty state
+ * - .editor-dirty: Unsaved indicator
+ * ==========================================================================
+ */
+
+/* ========================================
+ * MAIN WORKBENCH CONTAINER
+ * ======================================== */
+
+.simple-workbench {
+	display: flex;
+	flex-direction: column;
+	width: 100vw;
+	height: 100%;
+	background: var(--color-surface);
+	color: var(--color-on-surface);
+}
+
+/* ========================================
+ * WORKBENCH HEADER
+ * ======================================== */
+
+.simple-workbench__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 24px;
+	border-bottom: 1px solid var(--color-outline);
+	background: var(--color-surface-variant);
+	position: relative;
+	overflow: visible;
+	z-index: 10;
+}
+
+.simple-workbench__header-left {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.simple-workbench__title {
+	font-size: 20px;
+	font-weight: 700;
+	margin: 0;
+}
+
+.simple-workbench__header-actions {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+/* ========================================
+ * WORKBENCH PANELS
+ * ======================================== */
+
+.simple-workbench__panels {
+	flex: 1;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0;
+	min-height: 0;
+	overflow: hidden;
+}
+
+/* ========================================
+ * PROMPT INPUT PANE
+ * ======================================== */
+
+.prompt-input-pane {
+	display: flex;
+	flex-direction: column;
+	background: var(--color-surface);
+	padding: 24px;
+	gap: 16px;
+	overflow: hidden;
+}
+
+.prompt-input__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-wrap: wrap;
+}
+
+.prompt-input__header h2 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.prompt-input__preset {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.prompt-input__toolbar {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
+.prompt-input__textarea {
+	flex: 1;
+	width: 100%;
+	border: 1px solid var(--color-outline);
+	border-radius: 16px;
+	padding: 16px;
+	background: var(--color-surface-variant);
+	color: var(--color-on-surface);
+	font-size: 15px;
+	line-height: 1.6;
+	resize: none;
+	min-height: 200px;
+}
+
+.prompt-input__textarea:focus {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 0;
+}
+
+.prompt-input__footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.prompt-input__model-select {
+	position: relative;
+}
+
+.prompt-input__run-btn {
+	min-width: 140px;
+}
+
+/* ========================================
+ * PROMPT OUTPUT PANE
+ * ======================================== */
+
+.prompt-output-pane {
+	display: flex;
+	flex-direction: column;
+	background: var(--color-surface);
+	padding: 24px;
+	gap: 20px;
+	overflow: hidden;
+	border: none;
+	box-shadow: none;
+}
+
+.prompt-output__header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	flex-shrink: 0;
+}
+
+.prompt-output__header h2 {
+	margin: 0;
+	font-size: 18px;
+	font-weight: 600;
+}
+
+.prompt-output__loader {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 16px;
+}
+
+.prompt-output__error {
+	padding: 12px;
+	border-left: 4px solid var(--color-attention);
+}
+
+.prompt-output__content {
+	display: flex;
+	flex-direction: column;
+	gap: 32px;
+	flex: 1;
+	overflow-y: auto;
+	padding: 4px 0;
+}
+
+/* ========================================
+ * OUTPUT MESSAGE WRAPPER
+ * ======================================== */
+
+.output-message-wrapper {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding-bottom: 32px;
+	border-bottom: 1px solid var(--color-outline);
+}
+
+.output-message-wrapper:last-of-type {
+	border-bottom: none;
+	padding-bottom: 0;
+}
+
+.output-version-label {
+	font-size: 12px;
+	font-weight: 600;
+	color: var(--color-on-surface-variant);
+	text-transform: uppercase;
+	letter-spacing: .5px;
+	margin-bottom: 4px;
+}
+
+.output-message-content {
+	white-space: pre-wrap;
+	word-wrap: break-word;
+	font-size: 15px;
+	line-height: 1.7;
+	color: var(--color-on-surface);
+	padding: 0;
+}
+
+.output-copy-btn {
+	align-self: flex-start;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	background: var(--color-surface-variant);
+	border: 1px solid var(--color-outline);
+	border-radius: 8px;
+	padding: 8px 12px;
+	cursor: pointer;
+	font-size: 13px;
+	font-weight: 500;
+	color: var(--color-on-surface-variant);
+	transition: all 150ms ease;
+	margin-top: 8px;
+}
+
+.output-copy-btn:hover {
+	background: var(--color-surface);
+	border-color: var(--color-primary);
+	color: var(--color-primary);
+	box-shadow: var(--shadow-1);
+}
+
+/* ========================================
+ * EMPTY STATE
+ * ======================================== */
+
+.workbench-empty {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: 12px;
+	color: var(--color-on-surface-variant);
+	padding: 24px;
+}
+
+/* ========================================
+ * EDITOR DIRTY INDICATOR
+ * ======================================== */
+
+.editor-dirty {
+	color: var(--color-attention);
+	font-size: 12px;
+	font-weight: 600;
+	text-transform: uppercase;
+}
+
+/* ========================================
+ * APP REGION (for Electron drag regions)
+ * ======================================== */
+
+.app-region-drag {
+	-webkit-app-region: drag;
+}
+
+.app-region-no-drag {
+	-webkit-app-region: no-drag;
+}
+
+/* ========================================
+ * RESPONSIVE ADJUSTMENTS
+ * ======================================== */
+
+@media (max-width: 1024px) {
+	.simple-workbench__panels {
+		grid-template-columns: 1fr;
+		grid-template-rows: 1fr 1fr;
+	}
+
+	.prompt-input-pane {
+		border-right: none;
+		border-bottom: 1px solid var(--color-outline);
+	}
+}
+
+@media (max-width: 768px) {
+	.simple-workbench__header {
+		padding: 12px 16px;
+	}
+
+	.simple-workbench__title {
+		font-size: 16px;
+	}
+
+	.prompt-input-pane,
+	.prompt-output-pane {
+		padding: 16px;
+	}
+}

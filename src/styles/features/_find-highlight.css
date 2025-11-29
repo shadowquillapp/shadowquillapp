@@ -1,0 +1,65 @@
+/**
+ * ==========================================================================
+ * FIND/HIGHLIGHT FEATURE STYLES
+ * ==========================================================================
+ *
+ * Styles for search result highlighting in content.
+ *
+ * COMPONENT CLASSES:
+ * - .find-highlight: Highlighted search match
+ * - .find-highlight--active: Currently focused match
+ * - .find-highlight--pulse: Pulse animation on navigation
+ * ==========================================================================
+ */
+
+/* ========================================
+ * BASE HIGHLIGHT
+ * ======================================== */
+
+.find-highlight {
+	background: color-mix(in srgb, var(--color-primary) 30%, transparent);
+	color: inherit;
+	border-radius: 2px;
+	box-shadow: 0 0 0 1px
+		color-mix(in srgb, var(--color-primary) 40%, transparent);
+	padding: 0 1px;
+	transition: background 150ms ease, box-shadow 150ms ease;
+}
+
+/* ========================================
+ * ACTIVE HIGHLIGHT (Currently focused)
+ * ======================================== */
+
+.find-highlight--active {
+	background: var(--color-primary);
+	color: var(--color-on-primary);
+	box-shadow: 0 0 0 2px
+		color-mix(in srgb, var(--color-primary) 60%, transparent), 0 2px 8px
+		color-mix(in srgb, var(--color-primary) 40%, transparent);
+}
+
+/* ========================================
+ * PULSE ANIMATION (on navigation)
+ * ======================================== */
+
+.find-highlight--pulse {
+	animation: find-highlight-pulse 400ms ease-out;
+}
+
+@keyframes find-highlight-pulse {
+	0% {
+		box-shadow: 0 0 0 2px
+			color-mix(in srgb, var(--color-primary) 60%, transparent), 0 2px 8px
+			color-mix(in srgb, var(--color-primary) 40%, transparent);
+	}
+	50% {
+		box-shadow: 0 0 0 4px
+			color-mix(in srgb, var(--color-primary) 40%, transparent), 0 4px 16px
+			color-mix(in srgb, var(--color-primary) 60%, transparent);
+	}
+	100% {
+		box-shadow: 0 0 0 2px
+			color-mix(in srgb, var(--color-primary) 60%, transparent), 0 2px 8px
+			color-mix(in srgb, var(--color-primary) 40%, transparent);
+	}
+}

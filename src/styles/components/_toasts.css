@@ -1,0 +1,54 @@
+/**
+ * ==========================================================================
+ * TOAST COMPONENTS
+ * ==========================================================================
+ *
+ * Toast notification styles.
+ *
+ * COMPONENT CLASSES:
+ * - .theme-toast: Theme change notification toast
+ * ==========================================================================
+ */
+
+/* ========================================
+ * THEME TOAST (.theme-toast)
+ * Animated notification for theme changes
+ * ======================================== */
+
+.theme-toast {
+	position: fixed;
+	bottom: 32px;
+	right: 32px;
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	padding: 12px 20px;
+	background: var(--color-surface-variant);
+	border: 1px solid var(--color-outline);
+	border-radius: 12px;
+	box-shadow: var(--shadow-2);
+	color: var(--color-on-surface);
+	font-size: 14px;
+	font-weight: 600;
+	pointer-events: none;
+	z-index: 100;
+	animation: theme-toast 2000ms ease forwards;
+}
+
+@keyframes theme-toast {
+	0% {
+		opacity: 0;
+		transform: translateY(20px) scale(0.95);
+	}
+	10% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+	80% {
+		opacity: 1;
+	}
+	100% {
+		opacity: 0;
+		transform: translateY(-10px) scale(0.95);
+	}
+}

@@ -1,0 +1,66 @@
+/**
+ * ==========================================================================
+ * BASE RESET & DEFAULTS
+ * ==========================================================================
+ *
+ * Foundational styles that establish baseline behaviors for HTML elements.
+ * These styles normalize browser defaults and set up core element styling.
+ * ==========================================================================
+ */
+
+/* ========================================
+ * DOCUMENT ROOT
+ * ======================================== */
+
+html,
+body {
+	height: 100%;
+	background: var(--color-surface);
+	color: var(--color-on-surface);
+	font-family: var(--font-sans);
+}
+
+/* ========================================
+ * TYPOGRAPHY DEFAULTS
+ * ======================================== */
+
+body,
+button,
+input,
+textarea,
+select {
+	line-height: 24px;
+}
+
+h1 {
+	line-height: 40px;
+}
+
+h2 {
+	line-height: 32px;
+}
+
+h3,
+h4,
+h5,
+h6 {
+	line-height: 28px;
+}
+
+/* ========================================
+ * INTERACTIVE ELEMENTS
+ * Cursor states for interactive elements
+ * ======================================== */
+
+button:not([disabled]),
+a[href],
+a[role="button"],
+[role="button"] {
+	cursor: pointer;
+}
+
+button[disabled],
+a[aria-disabled="true"],
+[aria-disabled="true"] {
+	cursor: not-allowed !important;
+}

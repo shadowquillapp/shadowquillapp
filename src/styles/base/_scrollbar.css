@@ -1,0 +1,47 @@
+/**
+ * ==========================================================================
+ * SCROLLBAR STYLING
+ * ==========================================================================
+ *
+ * Custom scrollbar styles for a cohesive look across the application.
+ * Supports both standard scrollbar-* properties and WebKit pseudo-elements.
+ * ==========================================================================
+ */
+
+/* ========================================
+ * STANDARD SCROLLBAR (Firefox, etc.)
+ * ======================================== */
+
+* {
+	scrollbar-width: auto;
+	scrollbar-color: var(--color-outline) transparent;
+}
+
+/* ========================================
+ * WEBKIT SCROLLBAR (Chrome, Safari, Edge)
+ * ======================================== */
+
+::-webkit-scrollbar {
+	width: 12px;
+	height: 12px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: var(--color-outline);
+	border-radius: 8px;
+	border: 2px solid transparent;
+	background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: var(--color-on-surface-variant);
+	background-clip: content-box;
+}
+
+::-webkit-scrollbar-corner {
+	background: transparent;
+}

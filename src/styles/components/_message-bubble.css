@@ -1,0 +1,85 @@
+/**
+ * ==========================================================================
+ * MESSAGE BUBBLE COMPONENT
+ * ==========================================================================
+ *
+ * Chat-style message bubbles for user and assistant messages.
+ *
+ * COMPONENT CLASSES:
+ * - .message-bubble: Base message container
+ * - .message-bubble--user: User message variant
+ * - .message-bubble--assistant: Assistant message variant
+ * ==========================================================================
+ */
+
+/* ========================================
+ * MESSAGE BUBBLE (.message-bubble)
+ * Base message container
+ * ======================================== */
+
+.message-bubble {
+	position: relative;
+	border: 1px solid var(--color-outline);
+	border-radius: 16px;
+	padding: 16px;
+	background: var(--color-surface);
+	box-shadow: var(--shadow-1);
+}
+
+/* ========================================
+ * USER MESSAGE (.message-bubble--user)
+ * ======================================== */
+
+.message-bubble--user {
+	background: var(--color-primary);
+	border-color: var(--color-primary-variant);
+	color: var(--color-on-primary);
+	margin-left: auto;
+	max-width: 90%;
+}
+
+/* ========================================
+ * ASSISTANT MESSAGE (.message-bubble--assistant)
+ * ======================================== */
+
+.message-bubble--assistant {
+	background: var(--color-surface-variant);
+	color: var(--color-on-surface);
+	margin-right: auto;
+	max-width: 100%;
+}
+
+/* ========================================
+ * MESSAGE CONTENT
+ * ======================================== */
+
+.message-bubble__content {
+	white-space: pre-wrap;
+	word-wrap: break-word;
+}
+
+/* ========================================
+ * COPY BUTTON
+ * ======================================== */
+
+.message-bubble__copy {
+	position: absolute;
+	top: 12px;
+	right: 12px;
+	background: var(--color-surface-variant);
+	border: 1px solid var(--color-outline);
+	border-radius: 6px;
+	padding: 6px;
+	cursor: pointer;
+	opacity: 0;
+	transition: opacity 200ms ease;
+	box-shadow: var(--shadow-1);
+}
+
+.message-bubble:hover .message-bubble__copy {
+	opacity: 1;
+}
+
+.message-bubble__copy:hover {
+	background: var(--color-surface);
+}

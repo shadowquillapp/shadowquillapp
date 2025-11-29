@@ -1,0 +1,49 @@
+/**
+ * ==========================================================================
+ * CARD COMPONENTS
+ * ==========================================================================
+ *
+ * Card and surface components for containing content.
+ *
+ * COMPONENT CLASSES:
+ * - .md-surface: Basic surface container
+ * - .md-card: Card with full styling
+ * - .md-divider: Horizontal divider line
+ * ==========================================================================
+ */
+
+/* ========================================
+ * SURFACE (.md-surface)
+ * Basic elevated surface
+ * ======================================== */
+
+.md-surface {
+	background: var(--color-surface-variant);
+	border: 1px solid var(--color-outline);
+	border-radius: var(--radius-lg);
+	box-shadow: var(--shadow-1);
+}
+
+/* ========================================
+ * CARD (.md-card)
+ * Full-width card component
+ * ======================================== */
+
+.md-card {
+	background: var(--color-surface-variant);
+	border: 1px solid var(--color-outline);
+	border-radius: var(--radius-md);
+	box-shadow: var(--shadow-1);
+	display: block;
+	width: 100%;
+}
+
+/* ========================================
+ * DIVIDER (.md-divider)
+ * Horizontal separator line
+ * ======================================== */
+
+.md-divider {
+	height: 1px;
+	background: var(--color-outline);
+}
