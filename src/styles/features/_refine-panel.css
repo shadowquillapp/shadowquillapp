@@ -305,17 +305,12 @@
 }
 
 .refine-timeline__item--current .refine-timeline__node {
-	transform: scale(1.1);
 	box-shadow: 0 0 0 2px
 		color-mix(in srgb, var(--color-primary), transparent 75%);
 }
 
 .refine-timeline__item--current .refine-timeline__node--base {
 	box-shadow: 0 0 0 2px color-mix(in srgb, var(--color-save), transparent 75%);
-}
-
-.refine-timeline__item:hover .refine-timeline__node {
-	transform: scale(1.08);
 }
 
 /* ========================================
@@ -419,11 +414,6 @@
 	opacity: 1;
 	background: color-mix(in srgb, var(--color-primary), transparent 75%);
 	color: var(--color-primary);
-	transform: scale(1.1);
-}
-
-.refine-timeline__copy-btn:active:not(:disabled) {
-	transform: scale(0.95);
 }
 
 .refine-timeline__copy-btn:disabled {
@@ -479,4 +469,22 @@
 .refine-timeline__item--current .refine-timeline__body {
 	max-height: 72px;
 	opacity: 1;
+}
+
+/* ========================================
+ * MODAL VARIANT
+ * Styles for refine-timeline inside modal
+ * ======================================== */
+
+.refine-timeline--modal {
+	max-height: none;
+	padding: 0;
+}
+
+.refine-timeline--modal .refine-timeline__body {
+	max-height: 80px;
+}
+
+.refine-timeline--modal .refine-timeline__item--current .refine-timeline__body {
+	max-height: 120px;
 }
