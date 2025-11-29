@@ -80,7 +80,7 @@ export default function StudioHeader({
 							onClick={onToggleSidebar}
 							title="Toggle sidebar"
 						>
-							<Icon name="bars" style={{ width: 14, height: 14 }} />
+							<Icon name="bars" className="h-4 w-4" />
 						</button>
 					)}
 
@@ -152,7 +152,7 @@ export default function StudioHeader({
 						onClick={() => setSettingsOpen(true)}
 						title="Settings"
 					>
-						<Icon name="gear" />
+						<Icon name="gear" className="h-4 w-4" />
 					</button>
 				</div>
 			</header>

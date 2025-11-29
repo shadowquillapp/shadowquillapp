@@ -86,7 +86,7 @@ export default function PresetLibrary({
 								aria-label="Create new preset"
 								title="Create new preset"
 							>
-								<Icon name="plus" className="text-xs" />
+								<Icon name="plus" className="h-4 w-4" />
 							</button>
 						)}
 					</div>
@@ -99,7 +99,7 @@ export default function PresetLibrary({
 						>
 							<Icon
 								name="search"
-								className="absolute left-4 text-secondary text-sm"
+								className="absolute left-4 h-4 w-4 text-secondary"
 							/>
 							<input
 								type="search"
@@ -119,7 +119,7 @@ export default function PresetLibrary({
 								}`}
 								title="Filter & Sort"
 							>
-								<Icon name="sliders" className="text-xs" />
+								<Icon name="sliders" className="h-4 w-4" />
 							</button>
 						</div>
 					</div>
@@ -177,7 +177,7 @@ export default function PresetLibrary({
 						<div className="flex h-full flex-col items-center justify-center p-6 text-center opacity-60">
 							<Icon
 								name="folder-open"
-								className="mb-3 text-4xl text-secondary"
+								className="mb-3 h-12 w-12 text-secondary"
 							/>
 							<p className="font-medium text-light text-sm">No presets found</p>
 							<p className="mt-1 text-secondary text-xs">

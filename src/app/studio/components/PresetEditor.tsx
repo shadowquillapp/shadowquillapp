@@ -55,7 +55,7 @@ export default function PresetEditor({
 					<div className="text-center">
 						<Icon
 							name="edit"
-							className="mb-2 text-4xl text-secondary opacity-50"
+							className="mb-2 h-12 w-12 text-secondary opacity-50"
 						/>
 						<p className="text-secondary text-sm">
 							Select a preset to edit or create a new one
@@ -287,7 +287,7 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 								disabled={!isDirty}
 								className="md-btn md-btn--primary flex items-center gap-2 font-medium text-sm"
 							>
-								<Icon name="save" className="text-base" />
+								<Icon name="save" className="h-4 w-4" />
 								Save Preset
 							</button>
 						</div>

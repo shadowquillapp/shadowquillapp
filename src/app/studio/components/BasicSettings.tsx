@@ -156,7 +156,7 @@ export default function BasicSettings({
 								<div className="flex items-center justify-center gap-2">
 									<Icon
 										name={meta.icon}
-										className="h-3.5 w-3.5"
+										className="h-4 w-4"
 										style={{
 											color: isSelected ? meta.color : "var(--color-secondary)",
 										}}

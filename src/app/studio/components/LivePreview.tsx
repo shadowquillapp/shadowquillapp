@@ -83,7 +83,7 @@ function ExampleCard({
 						className="flex items-center gap-1 rounded px-2 py-0.5 font-medium text-[10px] text-secondary transition-colors hover:bg-[var(--color-surface)] hover:text-primary disabled:opacity-50"
 						title="Regenerate this example"
 					>
-						<Icon name="refresh" className="h-3 w-3" />
+						<Icon name="refresh" className="h-4 w-4" />
 						Regenerate
 					</button>
 				)}
@@ -119,7 +119,7 @@ function ExampleCard({
 							className="flex items-center gap-1 rounded px-2 py-0.5 font-medium text-[10px] text-secondary transition-colors hover:bg-[var(--color-surface)] hover:text-primary"
 							title="Copy to clipboard"
 						>
-							<Icon name={copied ? "check" : "copy"} className="h-3 w-3" />
+							<Icon name={copied ? "check" : "copy"} className="h-4 w-4" />
 							{copied ? "Copied!" : "Copy"}
 						</button>
 					</div>
@@ -244,7 +244,7 @@ export default function LivePreview({
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<div className="flex items-center gap-3">
 					<div className="flex items-center gap-2">
-						<Icon name="eye" className="h-5 w-5 text-primary" />
+						<Icon name="eye" className="h-4 w-4 text-primary" />
 						<h3 className="font-bold text-base text-on-surface">
 							Example Prompts
 						</h3>
@@ -271,7 +271,7 @@ export default function LivePreview({
 									className="flex items-center gap-1.5 rounded-lg border border-[var(--color-outline)] px-3 py-1.5 font-medium text-secondary text-xs transition-colors hover:border-[var(--color-primary)] hover:text-primary disabled:opacity-50"
 									title="Regenerate both examples"
 								>
-									<Icon name="refresh" className="h-3.5 w-3.5" />
+									<Icon name="refresh" className="h-4 w-4" />
 									Regenerate All
 								</button>
 							)}
@@ -326,7 +326,7 @@ export default function LivePreview({
 				/* No examples message */
 				<div className="flex flex-col items-center justify-center rounded-xl border-2 border-[var(--color-outline)] border-dashed bg-[var(--color-surface-variant)]/50 px-6 py-12">
 					<div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full border border-[var(--color-outline)] bg-[var(--color-surface)]">
-						<Icon name="file-text" className="h-8 w-8 text-secondary/60" />
+						<Icon name="file-text" className="h-12 w-12 text-secondary/60" />
 					</div>
 					<h4 className="mb-1 font-semibold text-on-surface text-sm">
 						No Examples Yet
