@@ -159,11 +159,14 @@ export function PresetInfoDialog({
 							}}
 						>
 							<div className="flex flex-col gap-2">
-								<div className="font-bold text-on-surface text-xl leading-tight tracking-tight">
+								<div
+									className="font-bold text-xl leading-tight tracking-tight"
+									style={{ color: "var(--color-on-surface)" }}
+								>
 									{preset.name}
 								</div>
 								<div className="flex items-center gap-2">
-									<span className="inline-flex items-center gap-1.5 rounded-md border border-primary/10 bg-primary/10 px-2.5 py-1 font-bold text-[10px] text-primary uppercase tracking-wider">
+									<span className="inline-flex items-center gap-1.5 font-bold text-[10px] text-primary uppercase tracking-wider">
 										<Icon
 											name={
 												preset.taskType === "coding"
@@ -209,7 +212,10 @@ export function PresetInfoDialog({
 
 								return (
 									<div key={cat} className="flex flex-col gap-3">
-										<div className="flex items-center gap-2 border-[var(--color-outline)]/50 border-b pb-1.5 font-bold text-on-surface-variant text-xs uppercase tracking-wider">
+										<div
+											className="flex items-center gap-2 border-[var(--color-outline)]/50 border-b pb-1.5 font-bold text-xs uppercase tracking-wider"
+											style={{ color: "var(--color-on-surface)" }}
+										>
 											<Icon
 												name={CATEGORY_ICONS[cat] || "settings"}
 												className="h-3.5 w-3.5 opacity-70"
@@ -230,13 +236,22 @@ export function PresetInfoDialog({
 												return (
 													<div
 														key={key}
-														className={`flex flex-col gap-1.5 rounded-lg border border-[var(--color-outline)]/50 bg-[var(--color-surface)] p-3 transition-colors hover:border-[var(--color-outline)] ${isLongText ? "col-span-2" : ""}`}
+														className={`flex flex-col gap-1.5 rounded-lg border border-[var(--color-outline)] p-3 transition-colors hover:border-primary/50 ${isLongText ? "col-span-2" : ""}`}
+														style={{
+															background: "var(--color-surface)",
+														}}
 													>
-														<span className="font-bold text-[10px] text-on-surface-variant/70 uppercase leading-none tracking-wide">
+														<span
+															className="font-bold text-[10px] uppercase leading-none tracking-wide"
+															style={{
+																color: "var(--color-on-surface-variant)",
+															}}
+														>
 															{label}
 														</span>
 														<span
-															className={`font-mono text-on-surface text-xs ${isLongText ? "whitespace-pre-wrap leading-relaxed" : "truncate"}`}
+															className={`font-mono text-sm ${isLongText ? "whitespace-pre-wrap leading-relaxed" : "truncate"}`}
+															style={{ color: "var(--color-on-surface)" }}
 															title={displayValue}
 														>
 															{displayValue}
