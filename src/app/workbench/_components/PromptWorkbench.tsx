@@ -1968,10 +1968,18 @@ export default function PromptWorkbench() {
 
 						{/* Preset Info Row - Moved Under Editor Area */}
 						{activeTab?.preset && (
-							<button
-								type="button"
+							// biome-ignore lint/a11y/useSemanticElements: Cannot use <button> because it contains a nested <button> for editing
+							<div
+								role="button"
+								tabIndex={0}
 								className="flex cursor-pointer items-center gap-3 rounded-xl p-2.5 text-left transition-all hover:opacity-90 md:p-3"
 								onClick={() => setShowPresetInfo(true)}
+								onKeyDown={(e) => {
+									if (e.key === "Enter" || e.key === " ") {
+										e.preventDefault();
+										setShowPresetInfo(true);
+									}
+								}}
 								title="Click for full preset details"
 								style={{
 									background:
@@ -2117,7 +2125,7 @@ export default function PromptWorkbench() {
 								>
 									<Icon name="brush" />
 								</button>
-							</button>
+							</div>
 						)}
 					</section>
 
