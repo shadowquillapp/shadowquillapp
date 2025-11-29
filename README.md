@@ -106,9 +106,9 @@ Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Relea
 - **Apply to Workbench** - Start new session with preset
 - **Duplicate & Delete** - Clone or remove presets
 
-**Pre-Packed with 10 ShadowQuill Default Presets**
+**Pre Packed with 9 ShadowQuill Default Presets**
 
-`Daily Helper` • `Brainstormer` • `Summary Ultra` • `Code Architect` • `Bug Fixer` • `Code Explainer` • `Blog Writer` • `Email Pro` • `Deep Research` • `Social Media`
+`Daily Helper` • `Brainstormer` • `Summary Ultra` • `Code Architect` • `Bug Fixer` • `Code Explainer` • `Email Pro` • `Deep Research` • `Social Media`
 
 ## Development `npm` Commands
 

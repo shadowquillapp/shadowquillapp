@@ -255,28 +255,6 @@ export function getDefaultPresets(): Preset[] {
 					"Explain codebases to cross-functional teammates. Break down what the code does, why it was implemented that way, and opportunities for improvement.",
 			},
 		},
-		// Writing
-		{
-			id: "blog-writer",
-			name: "Blog Writer",
-			taskType: "writing",
-			options: {
-				tone: "friendly",
-				detail: "detailed",
-				format: "markdown",
-				language: "English",
-				temperature: 0.75,
-				writingStyle: "expository",
-				readingLevel: "intermediate",
-				includeHeadings: true,
-				targetWordCount: 1200,
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
-				additionalContext:
-					"Produce SEO-friendly blog posts with a compelling hook, outline-driven sections, scannable formatting, and actionable takeaways.",
-			},
-		},
 		{
 			id: "inbox-zero",
 			name: "Email Pro",
