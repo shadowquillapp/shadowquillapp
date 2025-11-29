@@ -19,7 +19,7 @@ let prodServer = null;
  * @param {(err: Error) => void} reject - reject callback
  */
 function checkDevServerReady(http, start, timeoutMs, resolve, reject) {
-	const req = http.get("http://localhost:3000", (res) => {
+	const req = http.get("http://localhost:31415", (res) => {
 		res.destroy();
 		resolve();
 	});
@@ -38,7 +38,12 @@ function checkDevServerReady(http, start, timeoutMs, resolve, reject) {
 /** @returns {Promise<void>} */
 function startNext() {
 	return new Promise((resolve, reject) => {
-		const env = { ...process.env, ELECTRON: "1", NEXT_PUBLIC_ELECTRON: "1" };
+		const env = {
+			...process.env,
+			ELECTRON: "1",
+			NEXT_PUBLIC_ELECTRON: "1",
+			BROWSER: "none",
+		};
 		if (!isProd) {
 			// Dev: run `next dev --turbo` via Node directly.
 			let nextBin;
@@ -48,10 +53,14 @@ function startNext() {
 				const err = /** @type {any} */ (e);
 				return reject(new Error(`Cannot resolve next binary: ${err.message}`));
 			}
-			nextDevServer = spawn(process.execPath, [nextBin, "dev", "--turbo"], {
-				stdio: "inherit",
-				env,
-			});
+			nextDevServer = spawn(
+				process.execPath,
+				[nextBin, "dev", "--turbo", "-H", "localhost", "-p", "31415"],
+				{
+					stdio: "inherit",
+					env,
+				},
+			);
 			nextDevServer.on("error", reject);
 			const http = require("node:http");
 			const start = Date.now();
@@ -77,7 +86,7 @@ function startNext() {
 					prodServer = http.createServer((req, res) => handle(req, res));
 					await new Promise((r, rej) =>
 						prodServer
-							.listen(3000)
+							.listen(31415, "127.0.0.1")
 							.once("error", rej)
 							.once("listening", () => r(undefined)),
 					);

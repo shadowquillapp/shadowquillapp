@@ -37,7 +37,7 @@ export default defineConfig({
 		// Environment options for jsdom
 		environmentOptions: {
 			jsdom: {
-				url: "http://localhost:3000",
+				url: "http://localhost:31415",
 			},
 		},
 	},

@@ -96,7 +96,7 @@ try {
 		}
 
 		// Spawn a fresh app instance (works in both dev and production)
-		// In dev mode, the Next.js dev server is still running on :3000
+		// In dev mode, the Next.js dev server is still running on :31415
 		if (wipeSuccess) {
 			console.log("[Factory Reset] Spawning fresh app instance...");
 			const { spawn } = require("node:child_process");
@@ -868,7 +868,7 @@ function createWindow() {
 	});
 
 	const startUrl = isDev
-		? "http://localhost:3000"
+		? "http://localhost:31415"
 		: nextServerPort
 			? `http://localhost:${nextServerPort}`
 			: "about:blank";
