@@ -62,7 +62,8 @@ describe("Icon", () => {
 		const originalError = console.error;
 		const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-		const { container } = render(<Icon name={"invalid-icon" as any} />);
+		// @ts-expect-error Testing invalid icon name
+		const { container } = render(<Icon name={"invalid-icon"} />);
 		expect(container.firstChild).toBeNull();
 		expect(errorSpy).toHaveBeenCalled();
 

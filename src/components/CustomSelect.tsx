@@ -17,6 +17,7 @@ interface CustomSelectProps {
 	placeholder?: string;
 	className?: string;
 	disabled?: boolean;
+	id?: string;
 	"aria-label"?: string;
 	title?: string;
 }
@@ -28,6 +29,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 	placeholder = "Select...",
 	className = "",
 	disabled = false,
+	id,
 	"aria-label": ariaLabel,
 	title,
 }) => {
@@ -140,10 +142,30 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 		};
 
 		const handleWindowResize = () => {
-			if (isOpen) {
+			if (isOpen && buttonRef.current) {
 				// Recalculate position on window resize/scroll
-				const position = calculatePosition();
-				setDropdownPos(position);
+				const rect = buttonRef.current.getBoundingClientRect();
+				const viewportHeight = window.innerHeight;
+				const estimatedDropdownHeight = options.length * 40 + 16;
+				const spaceBelow = viewportHeight - rect.bottom - 8;
+				const spaceAbove = rect.top - 8;
+				const openUpward =
+					spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow;
+				const maxHeight = Math.min(
+					estimatedDropdownHeight,
+					openUpward ? spaceAbove : spaceBelow,
+					300,
+				);
+				setDropdownPos({
+					top: openUpward ? rect.top - maxHeight - 4 : rect.bottom + 4,
+					left: Math.max(
+						8,
+						Math.min(rect.left, window.innerWidth - rect.width - 8),
+					),
+					width: rect.width,
+					maxHeight,
+					openUpward,
+				});
 			}
 		};
 
@@ -159,13 +181,14 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 			};
 		}
 		return undefined;
-	}, [isOpen]);
+	}, [isOpen, options.length]);
 
 	return (
 		<>
 			<button
 				ref={buttonRef}
 				type="button"
+				id={id}
 				onClick={(e) => {
 					e.stopPropagation();
 					toggleDropdown();
@@ -208,6 +231,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 					fill="none"
 					stroke="currentColor"
 					strokeWidth={2}
+					aria-hidden="true"
 				>
 					<path d="M5 8l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
 				</svg>

@@ -3,6 +3,21 @@ import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
 import React, { useEffect, useState } from "react";
 import { useDialog } from "../DialogProvider";
 
+interface ShadowQuillApi {
+	getDataPaths?: () => Promise<{
+		ok: boolean;
+		error?: string;
+		userData?: string;
+		localStorageDir?: string;
+		localStorageLevelDb?: string;
+	}>;
+	factoryReset?: () => Promise<{ ok: boolean; error?: string }>;
+}
+
+interface WindowWithShadowQuill extends Window {
+	shadowquill?: ShadowQuillApi;
+}
+
 export default function LocalDataManagementContent() {
 	const { confirm } = useDialog();
 	const [loading, setLoading] = useState(false);
@@ -18,17 +33,20 @@ export default function LocalDataManagementContent() {
 			setLoading(true);
 			setError(null);
 			try {
-				const api = (window as any).shadowquill;
+				const api = (window as WindowWithShadowQuill).shadowquill;
 				if (!api?.getDataPaths) {
 					setPaths(null);
 					setError("Not available outside the desktop app");
 					return;
 				}
-				let res: any = null;
+				let res: Awaited<
+					ReturnType<NonNullable<typeof api.getDataPaths>>
+				> | null = null;
 				try {
 					res = await api.getDataPaths();
-				} catch (e: any) {
-					const msg = String(e?.message || "");
+				} catch (e: unknown) {
+					const err = e as Error;
+					const msg = String(err?.message || "");
 					if (msg.includes("No handler registered")) {
 						setPaths(null);
 						setError(
@@ -40,15 +58,20 @@ export default function LocalDataManagementContent() {
 				}
 				if (res?.ok) {
 					setPaths({
-						userData: res.userData,
-						localStorageDir: res.localStorageDir,
-						localStorageLevelDb: res.localStorageLevelDb,
+						...(res.userData && { userData: res.userData }),
+						...(res.localStorageDir && {
+							localStorageDir: res.localStorageDir,
+						}),
+						...(res.localStorageLevelDb && {
+							localStorageLevelDb: res.localStorageLevelDb,
+						}),
 					});
 				} else {
 					setError(res?.error || "Failed to load data paths");
 				}
-			} catch (e: any) {
-				setError(e?.message || "Failed to load data paths");
+			} catch (e: unknown) {
+				const err = e as Error;
+				setError(err?.message || "Failed to load data paths");
 			} finally {
 				setLoading(false);
 			}
@@ -80,10 +103,10 @@ export default function LocalDataManagementContent() {
 					)}
 
 					<div className="ollama-field">
-						<label className="ollama-label">
+						<div className="ollama-label">
 							Application Data Directory
 							<span>Main storage location for settings and configurations</span>
-						</label>
+						</div>
 						<div
 							className="md-input"
 							style={{
@@ -99,10 +122,10 @@ export default function LocalDataManagementContent() {
 					</div>
 
 					<div className="ollama-field">
-						<label className="ollama-label">
+						<div className="ollama-label">
 							Local Storage Database
 							<span>LevelDB storage for conversations and workspace data</span>
-						</label>
+						</div>
 						<div
 							className="md-input"
 							style={{
@@ -132,6 +155,7 @@ export default function LocalDataManagementContent() {
 							</p>
 							<div className="ollama-status-card__actions">
 								<button
+									type="button"
 									className="md-btn"
 									style={{
 										background: "rgba(239, 68, 68, 0.15)",
@@ -152,15 +176,16 @@ export default function LocalDataManagementContent() {
 										setError(null);
 										try {
 											clearAllStorageForFactoryReset();
-											const api = (window as any).shadowquill;
+											const api = (window as WindowWithShadowQuill).shadowquill;
 											const res = await api?.factoryReset?.();
 											if (!res?.ok) {
 												setError(res?.error || "Reset failed");
 												setLoading(false);
 											}
 											// App will close automatically after factory reset
-										} catch (e: any) {
-											setError(e?.message || "Reset failed");
+										} catch (e: unknown) {
+											const err = e as Error;
+											setError(err?.message || "Reset failed");
 											setLoading(false);
 										}
 									}}

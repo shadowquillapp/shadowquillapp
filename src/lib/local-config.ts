@@ -6,6 +6,10 @@ export interface LocalModelConfig {
 	model: string;
 }
 
+interface OllamaTagsResponse {
+	models?: Array<{ name?: string; id?: string; size?: number }>;
+}
+
 const PROVIDER_KEY = "MODEL_PROVIDER";
 const BASE_URL_KEY = "MODEL_BASE_URL";
 const MODEL_NAME_KEY = "MODEL_NAME";
@@ -41,7 +45,7 @@ export async function validateLocalModelConnection(
 		});
 		clearTimeout(to);
 		if (!res.ok) return { ok: false, error: "unreachable" };
-		const json: any = await res.json().catch(() => ({}));
+		const json = (await res.json().catch(() => ({}))) as OllamaTagsResponse;
 		const models: Array<{ name?: string; id?: string }> = Array.isArray(
 			json?.models,
 		)
@@ -54,10 +58,11 @@ export async function validateLocalModelConnection(
 		);
 		if (!found) return { ok: false, error: "model-not-found" };
 		return { ok: true };
-	} catch (e: any) {
+	} catch (e: unknown) {
+		const err = e as { name?: string };
 		return {
 			ok: false,
-			error: e?.name === "AbortError" ? "timeout" : "unreachable",
+			error: err?.name === "AbortError" ? "timeout" : "unreachable",
 		};
 	}
 }
@@ -67,15 +72,15 @@ export async function listAvailableModels(
 ): Promise<Array<{ name: string; size: number }>> {
 	const res = await fetch(`${baseUrl.replace(/\/$/, "")}/api/tags`);
 	if (!res.ok) return [];
-	const json: any = await res.json().catch(() => ({}));
+	const json = (await res.json().catch(() => ({}))) as OllamaTagsResponse;
 	const models = Array.isArray(json?.models) ? json.models : [];
 	// Map to normalized shape
 	const mapped: Array<{ name: string; size: number }> = models
-		.map((m: any) => ({
+		.map((m) => ({
 			name: String(m?.name || m?.id || ""),
 			size: Number(m?.size || 0),
 		}))
-		.filter((m: any) => !!m.name);
+		.filter((m) => !!m.name);
 	// Only allow the four supported Gemma 3 tags
 	// TODO: add more models to the list. Technically supported, but not tested.
 	const allowed = ["gemma3:4b", "gemma3:12b", "gemma3:27b"];

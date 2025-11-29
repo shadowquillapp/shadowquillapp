@@ -42,12 +42,17 @@ describe("buildUnifiedPrompt", () => {
 	let mockMemoryCache: {
 		get: ReturnType<typeof vi.fn>;
 		set: ReturnType<typeof vi.fn>;
+		has?: ReturnType<typeof vi.fn>;
+		delete?: ReturnType<typeof vi.fn>;
+		clear?: ReturnType<typeof vi.fn>;
 	};
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockMemoryCache = { get: vi.fn(), set: vi.fn() };
-		mockGetPromptCache.mockReturnValue(mockMemoryCache as any);
+		mockGetPromptCache.mockReturnValue(
+			mockMemoryCache as unknown as ReturnType<typeof getPromptCache>,
+		);
 		mockGetFromSessionCache.mockReturnValue(undefined);
 		mockEnsureSystemPromptBuild.mockReturnValue(
 			"You are a test prompt enhancer.",
@@ -209,12 +214,17 @@ describe("buildPromptPreview", () => {
 	let mockMemoryCache: {
 		get: ReturnType<typeof vi.fn>;
 		set: ReturnType<typeof vi.fn>;
+		has?: ReturnType<typeof vi.fn>;
+		delete?: ReturnType<typeof vi.fn>;
+		clear?: ReturnType<typeof vi.fn>;
 	};
 
 	beforeEach(() => {
 		vi.clearAllMocks();
 		mockMemoryCache = { get: vi.fn(), set: vi.fn() };
-		mockGetPromptCache.mockReturnValue(mockMemoryCache as any);
+		mockGetPromptCache.mockReturnValue(
+			mockMemoryCache as unknown as ReturnType<typeof getPromptCache>,
+		);
 		mockEnsureSystemPromptBuild.mockReturnValue(
 			"You are a test prompt enhancer.",
 		);

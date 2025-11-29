@@ -1,4 +1,4 @@
-import { Icon } from "@/components/Icon";
+import { Icon, type IconName } from "@/components/Icon";
 import type { PresetLite } from "@/types";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
@@ -43,7 +43,7 @@ const CATEGORY_LABELS: Record<string, string> = {
 	context: "Context & Examples",
 };
 
-const CATEGORY_ICONS: Record<string, any> = {
+const CATEGORY_ICONS: Record<string, IconName> = {
 	general: "sliders",
 	model: "cpu",
 	content: "layout",
@@ -83,16 +83,20 @@ export function PresetInfoDialog({
 	const options = preset.options || {};
 
 	// Group options by category
-	const groupedOptions: Record<string, Array<{ key: string; value: any }>> = {};
+	const groupedOptions: Record<
+		string,
+		Array<{ key: string; value: unknown }>
+	> = {};
 
-	Object.entries(options).forEach(([key, value]) => {
+	for (const [key, value] of Object.entries(options)) {
 		if (
 			value === undefined ||
 			value === null ||
 			value === "" ||
 			value === false
-		)
-			return;
+		) {
+			continue;
+		}
 
 		let category = "other";
 		for (const [cat, keys] of Object.entries(CATEGORIES)) {
@@ -105,8 +109,8 @@ export function PresetInfoDialog({
 		if (!groupedOptions[category]) {
 			groupedOptions[category] = [];
 		}
-		groupedOptions[category]!.push({ key, value });
-	});
+		groupedOptions[category]?.push({ key, value });
+	}
 
 	// Order categories
 	const categoryOrder = [
@@ -119,11 +123,13 @@ export function PresetInfoDialog({
 	];
 
 	return (
-		<div className="modal-container" aria-modal="true" role="dialog">
+		<div className="modal-container" aria-modal="true">
 			<div className="modal-backdrop-blur" />
-			<div
+			<dialog
+				open
 				className="modal-content"
 				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
 				style={{ maxWidth: 520 }}
 			>
 				<div className="modal-header">
@@ -132,6 +138,7 @@ export function PresetInfoDialog({
 						<span>Preset Details</span>
 					</div>
 					<button
+						type="button"
 						aria-label="Close"
 						className="md-btn"
 						onClick={onClose}
@@ -251,12 +258,16 @@ export function PresetInfoDialog({
 					</div>
 
 					<div className="mt-6 flex justify-end border-[var(--color-outline)] border-t pt-4">
-						<button className="md-btn md-btn--primary px-6" onClick={onClose}>
+						<button
+							type="button"
+							className="md-btn md-btn--primary px-6"
+							onClick={onClose}
+						>
 							Close
 						</button>
 					</div>
 				</div>
-			</div>
+			</dialog>
 		</div>
 	);
 }

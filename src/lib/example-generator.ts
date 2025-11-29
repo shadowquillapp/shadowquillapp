@@ -243,7 +243,7 @@ function parseExampleInputs(response: string): [string, string] | null {
 	const numberedMatch = cleaned.match(
 		/(?:^|\n)\s*(?:1[.):]\s*)(.+?)(?:\n\s*(?:2[.):]\s*))(.+)/s,
 	);
-	if (numberedMatch && numberedMatch[1] && numberedMatch[2]) {
+	if (numberedMatch?.[1] && numberedMatch[2]) {
 		return [numberedMatch[1].trim(), numberedMatch[2].trim()];
 	}
 	const paragraphs = cleaned

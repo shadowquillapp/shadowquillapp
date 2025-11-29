@@ -12,7 +12,13 @@ export default function FeatherLoader({
 	return (
 		<div className={`luxury-loader ${className}`}>
 			<div className="luxury-loader__icon">
-				<svg viewBox="-20 -21 375 375" xmlns="http://www.w3.org/2000/svg">
+				<svg
+					viewBox="-20 -21 375 375"
+					xmlns="http://www.w3.org/2000/svg"
+					aria-labelledby="feather-loader-title"
+					role="img"
+				>
+					<title id="feather-loader-title">Loading</title>
 					<path
 						fill="currentColor"
 						fillRule="evenodd"

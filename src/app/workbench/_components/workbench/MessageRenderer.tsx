@@ -118,11 +118,12 @@ export function MessageRenderer({
 		}
 
 		return tokens.map((token, idx) => {
+			const key = `json-${idx}-${token.type}-${token.value.slice(0, 5)}`;
 			if (token.type === "whitespace" || token.type === "plain") {
-				return <span key={`json-${idx}`}>{token.value}</span>;
+				return <span key={key}>{token.value}</span>;
 			}
 			return (
-				<span key={`json-${idx}`} className={`token-${token.type}`}>
+				<span key={key} className={`token-${token.type}`}>
 					{token.value}
 				</span>
 			);
@@ -306,10 +307,13 @@ export function MessageRenderer({
 			if (!text) return text;
 			const nodes: ReactNode[] = [];
 			let lastIndex = 0;
-			let match: RegExpExecArray | null;
 			let tokenIndex = 0;
 
-			while ((match = inlinePattern.exec(text)) !== null) {
+			for (
+				let match = inlinePattern.exec(text);
+				match !== null;
+				match = inlinePattern.exec(text)
+			) {
 				if (match.index > lastIndex) {
 					const plain = text.slice(lastIndex, match.index);
 					nodes.push(
@@ -608,7 +612,6 @@ export function MessageRenderer({
 			: content;
 		const parts = [];
 		let lastIndex = 0;
-		let match;
 
 		// First check for unclosed code block at the end
 		const unclosedMatch = unclosedCodeBlockRegex.exec(displayContent);
@@ -636,7 +639,7 @@ export function MessageRenderer({
 			);
 			cleanedCode = cleanedCode.replace(duplicateMarkerPattern, "");
 
-			let highlightedCode;
+			let highlightedCode: string | ReactNode[];
 			if (lang === "json") {
 				highlightedCode = highlightJSON(cleanedCode);
 			} else if (lang === "markdown" || lang === "md") {
@@ -668,7 +671,11 @@ export function MessageRenderer({
 			);
 		}
 
-		while ((match = codeBlockRegex.exec(displayContent)) !== null) {
+		for (
+			let match = codeBlockRegex.exec(displayContent);
+			match !== null;
+			match = codeBlockRegex.exec(displayContent)
+		) {
 			if (match.index > lastIndex) {
 				const textBefore = displayContent.slice(lastIndex, match.index);
 				// Remove a trailing fence-only line (e.g., ``` at bottom of a text segment)
@@ -686,7 +693,7 @@ export function MessageRenderer({
 			const languageLabel = (language || "").trim();
 			const lang = (languageLabel || "code").toLowerCase();
 
-			let highlightedCode;
+			let highlightedCode: string | ReactNode[] | undefined;
 			if (lang === "json") {
 				highlightedCode = highlightJSON(code || "");
 			} else if (lang === "markdown" || lang === "md") {
@@ -725,7 +732,7 @@ export function MessageRenderer({
 				const langWithCodePattern = /^(xml|html|svg|json)\s*\n+([\s\S]+)$/i;
 				const langMatch = langWithCodePattern.exec(remainingText.trim());
 
-				if (langMatch && langMatch[1] && langMatch[2]) {
+				if (langMatch?.[1] && langMatch[2]) {
 					const lang = langMatch[1];
 					const codeContent = langMatch[2];
 					const normalizedLang = lang.toLowerCase();

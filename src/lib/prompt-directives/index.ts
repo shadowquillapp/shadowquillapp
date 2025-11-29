@@ -49,7 +49,6 @@ export function buildDirectives(
 		case "marketing":
 			directives.push(...buildMarketingDirectives(options));
 			break;
-		case "general":
 		default:
 			// General has no additional task-specific directives
 			break;

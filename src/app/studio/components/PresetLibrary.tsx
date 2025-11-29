@@ -80,6 +80,7 @@ export default function PresetLibrary({
 						</div>
 						{onCreateNew && (
 							<button
+								type="button"
 								onClick={onCreateNew}
 								className="md-btn md-btn--primary flex h-9 items-center gap-2 rounded-full px-4 font-medium text-sm shadow-md hover:shadow-lg"
 								aria-label="Create new preset"
@@ -109,6 +110,7 @@ export default function PresetLibrary({
 								aria-label="Search presets"
 							/>
 							<button
+								type="button"
 								onClick={() => setShowFilters(!showFilters)}
 								className={`absolute right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl transition-colors ${
 									showFilters
@@ -126,12 +128,16 @@ export default function PresetLibrary({
 					{showFilters && (
 						<div className="slide-in-from-top-2 fade-in grid animate-in grid-cols-2 gap-3 duration-200">
 							<div className="space-y-1">
-								<label className="ml-1 font-semibold text-[10px] text-secondary uppercase tracking-wider">
+								<label
+									htmlFor="type-filter"
+									className="ml-1 font-semibold text-[10px] text-secondary uppercase tracking-wider"
+								>
 									Type
 								</label>
 								<CustomSelect
+									id="type-filter"
 									value={typeFilter}
-									onChange={(v) => setTypeFilter(v as any)}
+									onChange={(v) => setTypeFilter(v as typeof typeFilter)}
 									options={[
 										{ value: "all", label: "All Types" },
 										{ value: "general", label: "General" },
@@ -145,12 +151,16 @@ export default function PresetLibrary({
 								/>
 							</div>
 							<div className="space-y-1">
-								<label className="ml-1 font-semibold text-[10px] text-secondary uppercase tracking-wider">
+								<label
+									htmlFor="sort-by"
+									className="ml-1 font-semibold text-[10px] text-secondary uppercase tracking-wider"
+								>
 									Sort By
 								</label>
 								<CustomSelect
+									id="sort-by"
 									value={sortBy}
-									onChange={(v) => setSortBy(v as any)}
+									onChange={(v) => setSortBy(v as typeof sortBy)}
 									options={[
 										{ value: "name", label: "Name" },
 										{ value: "temperature", label: "Temp" },
@@ -177,16 +187,17 @@ export default function PresetLibrary({
 							</p>
 						</div>
 					) : (
-						<div role="list" className="space-y-3">
+						<ul className="list-none space-y-3">
 							{filteredPresets.map((preset) => (
-								<PresetCard
-									key={preset.id || preset.name}
-									preset={preset}
-									isSelected={selectedPresetId === preset.id}
-									onSelect={() => onSelectPreset(preset.id || preset.name)}
-								/>
+								<li key={preset.id || preset.name}>
+									<PresetCard
+										preset={preset}
+										isSelected={selectedPresetId === preset.id}
+										onSelect={() => onSelectPreset(preset.id || preset.name)}
+									/>
+								</li>
 							))}
-						</div>
+						</ul>
 					)}
 				</div>
 			</div>

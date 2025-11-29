@@ -380,19 +380,29 @@ export function useTabManager() {
 				) {
 					// Validate and restore tabs
 					const restoredTabs: Tab[] = parsed.tabs
-						.filter((t: any) => t && t.id && t.preset && t.label) // Validate required fields
-						.map((t: any) => ({
-							id: t.id,
-							label: t.label,
-							preset: t.preset,
-							projectId: t.projectId || null,
-							draft: t.draft || "",
-							messages: Array.isArray(t.messages) ? t.messages : [],
-							versionGraph: t.versionGraph || createVersionGraph("", "Start"),
-							sending: false,
-							error: null,
-							isDirty: false, // Reset dirty state on restore
-						}));
+						.filter((t: unknown) => {
+							const tab = t as Record<string, unknown>;
+							return tab?.id && tab.preset && tab.label;
+						}) // Validate required fields
+						.map((t: unknown) => {
+							const tab = t as Record<string, unknown>;
+							return {
+								id: tab.id as string,
+								label: tab.label as string,
+								preset: tab.preset as Tab["preset"],
+								projectId: (tab.projectId as string | null) || null,
+								draft: (tab.draft as string) || "",
+								messages: Array.isArray(tab.messages)
+									? (tab.messages as Tab["messages"])
+									: [],
+								versionGraph:
+									(tab.versionGraph as Tab["versionGraph"]) ||
+									createVersionGraph("", "Start"),
+								sending: false,
+								error: null,
+								isDirty: false, // Reset dirty state on restore
+							};
+						});
 
 					if (restoredTabs.length > 0) {
 						// Validate activeTabId exists in restored tabs

@@ -146,6 +146,7 @@ export default function SettingsDialog({
 			<div
 				className="modal-content modal-content--large settings-dialog settings-dialog--entering"
 				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
 				style={{ overflow: "hidden" }}
 			>
 				<style>{`
@@ -290,6 +291,7 @@ export default function SettingsDialog({
 						<span>Settings</span>
 					</div>
 					<button
+						type="button"
 						onClick={onClose}
 						className="md-btn"
 						style={{ padding: "6px 10px" }}

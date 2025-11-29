@@ -1,5 +1,5 @@
 import { Icon } from "@/components/Icon";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import type { PromptPresetSummary } from "./types";
 
 export interface TabInfo {
@@ -39,17 +39,17 @@ export function TabBar({
 	const dropHandledRef = useRef(false);
 
 	// Check scroll position
-	const checkScroll = () => {
+	const checkScroll = useCallback(() => {
 		const container = tabsContainerRef.current;
 		if (!container) return;
 		setShowLeftScroll(container.scrollLeft > 0);
 		setShowRightScroll(
 			container.scrollLeft < container.scrollWidth - container.clientWidth - 1,
 		);
-	};
+	}, []);
 
 	// Recalculate tab width based on available space
-	const recalcSizes = () => {
+	const recalcSizes = useCallback(() => {
 		const container = tabsContainerRef.current;
 		if (!container) return;
 		const gap = embedded ? 6 : 4;
@@ -67,7 +67,7 @@ export function TabBar({
 		const maxW = 180;
 		const width = Math.max(minW, Math.min(maxW, ideal));
 		setComputedTabWidth(Number.isFinite(width) ? width : null);
-	};
+	}, [embedded, showLeftScroll, showRightScroll, tabs.length]);
 
 	useEffect(() => {
 		checkScroll();
@@ -83,13 +83,12 @@ export function TabBar({
 			};
 		}
 		return undefined;
-	}, [tabs]);
+	}, [checkScroll, recalcSizes]);
 
 	// Recalc sizes when inputs change
 	useEffect(() => {
 		recalcSizes();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [tabs.length, embedded, showLeftScroll, showRightScroll]);
+	}, [recalcSizes]);
 
 	const scrollLeft = () => {
 		tabsContainerRef.current?.scrollBy({ left: -200, behavior: "smooth" });

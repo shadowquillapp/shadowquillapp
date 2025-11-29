@@ -41,6 +41,7 @@ export default function SystemPromptEditorContent({
 		void load();
 	}, []);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional - resize when prompt content changes
 	useEffect(() => {
 		const el = textareaRef.current;
 		if (!el) return;
@@ -74,8 +75,9 @@ export default function SystemPromptEditorContent({
 					setInitialPrompt(normalized);
 					setPrompt(normalized);
 					onSaved?.();
-				} catch (err: any) {
-					setError(err.message || "Unknown error");
+				} catch (err: unknown) {
+					const error = err as Error;
+					setError(error.message || "Unknown error");
 				} finally {
 					setSaving(false);
 				}
@@ -99,13 +101,14 @@ export default function SystemPromptEditorContent({
 
 				<div className="ollama-panel__body">
 					<div className="ollama-field">
-						<label className="ollama-label">
+						<label className="ollama-label" htmlFor="system-prompt-textarea">
 							System Prompt Content
 							<span>
 								This prompt guides how the AI processes and enhances your input.
 							</span>
 						</label>
 						<textarea
+							id="system-prompt-textarea"
 							ref={textareaRef}
 							value={prompt}
 							onChange={(e) => setPrompt(e.target.value)}
@@ -146,8 +149,9 @@ export default function SystemPromptEditorContent({
 								const def = resetSystemPromptBuild();
 								setPrompt(def);
 								setInitialPrompt(def);
-							} catch (err: any) {
-								setError(err.message || "Unknown error");
+							} catch (err: unknown) {
+								const error = err as Error;
+								setError(error.message || "Unknown error");
 							} finally {
 								setSaving(false);
 							}
@@ -169,6 +173,7 @@ export default function SystemPromptEditorContent({
 							Undo
 						</button>
 						<button
+							type="submit"
 							disabled={saving || !isDirty}
 							className="md-btn md-btn--primary"
 						>
