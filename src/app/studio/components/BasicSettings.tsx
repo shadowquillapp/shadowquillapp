@@ -8,7 +8,7 @@ import React from "react";
 
 interface BasicSettingsProps {
 	preset: PresetLite;
-	onFieldChange: (field: string, value: any) => void;
+	onFieldChange: (field: string, value: unknown) => void;
 }
 
 /** Detail level metadata with word count ranges */
@@ -46,10 +46,14 @@ export default function BasicSettings({
 		<div className="mt-4 space-y-6">
 			{/* Preset Name - full width */}
 			<div>
-				<label className="mb-1.5 block font-medium text-secondary text-xs">
+				<label
+					htmlFor="preset-name"
+					className="mb-1.5 block font-medium text-secondary text-xs"
+				>
 					Preset Name
 				</label>
 				<input
+					id="preset-name"
 					type="text"
 					value={preset.name}
 					onChange={(e) => onFieldChange("name", e.target.value)}
@@ -61,10 +65,14 @@ export default function BasicSettings({
 			{/* Task Type with visual indicator */}
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 				<div>
-					<label className="mb-1.5 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="task-type"
+						className="mb-1.5 block font-medium text-secondary text-xs"
+					>
 						Task Type
 					</label>
 					<CustomSelect
+						id="task-type"
 						value={preset.taskType}
 						onChange={(v) => onFieldChange("taskType", v)}
 						options={[
@@ -81,10 +89,14 @@ export default function BasicSettings({
 
 				{/* Format with preview */}
 				<div>
-					<label className="mb-1.5 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="output-format"
+						className="mb-1.5 block font-medium text-secondary text-xs"
+					>
 						Output Format
 					</label>
 					<CustomSelect
+						id="output-format"
 						value={options.format || "markdown"}
 						onChange={(v) => onFieldChange("format", v)}
 						options={[
@@ -97,10 +109,14 @@ export default function BasicSettings({
 
 				{/* Tone with icon indicator */}
 				<div>
-					<label className="mb-1.5 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="tone"
+						className="mb-1.5 block font-medium text-secondary text-xs"
+					>
 						Tone
 					</label>
 					<CustomSelect
+						id="tone"
 						value={options.tone || "neutral"}
 						onChange={(v) => onFieldChange("tone", v)}
 						options={[
@@ -116,9 +132,9 @@ export default function BasicSettings({
 
 			{/* Detail Level - simplified */}
 			<div>
-				<label className="mb-1.5 block font-medium text-secondary text-xs">
+				<div className="mb-1.5 block font-medium text-secondary text-xs">
 					Detail Level
-				</label>
+				</div>
 				<div className="grid grid-cols-3 gap-2">
 					{(
 						Object.keys(DETAIL_LEVELS) as Array<keyof typeof DETAIL_LEVELS>
@@ -139,7 +155,7 @@ export default function BasicSettings({
 							>
 								<div className="flex items-center justify-center gap-2">
 									<Icon
-										name={meta.icon as any}
+										name={meta.icon}
 										className="h-3.5 w-3.5"
 										style={{
 											color: isSelected ? meta.color : "var(--color-secondary)",
@@ -162,10 +178,14 @@ export default function BasicSettings({
 			{/* Language */}
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				<div>
-					<label className="mb-1.5 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="output-language"
+						className="mb-1.5 block font-medium text-secondary text-xs"
+					>
 						Output Language
 					</label>
 					<CustomSelect
+						id="output-language"
 						value={options.language || "English"}
 						onChange={(v) => onFieldChange("language", v)}
 						options={[

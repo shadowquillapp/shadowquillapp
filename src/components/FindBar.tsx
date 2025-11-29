@@ -23,7 +23,7 @@ export default function FindBar() {
 
 	// Clear all highlights from the DOM
 	const clearHighlights = useCallback(() => {
-		highlightsRef.current.forEach((mark) => {
+		for (const mark of highlightsRef.current) {
 			const parent = mark.parentNode;
 			if (parent) {
 				// Replace the mark with its text content
@@ -32,7 +32,7 @@ export default function FindBar() {
 				// Normalize to merge adjacent text nodes
 				parent.normalize();
 			}
-		});
+		}
 		highlightsRef.current = [];
 		setMatchCount(0);
 		setCurrentMatch(0);
@@ -97,13 +97,13 @@ export default function FindBar() {
 			}
 
 			// Process each text node
-			nodesToProcess.forEach((textNode) => {
+			for (const textNode of nodesToProcess) {
 				const nodeText = textNode.textContent || "";
 				const lowerText = nodeText.toLowerCase();
 				let lastIndex = 0;
 				let index = lowerText.indexOf(searchTerm);
 
-				if (index === -1) return;
+				if (index === -1) continue;
 
 				const fragment = document.createDocumentFragment();
 
@@ -135,7 +135,7 @@ export default function FindBar() {
 
 				// Replace text node with fragment
 				textNode.parentNode?.replaceChild(fragment, textNode);
-			});
+			}
 
 			highlightsRef.current = marks;
 			setMatchCount(marks.length);
@@ -153,10 +153,10 @@ export default function FindBar() {
 	// Activate a specific match (make it the "current" one)
 	const activateMatch = useCallback((marks: HTMLElement[], index: number) => {
 		// Remove active class from all
-		marks.forEach((m) => {
+		for (const m of marks) {
 			m.classList.remove(ACTIVE_CLASS);
 			m.classList.remove(PULSE_CLASS);
-		});
+		}
 
 		// Add active class to current
 		const activeMatch = marks[index];
@@ -315,7 +315,6 @@ export default function FindBar() {
 					boxShadow:
 						"inset 0 1px 3px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.05)",
 				}}
-				autoFocus
 			/>
 
 			{matchCount > 0 && searchText && (

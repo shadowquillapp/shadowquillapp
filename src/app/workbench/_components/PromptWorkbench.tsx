@@ -20,7 +20,7 @@ import {
 } from "@/lib/local-db";
 import { getJSON, setJSON } from "@/lib/local-storage";
 import { callLocalModelClient } from "@/lib/model-client";
-import { getPresets } from "@/lib/presets";
+import { type Preset, getPresets } from "@/lib/presets";
 import {
 	buildRefinementPrompt,
 	buildUnifiedPrompt,
@@ -49,7 +49,11 @@ import { PresetPickerModal } from "./workbench/PresetPickerModal";
 import { TabBar } from "./workbench/TabBar";
 import { VersionHistoryModal } from "./workbench/VersionHistoryModal";
 import { VersionNavigator } from "./workbench/VersionNavigator";
-import type { MessageItem, PromptPresetSummary } from "./workbench/types";
+import type {
+	MessageItem,
+	PromptPresetSummary,
+	VersionGraph,
+} from "./workbench/types";
 import { useTabManager } from "./workbench/useTabManager";
 import {
 	appendVersion,
@@ -136,7 +140,12 @@ export default function PromptWorkbench() {
 	const [additionalContext, setAdditionalContext] = useState("");
 	const [examplesText, setExamplesText] = useState("");
 	const [presets, setPresets] = useState<
-		Array<{ id?: string; name: string; taskType: TaskType; options?: any }>
+		Array<{
+			id?: string;
+			name: string;
+			taskType: TaskType;
+			options?: GenerationOptions;
+		}>
 	>([]);
 	const [loadingPresets, setLoadingPresets] = useState(false);
 	const [selectedPresetKey, setSelectedPresetKey] = useState("");
@@ -287,15 +296,14 @@ export default function PromptWorkbench() {
 	useEffect(() => {
 		const handler = (e: Event) => {
 			try {
-				const ce = e as CustomEvent;
-				const tab = ce?.detail?.tab as "system" | "ollama" | "data" | undefined;
+				const ce = e as CustomEvent<{ tab?: "system" | "ollama" | "data" }>;
+				const tab = ce?.detail?.tab;
 				if (tab) setSettingsInitialTab(tab);
 			} catch {}
 			setSettingsOpen(true);
 		};
-		window.addEventListener("open-app-settings", handler as any);
-		return () =>
-			window.removeEventListener("open-app-settings", handler as any);
+		window.addEventListener("open-app-settings", handler);
+		return () => window.removeEventListener("open-app-settings", handler);
 	}, []);
 
 	// Ensure project exists or create one
@@ -318,20 +326,25 @@ export default function PromptWorkbench() {
 
 	const applyPreset = useCallback(
 		(
-			p: { name: string; taskType: TaskType; options?: any; id?: string },
+			p: {
+				name: string;
+				taskType: TaskType;
+				options?: GenerationOptions;
+				id?: string;
+			},
 			opts?: { trackRecent?: boolean },
 		) => {
 			const trackRecent = opts?.trackRecent ?? true;
 			setTaskType(p.taskType);
-			const o = p.options ?? {};
+			const o = p.options ?? ({} as GenerationOptions);
 			if (o.tone) setTone(o.tone);
 			if (o.detail) setDetail(o.detail);
 			if (o.format) setFormat(o.format);
 			setLanguage(o.language ?? "English");
 			setTemperature(typeof o.temperature === "number" ? o.temperature : 0.7);
-			setStylePreset(o.stylePreset ?? "photorealistic");
+			setStylePreset((o.stylePreset as ImageStylePreset) ?? "photorealistic");
 			setAspectRatio(o.aspectRatio ?? "1:1");
-			setVideoStylePreset(o.stylePreset ?? "cinematic");
+			setVideoStylePreset((o.stylePreset as VideoStylePreset) ?? "cinematic");
 			setCameraMovement(o.cameraMovement ?? "static");
 			setShotType(o.shotType ?? "medium");
 			setDurationSeconds(
@@ -349,11 +362,15 @@ export default function PromptWorkbench() {
 			setIncludeVerification(!!o.includeVerification);
 			setReasoningStyle((o.reasoningStyle as ReasoningStyle) ?? "none");
 			setEndOfPromptToken(o.endOfPromptToken ?? "<|endofprompt|>");
-			setOutputXMLSchema(o.outputXMLSchema ?? o.outputSchema ?? "");
+			setOutputXMLSchema(
+				o.outputXMLSchema ??
+					((o as Record<string, unknown>).outputSchema as string) ??
+					"",
+			);
 			setAdditionalContext(o.additionalContext ?? "");
 			setExamplesText(o.examplesText ?? "");
 			if (trackRecent) {
-				const key = (p as any).id ?? p.name;
+				const key = p.id ?? p.name;
 				setRecentPresetKeys((prev) => {
 					const next = [key, ...prev.filter((k) => k !== key)].slice(0, 3);
 					try {
@@ -367,11 +384,16 @@ export default function PromptWorkbench() {
 	);
 
 	const presetToSummary = useCallback(
-		(p: { id?: string; name: string; taskType: TaskType; options?: any }) => {
+		(p: {
+			id?: string;
+			name: string;
+			taskType: TaskType;
+			options?: GenerationOptions;
+		}) => {
 			const summary: PromptPresetSummary = {
 				name: p.name,
 				taskType: p.taskType,
-				options: p.options,
+				...(p.options && { options: p.options }),
 			};
 			if (typeof p.id === "string") summary.id = p.id;
 			return summary;
@@ -385,7 +407,12 @@ export default function PromptWorkbench() {
 
 	const loadPreset = useCallback(
 		(
-			preset: { id?: string; name: string; taskType: TaskType; options?: any },
+			preset: {
+				id?: string;
+				name: string;
+				taskType: TaskType;
+				options?: GenerationOptions;
+			},
 			opts?: { trackRecent?: boolean },
 		) => {
 			const summary = presetToSummary(preset);
@@ -412,15 +439,15 @@ export default function PromptWorkbench() {
 			setLoadingPresets(true);
 			try {
 				const data = getPresets();
-				const list = (data ?? []).map((p: any) => ({
-					id: p.id,
+				const list = (data ?? []).map((p: Preset) => ({
+					...(p.id && { id: p.id }),
 					name: p.name,
 					taskType: p.taskType,
-					options: p.options,
+					...(p.options && { options: p.options }),
 				}));
 				setPresets(list);
 				setRecentPresetKeys((prev) => {
-					const set = new Set(list.map((p: any) => p.id ?? p.name));
+					const set = new Set(list.map((p) => p.id ?? p.name));
 					const cleaned = prev.filter((k) => set.has(k)).slice(0, 3);
 					try {
 						localStorage.setItem("recent-presets", JSON.stringify(cleaned));
@@ -433,7 +460,7 @@ export default function PromptWorkbench() {
 							? localStorage.getItem("last-selected-preset")
 							: null) || "";
 					const pick =
-						(lastKey && list.find((p: any) => (p.id ?? p.name) === lastKey)) ||
+						(lastKey && list.find((p) => (p.id ?? p.name) === lastKey)) ||
 						list[0] ||
 						null;
 					if (pick) {
@@ -683,7 +710,7 @@ export default function PromptWorkbench() {
 				finalAssistantId,
 				{
 					taskType,
-					options,
+					options: options as Record<string, unknown>,
 					isRefinement: isRefinementMode,
 					...(refinedVersionId && { refinedVersionId }),
 				},
@@ -698,7 +725,7 @@ export default function PromptWorkbench() {
 			if (!isRefinementMode) {
 				const truncatedLabel =
 					originalInput.length > 40
-						? originalInput.slice(0, 40).trim() + "…"
+						? `${originalInput.slice(0, 40).trim()}…`
 						: originalInput;
 				tabManager.updateTabLabel(activeTab.id, truncatedLabel);
 			}
@@ -707,11 +734,12 @@ export default function PromptWorkbench() {
 			setJustCreatedVersion(true);
 			setOutputAnimateKey((prev) => prev + 1);
 			setTimeout(() => setJustCreatedVersion(false), 700);
-		} catch (e: any) {
-			if (e?.name === "AbortError" || e?.message?.includes("aborted")) {
+		} catch (e: unknown) {
+			const error = e as Error & { name?: string };
+			if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
 				// Silent abort
 			} else {
-				tabManager.setError(e?.message || "Something went wrong");
+				tabManager.setError(error?.message || "Something went wrong");
 			}
 		} finally {
 			tabManager.setSending(false);
@@ -745,8 +773,6 @@ export default function PromptWorkbench() {
 		outputXMLSchema,
 		additionalContext,
 		examplesText,
-		buildUnifiedPrompt,
-		callLocalModelClient,
 	]);
 
 	const stopGenerating = useCallback(() => {
@@ -804,6 +830,7 @@ export default function PromptWorkbench() {
 	const endRef = useRef<HTMLDivElement | null>(null);
 
 	// Auto-scroll to bottom when messages change or when sending
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional - scroll when messages/sending changes
 	useEffect(() => {
 		const container = scrollContainerRef.current;
 		if (!container) return;
@@ -820,9 +847,17 @@ export default function PromptWorkbench() {
 	const hasMessages = activeMessages.length > 0;
 	const recentProjects = useMemo(
 		() =>
-			(projectList ?? [])
-				.slice()
-				.sort((a: any, b: any) => (b.updatedAt as any) - (a.updatedAt as any)),
+			(projectList ?? []).slice().sort((a, b) => {
+				const aTime =
+					typeof a.updatedAt === "number"
+						? a.updatedAt
+						: new Date(a.updatedAt).getTime();
+				const bTime =
+					typeof b.updatedAt === "number"
+						? b.updatedAt
+						: new Date(b.updatedAt).getTime();
+				return bTime - aTime;
+			}),
 		[projectList],
 	);
 
@@ -855,11 +890,13 @@ export default function PromptWorkbench() {
 				}
 
 				const data = await localGetProject(id, 50);
-				const loaded: MessageItem[] = (data.messages ?? []).map((m: any) => ({
-					id: m.id,
-					role: m.role,
-					content: m.content,
-				}));
+				const loaded: MessageItem[] = (data.messages ?? []).map(
+					(m: { id: string; role: string; content: string }) => ({
+						id: m.id,
+						role: m.role as "user" | "assistant",
+						content: m.content,
+					}),
+				);
 
 				// Find the preset for this project
 				let projectPreset: PromptPresetSummary | null = null;
@@ -892,10 +929,16 @@ export default function PromptWorkbench() {
 				const newTabId = tabManager.createTab(projectPreset);
 
 				// Build the version graph
-				let graph: any;
-				if (data.versionGraph) {
+				let graph: VersionGraph;
+				if (
+					data.versionGraph &&
+					typeof (data.versionGraph as VersionGraph).nodes === "object"
+				) {
 					// Migrate version graph for backward compatibility
-					graph = migrateVersionGraph(data.versionGraph, loaded);
+					graph = migrateVersionGraph(
+						data.versionGraph as VersionGraph,
+						loaded,
+					);
 				} else {
 					// Reconstruct history from user messages for legacy sessions
 					graph = createVersionGraph("", "Start", "", null);
@@ -956,7 +999,9 @@ export default function PromptWorkbench() {
 	useEffect(() => {
 		if (!activeTab?.projectId || !activeTab?.versionGraph) return;
 		const timer = setTimeout(() => {
-			updateProjectVersionGraph(activeTab.projectId!, activeTab.versionGraph);
+			if (activeTab.projectId) {
+				updateProjectVersionGraph(activeTab.projectId, activeTab.versionGraph);
+			}
 		}, 1000);
 		return () => clearTimeout(timer);
 	}, [activeTab?.projectId, activeTab?.versionGraph]);
@@ -969,11 +1014,11 @@ export default function PromptWorkbench() {
 			} catch {}
 
 			// Close any tabs with this project
-			tabManager.tabs.forEach((tab) => {
+			for (const tab of tabManager.tabs) {
 				if (tab.projectId === id) {
 					tabManager.closeTab(tab.id);
 				}
-			});
+			}
 		},
 		[refreshProjectList, tabManager],
 	);
@@ -1126,7 +1171,7 @@ export default function PromptWorkbench() {
 			// Save
 			if ((e.metaKey || e.ctrlKey) && e.key === "s") {
 				e.preventDefault();
-				if (activeTab && activeTab.draft.trim() && activeTab.isDirty) {
+				if (activeTab?.draft.trim() && activeTab.isDirty) {
 					const timestamp = new Date().toLocaleTimeString([], {
 						hour: "2-digit",
 						minute: "2-digit",
@@ -1277,6 +1322,7 @@ export default function PromptWorkbench() {
 							backdropFilter: "grayscale(0.5)",
 						}}
 						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e) => e.stopPropagation()}
 					/>
 				)}
 				<header
@@ -1337,6 +1383,7 @@ export default function PromptWorkbench() {
 							<Icon name="brush" />
 						</button>
 						<button
+							type="button"
 							className="md-btn"
 							onClick={() => {
 								setSettingsOpen(true);
@@ -1584,11 +1631,13 @@ export default function PromptWorkbench() {
 														);
 													}
 													// Update the version graph to point to this version
-													const updatedGraph = {
-														...activeTab!.versionGraph,
-														activeId: version.id,
-													};
-													tabManager.setVersionGraph(updatedGraph);
+													if (activeTab?.versionGraph) {
+														const updatedGraph: VersionGraph = {
+															...activeTab.versionGraph,
+															activeId: version.id,
+														};
+														tabManager.setVersionGraph(updatedGraph);
+													}
 													tabManager.markDirty(false);
 												};
 
@@ -1787,14 +1836,14 @@ export default function PromptWorkbench() {
 																	provider: "ollama",
 																	baseUrl: "http://localhost:11434",
 																	model: model.id,
-																} as any);
+																});
 																setCurrentModelId(model.id);
 																setModelLabel(`Gemma 3 ${model.label}`);
 																try {
 																	window.dispatchEvent(
 																		new CustomEvent("sq-model-changed", {
 																			detail: { modelId: model.id },
-																		}) as any,
+																		}),
 																	);
 																} catch {}
 															}}
@@ -2341,6 +2390,7 @@ export default function PromptWorkbench() {
 								<Icon name="warning" className="h-5 w-5 shrink-0" />
 								<p className="font-medium text-sm">{activeTab.error}</p>
 								<button
+									type="button"
 									className="ml-auto rounded p-1 hover:bg-attention/10"
 									onClick={() => tabManager.setError(null)}
 								>

@@ -20,16 +20,30 @@ interface Props {
 	children: React.ReactNode;
 }
 
+interface ShadowQuillApi {
+	checkOllamaInstalled?: () => Promise<{ installed: boolean }>;
+	openOllama?: () => Promise<{ ok: boolean; error?: string }>;
+	getDataPaths?: () => Promise<{
+		ok: boolean;
+		error?: string;
+		userData?: string;
+		localStorageDir?: string;
+		localStorageLevelDb?: string;
+	}>;
+	factoryReset?: () => Promise<{ ok: boolean; error?: string }>;
+}
+
 interface WindowWithShadowQuill extends Window {
-	shadowquill?: {
-		checkOllamaInstalled?: () => Promise<{ installed: boolean }>;
-		openOllama?: () => Promise<{ ok: boolean; error?: string }>;
-	};
+	shadowquill?: ShadowQuillApi;
 }
 
 function isElectronRuntime(): boolean {
 	if (typeof process !== "undefined") {
-		if ((process as any)?.versions?.electron) return true;
+		if (
+			(process as NodeJS.Process & { versions?: { electron?: string } })
+				?.versions?.electron
+		)
+			return true;
 		if (
 			process.env.ELECTRON === "1" ||
 			process.env.NEXT_PUBLIC_ELECTRON === "1"
@@ -49,7 +63,11 @@ export default function ModelConfigGate({ children }: Props) {
 		(process.env.NEXT_PUBLIC_ELECTRON === "1" || process.env.ELECTRON === "1");
 	const [electronMode, setElectronMode] = useState<boolean>(initialElectron);
 	const [fetching, setFetching] = useState(false);
-	const [config, setConfig] = useState<any>(null);
+	const [config, setConfig] = useState<{
+		provider: "ollama";
+		baseUrl: string;
+		model: string;
+	} | null>(null);
 	const [error, setError] = useState<string | null>(null);
 	const [localPort, setLocalPort] = useState<string>("11434");
 	const [model, setModel] = useState<string>("");
@@ -197,12 +215,7 @@ export default function ModelConfigGate({ children }: Props) {
 		return () => {
 			cancelled = true;
 		};
-	}, [
-		showProviderSelection,
-		provider,
-		previouslyConfigured,
-		ollamaCheckPerformed,
-	]);
+	}, [showProviderSelection, previouslyConfigured, ollamaCheckPerformed]);
 
 	// Allow retry from modal
 	const retryOllamaDetection = async () => {
@@ -334,7 +347,7 @@ export default function ModelConfigGate({ children }: Props) {
 			} else {
 				setModel("");
 			}
-		} catch (e: any) {
+		} catch {
 			const duration = Date.now() - start;
 			setLocalTestResult({
 				success: false,
@@ -368,6 +381,7 @@ export default function ModelConfigGate({ children }: Props) {
 							<div
 								className="modal-content"
 								onClick={(e) => e.stopPropagation()}
+								onKeyDown={(e) => e.stopPropagation()}
 							>
 								<div className="modal-header">
 									<div className="modal-title">
@@ -388,6 +402,7 @@ export default function ModelConfigGate({ children }: Props) {
 							<div
 								className="modal-content modal-content--large"
 								onClick={(e) => e.stopPropagation()}
+								onKeyDown={(e) => e.stopPropagation()}
 								style={{ overflow: "hidden" }}
 							>
 								<div className="modal-header">
@@ -408,18 +423,16 @@ export default function ModelConfigGate({ children }: Props) {
 											setError(null);
 											try {
 												const payload = {
-													provider: "ollama",
+													provider: "ollama" as const,
 													baseUrl: normalizeToBaseUrl(localPort),
 													model,
 												};
-												writeLocalModelConfigClient(payload as any);
+												writeLocalModelConfigClient(payload);
 												// After saving validate immediately
 												setValidating(true);
 												try {
 													const vjson =
-														await validateLocalModelConnectionClient(
-															payload as any,
-														);
+														await validateLocalModelConnectionClient(payload);
 													if (vjson.ok) {
 														setConfig(payload);
 														setConnectionError(null);
@@ -672,6 +685,7 @@ export default function ModelConfigGate({ children }: Props) {
 														: "Click below to finish setup and start using ShadowQuill."}
 												</span>
 												<button
+													type="submit"
 													disabled={
 														saving ||
 														validating ||
@@ -757,12 +771,14 @@ export default function ModelConfigGate({ children }: Props) {
 									</div>
 									<div className="flex flex-wrap gap-3">
 										<button
+											type="button"
 											onClick={() => setShowOllamaMissingModal(false)}
 											className="interactive-glow flex-1 rounded-md bg-surface-200 py-2 font-medium text-sm hover:bg-surface-300"
 										>
 											<Icon name="close" />
 										</button>
 										<button
+											type="button"
 											onClick={retryOllamaDetection}
 											className="interactive-glow flex-1 rounded-md bg-primary py-2 font-medium text-light text-sm hover:bg-primary-200"
 										>
@@ -809,6 +825,7 @@ function SystemPromptEditorWrapper({
 		void load();
 	}, [open]);
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional - resize when prompt content changes or dialog opens
 	useEffect(() => {
 		if (!open) return;
 		const el = textareaRef.current;
@@ -829,14 +846,25 @@ function SystemPromptEditorWrapper({
 			{children}
 			{open && (
 				<div className="modal-container">
-					<div className="modal-backdrop-blur" onClick={() => setOpen(false)} />
+					<div
+						className="modal-backdrop-blur"
+						onClick={() => setOpen(false)}
+						onKeyDown={(e) => {
+							if (e.key === "Escape") setOpen(false);
+						}}
+						role="button"
+						tabIndex={0}
+						aria-label="Close modal"
+					/>
 					<div
 						className="modal-content modal-content--large"
 						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e) => e.stopPropagation()}
 					>
 						<div className="modal-header">
 							<div className="modal-title">Edit System Prompt</div>
 							<button
+								type="button"
 								onClick={() => setOpen(false)}
 								className="md-btn"
 								style={{ padding: "6px 10px" }}
@@ -859,18 +887,23 @@ function SystemPromptEditorWrapper({
 												const normalized = setSystemPromptBuild(prompt);
 												setPrompt(normalized);
 												setOpen(false);
-											} catch (err: any) {
-												setError(err.message || "Unknown error");
+											} catch (err: unknown) {
+												const error = err as Error;
+												setError(error.message || "Unknown error");
 											} finally {
 												setSaving(false);
 											}
 										}}
 									>
 										<div className="system-prompts-field">
-											<label className="system-prompts-label">
+											<label
+												className="system-prompts-label"
+												htmlFor="system-prompt-edit"
+											>
 												System Prompt
 											</label>
 											<textarea
+												id="system-prompt-edit"
 												ref={textareaRef}
 												value={prompt}
 												onChange={(e) => setPrompt(e.target.value)}
@@ -898,8 +931,9 @@ function SystemPromptEditorWrapper({
 														try {
 															const def = resetSystemPromptBuild();
 															setPrompt(def);
-														} catch (err: any) {
-															setError(err.message || "Unknown error");
+														} catch (err: unknown) {
+															const error = err as Error;
+															setError(error.message || "Unknown error");
 														} finally {
 															setSaving(false);
 														}
@@ -918,6 +952,7 @@ function SystemPromptEditorWrapper({
 													Cancel
 												</button>
 												<button
+													type="submit"
 													disabled={saving}
 													className="md-btn md-btn--primary"
 												>
@@ -939,9 +974,8 @@ function SystemPromptEditorWrapper({
 function OpenSystemPromptsListener({ onOpen }: { onOpen: () => void }) {
 	useEffect(() => {
 		const handler = () => onOpen();
-		window.addEventListener("open-system-prompts", handler as any);
-		return () =>
-			window.removeEventListener("open-system-prompts", handler as any);
+		window.addEventListener("open-system-prompts", handler);
+		return () => window.removeEventListener("open-system-prompts", handler);
 	}, [onOpen]);
 	return null;
 }
@@ -949,9 +983,8 @@ function OpenSystemPromptsListener({ onOpen }: { onOpen: () => void }) {
 function OpenProviderSelectionListener({ onOpen }: { onOpen: () => void }) {
 	useEffect(() => {
 		const handler = () => onOpen();
-		window.addEventListener("open-provider-selection", handler as any);
-		return () =>
-			window.removeEventListener("open-provider-selection", handler as any);
+		window.addEventListener("open-provider-selection", handler);
+		return () => window.removeEventListener("open-provider-selection", handler);
 	}, [onOpen]);
 	return null;
 }
@@ -969,9 +1002,8 @@ function DataLocationModalWrapper() {
 
 	useEffect(() => {
 		const handler = () => setOpen(true);
-		window.addEventListener("open-data-location", handler as any);
-		return () =>
-			window.removeEventListener("open-data-location", handler as any);
+		window.addEventListener("open-data-location", handler);
+		return () => window.removeEventListener("open-data-location", handler);
 	}, []);
 
 	useEffect(() => {
@@ -980,17 +1012,20 @@ function DataLocationModalWrapper() {
 			setLoading(true);
 			setError(null);
 			try {
-				const api = (window as any).shadowquill;
+				const api = (window as WindowWithShadowQuill).shadowquill;
 				if (!api?.getDataPaths) {
 					setPaths(null);
 					setError("Not available outside the desktop app");
 					return;
 				}
-				let res: any = null;
+				let res: Awaited<
+					ReturnType<NonNullable<typeof api.getDataPaths>>
+				> | null = null;
 				try {
 					res = await api.getDataPaths();
-				} catch (e: any) {
-					const msg = String(e?.message || "");
+				} catch (e: unknown) {
+					const err = e as Error;
+					const msg = String(err?.message || "");
 					if (msg.includes("No handler registered")) {
 						setPaths(null);
 						setError(
@@ -1002,15 +1037,20 @@ function DataLocationModalWrapper() {
 				}
 				if (res?.ok) {
 					setPaths({
-						userData: res.userData,
-						localStorageDir: res.localStorageDir,
-						localStorageLevelDb: res.localStorageLevelDb,
+						...(res.userData && { userData: res.userData }),
+						...(res.localStorageDir && {
+							localStorageDir: res.localStorageDir,
+						}),
+						...(res.localStorageLevelDb && {
+							localStorageLevelDb: res.localStorageLevelDb,
+						}),
 					});
 				} else {
 					setError(res?.error || "Failed to load data paths");
 				}
-			} catch (e: any) {
-				setError(e?.message || "Failed to load data paths");
+			} catch (e: unknown) {
+				const err = e as Error;
+				setError(err?.message || "Failed to load data paths");
 			} finally {
 				setLoading(false);
 			}
@@ -1022,11 +1062,25 @@ function DataLocationModalWrapper() {
 		<>
 			{open && (
 				<div className="modal-container">
-					<div className="modal-backdrop-blur" onClick={() => setOpen(false)} />
-					<div className="modal-content" onClick={(e) => e.stopPropagation()}>
+					<div
+						className="modal-backdrop-blur"
+						onClick={() => setOpen(false)}
+						onKeyDown={(e) => {
+							if (e.key === "Escape") setOpen(false);
+						}}
+						role="button"
+						tabIndex={0}
+						aria-label="Close modal"
+					/>
+					<div
+						className="modal-content"
+						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e) => e.stopPropagation()}
+					>
 						<div className="modal-header">
 							<div className="modal-title">Local Data Management</div>
 							<button
+								type="button"
 								onClick={() => setOpen(false)}
 								className="md-btn"
 								style={{ padding: "6px 10px" }}
@@ -1090,6 +1144,7 @@ function DataLocationModalWrapper() {
 											state.
 										</div>
 										<button
+											type="button"
 											className="md-btn md-btn--destructive"
 											onClick={async () => {
 												const ok = await confirm({
@@ -1108,15 +1163,17 @@ function DataLocationModalWrapper() {
 													// beforeunload handlers from re-saving data
 													clearAllStorageForFactoryReset();
 
-													const api = (window as any).shadowquill;
+													const api = (window as WindowWithShadowQuill)
+														.shadowquill;
 													const res = await api?.factoryReset?.();
 													if (!res?.ok) {
 														setError(res?.error || "Reset failed");
 														setLoading(false);
 													}
 													// App will close automatically after factory reset
-												} catch (e: any) {
-													setError(e?.message || "Reset failed");
+												} catch (e: unknown) {
+													const err = e as Error;
+													setError(err?.message || "Reset failed");
 													setLoading(false);
 												}
 											}}

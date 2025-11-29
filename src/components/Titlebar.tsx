@@ -6,6 +6,24 @@ import { useEffect, useState } from "react";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
 
+interface ShadowQuillWindowApi {
+	getPlatform?: () => Promise<string>;
+	getSystemSpecs?: () => Promise<{
+		cpu: string;
+		ram: number;
+		gpu: string;
+	}>;
+	window?: {
+		close?: () => void;
+		minimize?: () => void;
+		maximizeToggle?: () => void;
+	};
+}
+
+type WindowWithShadowQuill = Window & {
+	shadowquill?: ShadowQuillWindowApi;
+};
+
 const TitlebarButton: React.FC<{
 	children: React.ReactNode;
 	color: string;
@@ -16,6 +34,7 @@ const TitlebarButton: React.FC<{
 
 	return (
 		<button
+			type="button"
 			aria-label={ariaLabel}
 			onClick={onClick}
 			className="relative flex h-4 w-4 items-center justify-center overflow-hidden rounded-full shadow-sm"
@@ -56,14 +75,11 @@ export default function Titlebar() {
 		// Detect platform on mount
 		const detectPlatform = async () => {
 			try {
-				const platformValue = await (
-					window as any
-				).shadowquill?.getPlatform?.();
+				const win = window as WindowWithShadowQuill;
+				const platformValue = await win.shadowquill?.getPlatform?.();
 				setPlatform(platformValue || null);
 
-				const specsValue = await (
-					window as any
-				).shadowquill?.getSystemSpecs?.();
+				const specsValue = await win.shadowquill?.getSystemSpecs?.();
 				if (specsValue) {
 					setSpecs(specsValue);
 
@@ -107,18 +123,17 @@ export default function Titlebar() {
 		// Listen for model change broadcasts from elsewhere in the app
 		const onModelChanged = (e: Event) => {
 			try {
-				const modelId = (e as CustomEvent)?.detail?.modelId as
-					| string
-					| undefined;
+				const modelId = (e as CustomEvent<{ modelId?: string }>)?.detail
+					?.modelId;
 				if (typeof modelId === "string") setCurrentModelId(modelId);
 			} catch {}
 		};
-		window.addEventListener("sq-model-changed", onModelChanged as any);
+		window.addEventListener("sq-model-changed", onModelChanged);
 		window.addEventListener("storage", syncModel);
 		window.addEventListener("focus", syncModel);
 		return () => {
 			clearInterval(pollId);
-			window.removeEventListener("sq-model-changed", onModelChanged as any);
+			window.removeEventListener("sq-model-changed", onModelChanged);
 			window.removeEventListener("storage", syncModel);
 			window.removeEventListener("focus", syncModel);
 		};
@@ -143,7 +158,7 @@ export default function Titlebar() {
 			color="#FF5F57"
 			onClick={() => {
 				try {
-					(window as any).shadowquill?.window?.close?.();
+					(window as WindowWithShadowQuill).shadowquill?.window?.close?.();
 				} catch {}
 			}}
 		>
@@ -158,7 +173,7 @@ export default function Titlebar() {
 			color="#FFBD2E"
 			onClick={() => {
 				try {
-					(window as any).shadowquill?.window?.minimize?.();
+					(window as WindowWithShadowQuill).shadowquill?.window?.minimize?.();
 				} catch {}
 			}}
 		>
@@ -173,7 +188,9 @@ export default function Titlebar() {
 			color="#28CA42"
 			onClick={() => {
 				try {
-					(window as any).shadowquill?.window?.maximizeToggle?.();
+					(
+						window as WindowWithShadowQuill
+					).shadowquill?.window?.maximizeToggle?.();
 				} catch {}
 			}}
 		>
@@ -214,7 +231,9 @@ export default function Titlebar() {
 
 	const modelChip = (
 		<div
-			className={`mr-2 ml-1 flex items-center rounded-md px-1.5 py-0.5 font-bold text-[10px]`}
+			className={
+				"mr-2 ml-1 flex items-center rounded-md px-1.5 py-0.5 font-bold text-[10px]"
+			}
 			style={{
 				color: "var(--color-on-surface-variant)",
 				background: "transparent",

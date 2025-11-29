@@ -6,7 +6,7 @@ import React from "react";
 
 interface AdvancedSettingsProps {
 	preset: PresetLite;
-	onFieldChange: (field: string, value: any) => void;
+	onFieldChange: (field: string, value: unknown) => void;
 }
 
 export default function AdvancedSettings({
@@ -50,10 +50,14 @@ export default function AdvancedSettings({
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				{/* Reasoning Style */}
 				<div>
-					<label className="mb-1 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="reasoning-style"
+						className="mb-1 block font-medium text-secondary text-xs"
+					>
 						Reasoning Strategy
 					</label>
 					<CustomSelect
+						id="reasoning-style"
 						value={options.reasoningStyle || "none"}
 						onChange={(v) => onFieldChange("reasoningStyle", v)}
 						options={[
@@ -75,10 +79,14 @@ export default function AdvancedSettings({
 
 				{/* End of Prompt Token */}
 				<div>
-					<label className="mb-1 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="end-of-prompt-token"
+						className="mb-1 block font-medium text-secondary text-xs"
+					>
 						Prompt Terminator
 					</label>
 					<input
+						id="end-of-prompt-token"
 						type="text"
 						value={options.endOfPromptToken || ""}
 						onChange={(e) => onFieldChange("endOfPromptToken", e.target.value)}

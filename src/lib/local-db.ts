@@ -17,7 +17,7 @@ interface StoredProject {
 	presetId?: string;
 	createdAt: number;
 	updatedAt: number;
-	versionGraph?: any;
+	versionGraph?: unknown;
 }
 
 const PROJECTS_KEY = "PC_PROJECTS";
@@ -127,7 +127,7 @@ export async function getProject(
 	id: string;
 	title: string | null;
 	messages: TestMessage[];
-	versionGraph?: any;
+	versionGraph?: unknown;
 	presetId?: string;
 }> {
 	const projects = readProjects();
@@ -148,7 +148,7 @@ export async function getProject(
 
 export async function updateProjectVersionGraph(
 	projectId: string,
-	versionGraph: any,
+	versionGraph: unknown,
 ): Promise<void> {
 	const projects = readProjects();
 	const project = projects[projectId];

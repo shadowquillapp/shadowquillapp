@@ -173,8 +173,9 @@ export function PresetPickerModal({
 				),
 			).filter((el) => !el.hasAttribute("disabled"));
 			if (focusables.length === 0) return;
-			const first = focusables[0]!;
-			const last = focusables[focusables.length - 1]!;
+			const first = focusables[0];
+			const last = focusables[focusables.length - 1];
+			if (!first || !last) return;
 			const active = document.activeElement as HTMLElement | null;
 			if (e.shiftKey) {
 				if (active === first || !root.contains(active)) {
@@ -249,10 +250,9 @@ export function PresetPickerModal({
 			// Compute columns from container width and minimum card width
 			const container = gridRef.current;
 			const minCardWidth = 190;
-			const columns =
-				container && container.clientWidth
-					? Math.max(1, Math.floor(container.clientWidth / minCardWidth))
-					: 3;
+			const columns = container?.clientWidth
+				? Math.max(1, Math.floor(container.clientWidth / minCardWidth))
+				: 3;
 			const delta = e.key === "ArrowDown" ? columns : -columns;
 			e.preventDefault();
 			moveFocus(idx, delta);
@@ -280,10 +280,10 @@ export function PresetPickerModal({
 	};
 
 	return (
-		<div
+		<dialog
+			open
 			className="modal-container"
 			aria-modal="true"
-			role="dialog"
 			aria-labelledby="preset-picker-title"
 			onKeyDown={(e) => {
 				// "/" to focus search unless typing in an input/textarea
@@ -301,6 +301,7 @@ export function PresetPickerModal({
 				className="modal-content"
 				ref={modalContentRef}
 				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
 			>
 				<div className="modal-header">
 					<div
@@ -311,6 +312,7 @@ export function PresetPickerModal({
 						{title}
 					</div>
 					<button
+						type="button"
 						aria-label="Close"
 						className="md-btn"
 						onClick={onClose}
@@ -322,11 +324,11 @@ export function PresetPickerModal({
 
 				<div className="modal-body" style={{ padding: 20 }}>
 					{/* A11y live region for results count */}
-					<div role="status" aria-live="polite" style={visuallyHidden}>
+					<output aria-live="polite" style={visuallyHidden}>
 						{activeSection === "presets"
 							? `${filteredPresets.length} presets found`
 							: `${filteredProjects.length} saved workbenches found`}
-					</div>
+					</output>
 					{/* Tab Switcher + Search Bar (sticky) */}
 					<div
 						style={{
@@ -916,6 +918,6 @@ export function PresetPickerModal({
 					)}
 				</div>
 			</div>
-		</div>
+		</dialog>
 	);
 }

@@ -24,7 +24,12 @@ export default function TemperatureControl({
 	const [isDragging, setIsDragging] = useState(false);
 
 	// Determine semantic band with enhanced descriptions
-	const band = useMemo(() => {
+	const band = useMemo((): {
+		name: string;
+		color: string;
+		icon: import("@/components/Icon").IconName;
+		description: string;
+	} => {
 		if (value <= 0.2)
 			return {
 				name: "Precise",
@@ -110,9 +115,9 @@ export default function TemperatureControl({
 		<div className="space-y-3">
 			{/* Header */}
 			<div className="flex items-center justify-between">
-				<label className="flex items-center gap-2 font-medium text-secondary text-xs">
+				<div className="flex items-center gap-2 font-medium text-secondary text-xs">
 					<span>Temperature</span>
-				</label>
+				</div>
 
 				{/* Current value display with band indicator */}
 				<div className="flex items-center gap-2">
@@ -124,7 +129,7 @@ export default function TemperatureControl({
 							boxShadow: isDragging ? `0 0 12px ${currentColors.glow}` : "none",
 						}}
 					>
-						<Icon name={band.icon as any} className="h-3 w-3" />
+						<Icon name={band.icon} className="h-3 w-3" />
 						{band.name}
 					</span>
 					<span

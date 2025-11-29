@@ -125,15 +125,24 @@ export function VersionHistoryModal({
 		<div
 			className="modal-container"
 			aria-modal="true"
-			role="dialog"
 			aria-labelledby="version-history-title"
 			ref={modalRef}
 		>
-			<div className="modal-backdrop-blur" onClick={onClose} />
 			<div
+				className="modal-backdrop-blur"
+				onClick={onClose}
+				onKeyDown={(e) => {
+					if (e.key === "Enter" || e.key === " ") onClose();
+				}}
+				role="button"
+				tabIndex={0}
+				aria-label="Close modal"
+			/>
+			<dialog
+				open
 				className="modal-content modal-content--version-history"
 				onClick={(e) => e.stopPropagation()}
-				role="document"
+				onKeyDown={(e) => e.stopPropagation()}
 			>
 				{/* Header */}
 				<header className="vh-modal-header">
@@ -152,13 +161,12 @@ export function VersionHistoryModal({
 				</header>
 
 				{/* Body */}
-				<div
+				<section
 					className="modal-body vh-modal-body"
-					role="region"
 					aria-label={`${versions.length} version${versions.length !== 1 ? "s" : ""} available`}
 				>
 					{versions.length === 0 ? (
-						<div className="vh-empty" role="status">
+						<output className="vh-empty">
 							<Icon
 								name="folder-open"
 								className="vh-empty-icon"
@@ -168,7 +176,7 @@ export function VersionHistoryModal({
 							<div className="vh-empty-desc">
 								Run a prompt to create your first version
 							</div>
-						</div>
+						</output>
 					) : (
 						<div className="vh-cards-container">
 							{sortedVersions.map((version, index) => {
@@ -201,8 +209,6 @@ export function VersionHistoryModal({
 											cardRefs.current[index] = el;
 										}}
 										className={`vh-card${isActive ? " vh-card--active" : ""}${isExpanded ? " vh-card--expanded" : ""}`}
-										tabIndex={0}
-										role="button"
 										aria-expanded={isExpanded}
 										aria-label={`Version ${runNumber}, ${versionType}${isActive ? ", current version" : ""}, created ${getRelativeTime(version.createdAt)}`}
 										onClick={() => toggleExpand(version.id)}
@@ -270,6 +276,7 @@ export function VersionHistoryModal({
 											<div
 												className="vh-card-body"
 												onClick={(e) => e.stopPropagation()}
+												onKeyDown={(e) => e.stopPropagation()}
 											>
 												{/* Input Section */}
 												<section className="vh-content-section">
@@ -377,8 +384,8 @@ export function VersionHistoryModal({
 							})}
 						</div>
 					)}
-				</div>
-			</div>
+				</section>
+			</dialog>
 		</div>
 	);
 }

@@ -9,7 +9,6 @@ import {
 	useMemo,
 	useState,
 } from "react";
-import { Icon } from "./Icon";
 
 type DialogTone = "default" | "destructive" | "primary";
 
@@ -58,24 +57,21 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 
 	const active = queue[0] || null;
 
-	const closeActive = useCallback(
-		(result?: boolean) => {
-			setQueue((prev) => {
-				if (!prev.length) return prev;
-				const dialog = prev[0] as EnqueuedDialog;
-				const rest = prev.slice(1);
-				try {
-					if (dialog.kind === "info") {
-						(dialog.resolve as () => void)();
-					} else {
-						(dialog.resolve as (accepted: boolean) => void)(!!result);
-					}
-				} catch {}
-				return rest;
-			});
-		},
-		[setQueue],
-	);
+	const closeActive = useCallback((result?: boolean) => {
+		setQueue((prev) => {
+			if (!prev.length) return prev;
+			const dialog = prev[0] as EnqueuedDialog;
+			const rest = prev.slice(1);
+			try {
+				if (dialog.kind === "info") {
+					(dialog.resolve as () => void)();
+				} else {
+					(dialog.resolve as (accepted: boolean) => void)(!!result);
+				}
+			} catch {}
+			return rest;
+		});
+	}, []);
 
 	const showInfo = useCallback((options: InfoDialogOptions) => {
 		return new Promise<void>((resolve) => {
@@ -107,7 +103,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 
 	// Listen for Electron->renderer info notifications, if available
 	useEffect(() => {
-		const handler = (evt: any) => {
+		const handler = (evt: Event) => {
 			try {
 				const detail = (evt as CustomEvent)?.detail || {};
 				const title =
@@ -121,8 +117,8 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 			} catch {}
 		};
 		try {
-			window.addEventListener("app-info", handler as any);
-			return () => window.removeEventListener("app-info", handler as any);
+			window.addEventListener("app-info", handler);
+			return () => window.removeEventListener("app-info", handler);
 		} catch {
 			return () => {};
 		}
@@ -140,9 +136,14 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 		<DialogContext.Provider value={value}>
 			{children}
 			{active && (
-				<div className="modal-container" aria-modal="true" role="dialog">
+				<div className="modal-container" aria-modal="true">
 					<div className="modal-backdrop-blur" />
-					<div className="modal-content" onClick={(e) => e.stopPropagation()}>
+					<dialog
+						open
+						className="modal-content"
+						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e) => e.stopPropagation()}
+					>
 						<div className="modal-header">
 							<div className="modal-title">
 								{active.options.title ||
@@ -164,6 +165,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 								{active.kind === "confirm" ? (
 									<>
 										<button
+											type="button"
 											className="md-btn"
 											onClick={() => closeActive(false)}
 										>
@@ -177,6 +179,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 									</>
 								) : (
 									<button
+										type="button"
 										className="md-btn md-btn--primary"
 										onClick={() => closeActive(true)}
 									>
@@ -185,7 +188,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 								)}
 							</div>
 						</div>
-					</div>
+					</dialog>
 				</div>
 			)}
 		</DialogContext.Provider>
@@ -200,20 +203,29 @@ function renderConfirmButton(
 	const tone = options.tone || "primary";
 	if (tone === "destructive") {
 		return (
-			<button className="md-btn" onClick={onClick} style={{ color: "#ef4444" }}>
+			<button
+				type="button"
+				className="md-btn"
+				onClick={onClick}
+				style={{ color: "#ef4444" }}
+			>
 				{label}
 			</button>
 		);
 	}
 	if (tone === "primary") {
 		return (
-			<button className="md-btn md-btn--primary" onClick={onClick}>
+			<button
+				type="button"
+				className="md-btn md-btn--primary"
+				onClick={onClick}
+			>
 				{label}
 			</button>
 		);
 	}
 	return (
-		<button className="md-btn" onClick={onClick}>
+		<button type="button" className="md-btn" onClick={onClick}>
 			{label}
 		</button>
 	);

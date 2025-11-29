@@ -130,14 +130,16 @@ export default function PresetStudioPage() {
 
 	// Handle field changes in editor
 	const handleFieldChange = useCallback(
-		(field: string, value: any) => {
+		(field: string, value: unknown) => {
 			if (!editingPreset) return;
 
 			const updatedPreset = { ...editingPreset };
 
 			// Handle top-level fields
-			if (field === "name" || field === "taskType") {
-				updatedPreset[field] = value;
+			if (field === "name" && typeof value === "string") {
+				updatedPreset.name = value;
+			} else if (field === "taskType") {
+				updatedPreset.taskType = value as typeof updatedPreset.taskType;
 			} else {
 				// Handle options fields
 				updatedPreset.options = {
@@ -320,6 +322,14 @@ export default function PresetStudioPage() {
 							zIndex: 25,
 						}}
 						onClick={() => setSidebarOpen(false)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" || e.key === " ") {
+								setSidebarOpen(false);
+							}
+						}}
+						role="button"
+						tabIndex={0}
+						aria-label="Close sidebar"
 					/>
 				)}
 
@@ -342,6 +352,8 @@ export default function PresetStudioPage() {
 								backdropFilter: "grayscale(0.5)",
 							}}
 							onClick={(e) => e.stopPropagation()}
+							onKeyDown={(e) => e.stopPropagation()}
+							role="presentation"
 						/>
 					)}
 					{/* Row 1 / Col 1: Preset Library */}

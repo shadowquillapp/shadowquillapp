@@ -32,7 +32,9 @@ export default function PresetCard({
 		capitalize(preset.options?.format || "plain");
 
 	// Map task types to icons
-	const getIconForType = (type: string) => {
+	const getIconForType = (
+		type: string,
+	): import("@/components/Icon").IconName => {
 		switch (type) {
 			case "coding":
 				return "git-compare";
@@ -94,7 +96,7 @@ export default function PresetCard({
 					color: isSelected ? "var(--color-on-primary)" : undefined,
 				}}
 			>
-				<Icon name={iconName as any} className="text-xs" />
+				<Icon name={iconName} className="text-xs" />
 			</div>
 
 			{/* Content */}

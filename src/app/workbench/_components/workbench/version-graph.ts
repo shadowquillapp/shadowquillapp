@@ -182,10 +182,17 @@ export function migrateVersionGraph(
 
 	// Migrate each node
 	for (const [id, node] of Object.entries(graph.nodes)) {
+		const nodeRecord = node as unknown as Record<string, unknown>;
 		const migratedNode: VersionNode = {
 			...node,
-			originalInput: (node as any).originalInput ?? node.content,
-			outputMessageId: (node as any).outputMessageId ?? null,
+			originalInput:
+				typeof nodeRecord.originalInput === "string"
+					? nodeRecord.originalInput
+					: node.content,
+			outputMessageId:
+				typeof nodeRecord.outputMessageId === "string"
+					? nodeRecord.outputMessageId
+					: null,
 		};
 
 		// Try to match with assistant messages by timestamp if messages are provided

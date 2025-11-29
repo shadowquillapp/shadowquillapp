@@ -2,6 +2,19 @@ import type { GenerationOptions, TaskType } from "@/types";
 import { ModelError, NetworkError } from "./errors";
 import { readLocalModelConfig } from "./local-config";
 
+interface OllamaGeneratePayload {
+	model: string;
+	prompt: string;
+	stream: boolean;
+	options?: {
+		temperature?: number;
+	};
+}
+
+interface OllamaGenerateResponse {
+	response?: string;
+}
+
 export async function callLocalModelClient(
 	prompt: string,
 	opts?: { taskType?: TaskType; options?: GenerationOptions },
@@ -35,7 +48,7 @@ export async function callLocalModelClient(
 	const controller = new AbortController();
 	const to = setTimeout(() => controller.abort(), 90000);
 	try {
-		const payload: Record<string, any> = {
+		const payload: OllamaGeneratePayload = {
 			model: cfg.model,
 			prompt,
 			stream: false,
@@ -74,7 +87,7 @@ export async function callLocalModelClient(
 				statusCode: res.status,
 			});
 		}
-		const data: any = await res.json().catch(() => ({}));
+		const data = (await res.json().catch(() => ({}))) as OllamaGenerateResponse;
 		const rawText =
 			typeof data?.response === "string" ? data.response : JSON.stringify(data);
 

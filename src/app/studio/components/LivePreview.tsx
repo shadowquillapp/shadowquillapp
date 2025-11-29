@@ -259,7 +259,9 @@ export default function LivePreview({
 						<>
 							<span className="text-[10px] text-secondary">
 								Generated{" "}
-								{formatTimestamp(preset.generatedExamples![0].generatedAt)}
+								{formatTimestamp(
+									preset.generatedExamples?.[0]?.generatedAt ?? 0,
+								)}
 							</span>
 							{onGenerateExamples && (
 								<button
@@ -300,19 +302,21 @@ export default function LivePreview({
 				</span>
 			</div>
 
-			{hasExamples ? (
+			{hasExamples &&
+			preset.generatedExamples?.[0] &&
+			preset.generatedExamples?.[1] ? (
 				/* Example Cards Grid */
 				<div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
 					<ExampleCard
 						title="Example 1"
-						example={preset.generatedExamples![0]}
+						example={preset.generatedExamples[0]}
 						index={0}
 						onRegenerate={onRegenerateExample}
 						isRegenerating={regeneratingIndex === 0}
 					/>
 					<ExampleCard
 						title="Example 2"
-						example={preset.generatedExamples![1]}
+						example={preset.generatedExamples[1]}
 						index={1}
 						onRegenerate={onRegenerateExample}
 						isRegenerating={regeneratingIndex === 1}

@@ -108,14 +108,14 @@ export default function OllamaConnectionMonitor() {
 		}
 	};
 
-	// Initial check after a short delay
+	// Initial check after a short delay (intentionally run once on mount)
+	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional run-once on mount
 	useEffect(() => {
 		const initialTimeout = setTimeout(() => {
 			void checkConnection();
 		}, 3000);
 
 		return () => clearTimeout(initialTimeout);
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, []);
 
 	// Periodic monitoring every 10 seconds

@@ -14,7 +14,7 @@ interface PresetEditorProps {
 	isDirty: boolean;
 	isGeneratingExamples?: boolean;
 	regeneratingIndex?: 0 | 1 | null;
-	onFieldChange: (field: string, value: any) => void;
+	onFieldChange: (field: string, value: unknown) => void;
 	onSave: () => void;
 	onGenerateExamples?: () => void;
 	onRegenerateExample?: (index: 0 | 1) => void;
@@ -75,6 +75,7 @@ export default function PresetEditor({
 						{/* Tabs */}
 						<div className="flex flex-wrap items-center border-[var(--color-outline)] border-b">
 							<button
+								type="button"
 								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
 									activeTab === "basic"
 										? "border-b-surface bg-surface text-light"
@@ -86,6 +87,7 @@ export default function PresetEditor({
 								Basic Settings
 							</button>
 							<button
+								type="button"
 								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
 									activeTab === "advanced"
 										? "border-b-surface bg-surface text-light"
@@ -101,6 +103,7 @@ export default function PresetEditor({
 							</button>
 							{preset.taskType !== "general" && (
 								<button
+									type="button"
 									className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
 										activeTab === "type"
 											? "border-b-surface bg-surface text-light"
@@ -115,6 +118,7 @@ export default function PresetEditor({
 								</button>
 							)}
 							<button
+								type="button"
 								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
 									activeTab === "output"
 										? "border-b-surface bg-surface text-light"
@@ -129,6 +133,7 @@ export default function PresetEditor({
 								</span>
 							</button>
 							<button
+								type="button"
 								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
 									activeTab === "preview"
 										? "border-b-surface bg-surface text-light"
@@ -166,10 +171,14 @@ export default function PresetEditor({
 								<div className="space-y-4">
 									{preset.options?.format === "xml" && (
 										<div>
-											<label className="mb-1 block font-medium text-secondary text-xs">
+											<label
+												htmlFor="xml-schema"
+												className="mb-1 block font-medium text-secondary text-xs"
+											>
 												XML Output Schema / Tags
 											</label>
 											<textarea
+												id="xml-schema"
 												value={preset.options?.outputXMLSchema || ""}
 												onChange={(e) =>
 													onFieldChange("outputXMLSchema", e.target.value)
@@ -182,10 +191,14 @@ export default function PresetEditor({
 									)}
 
 									<div>
-										<label className="mb-1 block font-medium text-secondary text-xs">
+										<label
+											htmlFor="additional-context"
+											className="mb-1 block font-medium text-secondary text-xs"
+										>
 											Additional Context
 										</label>
 										<textarea
+											id="additional-context"
 											value={preset.options?.additionalContext || ""}
 											onChange={(e) =>
 												onFieldChange("additionalContext", e.target.value)
@@ -197,10 +210,14 @@ export default function PresetEditor({
 									</div>
 
 									<div>
-										<label className="mb-1 block font-medium text-secondary text-xs">
+										<label
+											htmlFor="few-shot-examples"
+											className="mb-1 block font-medium text-secondary text-xs"
+										>
 											Few-shot Examples
 										</label>
 										<textarea
+											id="few-shot-examples"
 											value={preset.options?.examplesText || ""}
 											onChange={(e) =>
 												onFieldChange("examplesText", e.target.value)
@@ -243,6 +260,7 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 				<div className="border-[var(--color-outline)] border-t bg-[var(--color-surface-variant)] px-6 py-4">
 					<div className="mx-auto flex max-w-5xl items-center justify-between">
 						<button
+							type="button"
 							onClick={() => preset?.id && onDelete(preset.id)}
 							className="md-btn md-btn--destructive font-medium text-red-500 text-sm"
 							disabled={!preset?.id || preset?.name === "Default"}
@@ -254,6 +272,7 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 
 						<div className="flex gap-3">
 							<button
+								type="button"
 								onClick={() => preset?.id && setShowDuplicateDialog(true)}
 								className="md-btn font-medium text-sm"
 								disabled={!preset?.id}
@@ -263,6 +282,7 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 							</button>
 
 							<button
+								type="button"
 								onClick={onSave}
 								disabled={!isDirty}
 								className="md-btn md-btn--primary flex items-center gap-2 font-medium text-sm"

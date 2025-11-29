@@ -7,7 +7,7 @@ import React from "react";
 interface TypeSpecificFieldsProps {
 	taskType: TaskType;
 	options: PresetOptions;
-	onFieldChange: (field: string, value: any) => void;
+	onFieldChange: (field: string, value: unknown) => void;
 }
 
 export default function TypeSpecificFields({
@@ -20,10 +20,14 @@ export default function TypeSpecificFields({
 		return (
 			<div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
 				<div>
-					<label className="mb-1 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="image-style"
+						className="mb-1 block font-medium text-secondary text-xs"
+					>
 						Image Style
 					</label>
 					<CustomSelect
+						id="image-style"
 						value={options.stylePreset || "photorealistic"}
 						onChange={(v) => onFieldChange("stylePreset", v)}
 						options={[
@@ -37,10 +41,14 @@ export default function TypeSpecificFields({
 				</div>
 
 				<div>
-					<label className="mb-1 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="image-aspect-ratio"
+						className="mb-1 block font-medium text-secondary text-xs"
+					>
 						Aspect Ratio
 					</label>
 					<CustomSelect
+						id="image-aspect-ratio"
 						value={options.aspectRatio || "1:1"}
 						onChange={(v) => onFieldChange("aspectRatio", v)}
 						options={[
@@ -53,10 +61,14 @@ export default function TypeSpecificFields({
 				</div>
 
 				<div>
-					<label className="mb-1 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="image-resolution"
+						className="mb-1 block font-medium text-secondary text-xs"
+					>
 						Target Resolution
 					</label>
 					<CustomSelect
+						id="image-resolution"
 						value={options.targetResolution || "1080p"}
 						onChange={(v) => onFieldChange("targetResolution", v)}
 						options={[
@@ -77,10 +89,14 @@ export default function TypeSpecificFields({
 			<div className="mt-4 space-y-4">
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="video-style"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Video Style
 						</label>
 						<CustomSelect
+							id="video-style"
 							value={options.stylePreset || "cinematic"}
 							onChange={(v) => onFieldChange("stylePreset", v)}
 							options={[
@@ -96,10 +112,14 @@ export default function TypeSpecificFields({
 					</div>
 
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="video-aspect-ratio"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Aspect Ratio
 						</label>
 						<CustomSelect
+							id="video-aspect-ratio"
 							value={options.aspectRatio || "16:9"}
 							onChange={(v) => onFieldChange("aspectRatio", v)}
 							options={[
@@ -112,10 +132,14 @@ export default function TypeSpecificFields({
 					</div>
 
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="video-resolution"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Target Resolution
 						</label>
 						<CustomSelect
+							id="video-resolution"
 							value={options.targetResolution || "1080p"}
 							onChange={(v) => onFieldChange("targetResolution", v)}
 							options={[
@@ -128,10 +152,14 @@ export default function TypeSpecificFields({
 					</div>
 
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="camera-movement"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Camera Movement
 						</label>
 						<CustomSelect
+							id="camera-movement"
 							value={options.cameraMovement || "static"}
 							onChange={(v) => onFieldChange("cameraMovement", v)}
 							options={[
@@ -147,10 +175,14 @@ export default function TypeSpecificFields({
 					</div>
 
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="shot-type"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Shot Type
 						</label>
 						<CustomSelect
+							id="shot-type"
 							value={options.shotType || "medium"}
 							onChange={(v) => onFieldChange("shotType", v)}
 							options={[
@@ -166,10 +198,14 @@ export default function TypeSpecificFields({
 
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="duration-seconds"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Duration (seconds)
 						</label>
 						<input
+							id="duration-seconds"
 							type="number"
 							min={1}
 							max={60}
@@ -186,10 +222,14 @@ export default function TypeSpecificFields({
 					</div>
 
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="frame-rate"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Frame Rate
 						</label>
 						<CustomSelect
+							id="frame-rate"
 							value={String(options.frameRate || 24)}
 							onChange={(v) => onFieldChange("frameRate", Number.parseInt(v))}
 							options={[
@@ -228,11 +268,15 @@ export default function TypeSpecificFields({
 		return (
 			<div className="mt-4 space-y-4">
 				<div>
-					<label className="mb-1 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="tech-stack"
+						className="mb-1 block font-medium text-secondary text-xs"
+					>
 						Tech Stack (Required) <span className="text-red-500">*</span>
 					</label>
 					<textarea
-						value={(options as any).techStack || ""}
+						id="tech-stack"
+						value={options.techStack || ""}
 						onChange={(e) => onFieldChange("techStack", e.target.value)}
 						placeholder="e.g., 'React, TypeScript, Node.js, PostgreSQL'. MUST specify the technologies to be used."
 						className="md-input w-full resize-none px-3 py-2 text-sm"
@@ -245,11 +289,15 @@ export default function TypeSpecificFields({
 				</div>
 
 				<div>
-					<label className="mb-1 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="project-context"
+						className="mb-1 block font-medium text-secondary text-xs"
+					>
 						Project Context (Optional)
 					</label>
 					<textarea
-						value={(options as any).projectContext || ""}
+						id="project-context"
+						value={options.projectContext || ""}
 						onChange={(e) => onFieldChange("projectContext", e.target.value)}
 						placeholder="Optional context: existing architecture, coding standards, design patterns you want followed, etc."
 						className="md-input w-full resize-none px-3 py-2 text-sm"
@@ -261,11 +309,15 @@ export default function TypeSpecificFields({
 				</div>
 
 				<div>
-					<label className="mb-1 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="coding-constraints"
+						className="mb-1 block font-medium text-secondary text-xs"
+					>
 						Specific Constraints (Optional)
 					</label>
 					<textarea
-						value={(options as any).codingConstraints || ""}
+						id="coding-constraints"
+						value={options.codingConstraints || ""}
 						onChange={(e) => onFieldChange("codingConstraints", e.target.value)}
 						placeholder="Performance requirements, security considerations, accessibility needs, etc."
 						className="md-input w-full resize-none px-3 py-2 text-sm"
@@ -320,10 +372,14 @@ export default function TypeSpecificFields({
 			<div className="mt-4 space-y-4">
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="writing-style"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Writing Style
 						</label>
 						<CustomSelect
+							id="writing-style"
 							value={options.writingStyle || "narrative"}
 							onChange={(v) => onFieldChange("writingStyle", v)}
 							options={[
@@ -336,10 +392,14 @@ export default function TypeSpecificFields({
 					</div>
 
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="point-of-view"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Point of View
 						</label>
 						<CustomSelect
+							id="point-of-view"
 							value={options.pointOfView || "third"}
 							onChange={(v) => onFieldChange("pointOfView", v)}
 							options={[
@@ -351,10 +411,14 @@ export default function TypeSpecificFields({
 					</div>
 
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="reading-level"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Reading Level
 						</label>
 						<CustomSelect
+							id="reading-level"
 							value={options.readingLevel || "intermediate"}
 							onChange={(v) => onFieldChange("readingLevel", v)}
 							options={[
@@ -366,10 +430,14 @@ export default function TypeSpecificFields({
 					</div>
 
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="target-word-count"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Target Word Count
 						</label>
 						<input
+							id="target-word-count"
 							type="number"
 							min={50}
 							max={5000}
@@ -408,10 +476,14 @@ export default function TypeSpecificFields({
 			<div className="mt-4 space-y-4">
 				<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="marketing-channel"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							Marketing Channel
 						</label>
 						<CustomSelect
+							id="marketing-channel"
 							value={options.marketingChannel || "landing_page"}
 							onChange={(v) => onFieldChange("marketingChannel", v)}
 							options={[
@@ -424,10 +496,14 @@ export default function TypeSpecificFields({
 					</div>
 
 					<div>
-						<label className="mb-1 block font-medium text-secondary text-xs">
+						<label
+							htmlFor="cta-style"
+							className="mb-1 block font-medium text-secondary text-xs"
+						>
 							CTA Style
 						</label>
 						<CustomSelect
+							id="cta-style"
 							value={options.ctaStyle || "standard"}
 							onChange={(v) => onFieldChange("ctaStyle", v)}
 							options={[
@@ -440,10 +516,14 @@ export default function TypeSpecificFields({
 				</div>
 
 				<div>
-					<label className="mb-1 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="value-props"
+						className="mb-1 block font-medium text-secondary text-xs"
+					>
 						Value Propositions
 					</label>
 					<textarea
+						id="value-props"
 						value={options.valueProps || ""}
 						onChange={(e) => onFieldChange("valueProps", e.target.value)}
 						placeholder="List key value props, proof points, differentiators."
@@ -453,10 +533,14 @@ export default function TypeSpecificFields({
 				</div>
 
 				<div>
-					<label className="mb-1 block font-medium text-secondary text-xs">
+					<label
+						htmlFor="compliance-notes"
+						className="mb-1 block font-medium text-secondary text-xs"
+					>
 						Compliance Notes
 					</label>
 					<textarea
+						id="compliance-notes"
 						value={options.complianceNotes || ""}
 						onChange={(e) => onFieldChange("complianceNotes", e.target.value)}
 						placeholder="Disclaimers or constraints to follow precisely."

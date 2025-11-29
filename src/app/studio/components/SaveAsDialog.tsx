@@ -60,16 +60,30 @@ export default function SaveAsDialog({
 	if (!isOpen) return null;
 
 	return (
-		<div className="modal-container" onClick={onCancel}>
+		<div
+			className="modal-container"
+			onClick={onCancel}
+			onKeyDown={(e) => {
+				if (e.key === "Escape") onCancel();
+			}}
+		>
 			<div className="modal-backdrop-blur" />
-			<div
+			<dialog
+				open
 				className="modal-content"
 				onClick={(e) => e.stopPropagation()}
+				onKeyDown={(e) => e.stopPropagation()}
+				aria-modal="true"
 				style={{ width: "min(480px, 92vw)" }}
 			>
 				<div className="modal-header">
 					<div className="modal-title">{title || "Save As New Preset"}</div>
-					<button onClick={onCancel} className="md-icon-btn" aria-label="Close">
+					<button
+						type="button"
+						onClick={onCancel}
+						className="md-icon-btn"
+						aria-label="Close"
+					>
 						<Icon name="close" />
 					</button>
 				</div>
@@ -78,10 +92,14 @@ export default function SaveAsDialog({
 					<div className="modal-body">
 						{message && <p className="mb-3 text-light text-sm">{message}</p>}
 						<div>
-							<label className="mb-2 block font-medium text-secondary text-xs">
+							<label
+								htmlFor="preset-name-input"
+								className="mb-2 block font-medium text-secondary text-xs"
+							>
 								Preset Name
 							</label>
 							<input
+								id="preset-name-input"
 								ref={inputRef}
 								type="text"
 								value={name}
@@ -106,7 +124,7 @@ export default function SaveAsDialog({
 						</button>
 					</div>
 				</form>
-			</div>
+			</dialog>
 		</div>
 	);
 }

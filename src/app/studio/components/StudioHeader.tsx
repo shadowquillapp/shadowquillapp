@@ -33,9 +33,8 @@ export default function StudioHeader({
 			} catch {}
 			setSettingsOpen(true);
 		};
-		window.addEventListener("open-app-settings", handler as any);
-		return () =>
-			window.removeEventListener("open-app-settings", handler as any);
+		window.addEventListener("open-app-settings", handler);
+		return () => window.removeEventListener("open-app-settings", handler);
 	}, []);
 
 	return (

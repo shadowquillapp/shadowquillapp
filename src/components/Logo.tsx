@@ -12,8 +12,10 @@ export const Logo: React.FC<LogoProps> = ({ className, style }) => {
 			viewBox="-20 -21 375 375"
 			className={className}
 			style={style}
-			aria-label="ShadowQuill Logo"
+			aria-labelledby="shadowquill-logo-title"
+			role="img"
 		>
+			<title id="shadowquill-logo-title">ShadowQuill Logo</title>
 			<path
 				fill="currentColor"
 				stroke="currentColor"

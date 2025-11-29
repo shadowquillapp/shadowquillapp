@@ -12,7 +12,7 @@ export interface PromptPresetSummary {
 
 export interface VersionNodeMetadata {
 	taskType?: string;
-	options?: any;
+	options?: Record<string, unknown>;
 	isRefinement?: boolean; // True if this version is a refinement of a previous output
 	refinedVersionId?: string; // ID of the version being refined (for refinements)
 }

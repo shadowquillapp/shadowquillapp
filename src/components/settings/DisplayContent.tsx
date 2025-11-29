@@ -3,6 +3,26 @@
 import React from "react";
 import { Icon, type IconName } from "../Icon";
 
+interface ShadowQuillViewApi {
+	view?: {
+		getZoomFactor?: () => Promise<number>;
+		setZoomFactor?: (factor: number) => Promise<void>;
+	};
+	window?: {
+		getSize?: () => Promise<{
+			ok: boolean;
+			windowSize?: [number, number];
+			contentSize?: [number, number];
+			isMaximized?: boolean;
+			isFullScreen?: boolean;
+		}>;
+	};
+}
+
+type WindowWithShadowQuill = Window & {
+	shadowquill?: ShadowQuillViewApi;
+};
+
 export default function DisplayContent() {
 	const [available, setAvailable] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
@@ -26,7 +46,7 @@ export default function DisplayContent() {
 	>("earth");
 
 	React.useEffect(() => {
-		const api = (window as any).shadowquill;
+		const api = (window as WindowWithShadowQuill).shadowquill;
 		const hasApi = !!api?.view?.getZoomFactor;
 		setAvailable(hasApi);
 		setContentSize({
@@ -63,8 +83,9 @@ export default function DisplayContent() {
 				const z = await api.view.getZoomFactor();
 				const factor = typeof z === "number" && Number.isFinite(z) ? z : 1;
 				setZoomFactor(factor);
-			} catch (e: any) {
-				setError(e?.message || "Failed to read zoom level");
+			} catch (e: unknown) {
+				const err = e as Error;
+				setError(err?.message || "Failed to read zoom level");
 			}
 			try {
 				const s = await api?.window?.getSize?.();
@@ -92,13 +113,14 @@ export default function DisplayContent() {
 	}, []);
 
 	const applyZoom = async (factor: number) => {
-		const api = (window as any).shadowquill;
+		const api = (window as WindowWithShadowQuill).shadowquill;
 		const clamped = Math.max(0.5, Math.min(3, factor));
 		setZoomFactor(clamped);
 		try {
 			await api?.view?.setZoomFactor?.(clamped);
-		} catch (e: any) {
-			setError(e?.message || "Failed to set zoom");
+		} catch (e: unknown) {
+			const err = e as Error;
+			setError(err?.message || "Failed to set zoom");
 		}
 	};
 
@@ -165,9 +187,9 @@ export default function DisplayContent() {
 
 					{/* Theme Selection - More Compact */}
 					<div className="ollama-field" style={{ marginBottom: "20px" }}>
-						<label className="ollama-label" style={{ marginBottom: "8px" }}>
+						<div className="ollama-label" style={{ marginBottom: "8px" }}>
 							Theme
-						</label>
+						</div>
 						<div className="grid grid-cols-4 gap-2">
 							{themeOptions.map((option) => (
 								<button
@@ -183,7 +205,7 @@ export default function DisplayContent() {
 									title={option.label}
 								>
 									<Icon
-										name={option.icon as any}
+										name={option.icon as IconName}
 										className={`h-5 w-5 ${
 											currentTheme === option.value
 												? "text-primary"
@@ -206,11 +228,12 @@ export default function DisplayContent() {
 
 					{/* Zoom Controls - More Compact */}
 					<div className="ollama-field" style={{ marginBottom: "20px" }}>
-						<label className="ollama-label" style={{ marginBottom: "8px" }}>
+						<div className="ollama-label" style={{ marginBottom: "8px" }}>
 							Zoom
-						</label>
+						</div>
 						<div className="flex items-center gap-2">
 							<button
+								type="button"
 								className="md-btn"
 								onClick={() => changeBy(-10)}
 								disabled={!available}
@@ -236,6 +259,7 @@ export default function DisplayContent() {
 								title="Zoom level"
 							/>
 							<button
+								type="button"
 								className="md-btn"
 								onClick={() => changeBy(10)}
 								disabled={!available}
@@ -259,6 +283,7 @@ export default function DisplayContent() {
 								{percent}%
 							</div>
 							<button
+								type="button"
 								className="md-btn"
 								onClick={resetZoom}
 								disabled={!available || percent === 110}
@@ -284,12 +309,12 @@ export default function DisplayContent() {
 								marginBottom: showStats ? "8px" : "0",
 							}}
 						>
-							<label
+							<span
 								className="ollama-label"
 								style={{ marginBottom: "0", cursor: "pointer" }}
 							>
 								Display Stats
-							</label>
+							</span>
 							<Icon
 								name={(showStats ? "chevron-up" : "chevron-down") as IconName}
 								className="h-4 w-4 text-on-surface-variant"

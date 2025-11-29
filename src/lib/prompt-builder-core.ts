@@ -379,7 +379,8 @@ export function buildRefinementPromptCore(params: {
 	sections.push(`Refinement Request:\n${requestDelimiter}`);
 
 	// Final instruction
-	let finalInstruction = `Apply the refinement request to the existing enhanced prompt. Output ONLY the refined prompt text. Do NOT include any explanations, commentary, or meta-text about the changes you made.`;
+	let finalInstruction =
+		"Apply the refinement request to the existing enhanced prompt. Output ONLY the refined prompt text. Do NOT include any explanations, commentary, or meta-text about the changes you made.";
 
 	// Add strict word count reminder if detail level is specified
 	if (options?.detail) {

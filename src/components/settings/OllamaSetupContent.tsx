@@ -188,7 +188,7 @@ export default function OllamaSetupContent() {
 	const statusLabelMap = {
 		success:
 			statusTone === "success" && availableModels.length > 0
-				? `Connected`
+				? "Connected"
 				: "Connected",
 		error: "Needs attention",
 		loading: "Checking…",
@@ -239,16 +239,14 @@ export default function OllamaSetupContent() {
 				setError(null);
 				try {
 					const payload = {
-						provider: "ollama",
+						provider: "ollama" as const,
 						baseUrl: normalizeToBaseUrl(localPort),
 						model,
 					};
-					writeLocalModelConfigClient(payload as any);
+					writeLocalModelConfigClient(payload);
 					setValidating(true);
 					try {
-						const vjson = await validateLocalModelConnectionClient(
-							payload as any,
-						);
+						const vjson = await validateLocalModelConnectionClient(payload);
 						if (vjson.ok) {
 							setConnectionError(null);
 							try {
@@ -445,7 +443,11 @@ export default function OllamaSetupContent() {
 							? "Validating secure connection…"
 							: "Save to apply this Ollama endpoint globally."}
 					</span>
-					<button disabled={!canSave} className="md-btn md-btn--primary">
+					<button
+						type="submit"
+						disabled={!canSave}
+						className="md-btn md-btn--primary"
+					>
 						{saving || validating ? "Validating…" : "Save changes"}
 					</button>
 				</footer>

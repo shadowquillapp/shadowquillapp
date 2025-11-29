@@ -36,7 +36,8 @@ describe("Preset Workflow Integration", () => {
 			expect(created.createdAt).toBeDefined();
 			expect(getPresets()).toHaveLength(1);
 
-			const createdId = created.id!;
+			const createdId = created.id ?? "";
+			expect(createdId).toBeTruthy();
 
 			// Update preset
 			const updated = savePreset({
@@ -48,7 +49,8 @@ describe("Preset Workflow Integration", () => {
 
 			expect(updated.id).toBe(createdId);
 			expect(updated.options?.tone).toBe("friendly");
-			expect(updated.updatedAt).toBeGreaterThanOrEqual(created.updatedAt!);
+			const createdAt = created.updatedAt ?? 0;
+			expect(updated.updatedAt).toBeGreaterThanOrEqual(createdAt);
 
 			// Delete preset
 			deletePresetByIdOrName(createdId);
@@ -63,7 +65,8 @@ describe("Preset Workflow Integration", () => {
 				options: { tone: "formal", writingStyle: "expository" },
 			});
 
-			const createdId = created.id!;
+			const createdId = created.id ?? "";
+			expect(createdId).toBeTruthy();
 
 			// First update
 			savePreset({
@@ -94,7 +97,9 @@ describe("Preset Workflow Integration", () => {
 			expect(history.length).toBe(3);
 
 			// Latest version should be first
-			expect(history[0]?.version).toBeGreaterThan(history[1]?.version ?? 0);
+			const version0 = history[0]?.version ?? 0;
+			const version1 = history[1]?.version ?? 0;
+			expect(version0).toBeGreaterThan(version1);
 		});
 	});
 
@@ -107,7 +112,8 @@ describe("Preset Workflow Integration", () => {
 				options: { tone: "neutral", detail: "normal" },
 			});
 
-			const createdId = created.id!;
+			const createdId = created.id ?? "";
+			expect(createdId).toBeTruthy();
 
 			// First update - creates version 1 with previous state (neutral)
 			savePreset({
@@ -154,7 +160,8 @@ describe("Preset Workflow Integration", () => {
 				options: { tone: "technical", includeTests: true, techStack: "React" },
 			});
 
-			const createdId = created.id!;
+			const createdId = created.id ?? "";
+			expect(createdId).toBeTruthy();
 
 			// First update - creates version 1 with original state:
 			// { tone: "technical", includeTests: true, techStack: "React" }
@@ -198,7 +205,8 @@ describe("Preset Workflow Integration", () => {
 				options: { marketingChannel: "email", ctaStyle: "soft" },
 			});
 
-			const createdId = created.id!;
+			const createdId = created.id ?? "";
+			expect(createdId).toBeTruthy();
 
 			savePreset({
 				id: createdId,
@@ -217,7 +225,10 @@ describe("Preset Workflow Integration", () => {
 			// Clear storage and import
 			localStorage.clear();
 
-			const imported = importPresetWithHistory(exported!);
+			expect(exported).not.toBeNull();
+			if (!exported) return;
+
+			const imported = importPresetWithHistory(exported);
 
 			expect(imported.name).toBe("Export Test");
 			expect(imported.versions?.length).toBe(1);
@@ -232,13 +243,17 @@ describe("Preset Workflow Integration", () => {
 				options: { tone: "neutral" },
 			});
 
-			const originalId = original.id!;
+			const originalId = original.id ?? "";
+			expect(originalId).toBeTruthy();
 
 			// Export it
 			const exported = exportPresetWithHistory(originalId);
 
 			// Import with overwrite false (should create new preset)
-			const imported = importPresetWithHistory(exported!, { overwrite: false });
+			expect(exported).not.toBeNull();
+			if (!exported) return;
+
+			const imported = importPresetWithHistory(exported, { overwrite: false });
 
 			expect(imported.id).not.toBe(originalId);
 			expect(getPresets()).toHaveLength(2);
@@ -252,7 +267,8 @@ describe("Preset Workflow Integration", () => {
 				options: { tone: "neutral" },
 			});
 
-			const originalId = original.id!;
+			const originalId = original.id ?? "";
+			expect(originalId).toBeTruthy();
 
 			// Modify and export
 			savePreset({
@@ -274,7 +290,10 @@ describe("Preset Workflow Integration", () => {
 			});
 
 			// Import with overwrite
-			const imported = importPresetWithHistory(exported!, { overwrite: true });
+			expect(exported).not.toBeNull();
+			if (!exported) return;
+
+			const imported = importPresetWithHistory(exported, { overwrite: true });
 
 			expect(imported.id).toBe(originalId);
 			expect(imported.name).toBe("Modified");
@@ -317,17 +336,17 @@ describe("Preset Workflow Integration", () => {
 			expect(presets[0]?.id).toBe(custom.id);
 		});
 
-	it("should have all expected task types in defaults", () => {
-		const defaults = getDefaultPresets();
+		it("should have all expected task types in defaults", () => {
+			const defaults = getDefaultPresets();
 
-		const taskTypes = new Set(defaults.map((p) => p.taskType));
+			const taskTypes = new Set(defaults.map((p) => p.taskType));
 
-		expect(taskTypes.has("general")).toBe(true);
-		expect(taskTypes.has("coding")).toBe(true);
-		expect(taskTypes.has("writing")).toBe(true);
-		expect(taskTypes.has("research")).toBe(true);
-		expect(taskTypes.has("marketing")).toBe(true);
-	});
+			expect(taskTypes.has("general")).toBe(true);
+			expect(taskTypes.has("coding")).toBe(true);
+			expect(taskTypes.has("writing")).toBe(true);
+			expect(taskTypes.has("research")).toBe(true);
+			expect(taskTypes.has("marketing")).toBe(true);
+		});
 	});
 
 	describe("preset lookup and filtering", () => {
@@ -342,8 +361,13 @@ describe("Preset Workflow Integration", () => {
 				taskType: "writing",
 			});
 
-			const found1 = getPresetById(preset1.id!);
-			const found2 = getPresetById(preset2.id!);
+			const id1 = preset1.id ?? "";
+			const id2 = preset2.id ?? "";
+			expect(id1).toBeTruthy();
+			expect(id2).toBeTruthy();
+
+			const found1 = getPresetById(id1);
+			const found2 = getPresetById(id2);
 
 			expect(found1?.name).toBe("Preset One");
 			expect(found2?.name).toBe("Preset Two");
@@ -370,7 +394,10 @@ describe("Preset Workflow Integration", () => {
 			expect(preset.id).toBeDefined();
 			expect(preset.options).toBeUndefined();
 
-			const found = getPresetById(preset.id!);
+			const id = preset.id ?? "";
+			expect(id).toBeTruthy();
+
+			const found = getPresetById(id);
 			expect(found?.name).toBe("Minimal Preset");
 		});
 
@@ -381,7 +408,8 @@ describe("Preset Workflow Integration", () => {
 				options: { tone: "technical" },
 			});
 
-			const createdId = created.id!;
+			const createdId = created.id ?? "";
+			expect(createdId).toBeTruthy();
 
 			const updated = savePreset({
 				id: createdId,
@@ -401,7 +429,8 @@ describe("Preset Workflow Integration", () => {
 				options: { tone: "neutral" },
 			});
 
-			const createdId = created.id!;
+			const createdId = created.id ?? "";
+			expect(createdId).toBeTruthy();
 
 			// Rapid updates
 			for (let i = 0; i < 5; i++) {

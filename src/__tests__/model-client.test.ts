@@ -36,7 +36,8 @@ describe("callLocalModelClient", () => {
 
 		it("should throw ModelError for unsupported provider", async () => {
 			mockReadLocalModelConfig.mockReturnValue({
-				provider: "openai" as any,
+				// @ts-expect-error Testing unsupported provider
+				provider: "openai",
 				baseUrl: "http://localhost",
 				model: "test-model",
 			});
@@ -80,18 +81,19 @@ describe("callLocalModelClient", () => {
 		});
 
 		it("should include temperature in request when provided", async () => {
-			global.fetch = vi.fn().mockResolvedValue({
+			const mockFetch = vi.fn().mockResolvedValue({
 				ok: true,
 				json: () => Promise.resolve({ response: "response" }),
 			});
+			global.fetch = mockFetch;
 
 			await callLocalModelClient("prompt", {
 				taskType: "general",
 				options: { temperature: 0.7 },
 			});
 
-			const callArgs = (global.fetch as any).mock.calls[0];
-			const body = JSON.parse(callArgs[1].body);
+			const callArgs = mockFetch.mock.calls[0];
+			const body = JSON.parse(callArgs?.[1].body as string);
 			expect(body.options.temperature).toBe(0.7);
 		});
 
