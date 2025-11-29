@@ -20,7 +20,7 @@ Desktop AI prompt studio running 100% locally via **Ollama** and **Gemma 3** mod
 
 | Layer | Technology |
 |-------|------------|
-| Framework | Next.js + Electron |
+| Framework | Nextron _(Next.js + Electron)_ |
 | UI | React & Heroicons & Tailwind CSS |
 | Language | TypeScript |
 | Testing | Vitest |
