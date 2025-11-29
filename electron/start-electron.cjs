@@ -10,6 +10,30 @@ const isProd = process.argv.includes("--prod");
 let nextDevServer = null;
 let prodServer = null;
 
+/**
+ * Helper to check if dev server is ready
+ * @param {any} http - http module
+ * @param {number} start - start timestamp
+ * @param {number} timeoutMs - timeout in milliseconds
+ * @param {() => void} resolve - resolve callback
+ * @param {(err: Error) => void} reject - reject callback
+ */
+function checkDevServerReady(http, start, timeoutMs, resolve, reject) {
+	const req = http.get("http://localhost:3000", (res) => {
+		res.destroy();
+		resolve();
+	});
+	req.on("error", () => {
+		if (Date.now() - start > timeoutMs) {
+			return reject(new Error("Dev server did not start within timeout"));
+		}
+		setTimeout(
+			() => checkDevServerReady(http, start, timeoutMs, resolve, reject),
+			600,
+		);
+	});
+}
+
 /** Start Next.js (dev or prod) without relying on spawning npm directly. */
 /** @returns {Promise<void>} */
 function startNext() {
@@ -32,18 +56,12 @@ function startNext() {
 			const http = require("node:http");
 			const start = Date.now();
 			const timeoutMs = 25000;
-			function check() {
-				const req = http.get("http://localhost:3000", (res) => {
-					res.destroy();
-					resolve(undefined);
-				});
-				req.on("error", () => {
-					if (Date.now() - start > timeoutMs)
-						return reject(new Error("Dev server did not start within timeout"));
-					setTimeout(check, 600);
-				});
-			}
-			nextDevServer.once("spawn", () => setTimeout(check, 1200));
+			nextDevServer.once("spawn", () => {
+				setTimeout(
+					() => checkDevServerReady(http, start, timeoutMs, resolve, reject),
+					1200,
+				);
+			});
 		} else {
 			// Prod: assume `next build` already run; start Next server programmatically.
 			(async () => {

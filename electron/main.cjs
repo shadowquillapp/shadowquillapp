@@ -73,7 +73,7 @@ try {
 
 			if (fs.existsSync(userDataDir)) {
 				// Try rename-then-delete strategy
-				const trashPath = userDataDir + "-trash-" + Date.now();
+				const trashPath = `${userDataDir}-trash-${Date.now()}`;
 				try {
 					fs.renameSync(userDataDir, trashPath);
 					fs.rmSync(trashPath, { recursive: true, force: true });
