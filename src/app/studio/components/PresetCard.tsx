@@ -96,7 +96,7 @@ export default function PresetCard({
 					color: isSelected ? "var(--color-on-primary)" : undefined,
 				}}
 			>
-				<Icon name={iconName} className="text-xs" />
+				<Icon name={iconName} className="h-4 w-4" />
 			</div>
 
 			{/* Content */}
