@@ -39,7 +39,7 @@ export function VersionNavigator({
 
 	if (totalVersions === 0) {
 		return (
-			<div className="version-nav-vertical version-nav-vertical--empty">
+			<div className={`version-nav-vertical version-nav-vertical--empty ${isGenerating ? "version-nav-vertical--generating" : ""}`}>
 				<div className="version-nav-vertical__icon-wrap">
 					<Icon name="git-compare" />
 				</div>

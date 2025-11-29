@@ -151,7 +151,7 @@ export function getDefaultPresets(): Preset[] {
 		// General productivity
 		{
 			id: "daily-assistant",
-			name: "Daily Assistant",
+			name: "Daily Helper",
 			taskType: "general",
 			options: {
 				tone: "friendly",
@@ -167,8 +167,8 @@ export function getDefaultPresets(): Preset[] {
 			},
 		},
 		{
-			id: "brainstorm-partner",
-			name: "Brainstorm Partner",
+			id: "brainstormer",
+			name: "Brainstormer",
 			taskType: "general",
 			options: {
 				tone: "friendly",
@@ -185,7 +185,7 @@ export function getDefaultPresets(): Preset[] {
 		},
 		{
 			id: "smart-summarizer",
-			name: "Smart Summaries",
+			name: "Smart Summary",
 			taskType: "general",
 			options: {
 				tone: "neutral",
@@ -198,23 +198,6 @@ export function getDefaultPresets(): Preset[] {
 				reasoningStyle: "plan_then_solve",
 				additionalContext:
 					"Turn long-form content into layered summaries. Always include sections for Key Takeaways, Action Items with owners, and Open Questions.",
-			},
-		},
-		{
-			id: "meeting-notes",
-			name: "Meeting Minutes",
-			taskType: "general",
-			options: {
-				tone: "formal",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				temperature: 0.4,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "plan_then_solve",
-				additionalContext:
-					"Organize raw meeting notes into a structured report with attendees, agenda, decisions, risks, and action items (owner + due date). Highlight blockers and follow-ups.",
 			},
 		},
 		// Coding
@@ -274,27 +257,6 @@ export function getDefaultPresets(): Preset[] {
 		},
 		// Writing
 		{
-			id: "storyteller",
-			name: "Storyteller",
-			taskType: "writing",
-			options: {
-				tone: "friendly",
-				detail: "detailed",
-				format: "markdown",
-				language: "English",
-				temperature: 0.9,
-				writingStyle: "narrative",
-				pointOfView: "third",
-				readingLevel: "intermediate",
-				targetWordCount: 900,
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
-				additionalContext:
-					"Craft immersive narratives with vivid descriptions, compelling characters, and emotional depth. Show, don't tell, and end with a memorable hook.",
-			},
-		},
-		{
 			id: "blog-writer",
 			name: "Blog Writer",
 			taskType: "writing",
@@ -317,7 +279,7 @@ export function getDefaultPresets(): Preset[] {
 		},
 		{
 			id: "inbox-zero",
-			name: "Inbox Zero",
+			name: "Email Pro",
 			taskType: "writing",
 			options: {
 				tone: "friendly",
@@ -355,8 +317,8 @@ export function getDefaultPresets(): Preset[] {
 		},
 		// Marketing
 		{
-			id: "social-media-pro",
-			name: "Social Media Pro",
+			id: "social-media",
+			name: "Social Media",
 			taskType: "marketing",
 			options: {
 				tone: "friendly",
@@ -371,94 +333,6 @@ export function getDefaultPresets(): Preset[] {
 				reasoningStyle: "none",
 				additionalContext:
 					"Create platform-ready social posts. Provide hook, caption, CTA, hashtags, and a suggested visual concept tailored for the intended platform.",
-			},
-		},
-		{
-			id: "launch-copy",
-			name: "Launch Copy",
-			taskType: "marketing",
-			options: {
-				tone: "persuasive",
-				detail: "detailed",
-				format: "markdown",
-				language: "English",
-				temperature: 0.65,
-				marketingChannel: "landing_page",
-				ctaStyle: "strong",
-				useDelimiters: true,
-				includeVerification: false,
-				reasoningStyle: "cot",
-				valueProps:
-					"Highlight ROI, proof points, social validation, and risk reversal.",
-				additionalContext:
-					"Write conversion-focused launch copy with sections for Hero, Problem, Solution, Benefits, Proof, Pricing, FAQ, and CTA.",
-			},
-		},
-		// Image generation
-		{
-			id: "photorealistic",
-			name: "Photorealistic",
-			taskType: "image",
-			options: {
-				tone: "neutral",
-				detail: "detailed",
-				format: "plain",
-				language: "English",
-				temperature: 0.7,
-				stylePreset: "photorealistic",
-				aspectRatio: "16:9",
-				targetResolution: "1080p",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
-				additionalContext:
-					"Create cinematic, high-fidelity imagery with natural lighting, accurate materials, subtle imperfections, and depth-of-field for realism.",
-			},
-		},
-		{
-			id: "concept-art",
-			name: "Concept Art",
-			taskType: "image",
-			options: {
-				tone: "neutral",
-				detail: "detailed",
-				format: "plain",
-				language: "English",
-				temperature: 0.75,
-				stylePreset: "illustration",
-				aspectRatio: "16:9",
-				targetResolution: "1080p",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
-				additionalContext:
-					"Deliver production-ready concept art that emphasizes mood, silhouettes, and storytelling suitable for films or games.",
-			},
-		},
-		// Video generation
-		{
-			id: "social-clip",
-			name: "Social Clip",
-			taskType: "video",
-			options: {
-				tone: "friendly",
-				detail: "normal",
-				format: "xml",
-				language: "English",
-				temperature: 0.8,
-				stylePreset: "vlog",
-				aspectRatio: "9:16",
-				targetResolution: "1080p",
-				cameraMovement: "handheld",
-				shotType: "medium",
-				durationSeconds: 15,
-				frameRate: 30,
-				includeStoryboard: true,
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
-				additionalContext:
-					"Outline a punchy vertical video with hook, beats, b-roll ideas, captions, and CTA optimized for TikTok, Reels, or Shorts.",
 			},
 		},
 	];
