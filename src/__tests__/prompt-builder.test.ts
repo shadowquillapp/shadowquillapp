@@ -119,7 +119,7 @@ describe("buildUnifiedPromptCore", () => {
 			...defaultParams,
 			options: { detail: "detailed" },
 		});
-		expect(result).toContain("350-500");
+		expect(result).toContain("300-375");
 	});
 
 	it("should include format directive for markdown", () => {
