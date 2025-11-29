@@ -80,7 +80,7 @@ export default function DisplayContent() {
 		const init = async () => {
 			if (!hasApi) return;
 			try {
-				const z = await api.view.getZoomFactor();
+				const z = await api?.view?.getZoomFactor?.();
 				const factor = typeof z === "number" && Number.isFinite(z) ? z : 1;
 				setZoomFactor(factor);
 			} catch (e: unknown) {
