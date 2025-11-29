@@ -125,11 +125,11 @@ npm run check            # biome check
 ```
 
 ```bash
-npm test                 # Run tests
+npm test -- --silent     # Run tests with minimal output
 ```
 
 ```bash
-npm test                 # Run all tests once
+npm test                 # Run tests with all output
 ```
 
 ```bash
