@@ -1,4 +1,5 @@
 import { Icon } from "@/components/Icon";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useEffect, useRef, useState } from "react";
 import type { MessageItem, VersionNodeMetadata } from "./types";
 
@@ -106,7 +107,7 @@ export function VersionHistoryModal({
 						className="vh-close-btn"
 						onClick={onClose}
 					>
-						<Icon name="close" aria-hidden="true" />
+						<XMarkIcon className="h-4 w-4" aria-hidden="true" />
 					</button>
 				</header>
 

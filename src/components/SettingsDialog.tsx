@@ -1,4 +1,5 @@
 "use client";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
@@ -313,7 +314,7 @@ export default function SettingsDialog({
 						className="md-btn"
 						style={{ padding: "6px 10px" }}
 					>
-						<Icon name="close" />
+						<XMarkIcon className="h-4 w-4" />
 					</button>
 				</div>
 				<div className="modal-body" style={{ overflow: "hidden" }}>

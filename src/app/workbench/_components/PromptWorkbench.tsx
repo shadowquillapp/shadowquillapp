@@ -34,6 +34,7 @@ import {
 	normalizeStylePreset,
 	normalizeVideoStylePreset,
 } from "@/lib/prompt-normalization";
+import { Cog6ToothIcon, PaintBrushIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import {
 	type ReactNode,
@@ -1388,7 +1389,7 @@ export default function PromptWorkbench() {
 							title="Open Preset Studio"
 							style={{ minWidth: 0 }}
 						>
-							<Icon name="brush" />
+							<PaintBrushIcon className="h-4 w-4" />
 						</button>
 						<button
 							type="button"
@@ -1398,7 +1399,7 @@ export default function PromptWorkbench() {
 							}}
 							title="Settings"
 						>
-							<Icon name="gear" />
+							<Cog6ToothIcon className="h-4 w-4" />
 						</button>
 					</div>
 				</header>
@@ -2112,7 +2113,7 @@ export default function PromptWorkbench() {
 									aria-label="Edit preset in Studio"
 									style={{ minWidth: 0 }}
 								>
-									<Icon name="brush" />
+									<PaintBrushIcon className="h-4 w-4" />
 								</button>
 							</div>
 						)}

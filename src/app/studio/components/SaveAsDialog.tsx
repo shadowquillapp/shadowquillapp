@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/Icon";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 
@@ -84,7 +85,7 @@ export default function SaveAsDialog({
 						className="md-icon-btn"
 						aria-label="Close"
 					>
-						<Icon name="close" />
+						<XMarkIcon className="h-4 w-4" />
 					</button>
 				</div>
 

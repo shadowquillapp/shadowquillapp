@@ -1,5 +1,6 @@
 import { Icon, type IconName } from "@/components/Icon";
 import type { PresetLite } from "@/types";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 
@@ -144,7 +145,7 @@ export function PresetInfoDialog({
 						onClick={onClose}
 						style={{ width: 32, height: 32, padding: 0 }}
 					>
-						<Icon name="close" />
+						<XMarkIcon className="h-4 w-4" />
 					</button>
 				</div>
 

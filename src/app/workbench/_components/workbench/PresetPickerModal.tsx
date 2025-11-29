@@ -1,5 +1,6 @@
 import { useDialog } from "@/components/DialogProvider";
 import { Icon } from "@/components/Icon";
+import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useEffect, useRef, useState } from "react";
 import type React from "react";
 import type { PromptPresetSummary } from "./types";
@@ -359,7 +360,7 @@ export function PresetPickerModal({
 						onClick={onClose}
 						style={{ width: 32, height: 32, padding: 0 }}
 					>
-						<Icon name="close" />
+						<XMarkIcon className="h-4 w-4" />
 					</button>
 				</div>
 
