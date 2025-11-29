@@ -1754,15 +1754,11 @@ export default function PromptWorkbench() {
 										// Lighter background that respects theme - lighter in light mode, slightly lighter in dark mode
 										backgroundColor:
 											"color-mix(in srgb, var(--color-surface-variant), var(--color-surface) 55%)",
-										// Subtle ruled-paper lines to signal this is a text input area
+										// Ruled-paper lines using primary color for all themes
 										backgroundImage:
-											currentTheme === "light"
-												? "none"
-												: "repeating-linear-gradient(0deg, transparent, transparent 23px, color-mix(in srgb, var(--color-outline), transparent 80%) 23px, color-mix(in srgb, var(--color-outline), transparent 80%) 24px)",
-										backgroundSize:
-											currentTheme === "light" ? undefined : "100% 24px",
-										backgroundPosition:
-											currentTheme === "light" ? undefined : "0 40px", // align after header (pt-4 ≈ 16px + header height)
+											"repeating-linear-gradient(0deg, transparent, transparent 22px, color-mix(in srgb, var(--color-primary), transparent 90%) 22px, color-mix(in srgb, var(--color-primary), transparent 90%) 24px)",
+										backgroundSize: "100% 24px",
+										backgroundPosition: "0 40px", // align after header (pt-4 ≈ 16px + header height)
 										caretColor: "var(--color-primary)",
 										boxShadow:
 											"inset 0 0 0 1px color-mix(in srgb, var(--color-outline), white 18%)",
@@ -2019,16 +2015,9 @@ export default function PromptWorkbench() {
 
 								{/* Title & Type */}
 								<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-									<div className="flex items-center gap-1.5">
-										<span className="truncate font-bold text-[13px] text-on-surface leading-tight">
-											{activeTab.preset.name}
-										</span>
-										<Icon
-											name="info"
-											className="text-on-surface-variant/40"
-											style={{ width: 10, height: 10 }}
-										/>
-									</div>
+									<span className="truncate font-bold text-[13px] text-on-surface leading-tight">
+										{activeTab.preset.name}
+									</span>
 
 									{/* Tags Row */}
 									<div className="flex flex-wrap items-center gap-1.5">

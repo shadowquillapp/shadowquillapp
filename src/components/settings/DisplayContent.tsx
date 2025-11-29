@@ -164,8 +164,8 @@ export default function DisplayContent() {
 	const percent = Math.round(zoomFactor * 100);
 
 	const themeOptions = [
-		{ value: "earth" as const, label: "Default", icon: "sun" },
-		{ value: "purpledark" as const, label: "Dark Purple", icon: "moon" },
+		{ value: "earth" as const, label: "Default", icon: "palette" },
+		{ value: "purpledark" as const, label: "Dark Purple", icon: "sparkles" },
 		{ value: "dark" as const, label: "Dark", icon: "moon" },
 		{ value: "light" as const, label: "Light", icon: "sun" },
 	];
