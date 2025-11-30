@@ -1174,28 +1174,9 @@ export default function PromptWorkbench() {
 		return text.length;
 	}, [activeVersionOutput]);
 
-	// Global keyboard shortcut for saving (Cmd+S / Ctrl+S) and tabs
+	// Global keyboard shortcuts for tabs
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
-			// Save
-			if ((e.metaKey || e.ctrlKey) && e.key === "s") {
-				e.preventDefault();
-				if (activeTab?.draft.trim() && activeTab.isDirty) {
-					const timestamp = new Date().toLocaleTimeString([], {
-						hour: "2-digit",
-						minute: "2-digit",
-					});
-					const updatedGraph = appendVersion(
-						activeTab.versionGraph,
-						activeTab.draft,
-						`Manual save ${timestamp}`,
-						activeTab.draft,
-						null,
-					);
-					tabManager.setVersionGraph(updatedGraph);
-					tabManager.markDirty(false);
-				}
-			}
 			// New tab
 			if ((e.metaKey || e.ctrlKey) && e.key === "t") {
 				e.preventDefault();

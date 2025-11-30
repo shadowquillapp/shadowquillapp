@@ -169,6 +169,28 @@ describe("buildUnifiedPrompt", () => {
 			expect(result).toContain("You are a test prompt enhancer.");
 		});
 
+		it("should use default system prompt when ensureSystemPromptBuild returns null", async () => {
+			mockEnsureSystemPromptBuild.mockReturnValue(null as unknown as string);
+
+			const result = await buildUnifiedPrompt({
+				input: "explain quantum computing",
+				taskType: "general",
+			});
+
+			expect(result).toContain("You are a test prompt enhancer."); // DEFAULT_BUILD_PROMPT
+		});
+
+		it("should use default system prompt when ensureSystemPromptBuild returns empty string", async () => {
+			mockEnsureSystemPromptBuild.mockReturnValue("");
+
+			const result = await buildUnifiedPrompt({
+				input: "explain quantum computing",
+				taskType: "general",
+			});
+
+			expect(result).toContain("You are a test prompt enhancer."); // DEFAULT_BUILD_PROMPT
+		});
+
 		it("should include user input in output", async () => {
 			const result = await buildUnifiedPrompt({
 				input: "explain quantum computing basics",
@@ -206,6 +228,15 @@ describe("buildUnifiedPrompt", () => {
 			});
 
 			expect(result).toContain("XML");
+		});
+
+		it("should handle undefined options gracefully", async () => {
+			const result = await buildUnifiedPrompt({
+				input: "generate a product description",
+				taskType: "marketing",
+			});
+
+			expect(result).toContain("Marketing prompt:");
 		});
 	});
 });
@@ -255,6 +286,16 @@ describe("buildPromptPreview", () => {
 
 		expect(result1).toContain("first preview request");
 		expect(result2).toContain("second preview request");
+	});
+
+	it("should handle undefined options in preview", async () => {
+		const result = await buildPromptPreview({
+			input: "preview with no options",
+			taskType: "general",
+		});
+
+		expect(result).toContain("preview with no options");
+		expect(result).toContain("Prompt:");
 	});
 });
 
