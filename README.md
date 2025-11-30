@@ -60,7 +60,7 @@ Ollama runs in the background as a service. Using it's CLI or Chat GUI, download
 - `gemma3:12b` - Higher quality (16GB+ RAM)
 - `gemma3:27b` - Best quality (32GB+ RAM and RTX GPU)
 
-**Download via Command Line:**
+**OPTION 1: download via command line**
 
 ```bash
 ollama pull gemma3:4b # Gemma 3 4B Model
@@ -74,7 +74,7 @@ ollama pull gemma3:12b # Gemma 3 12B Model
 ollama pull gemma3:27b # Gemma 3 27B Model
 ```
 
-**Download via Ollama Chat Interface:**
+**OPTION 2: download via official Ollama chat GUI**
 
 1. Open Ollama desktop app
 2. Start chatting with a model name
