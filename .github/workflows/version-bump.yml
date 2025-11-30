@@ -148,4 +148,6 @@ jobs:
     needs: version-bump
     if: needs.version-bump.outputs.should_release == 'true'
     uses: ./.github/workflows/npm-publish.yml
+    with:
+      tag_name: v${{ needs.version-bump.outputs.new_version }}
     secrets: inherit
