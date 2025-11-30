@@ -12,13 +12,18 @@
 
 ## Overview
 
-Desktop AI prompt studio running 100% locally via **Ollama** and **Gemma 3** models. No data leaves your device.
+ShadowQuill is an AI-powered prompt editor and workbench designed to refine your AI workflow.
+
+​It transforms your natural language ideas into structured, high-quality prompts. Once optimized, simply copy your prompt and paste it into tools like ChatGPT, CoPilot, Gemini, Claude, and others.
+
+​Powered by Ollama and Gemma 3; ShadowQuill operates 100% offline, offering a completely local and free solution for AI enhanced prompt generation.
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|------------|
 | Framework | Nextron _(Next.js + Electron)_ |
+| Local LLM | Ollama & Gemma 3 |
 | UI | React & Heroicons & Tailwind CSS |
 | Language | TypeScript |
 | Testing | Vitest |
@@ -27,13 +32,13 @@ Desktop AI prompt studio running 100% locally via **Ollama** and **Gemma 3** mod
 
 ## Key Features
 
-- **100% Local & Private** - All processing via Ollama on your machine
+- **100% Local & Private** - All processing via Ollama and local storage on your machine
 - **8 Tabs** - Work on multiple prompts simultaneously with independent presets and history
-- **Version History** - Track prompt iterations with manual saves and visual timeline
+- **Version History** - Track prompt iterations with a visual timeline
 - **7 Task Types** - General, Coding, Writing, Marketing, Research, Image, Video
 - **Gemma 3 Only** - Supports gemma3:4b, gemma3:12b, gemma3:27b with auto-detection
 - **Preset Studio** - Create reusable configurations with live preview and AI examples
-- **4 Themes** - Default (Earth), Dark Purple, Dark, Light
+- **4 Themes** - Default, Dark Purple, Dark, Light
 
 ## Getting Started
 
@@ -41,19 +46,19 @@ Desktop AI prompt studio running 100% locally via **Ollama** and **Gemma 3** mod
 
 #### Install Ollama
 
-**Ollama** is a free app that runs AI models locally on your computer. ShadowQuill uses it as the AI engine for 100% offline privacy.
+**Ollama** is a free app that runs AI models locally on your computer. ShadowQuill uses it as the AI engine for offline capabilities.
 
 Download from [ollama.com](https://ollama.com)
 
-Ollama runs in the background as a service, which can be used with ollama's CLI tools or live chat interface.
+Ollama runs in the background as a service. Using it's CLI or Chat GUI, download one of the supported Gemma 3 models.
 
 #### Download a Gemma 3 Model
 
 **Supported models:**
 
-- `gemma3:4b` - Fast, balanced (Recommended)
-- `gemma3:12b` - Higher quality
-- `gemma3:27b` - Best quality (requires 32GB+ RAM)
+- `gemma3:4b` - Fast, balanced (8GB+ RAM)
+- `gemma3:12b` - Higher quality (16GB+ RAM)
+- `gemma3:27b` - Best quality (32GB+ RAM and RTX GPU)
 
 **Download via Command Line:**
 
@@ -75,8 +80,6 @@ ollama pull gemma3:27b # Gemma 3 27B Model
 2. Start chatting with a model name
 3. Ollama will prompt you to download it
 
-> **Note:** Download models through Ollama (CLI or chat interface), not ShadowQuill. ShadowQuill auto-detects installed Gemma 3 models.
-
 ### 2. <ins>Install ShadowQuill</ins>
 
 Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Releases](https://github.com/shadowquillapp/shadowquillapp/releases)
@@ -88,7 +91,7 @@ Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Relea
 - **New Tab** - Click "+" or ⌘T/Ctrl+T, select a preset
 - **Switch Models** - Use vertical selector (4B/12B/27B)
 - **Write & Generate** - Left pane for input, right pane for output
-- **Version History** - Click version indicator (e.g., "v2") to navigate saves
+- **Version History** - Easily reference and create version trees based on prompt refinement iterations
 
 #### Available Shortcuts
 
@@ -143,9 +146,9 @@ npm run dev              # Open ShadowQuill app in dev mode
 
 ## Value Sensitive Design (VSD) Philosophy
 
-- **Offline** - Works without internet (after ShadowQuill and Ollama+Gemma 3 download)
+- **Offline** - Fully operational without internet connection after initial download.
 - **No Telemetry** - Zero tracking
-- **Local Storage** - All data saved to user's local userdata directory
+- **Local Storage** - All data saved to user local userdata directory
 - **Lean Package Build** - Only 5 dependencies and 18 dev dependencies (23 total)
 
 ## Contributing
