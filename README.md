@@ -90,11 +90,14 @@ Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Relea
 - **Write & Generate** - Left pane for input, right pane for output
 - **Version History** - Click version indicator (e.g., "v2") to navigate saves
 
+#### Available Shortcuts
+
 | Shortcut | Action |
 |----------|--------|
-| ⌘T / Ctrl+T | New tab |
-| ⌘W / Ctrl+W | Close tab |
-| ⌘1-8 / Ctrl+1-8 | Switch tabs |
+| ⌘+T / Ctrl+T | New tab |
+| ⌘+W / Ctrl+W | Close tab |
+| ⌘+1-8 / Ctrl+1-8 | Switch tabs |
+| ⌘+F / Ctrl+F | Find tool |
 
 #### Preset Studio
 
