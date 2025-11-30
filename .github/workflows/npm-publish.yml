@@ -40,6 +40,7 @@ jobs:
       with:
         node-version: latest
         cache: 'npm'
+        registry-url: 'https://registry.npmjs.org'
     - run: npm ci
     - run: npm run build
     - run: npm publish
@@ -51,7 +52,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-    # Only run release creation when called via workflow_call (not when triggered by release event)
     if: ${{ inputs.tag_name }}
     steps:
     - name: Create Release
