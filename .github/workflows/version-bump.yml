@@ -1,0 +1,151 @@
+name: Version Bump & Release
+on:
+  push:
+    branches: [ "master" ]
+
+jobs:
+  version-bump:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    outputs:
+      new_version: ${{ steps.version.outputs.new_version }}
+      should_release: ${{ steps.version.outputs.should_release }}
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Use Node.js latest
+      uses: actions/setup-node@v4
+      with:
+        node-version: latest
+        cache: 'npm'
+
+    - name: Get current version
+      id: current_version
+      run: |
+        CURRENT_VERSION=$(node -p "require('./package.json').version")
+        echo "current_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+
+    - name: Analyze conventional commits
+      id: analyze
+      run: |
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+        echo "last_tag=$LAST_TAG" >> $GITHUB_OUTPUT
+
+        if [ -z "$LAST_TAG" ]; then
+          # First release - always release
+          echo "First release detected"
+          COMMITS=$(git log --oneline --pretty=format:"%s" | head -20)
+          RELEASE_TYPE="first"
+        else
+          # Subsequent releases - analyze commits
+          COMMITS=$(git log --oneline --pretty=format:"%s" ${LAST_TAG}..HEAD)
+
+          # Analyze commit types
+          BREAKING_CHANGE=$(echo "$COMMITS" | grep -i "BREAKING CHANGE\|!:" || echo "")
+          FEAT_COMMITS=$(echo "$COMMITS" | grep "^feat" || echo "")
+          FIX_COMMITS=$(echo "$COMMITS" | grep "^fix" || echo "")
+
+          RELEASE_TYPE="none"
+          if [ ! -z "$BREAKING_CHANGE" ]; then
+            RELEASE_TYPE="major"
+          elif [ ! -z "$FEAT_COMMITS" ]; then
+            RELEASE_TYPE="minor"
+          elif [ ! -z "$FIX_COMMITS" ]; then
+            RELEASE_TYPE="patch"
+          fi
+        fi
+
+        echo "Analyzing commits since $LAST_TAG:"
+        echo "$COMMITS"
+
+        if [ "$RELEASE_TYPE" != "first" ]; then
+          echo "Breaking changes: $BREAKING_CHANGE"
+          echo "Features: $FEAT_COMMITS"
+          echo "Fixes: $FIX_COMMITS"
+        fi
+
+        echo "release_type=$RELEASE_TYPE" >> $GITHUB_OUTPUT
+        echo "has_breaking=$([ ! -z "$BREAKING_CHANGE" ] && echo "true" || echo "false")" >> $GITHUB_OUTPUT
+
+    - name: Calculate new version
+      id: version
+      run: |
+        CURRENT_VERSION="${{ steps.current_version.outputs.current_version }}"
+        RELEASE_TYPE="${{ steps.analyze.outputs.release_type }}"
+        LAST_TAG="${{ steps.analyze.outputs.last_tag }}"
+
+        echo "Current version: $CURRENT_VERSION"
+        echo "Release type: $RELEASE_TYPE"
+        echo "Last tag: $LAST_TAG"
+
+        # Check if this is the first release (no tags exist)
+        if [ "$RELEASE_TYPE" = "first" ]; then
+          echo "First release detected - setting version to 0.0.1"
+          NEW_VERSION="0.0.1"
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+          echo "should_release=true" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        if [ "$RELEASE_TYPE" = "none" ]; then
+          echo "No version bump needed"
+          echo "new_version=$CURRENT_VERSION" >> $GITHUB_OUTPUT
+          echo "should_release=false" >> $GITHUB_OUTPUT
+          exit 0
+        fi
+
+        # Parse version numbers
+        IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+        case $RELEASE_TYPE in
+          major)
+            NEW_MAJOR=$((MAJOR + 1))
+            NEW_VERSION="$NEW_MAJOR.0.0"
+            ;;
+          minor)
+            NEW_MINOR=$((MINOR + 1))
+            NEW_VERSION="$MAJOR.$NEW_MINOR.0"
+            ;;
+          patch)
+            NEW_PATCH=$((PATCH + 1))
+            NEW_VERSION="$MAJOR.$MINOR.$NEW_PATCH"
+            ;;
+        esac
+
+        echo "New version: $NEW_VERSION"
+        echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+        echo "should_release=true" >> $GITHUB_OUTPUT
+
+    - name: Update package.json version
+      if: steps.version.outputs.should_release == 'true'
+      run: |
+        NEW_VERSION="${{ steps.version.outputs.new_version }}"
+        sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.json
+
+    - name: Commit version bump
+      if: steps.version.outputs.should_release == 'true'
+      run: |
+        NEW_VERSION="${{ steps.version.outputs.new_version }}"
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add package.json
+        git commit -m "chore: bump version to $NEW_VERSION"
+        git push
+
+    - name: Create git tag
+      if: steps.version.outputs.should_release == 'true'
+      run: |
+        NEW_VERSION="${{ steps.version.outputs.new_version }}"
+        git tag "v$NEW_VERSION"
+        git push origin "v$NEW_VERSION"
+
+  release:
+    needs: version-bump
+    if: needs.version-bump.outputs.should_release == 'true'
+    uses: ./.github/workflows/npm-publish.yml
+    secrets: inherit
