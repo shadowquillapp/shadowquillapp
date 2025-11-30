@@ -9,7 +9,13 @@ const {
 	dialog,
 	ipcMain,
 	Menu,
+	nativeImage,
 } = require("electron");
+
+// Set app name as early as possible for macOS dock
+app.setName("ShadowQuill");
+process.title = "ShadowQuill";
+
 const si = require("systeminformation");
 const fs = require("node:fs");
 const http = require("node:http");
@@ -631,8 +637,28 @@ function createWindow() {
 			// Enable built-in Chromium spellchecker
 			spellcheck: true,
 		},
-		title: "",
+		title: "ShadowQuill",
 	});
+
+	// Set custom icon for macOS dock
+	if (process.platform === "darwin") {
+		const iconPath = path.join(app.getAppPath(), "..", "public", "icon-sm.png");
+		try {
+			// Check if file exists before setting icon
+			if (fs.existsSync(iconPath)) {
+				const icon = nativeImage.createFromPath(iconPath);
+				if (!icon.isEmpty()) {
+					app.dock.setIcon(icon);
+				} else {
+					console.warn("Icon file is empty or invalid");
+				}
+			} else {
+				console.warn("Icon file not found:", iconPath);
+			}
+		} catch (error) {
+			console.warn("Failed to set macOS dock icon:", error.message);
+		}
+	}
 
 	// Restore maximized state if it was saved
 	if (windowState.isMaximized) {
