@@ -76,7 +76,23 @@ function startNext() {
 			(async () => {
 				try {
 					const nextModule = require("next/dist/server/next");
-					const nextApp = nextModule.default({
+					// Handle different Next.js export patterns (compat with Next.js 16+)
+					let nextFactory;
+					if (typeof nextModule === "function") {
+						nextFactory = nextModule;
+					} else if (typeof nextModule.default === "function") {
+						nextFactory = nextModule.default;
+					} else if (nextModule.next) {
+						nextFactory = nextModule.next;
+					} else if (nextModule.default?.next) {
+						nextFactory = nextModule.default.next;
+					} else {
+						throw new Error(
+							"Unable to find Next.js factory function in exports",
+						);
+					}
+
+					const nextApp = nextFactory({
 						dev: false,
 						dir: path.join(__dirname, ".."),
 					});
