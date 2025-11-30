@@ -121,11 +121,12 @@ jobs:
         echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
         echo "should_release=true" >> $GITHUB_OUTPUT
 
-    - name: Update package.json version
+    - name: Update package.json and package-lock.json versions
       if: steps.version.outputs.should_release == 'true'
       run: |
         NEW_VERSION="${{ steps.version.outputs.new_version }}"
-        sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$NEW_VERSION\"/" package.json
+        # Use npm version to properly update both package.json and package-lock.json
+        npm version $NEW_VERSION --no-git-tag-version --no-commit-hooks
 
     - name: Commit version bump
       if: steps.version.outputs.should_release == 'true'
@@ -133,7 +134,7 @@ jobs:
         NEW_VERSION="${{ steps.version.outputs.new_version }}"
         git config --local user.email "action@github.com"
         git config --local user.name "GitHub Action"
-        git add package.json
+        git add package.json package-lock.json
         git commit -m "chore: bump version to $NEW_VERSION"
         git push origin HEAD:master
 
