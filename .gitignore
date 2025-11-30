@@ -6,6 +6,5 @@ next-env.d.ts
 **.DS_Store
 /docs
 tsconfig.tsbuildinfo
-package-lock.json
 .markdownlint.json
 /coverage/
