@@ -15,7 +15,7 @@ jobs:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ secrets.PAT_TOKEN || secrets.GITHUB_TOKEN }}
 
     - name: Use Node.js latest
       uses: actions/setup-node@v4
@@ -135,7 +135,7 @@ jobs:
         git config --local user.name "GitHub Action"
         git add package.json
         git commit -m "chore: bump version to $NEW_VERSION"
-        git push
+        git push origin HEAD:master
 
     - name: Create git tag
       if: steps.version.outputs.should_release == 'true'
