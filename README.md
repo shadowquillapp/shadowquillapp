@@ -23,13 +23,13 @@ ShadowQuill is an AI-powered prompt editor and workbench designed to refine your
 ### Option 1: Install via npm (Recommended for developers)
 
 ```bash
-npm install shadowquill@latest
+npm install shadowquillapp@latest
 ```
 
 After installation, navigate to the package directory and run:
 
 ```bash
-cd node_modules/shadowquill
+cd node_modules/shadowquillapp
 npm start
 ```
 
