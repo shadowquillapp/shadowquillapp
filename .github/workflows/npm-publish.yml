@@ -12,6 +12,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: 'master'
     - name: Use Node.js latest
       uses: actions/setup-node@v4
       with:
@@ -31,6 +33,8 @@ jobs:
       packages: write
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: 'master'
     - name: Use Node.js latest
       uses: actions/setup-node@v4
       with:
