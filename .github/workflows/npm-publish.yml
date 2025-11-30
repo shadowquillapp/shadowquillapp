@@ -20,65 +20,8 @@ jobs:
     - run: npm run build
     - run: npm test
 
-  build-mac:
-    needs: build-and-test
-    runs-on: macos-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js latest
-      uses: actions/setup-node@v4
-      with:
-        node-version: latest
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run dist:electron
-    - name: Upload macOS artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ShadowQuill-macOS
-        path: dist/*.dmg
-        if-no-files-found: error
-
-  build-windows:
-    needs: build-and-test
-    runs-on: windows-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js latest
-      uses: actions/setup-node@v4
-      with:
-        node-version: latest
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run dist:win
-    - name: Upload Windows artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ShadowQuill-Windows
-        path: dist/*.exe
-        if-no-files-found: error
-
-  build-linux:
-    needs: build-and-test
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js latest
-      uses: actions/setup-node@v4
-      with:
-        node-version: latest
-        cache: 'npm'
-    - run: npm ci
-    - run: npm run dist:electron
-    - name: Upload Linux artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: ShadowQuill-Linux
-        path: dist/*.AppImage
-        if-no-files-found: error
-
   publish-npm:
-    needs: [build-mac, build-windows, build-linux]
+    needs: build-and-test
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -98,19 +41,14 @@ jobs:
         NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   release:
-    needs: [build-mac, build-windows, build-linux, publish-npm]
+    needs: publish-npm
     runs-on: ubuntu-latest
     permissions:
       contents: write
     steps:
-    - name: Download all artifacts
-      uses: actions/download-artifact@v4
-      with:
-        path: artifacts
     - name: Create Release
       uses: softprops/action-gh-release@v1
       with:
-        files: artifacts/**/*
         generate_release_notes: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
