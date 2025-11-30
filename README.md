@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/icon.png" alt="ShadowQuill Logo" width="120" height="120">
+  <img src="https://shadowquill.org/images/logo-circle.png" alt="ShadowQuill Logo" width="120" height="120">
   
 # ShadowQuill
   
@@ -17,6 +17,29 @@ ShadowQuill is an AI-powered prompt editor and workbench designed to refine your
 ​It transforms your natural language ideas into structured, high-quality prompts. Once optimized, simply copy your prompt and paste it into tools like ChatGPT, CoPilot, Gemini, Claude, and others.
 
 ​Powered by Ollama and Gemma 3; ShadowQuill operates 100% offline, offering a completely local and free solution for AI enhanced prompt generation.
+
+## Installation
+
+### Option 1: Install via npm (Recommended for developers)
+
+```bash
+npm install @shadowquillapp/shadowquill@latest
+```
+
+After installation, navigate to the package directory and run:
+
+```bash
+cd node_modules/@shadowquillapp/shadowquill
+npm start
+```
+
+This will launch ShadowQuill as a desktop application.
+
+### Option 2: Download Pre-built Installers
+
+Download installers from: [shadowquill.org](https://shadowquill.org) or [GitHub Releases](https://github.com/shadowquillapp/shadowquillapp/releases)
+
+Available for Windows, macOS, and Linux.
 
 ## Tech Stack
 
