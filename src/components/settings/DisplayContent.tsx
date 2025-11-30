@@ -147,7 +147,7 @@ export default function DisplayContent() {
 	};
 
 	const resetZoom = () => {
-		void applyZoom(1.1);
+		void applyZoom(1.0);
 	};
 
 	const handleThemeChange = (
@@ -303,9 +303,9 @@ export default function DisplayContent() {
 								type="button"
 								className="md-btn"
 								onClick={resetZoom}
-								disabled={!available || percent === 110}
+								disabled={!available || percent === 100}
 								aria-label="Reset zoom"
-								title="Reset to 110%"
+								title="Reset to 100%"
 								style={{ padding: "6px 12px", fontSize: "12px" }}
 							>
 								Reset

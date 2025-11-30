@@ -25,7 +25,9 @@ export default function SettingsDialog({
 	initialTab = "ollama",
 }: Props) {
 	const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
-	const [displayedTab, setDisplayedTab] = useState<SettingsTab>(initialTab);
+	const [displayedTab, setDisplayedTab] = useState<SettingsTab | string>(
+		initialTab,
+	);
 	const [isTransitioning, setIsTransitioning] = useState(false);
 	const [transitionDirection, setTransitionDirection] = useState<"up" | "down">(
 		"down",
@@ -40,10 +42,8 @@ export default function SettingsDialog({
 			if (newTab === activeTab || isTransitioning) return;
 
 			// Capture current height before animating
-			const currentHeight = contentWrapperRef.current?.offsetHeight;
-			if (currentHeight) {
-				setContentHeight(currentHeight);
-			}
+			const currentHeight = contentWrapperRef.current?.offsetHeight || 0;
+			setContentHeight(currentHeight || "auto");
 
 			// Determine direction based on tab order
 			const currentIndex = TAB_ORDER.indexOf(activeTab);
@@ -57,6 +57,7 @@ export default function SettingsDialog({
 			// Clear any existing timeout
 			if (transitionTimeoutRef.current) {
 				clearTimeout(transitionTimeoutRef.current);
+				transitionTimeoutRef.current = null;
 			}
 
 			// After exit animation, switch displayed content and start enter animation
@@ -64,10 +65,8 @@ export default function SettingsDialog({
 				setDisplayedTab(newTab);
 				// Measure new content height after DOM update
 				requestAnimationFrame(() => {
-					const newHeight = contentWrapperRef.current?.scrollHeight;
-					if (newHeight) {
-						setContentHeight(newHeight);
-					}
+					const newHeight = contentWrapperRef.current?.scrollHeight || 0;
+					setContentHeight(newHeight || "auto");
 					transitionTimeoutRef.current = setTimeout(() => {
 						setIsTransitioning(false);
 						// After animation completes, reset to auto for dynamic content
@@ -136,7 +135,7 @@ export default function SettingsDialog({
 		);
 	};
 
-	const renderContentFor = (tab: SettingsTab) => {
+	const renderContentFor = (tab: SettingsTab | string) => {
 		switch (tab) {
 			case "system":
 				return (

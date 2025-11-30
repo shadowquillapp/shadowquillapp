@@ -459,68 +459,104 @@ export function PresetPickerModal({
 						</div>
 
 						{/* Search Bar */}
-						<div style={{ width: "100%", position: "relative" }}>
-							<input
-								ref={searchInputRef}
-								className="md-input"
-								type="text"
-								placeholder={
-									activeSection === "presets"
-										? "Search presets..."
-										: "Search saved workbenches..."
-								}
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								aria-label={
-									activeSection === "presets"
-										? "Search presets"
-										: "Search saved workbenches"
-								}
-								style={{
-									width: "100%",
-									paddingLeft: 36,
-									paddingRight: 36,
-									height: 36,
-								}}
-							/>
-							<Icon
-								name="search"
-								style={{
-									position: "absolute",
-									left: 10,
-									top: "50%",
-									transform: "translateY(-50%)",
-									opacity: 0.5,
-									width: 16,
-									height: 16,
-								}}
-							/>
-							{searchQuery && (
-								<button
-									type="button"
-									aria-label="Clear search"
-									className="md-btn"
-									onClick={() => setSearchQuery("")}
+						<div
+							style={{
+								width: "100%",
+								display: "flex",
+								alignItems: "center",
+								gap: 16,
+							}}
+						>
+							<div style={{ flex: 1, position: "relative" }}>
+								<input
+									ref={searchInputRef}
+									className="md-input"
+									type="text"
+									placeholder={
+										activeSection === "presets"
+											? "Search presets..."
+											: "Search saved workbenches..."
+									}
+									value={searchQuery}
+									onChange={(e) => setSearchQuery(e.target.value)}
+									aria-label={
+										activeSection === "presets"
+											? "Search presets"
+											: "Search saved workbenches"
+									}
+									style={{
+										width: "100%",
+										paddingLeft: 36,
+										paddingRight: 36,
+										height: 36,
+									}}
+								/>
+								<Icon
+									name="search"
 									style={{
 										position: "absolute",
-										right: 6,
+										left: 10,
 										top: "50%",
 										transform: "translateY(-50%)",
-										width: 24,
-										height: 24,
-										display: "flex",
-										alignItems: "center",
-										justifyContent: "center",
-										borderRadius: 6,
-										background: "transparent",
+										opacity: 0.5,
+										width: 16,
+										height: 16,
 									}}
-								>
-									<Icon
-										name="close"
-										style={{ width: 12, height: 12, opacity: 0.55 }}
-									/>
-								</button>
-							)}
+								/>
+								{searchQuery && (
+									<button
+										type="button"
+										aria-label="Clear search"
+										className="md-btn"
+										onClick={() => setSearchQuery("")}
+										style={{
+											position: "absolute",
+											right: 6,
+											top: "50%",
+											transform: "translateY(-50%)",
+											width: 24,
+											height: 24,
+											display: "flex",
+											alignItems: "center",
+											justifyContent: "center",
+											borderRadius: 6,
+											background: "transparent",
+										}}
+									>
+										<Icon
+											name="close"
+											style={{ width: 12, height: 12, opacity: 0.55 }}
+										/>
+									</button>
+								)}
+							</div>
+
+							{/* Delete All button */}
+							{activeSection === "saved" &&
+								savedProjects.length > 0 &&
+								onDeleteAllProjects && (
+									<button
+										type="button"
+										className="md-btn md-btn--destructive"
+										onClick={handleDeleteAllProjects}
+										style={{
+											padding: "6px 12px",
+											fontSize: 11,
+											fontWeight: 600,
+											borderRadius: 6,
+											display: "flex",
+											alignItems: "center",
+											gap: 6,
+											color: "#ef4444",
+											border: "1px solid rgba(239, 68, 68, 0.3)",
+											background: "rgba(239, 68, 68, 0.08)",
+											flexShrink: 0,
+										}}
+									>
+										<Icon name="trash" style={{ width: 12, height: 12 }} />
+										Delete All
+									</button>
+								)}
 						</div>
 					</div>
 					{/* End Tab Switcher + Search Bar */}
@@ -700,38 +736,6 @@ export function PresetPickerModal({
 							) : (
 								/* Saved Projects List */
 								<>
-									{/* Delete All button when there are projects */}
-									{savedProjects.length > 0 && onDeleteAllProjects && (
-										<div
-											style={{
-												display: "flex",
-												justifyContent: "flex-end",
-												marginBottom: 12,
-											}}
-										>
-											<button
-												type="button"
-												className="md-btn md-btn--destructive"
-												onClick={handleDeleteAllProjects}
-												style={{
-													padding: "6px 12px",
-													fontSize: 11,
-													fontWeight: 600,
-													borderRadius: 6,
-													display: "flex",
-													alignItems: "center",
-													gap: 6,
-													color: "#ef4444",
-													border: "1px solid rgba(239, 68, 68, 0.3)",
-													background: "rgba(239, 68, 68, 0.08)",
-												}}
-											>
-												<Icon name="trash" style={{ width: 12, height: 12 }} />
-												Delete All
-											</button>
-										</div>
-									)}
-
 									{filteredProjects.length === 0 ? (
 										<div
 											className="text-secondary"
@@ -933,44 +937,18 @@ export function PresetPickerModal({
 														{onDeleteProject && (
 															<button
 																type="button"
-																className="md-btn"
 																onClick={(e) =>
 																	handleDeleteProject(e, project.id)
 																}
 																disabled={isDeleting}
 																title="Delete workbench"
 																aria-label="Delete workbench"
-																style={{
-																	width: 44,
-																	height: 44,
-																	padding: 0,
-																	display: "flex",
-																	alignItems: "center",
-																	justifyContent: "center",
-																	borderRadius: 8,
-																	border: "1px solid rgba(239, 68, 68, 0.2)",
-																	background: "rgba(239, 68, 68, 0.06)",
-																	color: "#ef4444",
-																	flexShrink: 0,
-																	transition: "all 0.15s",
-																}}
-																onMouseEnter={(e) => {
-																	if (isDeleting) return;
-																	e.currentTarget.style.background =
-																		"rgba(239, 68, 68, 0.15)";
-																	e.currentTarget.style.borderColor =
-																		"rgba(239, 68, 68, 0.4)";
-																}}
-																onMouseLeave={(e) => {
-																	e.currentTarget.style.background =
-																		"rgba(239, 68, 68, 0.06)";
-																	e.currentTarget.style.borderColor =
-																		"rgba(239, 68, 68, 0.2)";
-																}}
+																className="flex items-center justify-center"
 															>
 																<Icon
 																	name="trash"
-																	style={{ width: 14, height: 14 }}
+																	className="h-4 w-4"
+																	style={{ color: "#ef4444" }}
 																/>
 															</button>
 														)}

@@ -115,7 +115,7 @@ describe("DisplayContent", () => {
 			expect(mockViewApi.setZoomFactor).toHaveBeenCalledWith(1);
 		});
 
-		it("should reset zoom to 110% when reset button is clicked", async () => {
+		it("should reset zoom to 100% when reset button is clicked", async () => {
 			const user = userEvent.setup();
 			mockViewApi.getZoomFactor.mockResolvedValue(1.3);
 			mockViewApi.setZoomFactor.mockResolvedValue(undefined);
@@ -127,7 +127,7 @@ describe("DisplayContent", () => {
 
 			await user.click(screen.getByLabelText("Reset zoom"));
 
-			expect(mockViewApi.setZoomFactor).toHaveBeenCalledWith(1.1);
+			expect(mockViewApi.setZoomFactor).toHaveBeenCalledWith(1.0);
 		});
 
 		it("should update zoom via slider", async () => {

@@ -46,11 +46,6 @@ function isElectronRuntime(): boolean {
 				?.versions?.electron
 		)
 			return true;
-		if (
-			process.env.ELECTRON === "1" ||
-			process.env.NEXT_PUBLIC_ELECTRON === "1"
-		)
-			return true;
 	}
 	if (typeof navigator !== "undefined") {
 		return /Electron/i.test(navigator.userAgent);
@@ -101,7 +96,9 @@ export default function ModelConfigGate({ children }: Props) {
 	useEffect(() => {
 		if (
 			!electronMode &&
-			(isElectronRuntime() || process.env.NEXT_PUBLIC_ELECTRON === "1")
+			(isElectronRuntime() ||
+				(typeof process !== "undefined" &&
+					process.env.NEXT_PUBLIC_ELECTRON === "1"))
 		) {
 			setElectronMode(true);
 		}
@@ -194,20 +191,9 @@ export default function ModelConfigGate({ children }: Props) {
 		let cancelled = false;
 		const detect = async () => {
 			setOllamaCheckPerformed(true);
-			// Only probe the default URL; if user already changed baseUrl, skip
-			const defaultUrl = "http://localhost:11434";
-			try {
-				const controller = new AbortController();
-				const t = setTimeout(() => controller.abort(), 2500);
-				const res = await fetch(`${defaultUrl}/api/tags`, {
-					signal: controller.signal,
-				});
-				clearTimeout(t);
-				if (cancelled) return;
-				if (!res.ok) throw new Error(`status ${res.status}`);
-				// success -> keep default base URL
-			} catch (_err) {
-				if (cancelled) return;
+			const isOk = await performOllamaDetection();
+			if (cancelled) return;
+			if (!isOk) {
 				// Not reachable: blank out the URL so user explicitly sets it and show modal
 				setLocalPort("");
 				setShowOllamaMissingModal(true);
@@ -224,6 +210,18 @@ export default function ModelConfigGate({ children }: Props) {
 		setOllamaCheckPerformed(false);
 		setShowOllamaMissingModal(false);
 		// trigger effect by manual check immediate
+		const isOk = await performOllamaDetection();
+		if (isOk) {
+			setLocalPort("11434");
+		} else {
+			setLocalPort("");
+			setShowOllamaMissingModal(true);
+		}
+		setOllamaCheckPerformed(true);
+	};
+
+	// Extract Ollama detection logic for better testability
+	const performOllamaDetection = async () => {
 		try {
 			const controller = new AbortController();
 			const t = setTimeout(() => controller.abort(), 2500);
@@ -231,17 +229,9 @@ export default function ModelConfigGate({ children }: Props) {
 				signal: controller.signal,
 			});
 			clearTimeout(t);
-			if (res.ok) {
-				setLocalPort("11434");
-			} else {
-				setLocalPort("");
-				setShowOllamaMissingModal(true);
-			}
+			return res.ok;
 		} catch {
-			setLocalPort("");
-			setShowOllamaMissingModal(true);
-		} finally {
-			setOllamaCheckPerformed(true);
+			return false;
 		}
 	};
 
@@ -786,6 +776,7 @@ export default function ModelConfigGate({ children }: Props) {
 									<div className="flex flex-wrap gap-3">
 										<button
 											type="button"
+											data-testid="ollama-missing-close-button"
 											onClick={() => setShowOllamaMissingModal(false)}
 											className="interactive-glow flex-1 rounded-md bg-surface-200 py-2 font-medium text-sm hover:bg-surface-300"
 										>
@@ -793,6 +784,7 @@ export default function ModelConfigGate({ children }: Props) {
 										</button>
 										<button
 											type="button"
+											data-testid="ollama-retry-detection-button"
 											onClick={retryOllamaDetection}
 											className="interactive-glow flex-1 rounded-md bg-primary py-2 font-medium text-light text-sm hover:bg-primary-200"
 										>

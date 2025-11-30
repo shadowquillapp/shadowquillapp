@@ -10,7 +10,19 @@ import { buildMarketingDirectives } from "@/lib/prompt-directives/marketing";
 import { buildResearchDirectives } from "@/lib/prompt-directives/research";
 import { buildVideoDirectives } from "@/lib/prompt-directives/video";
 import { buildWritingDirectives } from "@/lib/prompt-directives/writing";
-import type { CameraMovement, ImageStylePreset } from "@/types";
+import type {
+	CTAStyle,
+	CameraMovement,
+	Detail,
+	ImageStylePreset,
+	MarketingChannel,
+	PointOfView,
+	ReadingLevel,
+	ReasoningStyle,
+	TaskType,
+	Tone,
+	WritingStyle,
+} from "@/types";
 import { describe, expect, it } from "vitest";
 
 describe("buildDirectives", () => {
@@ -123,6 +135,22 @@ describe("buildBaseDirectives", () => {
 		});
 		expect(result.some((d) => d.includes("active voice"))).toBe(true);
 	});
+
+	it("should use fallback for unknown tone", () => {
+		const result = buildBaseDirectives({
+			tone: "unknown-tone" as unknown as Tone,
+		});
+		expect(result.some((d) => d.includes("Use a unknown-tone tone."))).toBe(
+			true,
+		);
+	});
+
+	it("should skip unknown detail level", () => {
+		const result = buildBaseDirectives({
+			detail: "unknown-detail" as unknown as Detail,
+		});
+		expect(result.some((d) => d.includes("OUTPUT LENGTH"))).toBe(false);
+	});
 });
 
 describe("buildFormatDirectives", () => {
@@ -142,6 +170,16 @@ describe("buildFormatDirectives", () => {
 	it("should include default XML schema for task type when not provided", () => {
 		const result = buildFormatDirectives("coding", { format: "xml" });
 		expect(result.some((d) => d.includes("<coding_task>"))).toBe(true);
+	});
+
+	it("should use general schema for unknown task type", () => {
+		const result = buildFormatDirectives(
+			"unknown-task" as unknown as TaskType,
+			{
+				format: "xml",
+			},
+		);
+		expect(result.some((d) => d.includes("<prompt>"))).toBe(true);
 	});
 
 	it("should include plain text directive", () => {
@@ -221,6 +259,13 @@ describe("buildAdvancedDirectives", () => {
 			endOfPromptToken: "<|endofprompt|>",
 		});
 		expect(result.some((d) => d.includes("<|endofprompt|>"))).toBe(true);
+	});
+
+	it("should skip unknown reasoning style", () => {
+		const result = buildAdvancedDirectives({
+			reasoningStyle: "unknown-style" as unknown as ReasoningStyle,
+		});
+		expect(result.some((d) => d.includes("unknown-style"))).toBe(false);
 	});
 });
 
@@ -585,9 +630,25 @@ describe("buildWritingDirectives", () => {
 		);
 	});
 
+	it("should use fallback for unknown writing style", () => {
+		const result = buildWritingDirectives({
+			writingStyle: "unknown-style" as unknown as WritingStyle,
+		});
+		expect(
+			result.some((d) => d.includes("Writing style: unknown-style.")),
+		).toBe(true);
+	});
+
 	it("should include point of view", () => {
 		const result = buildWritingDirectives({ pointOfView: "first" });
 		expect(result.some((d) => d.toLowerCase().includes("first"))).toBe(true);
+	});
+
+	it("should skip unknown point of view", () => {
+		const result = buildWritingDirectives({
+			pointOfView: "unknown-pov" as unknown as PointOfView,
+		});
+		expect(result.some((d) => d.includes("unknown-pov"))).toBe(false);
 	});
 
 	it("should include reading level", () => {
@@ -595,14 +656,33 @@ describe("buildWritingDirectives", () => {
 		expect(result.some((d) => d.toLowerCase().includes("expert"))).toBe(true);
 	});
 
+	it("should skip unknown reading level", () => {
+		const result = buildWritingDirectives({
+			readingLevel: "unknown-level" as unknown as ReadingLevel,
+		});
+		expect(result.some((d) => d.includes("unknown-level"))).toBe(false);
+	});
+
 	it("should include target word count", () => {
 		const result = buildWritingDirectives({ targetWordCount: 1500 });
 		expect(result.some((d) => d.includes("1500"))).toBe(true);
 	});
 
+	it("should skip target word count when not a number", () => {
+		const result = buildWritingDirectives({
+			targetWordCount: "1500" as unknown as number,
+		});
+		expect(result.some((d) => d.includes("1500"))).toBe(false);
+	});
+
 	it("should include headings requirement", () => {
 		const result = buildWritingDirectives({ includeHeadings: true });
 		expect(result.some((d) => d.toLowerCase().includes("heading"))).toBe(true);
+	});
+
+	it("should not include headings when false", () => {
+		const result = buildWritingDirectives({ includeHeadings: false });
+		expect(result.some((d) => d.toLowerCase().includes("heading"))).toBe(false);
 	});
 });
 
@@ -645,9 +725,25 @@ describe("buildMarketingDirectives", () => {
 		expect(result.some((d) => d.toLowerCase().includes("email"))).toBe(true);
 	});
 
+	it("should use fallback for unknown marketing channel", () => {
+		const result = buildMarketingDirectives({
+			marketingChannel: "unknown-channel" as unknown as MarketingChannel,
+		});
+		expect(result.some((d) => d.includes("Channel: unknown-channel."))).toBe(
+			true,
+		);
+	});
+
 	it("should include CTA style", () => {
 		const result = buildMarketingDirectives({ ctaStyle: "strong" });
 		expect(result.some((d) => d.toLowerCase().includes("strong"))).toBe(true);
+	});
+
+	it("should skip unknown CTA style", () => {
+		const result = buildMarketingDirectives({
+			ctaStyle: "unknown-style" as unknown as CTAStyle,
+		});
+		expect(result.some((d) => d.includes("unknown-style"))).toBe(false);
 	});
 
 	it("should include value propositions", () => {
@@ -657,10 +753,34 @@ describe("buildMarketingDirectives", () => {
 		expect(result.some((d) => d.includes("Save time"))).toBe(true);
 	});
 
+	it("should skip empty value propositions", () => {
+		const result = buildMarketingDirectives({ valueProps: "" });
+		expect(result.some((d) => d.includes("Value propositions"))).toBe(false);
+	});
+
+	it("should skip whitespace-only value propositions", () => {
+		const result = buildMarketingDirectives({ valueProps: "   " });
+		expect(result.some((d) => d.includes("Value propositions"))).toBe(false);
+	});
+
 	it("should include compliance notes", () => {
 		const result = buildMarketingDirectives({
 			complianceNotes: "GDPR compliant",
 		});
 		expect(result.some((d) => d.includes("GDPR"))).toBe(true);
+	});
+
+	it("should skip empty compliance notes", () => {
+		const result = buildMarketingDirectives({ complianceNotes: "" });
+		expect(result.some((d) => d.includes("Compliance requirements"))).toBe(
+			false,
+		);
+	});
+
+	it("should skip whitespace-only compliance notes", () => {
+		const result = buildMarketingDirectives({ complianceNotes: "   " });
+		expect(result.some((d) => d.includes("Compliance requirements"))).toBe(
+			false,
+		);
 	});
 });

@@ -156,6 +156,28 @@ describe("SystemPromptEditorContent", () => {
 			});
 		});
 
+		it("should work without onSaved callback", async () => {
+			const user = userEvent.setup();
+			render(<SystemPromptEditorContent />);
+
+			await waitFor(() => {
+				expect(getTextarea()).toHaveValue(defaultPrompt);
+			});
+
+			const textarea = getTextarea();
+			await user.clear(textarea);
+			await user.type(textarea, "New system prompt");
+
+			await user.click(screen.getByRole("button", { name: "Save Changes" }));
+
+			await waitFor(() => {
+				expect(mockSetSystemPromptBuild).toHaveBeenCalledWith(
+					"New system prompt",
+				);
+				// Should not throw error when onSaved is not provided
+			});
+		});
+
 		it("should show Saved status after saving", async () => {
 			const user = userEvent.setup();
 			render(<SystemPromptEditorContent />);
@@ -411,6 +433,52 @@ describe("SystemPromptEditorContent", () => {
 			// Height may change (though in jsdom it might not)
 			// This test mainly ensures no errors occur during resize
 			expect(textarea).toBeInTheDocument();
+		});
+
+		it("should set overflowY to auto when content exceeds max height", async () => {
+			const user = userEvent.setup();
+			render(<SystemPromptEditorContent />);
+
+			await waitFor(() => {
+				expect(getTextarea()).toBeInTheDocument();
+			});
+
+			const textarea = getTextarea();
+
+			// Mock scrollHeight to exceed MAX_HEIGHT (320px)
+			Object.defineProperty(textarea, "scrollHeight", {
+				value: 400,
+				writable: true,
+			});
+
+			// Trigger resize by changing prompt
+			await user.type(textarea, "a");
+
+			// The resize effect should have run and set overflowY to 'auto'
+			expect(textarea.style.overflowY).toBe("auto");
+		});
+
+		it("should set overflowY to hidden when content fits within max height", async () => {
+			const user = userEvent.setup();
+			render(<SystemPromptEditorContent />);
+
+			await waitFor(() => {
+				expect(getTextarea()).toBeInTheDocument();
+			});
+
+			const textarea = getTextarea();
+
+			// Mock scrollHeight to be within MAX_HEIGHT (320px)
+			Object.defineProperty(textarea, "scrollHeight", {
+				value: 250,
+				writable: true,
+			});
+
+			// Trigger resize by changing prompt
+			await user.type(textarea, "a");
+
+			// The resize effect should have run and set overflowY to 'hidden'
+			expect(textarea.style.overflowY).toBe("hidden");
 		});
 	});
 

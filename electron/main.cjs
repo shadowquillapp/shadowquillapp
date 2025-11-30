@@ -510,8 +510,8 @@ ipcMain.handle("shadowquill:view:resetZoom", (e) => {
 	try {
 		const w = BrowserWindow.fromWebContents(e.sender);
 		if (!w) return { ok: false, error: "No window" };
-		w.webContents.setZoomFactor(1.1);
-		return { ok: true, zoomFactor: 1.1 };
+		w.webContents.setZoomFactor(1.0);
+		return { ok: true, zoomFactor: 1.0 };
 	} catch (err) {
 		return { ok: false, error: err?.message || "Failed to reset zoom" };
 	}
@@ -677,8 +677,8 @@ function createWindow() {
 
 	// Filter console messages to suppress harmless autofill errors
 	win.webContents.once("did-finish-load", () => {
-		// Set default zoom to 110%
-		win.webContents.setZoomFactor(1.1);
+		// Set default zoom to 100%
+		win.webContents.setZoomFactor(1.0);
 
 		win.webContents.executeJavaScript(`
       (function() {
@@ -740,9 +740,9 @@ function createWindow() {
 		// Handle reset zoom (Ctrl/Cmd + 0)
 		if (input.key === "0") {
 			event.preventDefault();
-			win.webContents.setZoomFactor(1.1);
+			win.webContents.setZoomFactor(1.0);
 			// Notify renderer of zoom change
-			win.webContents.send("shadowquill:zoom:changed", 1.1);
+			win.webContents.send("shadowquill:zoom:changed", 1.0);
 			return;
 		}
 	});
@@ -990,8 +990,8 @@ app.whenReady().then(async () => {
 						click: () => {
 							const w = BrowserWindow.getFocusedWindow();
 							if (w) {
-								w.webContents.setZoomFactor(1.1);
-								w.webContents.send("shadowquill:zoom:changed", 1.1);
+								w.webContents.setZoomFactor(1.0);
+								w.webContents.send("shadowquill:zoom:changed", 1.0);
 							}
 						},
 					},

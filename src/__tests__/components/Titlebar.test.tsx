@@ -293,6 +293,44 @@ describe("Titlebar", () => {
 				expect(document.querySelector(".app-region-drag")).toBeInTheDocument();
 			});
 		});
+
+		it("should show dash when model is not a string", async () => {
+			vi.mock("@/lib/local-config", () => ({
+				readLocalModelConfig: vi.fn(() => ({
+					provider: "ollama",
+					baseUrl: "http://localhost:11434",
+					model: 123, // Not a string
+				})),
+			}));
+
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			// Should still render with dash since model is not a string
+			await waitFor(() => {
+				expect(document.querySelector(".app-region-drag")).toBeInTheDocument();
+			});
+		});
+
+		it("should handle model ID without colon separator", async () => {
+			vi.mock("@/lib/local-config", () => ({
+				readLocalModelConfig: vi.fn(() => ({
+					provider: "ollama",
+					baseUrl: "http://localhost:11434",
+					model: "gemma3", // No colon
+				})),
+			}));
+
+			mockWindowApi.getPlatform.mockResolvedValue("linux");
+
+			render(<Titlebar />);
+
+			await waitFor(() => {
+				// Should show "Gemma 3 " (empty part after split)
+				expect(document.querySelector(".app-region-drag")).toBeInTheDocument();
+			});
+		});
 	});
 
 	describe("event listeners", () => {
