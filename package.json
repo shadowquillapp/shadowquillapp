@@ -6,9 +6,6 @@
 	"description": "ShadowQuill",
 	"private": false,
 	"repository": "https://github.com/shadowquillapp/shadowquillapp",
-	"publishConfig": {
-		"registry": "https://npm.pkg.github.com"
-	},
 	"type": "module",
 	"scripts": {
 		"build": "npm run build:electron",
