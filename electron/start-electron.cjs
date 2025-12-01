@@ -75,21 +75,54 @@ function startNext() {
 			// Prod: assume `next build` already run; start Next server programmatically.
 			(async () => {
 				try {
-					const nextModule = require("next/dist/server/next");
-					const nextApp = nextModule.default({
+					// Dynamically import Next.js and start the server
+					let nextFactory;
+					try {
+						// Try to require the Next.js factory function
+						const nextModule = require("next");
+						nextFactory =
+							typeof nextModule === "function"
+								? nextModule
+								: nextModule.default;
+					} catch (e) {
+						return reject(new Error(`Failed to load Next.js: ${e.message}`));
+					}
+
+					if (typeof nextFactory !== "function") {
+						return reject(new Error("Next.js factory is not a function"));
+					}
+
+					const appDir = path.join(__dirname, "..");
+					const nextApp = nextFactory({
 						dev: false,
-						dir: path.join(__dirname, ".."),
+						dir: appDir,
+						hostname: "localhost",
+						port: 31415,
 					});
+
 					await nextApp.prepare();
+
 					const http = require("node:http");
 					const handle = nextApp.getRequestHandler();
-					prodServer = http.createServer((req, res) => handle(req, res));
-					await new Promise((r, rej) =>
-						prodServer
-							.listen(31415, "127.0.0.1")
-							.once("error", rej)
-							.once("listening", () => r(undefined)),
-					);
+
+					prodServer = http.createServer((req, res) => {
+						handle(req, res).catch((err) => {
+							console.error("Error handling request:", err);
+							res.statusCode = 500;
+							res.end("Internal Server Error");
+						});
+					});
+
+					await new Promise((r, rej) => {
+						prodServer.listen(31415, "127.0.0.1", (err) => {
+							if (err) return rej(err);
+							console.log(
+								"[start-electron] Production server listening on http://localhost:31415",
+							);
+							r(undefined);
+						});
+					});
+
 					resolve(undefined);
 				} catch (e) {
 					reject(e);
