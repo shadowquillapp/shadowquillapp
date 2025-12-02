@@ -62,12 +62,12 @@
 		},
 		"mac": {
 			"category": "public.app-category.productivity",
-			"icon": "public/branding/icon.icns"
+			"icon": "public/branding/icon.icns",
+			"target": ["dmg", "zip"]
 		},
 		"win": {
 			"target": ["nsis", "portable"],
 			"icon": "public/branding/favicon.ico",
-			"publisherName": "ShadowQuill",
 			"signAndEditExecutable": true
 		},
 		"nsis": {
