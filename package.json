@@ -1,10 +1,9 @@
 {
 	"name": "shadowquill",
-	"version": "1.0.0",
+	"version": "0.2.0",
 	"author": "ShadowQuill <info@shadowquill.org>",
 	"homepage": "https://shadowquill.org",
 	"description": "ShadowQuill",
-	"private": true,
 	"type": "module",
 	"scripts": {
 		"build": "npm run build:electron",
