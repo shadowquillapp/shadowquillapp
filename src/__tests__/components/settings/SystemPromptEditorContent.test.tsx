@@ -76,9 +76,6 @@ describe("SystemPromptEditorContent", () => {
 					screen.getByRole("button", { name: "Restore Default" }),
 				).toBeInTheDocument();
 				expect(
-					screen.getByRole("button", { name: "Undo" }),
-				).toBeInTheDocument();
-				expect(
 					screen.getByRole("button", { name: "Save Changes" }),
 				).toBeInTheDocument();
 			});
@@ -116,20 +113,6 @@ describe("SystemPromptEditorContent", () => {
 			expect(
 				screen.getByRole("button", { name: "Save Changes" }),
 			).not.toBeDisabled();
-		});
-
-		it("should enable Undo button when prompt is modified", async () => {
-			const user = userEvent.setup();
-			render(<SystemPromptEditorContent />);
-
-			await waitFor(() => {
-				expect(screen.getByRole("button", { name: "Undo" })).toBeDisabled();
-			});
-
-			const textarea = getTextarea();
-			await user.type(textarea, " More text.");
-
-			expect(screen.getByRole("button", { name: "Undo" })).not.toBeDisabled();
 		});
 	});
 
@@ -218,28 +201,6 @@ describe("SystemPromptEditorContent", () => {
 			await waitFor(() => {
 				expect(screen.getByRole("alert")).toHaveTextContent("Save failed");
 			});
-		});
-	});
-
-	describe("undo", () => {
-		it("should revert changes when Undo is clicked", async () => {
-			const user = userEvent.setup();
-			render(<SystemPromptEditorContent onCancelReset={mockOnCancelReset} />);
-
-			await waitFor(() => {
-				expect(getTextarea()).toHaveValue(defaultPrompt);
-			});
-
-			const textarea = getTextarea();
-			await user.clear(textarea);
-			await user.type(textarea, "Changed prompt");
-
-			expect(textarea).toHaveValue("Changed prompt");
-
-			await user.click(screen.getByRole("button", { name: "Undo" }));
-
-			expect(textarea).toHaveValue(defaultPrompt);
-			expect(mockOnCancelReset).toHaveBeenCalled();
 		});
 	});
 
@@ -376,42 +337,6 @@ describe("SystemPromptEditorContent", () => {
 				const textarea = getTextarea();
 				expect(textarea).toHaveValue("");
 			});
-		});
-	});
-
-	describe("onCancelReset callback", () => {
-		it("should call onCancelReset when undo is clicked with no changes", async () => {
-			const user = userEvent.setup();
-			render(<SystemPromptEditorContent onCancelReset={mockOnCancelReset} />);
-
-			await waitFor(() => {
-				expect(
-					screen.getByRole("button", { name: "Undo" }),
-				).toBeInTheDocument();
-			});
-
-			const undoBtn = screen.getByRole("button", { name: "Undo" });
-			// When not dirty, undo is disabled, so click shouldn't trigger callback
-			expect(undoBtn).toBeDisabled();
-		});
-
-		it("should call onCancelReset when undo is clicked after changes", async () => {
-			const user = userEvent.setup();
-			render(<SystemPromptEditorContent onCancelReset={mockOnCancelReset} />);
-
-			await waitFor(() => {
-				expect(getTextarea()).toHaveValue(defaultPrompt);
-			});
-
-			const textarea = getTextarea();
-			await user.type(textarea, " modified");
-
-			const undoBtn = screen.getByRole("button", { name: "Undo" });
-			expect(undoBtn).not.toBeDisabled();
-
-			await user.click(undoBtn);
-
-			expect(mockOnCancelReset).toHaveBeenCalled();
 		});
 	});
 

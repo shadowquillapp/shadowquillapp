@@ -162,17 +162,6 @@ export default function SystemPromptEditorContent({
 					</button>
 					<div style={{ marginLeft: "auto", display: "flex", gap: "8px" }}>
 						<button
-							type="button"
-							onClick={() => {
-								if (isDirty) setPrompt(initialPrompt);
-								onCancelReset?.();
-							}}
-							className="md-btn"
-							disabled={!isDirty}
-						>
-							Undo
-						</button>
-						<button
 							type="submit"
 							disabled={saving || !isDirty}
 							className="md-btn md-btn--primary"
