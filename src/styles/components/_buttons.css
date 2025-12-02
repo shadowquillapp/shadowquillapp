@@ -65,6 +65,19 @@
 	background: var(--color-primary-variant);
 }
 
+/* Destructive button */
+.md-btn--destructive {
+	background: var(--color-destructive);
+	color: var(--color-on-destructive);
+	border-color: transparent;
+}
+
+.md-btn--destructive:hover {
+	background: var(--color-destructive-variant);
+	border-color: transparent;
+	box-shadow: var(--shadow-2);
+}
+
 /* Attention/warning button */
 .md-btn--attention {
 	background: var(--color-attention);

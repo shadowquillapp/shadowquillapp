@@ -49,6 +49,11 @@
 	--color-attention-variant: #9a7338;
 	--color-on-attention: #1a1a1a;
 
+	/* Destructive/error colors */
+	--color-destructive: #c0534d;
+	--color-destructive-variant: #9f3d37;
+	--color-on-destructive: #f9f2f2;
+
 	/* Tab state colors */
 	--color-tab-active: #4a7c6f;
 	--color-tab-active-variant: #3a6359;
