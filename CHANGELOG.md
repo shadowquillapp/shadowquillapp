@@ -1,3 +1,10 @@
+## [0.2.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.2.1...v0.2.2) (2025-12-02)
+
+
+### Bug Fixes
+
+* add postinstall script ([108e7b6](https://github.com/shadowquillapp/shadowquillapp/commit/108e7b62706d6768aac0d5e7a81287c62b023c8f))
+
 ## [0.2.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.2.0...v0.2.1) (2025-12-02)
 
 
