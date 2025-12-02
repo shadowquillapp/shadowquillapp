@@ -262,10 +262,9 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 						<button
 							type="button"
 							onClick={() => preset?.id && onDelete(preset.id)}
-							className="md-btn md-btn--destructive font-medium text-red-500 text-sm"
+							className="md-btn md-btn--destructive font-medium text-sm"
 							disabled={!preset?.id || preset?.name === "Default"}
 							title="Delete preset"
-							style={{ color: "#ef4444" }}
 						>
 							Delete
 						</button>

@@ -32,6 +32,9 @@
 	--color-attention: #dc2626;
 	--color-attention-variant: #b91c1c;
 	--color-on-attention: #fff;
+	--color-destructive: #dc2626;
+	--color-destructive-variant: #b91c1c;
+	--color-on-destructive: #fff;
 
 	/* Tab colors */
 	--color-tab-active: #0891b2;
