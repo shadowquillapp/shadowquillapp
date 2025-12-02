@@ -272,7 +272,7 @@ export default function TypeSpecificFields({
 						htmlFor="tech-stack"
 						className="mb-1 block font-medium text-secondary text-xs"
 					>
-						Tech Stack (Required) <span className="text-red-500">*</span>
+						Tech Stack
 					</label>
 					<textarea
 						id="tech-stack"
