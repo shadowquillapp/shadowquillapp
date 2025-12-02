@@ -357,19 +357,6 @@ export function TabBar({
 									}}
 								>
 									{tab.label}
-									{tab.isDirty && (
-										<span
-											style={{
-												width: 6,
-												height: 6,
-												borderRadius: "50%",
-												background: isActive
-													? "var(--color-on-primary)"
-													: "var(--color-primary)",
-												flexShrink: 0,
-											}}
-										/>
-									)}
 								</span>
 
 								{/* Close button */}
