@@ -1,3 +1,10 @@
+## [0.3.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.3.0...v0.3.1) (2025-12-02)
+
+
+### Bug Fixes
+
+* preset studio temperature control adjusted to be better understandable ([6f50a87](https://github.com/shadowquillapp/shadowquillapp/commit/6f50a871801963e8be5a90ef369935d26e312570))
+
 # [0.3.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.2.2...v0.3.0) (2025-12-02)
 
 

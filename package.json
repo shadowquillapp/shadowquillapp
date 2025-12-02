@@ -1,6 +1,6 @@
 {
 	"name": "shadowquillapp",
-	"version": "0.3.0",
+	"version": "0.3.1",
 	"author": "ShadowQuill <info@shadowquill.org>",
 	"homepage": "https://shadowquill.org",
 	"description": "ShadowQuill",
@@ -72,8 +72,16 @@
 	"build": {
 		"appId": "com.shadowquill.app",
 		"productName": "ShadowQuill",
-		"files": ["**/*", "!node_modules/.cache/**/*", "!**/*.map"],
-		"asarUnpack": ["**/*.node", ".next/**", "node_modules/next/**"],
+		"files": [
+			"**/*",
+			"!node_modules/.cache/**/*",
+			"!**/*.map"
+		],
+		"asarUnpack": [
+			"**/*.node",
+			".next/**",
+			"node_modules/next/**"
+		],
 		"directories": {
 			"buildResources": "build"
 		},
@@ -83,10 +91,16 @@
 		"mac": {
 			"category": "public.app-category.productivity",
 			"icon": "public/branding/icon.icns",
-			"target": ["dmg", "zip"]
+			"target": [
+				"dmg",
+				"zip"
+			]
 		},
 		"win": {
-			"target": ["nsis", "portable"],
+			"target": [
+				"nsis",
+				"portable"
+			],
 			"icon": "public/branding/favicon.ico",
 			"signAndEditExecutable": true
 		},
