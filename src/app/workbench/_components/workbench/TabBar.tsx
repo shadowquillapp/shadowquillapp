@@ -305,13 +305,13 @@ export function TabBar({
 									width: computedTabWidth ?? undefined,
 									height: 32,
 									background: isActive
-										? "var(--color-tab-active)"
+										? "var(--color-primary)"
 										: "var(--color-surface-variant)",
 									color: isActive
 										? "var(--color-on-primary)"
 										: "var(--color-on-surface)",
 									border: isActive
-										? "1px solid var(--color-tab-active)"
+										? "1px solid var(--color-primary)"
 										: "1px solid var(--color-outline)",
 									borderRadius: "8px 8px 0 0",
 									position: "relative",
@@ -320,8 +320,7 @@ export function TabBar({
 								}}
 								onMouseEnter={(e) => {
 									if (!isActive && !isDragging) {
-										e.currentTarget.style.borderColor =
-											"var(--color-tab-active)";
+										e.currentTarget.style.borderColor = "var(--color-primary)";
 									}
 								}}
 								onMouseLeave={(e) => {
@@ -476,7 +475,7 @@ export function TabBar({
 						if (!canAddTab) return;
 						if (embedded) {
 							e.currentTarget.style.background = "var(--color-surface-variant)";
-							e.currentTarget.style.borderColor = "var(--color-tab-active)";
+							e.currentTarget.style.borderColor = "var(--color-primary)";
 							e.currentTarget.style.color = "var(--color-on-surface)";
 						}
 					}}
