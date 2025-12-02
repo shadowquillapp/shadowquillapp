@@ -1,3 +1,10 @@
+## [0.2.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.2.0...v0.2.1) (2025-12-02)
+
+
+### Bug Fixes
+
+* dependency packages support prod builds ([e9e25df](https://github.com/shadowquillapp/shadowquillapp/commit/e9e25dfb42374f144a558c8ec2941086a35efdca))
+
 # [0.2.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.1.0...v0.2.0) (2025-12-02)
 
 
