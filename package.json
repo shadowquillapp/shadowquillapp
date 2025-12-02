@@ -1,6 +1,6 @@
 {
 	"name": "shadowquillapp",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"author": "ShadowQuill <info@shadowquill.org>",
 	"homepage": "https://shadowquill.org",
 	"description": "ShadowQuill",
@@ -23,10 +23,14 @@
 	},
 	"dependencies": {
 		"@heroicons/react": "^2.2.0",
+		"@tailwindcss/postcss": "^4.0.15",
+		"cross-env": "^7.0.3",
+		"electron": "^38.0.0",
 		"next": "^16.0.3",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"systeminformation": "^5.25.11"
+		"systeminformation": "^5.25.11",
+		"tailwindcss": "^4.0.15"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
@@ -36,7 +40,6 @@
 		"@semantic-release/github": "^12.0.2",
 		"@semantic-release/npm": "^13.1.2",
 		"@semantic-release/release-notes-generator": "^14.1.0",
-		"@tailwindcss/postcss": "^4.0.15",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/react": "^16.3.0",
 		"@testing-library/user-event": "^14.6.1",
@@ -46,12 +49,9 @@
 		"@types/react-dom": "^19.0.0",
 		"@vitest/coverage-v8": "^4.0.14",
 		"conventional-changelog-conventionalcommits": "^9.1.0",
-		"cross-env": "^7.0.3",
-		"electron": "^38.0.0",
 		"electron-builder": "^26.0.12",
 		"jsdom": "^26.1.0",
 		"semantic-release": "^25.0.2",
-		"tailwindcss": "^4.0.15",
 		"tsx": "^4.20.5",
 		"typescript": "^5.8.2",
 		"vitest": "^4.0.14"
@@ -59,16 +59,8 @@
 	"build": {
 		"appId": "com.shadowquill.app",
 		"productName": "ShadowQuill",
-		"files": [
-			"**/*",
-			"!node_modules/.cache/**/*",
-			"!**/*.map"
-		],
-		"asarUnpack": [
-			"**/*.node",
-			".next/**",
-			"node_modules/next/**"
-		],
+		"files": ["**/*", "!node_modules/.cache/**/*", "!**/*.map"],
+		"asarUnpack": ["**/*.node", ".next/**", "node_modules/next/**"],
 		"directories": {
 			"buildResources": "build"
 		},
@@ -78,16 +70,10 @@
 		"mac": {
 			"category": "public.app-category.productivity",
 			"icon": "public/branding/icon.icns",
-			"target": [
-				"dmg",
-				"zip"
-			]
+			"target": ["dmg", "zip"]
 		},
 		"win": {
-			"target": [
-				"nsis",
-				"portable"
-			],
+			"target": ["nsis", "portable"],
 			"icon": "public/branding/favicon.ico",
 			"signAndEditExecutable": true
 		},
