@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="public/icon.png" alt="ShadowQuill Logo" width="120" height="120">
+  <img src="https://shadowquill.org/images/logo-circle.png" alt="ShadowQuill Logo" width="120" height="120">
   
 # ShadowQuill
   
