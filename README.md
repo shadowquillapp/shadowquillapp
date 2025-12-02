@@ -8,15 +8,38 @@
   [![Website](https://img.shields.io/badge/Website-shadowquill.org-8b7cf6)](https://shadowquill.org)
   [![Stars](https://img.shields.io/github/stars/shadowquillapp/shadowquillapp)](https://github.com/shadowquillapp/shadowquillapp/stargazers)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+  [![npm](https://img.shields.io/npm/v/shadowquillapp)](https://www.npmjs.com/package/shadowquillapp)
 </div>
 
 ## Overview
 
 ShadowQuill is an AI-powered prompt editor and workbench designed to refine your AI workflow.
 
-​It transforms your natural language ideas into structured, high-quality prompts. Once optimized, simply copy your prompt and paste it into tools like ChatGPT, CoPilot, Gemini, Claude, and others.
+It transforms your natural language ideas into structured, high-quality prompts. Once optimized, simply copy your prompt and paste it into tools like ChatGPT, CoPilot, Gemini, Claude, and others.
 
-​Powered by Ollama and Gemma 3; ShadowQuill operates 100% offline, offering a completely local and free solution for AI enhanced prompt generation.
+Powered by Ollama and Gemma 3, ShadowQuill operates 100% offline, offering a completely local and free solution for AI-enhanced prompt generation.
+
+## Installation
+
+Install ShadowQuill using the official npm package:
+
+```bash
+npm i shadowquillapp
+```
+
+Navigate to the installed package directory:
+
+```bash
+cd node_modules/shadowquillapp
+```
+
+Start the application:
+
+```bash
+npm start
+```
+
+> **Note:** Make sure you have [Ollama installed](#1-prerequisites) and at least one Gemma 3 model downloaded before starting ShadowQuill.
 
 ## Tech Stack
 
@@ -36,7 +59,7 @@ ShadowQuill is an AI-powered prompt editor and workbench designed to refine your
 - **8 Tabs** - Work on multiple prompts simultaneously with independent presets and history
 - **Version History** - Track prompt iterations with a visual timeline
 - **7 Task Types** - General, Coding, Writing, Marketing, Research, Image, Video
-- **Gemma 3 Only** - Supports gemma3:4b, gemma3:12b, gemma3:27b with auto-detection
+- **Gemma 3 Support** - Supports gemma3:4b, gemma3:12b, gemma3:27b with auto-detection
 - **Preset Studio** - Create reusable configurations with live preview and AI examples
 - **4 Themes** - Default, Dark Purple, Dark, Light
 
@@ -50,7 +73,7 @@ ShadowQuill is an AI-powered prompt editor and workbench designed to refine your
 
 Download from [ollama.com](https://ollama.com)
 
-Ollama runs in the background as a service. Using it's CLI or Chat GUI, download one of the supported Gemma 3 models.
+Ollama runs in the background as a service. Using its CLI or Chat GUI, download one of the supported Gemma 3 models.
 
 #### Download a Gemma 3 Model
 
@@ -60,31 +83,22 @@ Ollama runs in the background as a service. Using it's CLI or Chat GUI, download
 - `gemma3:12b` - Higher quality (16GB+ RAM)
 - `gemma3:27b` - Best quality (32GB+ RAM and RTX GPU)
 
-**OPTION 1: download via command line**
+**Option 1: Download via command line**
 
 ```bash
-ollama pull gemma3:4b # Gemma 3 4B Model
+# Choose one based on your system resources
+ollama pull gemma3:4b   # Fast, balanced (8GB+ RAM)
+ollama pull gemma3:12b  # Higher quality (16GB+ RAM)
+ollama pull gemma3:27b  # Best quality (32GB+ RAM and RTX GPU)
 ```
 
-```bash
-ollama pull gemma3:12b # Gemma 3 12B Model
-```
+**Option 2: Download via official Ollama chat GUI**
 
-```bash
-ollama pull gemma3:27b # Gemma 3 27B Model
-```
+1. Open the Ollama desktop app
+2. Start chatting with a model name (e.g., `gemma3:4b`)
+3. Ollama will prompt you to download it automatically
 
-**OPTION 2: download via official Ollama chat GUI**
-
-1. Open Ollama desktop app
-2. Start chatting with a model name
-3. Ollama will prompt you to download it
-
-### 2. <ins>Install ShadowQuill</ins>
-
-Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Releases](https://github.com/shadowquillapp/shadowquillapp/releases)
-
-### 3. <ins>Usage</ins>
+### 2. <ins>Usage</ins>
 
 #### Prompt Workbench
 
@@ -110,46 +124,51 @@ Download installers: [shadowquill.org](https://shadowquill.org) or [GitHub Relea
 - **Apply to Workbench** - Start new session with preset
 - **Duplicate & Delete** - Clone or remove presets
 
-**Pre Packed with 9 ShadowQuill Default Presets**
+**Pre-packed with 9 ShadowQuill Default Presets**
 
 `Daily Helper` • `Brainstormer` • `Summary Ultra` • `Code Architect` • `Bug Fixer` • `Code Explainer` • `Email Pro` • `Deep Research` • `Social Media`
 
-## Development `npm` Commands
+## Development
+
+### Prerequisites
+
+- Node.js @ latest
+- npm @ latest
+- React @ latest
+- Electrom @ latest
+- Next.js @ latest
+- Tailwind CSS @ latest
+- Biome linting @ latest
+
+### Available Commands
 
 ```bash
+# Setup
 npm install              # Install dependencies
-```
 
-```bash
-npm run typecheck        # Type check
-```
+# Development
+npm run dev              # Start ShadowQuill in development mode
+npm run typecheck        # Run TypeScript type checking
 
-```bash
-npm run check            # biome check
-```
+# Testing
+npm run test             # Run tests
+npm run test:coverage    # Run tests with coverage report
 
-```bash
-npm run check:write      # audit & fix biome lint errors (SAFE changes)
-```
+# Code Quality
+npm run check            # Run Biome linter
+npm run check:write      # Fix Biome lint errors (safe changes only)
 
-```bash
-npm run test             # Run tests with all output
-```
-
-```bash
-npm run test:coverage    # With coverage report
-```
-
-```bash
-npm run dev              # Open ShadowQuill app in dev mode
+# Production
+npm run build            # Build for production
+npm start                # Start ShadowQuill in production mode (requires `npm run build` first)
 ```
 
 ## Value Sensitive Design (VSD) Philosophy
 
-- **Offline** - Fully operational without internet connection after initial download.
-- **No Telemetry** - Zero tracking
-- **Local Storage** - All data saved to user local userdata directory
-- **Lean Package Build** - Only 5 dependencies and 18 dev dependencies (23 total)
+- **Offline** - Fully operational without internet connection after initial download
+- **No Telemetry** - Zero tracking or data collection
+- **Local Storage** - All data saved to your local userdata directory
+- **Lean Package** - Minimal dependencies for a lightweight experience
 
 ## Contributing
 
