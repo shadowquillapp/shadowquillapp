@@ -45,6 +45,7 @@
 		"@types/react": "^19.1.11",
 		"@types/react-dom": "^19.0.0",
 		"@vitest/coverage-v8": "^4.0.14",
+		"conventional-changelog-conventionalcommits": "^9.1.0",
 		"cross-env": "^7.0.3",
 		"electron": "^38.0.0",
 		"electron-builder": "^26.0.12",
@@ -58,16 +59,8 @@
 	"build": {
 		"appId": "com.shadowquill.app",
 		"productName": "ShadowQuill",
-		"files": [
-			"**/*",
-			"!node_modules/.cache/**/*",
-			"!**/*.map"
-		],
-		"asarUnpack": [
-			"**/*.node",
-			".next/**",
-			"node_modules/next/**"
-		],
+		"files": ["**/*", "!node_modules/.cache/**/*", "!**/*.map"],
+		"asarUnpack": ["**/*.node", ".next/**", "node_modules/next/**"],
 		"directories": {
 			"buildResources": "build"
 		},
@@ -77,16 +70,10 @@
 		"mac": {
 			"category": "public.app-category.productivity",
 			"icon": "public/branding/icon.icns",
-			"target": [
-				"dmg",
-				"zip"
-			]
+			"target": ["dmg", "zip"]
 		},
 		"win": {
-			"target": [
-				"nsis",
-				"portable"
-			],
+			"target": ["nsis", "portable"],
 			"icon": "public/branding/favicon.ico",
 			"signAndEditExecutable": true
 		},
