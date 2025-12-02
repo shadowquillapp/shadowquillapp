@@ -29,10 +29,10 @@ const config = {
 						// If it's a regex or string, convert to function
 						const originalValue = originalExclude;
 						rule.exclude = (modulePath) => {
-							// Allow shadowquill package
+							// Allow shadowquillapp package
 							if (
 								typeof modulePath === "string" &&
-								modulePath.includes("node_modules/shadowquill")
+								modulePath.includes("node_modules/shadowquillapp")
 							) {
 								return false;
 							}
@@ -59,10 +59,10 @@ const config = {
 					} else {
 						// It's already a function, wrap it
 						rule.exclude = (modulePath, ...args) => {
-							// Allow shadowquill package
+							// Allow shadowquillapp package
 							if (
 								typeof modulePath === "string" &&
-								modulePath.includes("node_modules/shadowquill")
+								modulePath.includes("node_modules/shadowquillapp")
 							) {
 								return false;
 							}
