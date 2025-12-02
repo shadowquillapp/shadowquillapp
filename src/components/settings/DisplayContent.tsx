@@ -46,7 +46,7 @@ export default function DisplayContent() {
 	} | null>(null);
 	const [currentTheme, setCurrentTheme] = React.useState<
 		"earth" | "purpledark" | "dark" | "light"
-	>("earth");
+	>("dark");
 
 	React.useEffect(() => {
 		const api = (window as WindowWithShadowQuill).shadowquill;
@@ -164,7 +164,7 @@ export default function DisplayContent() {
 	const percent = Math.round(zoomFactor * 100);
 
 	const themeOptions = [
-		{ value: "earth" as const, label: "Default", icon: "palette" },
+		{ value: "earth" as const, label: "Earth", icon: "palette" },
 		{ value: "purpledark" as const, label: "Dark Purple", icon: "sparkles" },
 		{ value: "dark" as const, label: "Dark", icon: "moon" },
 		{ value: "light" as const, label: "Light", icon: "sun" },
@@ -399,7 +399,7 @@ export default function DisplayContent() {
 					<p className="ollama-panel__eyebrow">Themes</p>
 					<ul>
 						<li>Choose from 4 color schemes</li>
-						<li>Default (Earth) - warm, natural colors</li>
+						<li>Earth - warm, natural colors</li>
 						<li>Dark Purple - rich purple dark theme</li>
 						<li>Dark - pure dark theme</li>
 						<li>Light - bright light theme</li>

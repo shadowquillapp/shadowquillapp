@@ -48,7 +48,7 @@ describe("DisplayContent", () => {
 		it("should render theme selection buttons", () => {
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 			render(<DisplayContent />);
-			expect(screen.getByLabelText("Select Default theme")).toBeInTheDocument();
+			expect(screen.getByLabelText("Select Earth theme")).toBeInTheDocument();
 			expect(
 				screen.getByLabelText("Select Dark Purple theme"),
 			).toBeInTheDocument();
@@ -176,7 +176,7 @@ describe("DisplayContent", () => {
 			render(<DisplayContent />);
 
 			// Verify all theme options are rendered
-			expect(screen.getByLabelText("Select Default theme")).toBeInTheDocument();
+			expect(screen.getByLabelText("Select Earth theme")).toBeInTheDocument();
 			expect(
 				screen.getByLabelText("Select Dark Purple theme"),
 			).toBeInTheDocument();
@@ -478,7 +478,7 @@ describe("DisplayContent", () => {
 
 			render(<DisplayContent />);
 
-			await user.click(screen.getByLabelText("Select Default theme"));
+			await user.click(screen.getByLabelText("Select Earth theme"));
 
 			expect(document.documentElement.getAttribute("data-theme")).toBe("");
 		});
