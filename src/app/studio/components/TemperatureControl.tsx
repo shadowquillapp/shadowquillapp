@@ -10,10 +10,10 @@ interface TemperatureControlProps {
 
 /** Temperature preset suggestions */
 const PRESETS = [
-	{ value: 0.1, label: "Code", description: "Deterministic, factual" },
-	{ value: 0.4, label: "Write", description: "Consistent but varied" },
-	{ value: 0.7, label: "Chat", description: "Natural conversation" },
-	{ value: 0.9, label: "Create", description: "Highly creative" },
+	{ value: 0.1, label: "Precise", description: "Deterministic, factual" },
+	{ value: 0.4, label: "Consistent", description: "Consistent but varied" },
+	{ value: 0.7, label: "Creative", description: "Natural conversation" },
+	{ value: 0.9, label: "Wild", description: "Highly creative" },
 ] as const;
 
 export default function TemperatureControl({
