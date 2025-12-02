@@ -36,7 +36,11 @@ try {
 	};
 
 	console.log("Building Next.js app (electron build phase)...");
-	execSync("next build", { stdio: "inherit", env, cwd: process.cwd() });
+	execSync("next build --webpack", {
+		stdio: "inherit",
+		env,
+		cwd: process.cwd(),
+	});
 	console.log(
 		"Next.js build finished. Listing .next root contents for diagnostics:",
 	);
