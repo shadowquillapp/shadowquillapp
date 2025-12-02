@@ -30,6 +30,12 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^1.9.4",
+		"@semantic-release/changelog": "^6.0.3",
+		"@semantic-release/commit-analyzer": "^13.0.1",
+		"@semantic-release/git": "^10.0.1",
+		"@semantic-release/github": "^12.0.2",
+		"@semantic-release/npm": "^13.1.2",
+		"@semantic-release/release-notes-generator": "^14.1.0",
 		"@tailwindcss/postcss": "^4.0.15",
 		"@testing-library/jest-dom": "^6.6.3",
 		"@testing-library/react": "^16.3.0",
@@ -43,6 +49,7 @@
 		"electron": "^38.0.0",
 		"electron-builder": "^26.0.12",
 		"jsdom": "^26.1.0",
+		"semantic-release": "^25.0.2",
 		"tailwindcss": "^4.0.15",
 		"tsx": "^4.20.5",
 		"typescript": "^5.8.2",
@@ -51,8 +58,16 @@
 	"build": {
 		"appId": "com.shadowquill.app",
 		"productName": "ShadowQuill",
-		"files": ["**/*", "!node_modules/.cache/**/*", "!**/*.map"],
-		"asarUnpack": ["**/*.node", ".next/**", "node_modules/next/**"],
+		"files": [
+			"**/*",
+			"!node_modules/.cache/**/*",
+			"!**/*.map"
+		],
+		"asarUnpack": [
+			"**/*.node",
+			".next/**",
+			"node_modules/next/**"
+		],
 		"directories": {
 			"buildResources": "build"
 		},
@@ -62,10 +77,16 @@
 		"mac": {
 			"category": "public.app-category.productivity",
 			"icon": "public/branding/icon.icns",
-			"target": ["dmg", "zip"]
+			"target": [
+				"dmg",
+				"zip"
+			]
 		},
 		"win": {
-			"target": ["nsis", "portable"],
+			"target": [
+				"nsis",
+				"portable"
+			],
 			"icon": "public/branding/favicon.ico",
 			"signAndEditExecutable": true
 		},
