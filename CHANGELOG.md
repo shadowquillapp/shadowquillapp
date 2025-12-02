@@ -1,3 +1,10 @@
+# [0.3.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.2.2...v0.3.0) (2025-12-02)
+
+
+### Features
+
+* tabination color theme follows selected theme of user ([085fbd0](https://github.com/shadowquillapp/shadowquillapp/commit/085fbd080ff54ec626f31b242ac0b869c8bb0b25))
+
 ## [0.2.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.2.1...v0.2.2) (2025-12-02)
 
 
