@@ -1,3 +1,10 @@
+## [0.3.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.3.1...v0.3.2) (2025-12-03)
+
+
+### Bug Fixes
+
+* npm audited packages ([ea01c03](https://github.com/shadowquillapp/shadowquillapp/commit/ea01c03948052b76e86305e68e9fd47731bad35d))
+
 ## [0.3.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.3.0...v0.3.1) (2025-12-02)
 
 
