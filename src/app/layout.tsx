@@ -10,8 +10,7 @@ import Titlebar from "@/components/Titlebar";
 
 export const metadata: Metadata = {
 	title: "ShadowQuill",
-	description: "ShadowQuill – AI assistant for building prompts",
-	icons: [{ rel: "icon", url: "public/branding/favicon.ico" }],
+	description: "ShadowQuill | AI assistant for building prompts",
 };
 
 const geist = Geist({
