@@ -21,8 +21,6 @@
 	"scripts": {
 		"build": "npm run build:electron",
 		"build:electron": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SUPPRESS_SUPPORT_NOTES=1 node electron/build-electron.cjs",
-		"dist:electron": "npm run build:electron && cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SUPPRESS_SUPPORT_NOTES=1 NEXT_PUBLIC_ELECTRON=1 electron-builder --win --mac",
-		"dist:win": "npm run build:electron && cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SUPPRESS_SUPPORT_NOTES=1 NEXT_PUBLIC_ELECTRON=1 electron-builder --win",
 		"check": "biome check --config-path=config/biome.jsonc .",
 		"check:unsafe": "biome check --config-path=config/biome.jsonc --write --unsafe .",
 		"check:write": "biome check --config-path=config/biome.jsonc --write .",
@@ -38,7 +36,6 @@
 		"@heroicons/react": "^2.2.0",
 		"@tailwindcss/postcss": "^4.0.15",
 		"cross-env": "^7.0.3",
-		"electron": "^38.0.0",
 		"next": "^16.0.3",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
@@ -65,50 +62,38 @@
 		"electron-builder": "^26.0.12",
 		"jsdom": "^26.1.0",
 		"semantic-release": "^25.0.2",
+		"electron": "^38.0.0",
 		"tsx": "^4.20.5",
 		"typescript": "^5.8.2",
 		"vitest": "^4.0.14"
 	},
 	"build": {
-		"appId": "com.shadowquill.app",
+		"appId": "shadowquillapp",
 		"productName": "ShadowQuill",
 		"files": [
 			"**/*",
+			"!**/node_modules/*/{CHANGELOG.md,README.md,README,readme.md,readme}",
+			"!**/node_modules/*/{test,__tests__,tests,powered-test,example,examples}",
+			"!**/node_modules/*.d.ts",
+			"!**/node_modules/.bin",
+			"!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+			"!.editorconfig",
+			"!**/._*",
+			"!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS,.gitignore,.gitattributes}",
+			"!**/{__pycache__,thumbs.db,.flowconfig,.idea,.vs,.nyc_output}",
+			"!**/{appveyor.yml,.travis.yml,circle.yml}",
+			"!**/{npm-debug.log,yarn.lock,.yarn-integrity,.yarn-metadata.json}",
 			"!node_modules/.cache/**/*",
 			"!**/*.map"
 		],
+		"asar": true,
 		"asarUnpack": [
 			"**/*.node",
-			".next/**",
-			"node_modules/next/**"
+			".next/**/*",
+			"node_modules/next/**/*"
 		],
-		"directories": {
-			"buildResources": "build"
-		},
 		"extraMetadata": {
 			"main": "electron/main.cjs"
-		},
-		"mac": {
-			"category": "public.app-category.productivity",
-			"icon": "public/branding/icon.icns",
-			"target": [
-				"dmg",
-				"zip"
-			]
-		},
-		"win": {
-			"target": [
-				"nsis",
-				"portable"
-			],
-			"icon": "public/branding/favicon.ico",
-			"signAndEditExecutable": true
-		},
-		"nsis": {
-			"oneClick": false,
-			"allowToChangeInstallationDirectory": true,
-			"createDesktopShortcut": true,
-			"createStartMenuShortcut": true
 		}
 	},
 	"overrides": {
@@ -120,8 +105,8 @@
 			"@tailwindcss/postcss": {}
 		}
 	},
-	"packageManager": "npm@11.4.2",
+	"packageManager": "npm@11.6.2",
 	"engines": {
-		"node": ">=18.18.0"
+		"node": ">=25.2.1"
 	}
 }
