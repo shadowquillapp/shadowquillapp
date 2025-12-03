@@ -87,11 +87,7 @@
 			"!**/*.map"
 		],
 		"asar": true,
-		"asarUnpack": [
-			"**/*.node",
-			".next/**/*",
-			"node_modules/next/**/*"
-		],
+		"asarUnpack": ["**/*.node", ".next/**/*", "node_modules/next/**/*"],
 		"extraMetadata": {
 			"main": "electron/main.cjs"
 		}

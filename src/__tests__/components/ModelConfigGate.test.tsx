@@ -37,10 +37,14 @@ vi.mock("@/lib/presets", () => ({
 }));
 
 // Mock system-prompts
+const mockEnsureSystemPromptBuild = vi.fn();
+const mockResetSystemPromptBuild = vi.fn();
+const mockSetSystemPromptBuild = vi.fn();
+
 vi.mock("@/lib/system-prompts", () => ({
-	ensureSystemPromptBuild: vi.fn(),
-	resetSystemPromptBuild: vi.fn(),
-	setSystemPromptBuild: vi.fn(),
+	ensureSystemPromptBuild: () => mockEnsureSystemPromptBuild(),
+	resetSystemPromptBuild: () => mockResetSystemPromptBuild(),
+	setSystemPromptBuild: (prompt: string) => mockSetSystemPromptBuild(prompt),
 }));
 
 describe("ModelConfigGate", () => {
@@ -1772,15 +1776,8 @@ describe("ModelConfigGate", () => {
 	describe("System prompt editor interactions", () => {
 		it("should save system prompt when form submitted", async () => {
 			const user = userEvent.setup();
-			const { setSystemPromptBuild, ensureSystemPromptBuild } = await import(
-				"@/lib/system-prompts"
-			);
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Current prompt",
-			);
-			(setSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Updated prompt",
-			);
+			mockEnsureSystemPromptBuild.mockReturnValue("Current prompt");
+			mockSetSystemPromptBuild.mockReturnValue("Updated prompt");
 
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
@@ -1816,15 +1813,8 @@ describe("ModelConfigGate", () => {
 
 		it("should restore default prompt when confirmed", async () => {
 			const user = userEvent.setup();
-			const { resetSystemPromptBuild, ensureSystemPromptBuild } = await import(
-				"@/lib/system-prompts"
-			);
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Current prompt",
-			);
-			(resetSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Default prompt",
-			);
+			mockEnsureSystemPromptBuild.mockReturnValue("Current prompt");
+			mockResetSystemPromptBuild.mockReturnValue("Default prompt");
 			mockConfirm.mockResolvedValue(true);
 
 			mockReadLocalModelConfig.mockReturnValue({
@@ -1865,12 +1855,7 @@ describe("ModelConfigGate", () => {
 
 		it("should not restore default when cancelled", async () => {
 			const user = userEvent.setup();
-			const { resetSystemPromptBuild, ensureSystemPromptBuild } = await import(
-				"@/lib/system-prompts"
-			);
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Current prompt",
-			);
+			mockEnsureSystemPromptBuild.mockReturnValue("Current prompt");
 			mockConfirm.mockResolvedValue(false);
 
 			mockReadLocalModelConfig.mockReturnValue({
@@ -1905,16 +1890,13 @@ describe("ModelConfigGate", () => {
 				await waitFor(() => {
 					expect(mockConfirm).toHaveBeenCalled();
 				});
-				expect(resetSystemPromptBuild).not.toHaveBeenCalled();
+				expect(mockResetSystemPromptBuild).not.toHaveBeenCalled();
 			}
 		});
 
 		it("should close modal when cancel button clicked", async () => {
 			const user = userEvent.setup();
-			const { ensureSystemPromptBuild } = await import("@/lib/system-prompts");
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Current prompt",
-			);
+			mockEnsureSystemPromptBuild.mockReturnValue("Current prompt");
 
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
@@ -1948,10 +1930,7 @@ describe("ModelConfigGate", () => {
 
 		it("should close modal on backdrop Escape key", async () => {
 			const user = userEvent.setup();
-			const { ensureSystemPromptBuild } = await import("@/lib/system-prompts");
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Current prompt",
-			);
+			mockEnsureSystemPromptBuild.mockReturnValue("Current prompt");
 
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
@@ -3140,17 +3119,10 @@ describe("ModelConfigGate", () => {
 	describe("System prompt editor error handling", () => {
 		it("should handle setSystemPromptBuild throwing error", async () => {
 			const user = userEvent.setup();
-			const { setSystemPromptBuild, ensureSystemPromptBuild } = await import(
-				"@/lib/system-prompts"
-			);
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Current prompt",
-			);
-			(setSystemPromptBuild as ReturnType<typeof vi.fn>).mockImplementation(
-				() => {
-					throw new Error("Failed to save prompt");
-				},
-			);
+			mockEnsureSystemPromptBuild.mockReturnValue("Current prompt");
+			mockSetSystemPromptBuild.mockImplementation(() => {
+				throw new Error("Failed to save prompt");
+			});
 
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
@@ -3193,17 +3165,10 @@ describe("ModelConfigGate", () => {
 
 		it("should handle resetSystemPromptBuild throwing error", async () => {
 			const user = userEvent.setup();
-			const { resetSystemPromptBuild, ensureSystemPromptBuild } = await import(
-				"@/lib/system-prompts"
-			);
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Current prompt",
-			);
-			(resetSystemPromptBuild as ReturnType<typeof vi.fn>).mockImplementation(
-				() => {
-					throw new Error("Failed to reset prompt");
-				},
-			);
+			mockEnsureSystemPromptBuild.mockReturnValue("Current prompt");
+			mockResetSystemPromptBuild.mockImplementation(() => {
+				throw new Error("Failed to reset prompt");
+			});
 			mockConfirm.mockResolvedValue(true);
 
 			mockReadLocalModelConfig.mockReturnValue({
@@ -3248,12 +3213,9 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should handle ensureSystemPromptBuild throwing error on load", async () => {
-			const { ensureSystemPromptBuild } = await import("@/lib/system-prompts");
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockImplementation(
-				() => {
-					throw new Error("Failed to load");
-				},
-			);
+			mockEnsureSystemPromptBuild.mockImplementation(() => {
+				throw new Error("Failed to load");
+			});
 
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
@@ -3363,8 +3325,7 @@ describe("ModelConfigGate", () => {
 	describe("System prompt textarea interactions", () => {
 		it("should update prompt value when typing in textarea", async () => {
 			const user = userEvent.setup();
-			const { ensureSystemPromptBuild } = await import("@/lib/system-prompts");
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue("");
+			mockEnsureSystemPromptBuild.mockReturnValue("");
 
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
@@ -3406,10 +3367,7 @@ describe("ModelConfigGate", () => {
 	describe("Modal content keyboard interactions", () => {
 		it("should stop keyboard event propagation in system prompt modal content", async () => {
 			const user = userEvent.setup();
-			const { ensureSystemPromptBuild } = await import("@/lib/system-prompts");
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Initial prompt",
-			);
+			mockEnsureSystemPromptBuild.mockReturnValue("Initial prompt");
 
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
@@ -3505,10 +3463,7 @@ describe("ModelConfigGate", () => {
 	describe("System prompt modal close interactions", () => {
 		it("should close system prompt modal when close button in header is clicked", async () => {
 			const user = userEvent.setup();
-			const { ensureSystemPromptBuild } = await import("@/lib/system-prompts");
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Test prompt",
-			);
+			mockEnsureSystemPromptBuild.mockReturnValue("Test prompt");
 
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
@@ -3552,10 +3507,7 @@ describe("ModelConfigGate", () => {
 
 		it("should close system prompt modal when Escape is pressed on backdrop", async () => {
 			const user = userEvent.setup();
-			const { ensureSystemPromptBuild } = await import("@/lib/system-prompts");
-			(ensureSystemPromptBuild as ReturnType<typeof vi.fn>).mockReturnValue(
-				"Test prompt",
-			);
+			mockEnsureSystemPromptBuild.mockReturnValue("Test prompt");
 
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
