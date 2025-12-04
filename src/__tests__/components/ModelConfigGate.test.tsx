@@ -37,14 +37,20 @@ vi.mock("@/lib/presets", () => ({
 }));
 
 // Mock system-prompts
-const mockEnsureSystemPromptBuild = vi.fn();
-const mockResetSystemPromptBuild = vi.fn();
-const mockSetSystemPromptBuild = vi.fn();
+const {
+	mockEnsureSystemPromptBuild,
+	mockResetSystemPromptBuild,
+	mockSetSystemPromptBuild,
+} = vi.hoisted(() => ({
+	mockEnsureSystemPromptBuild: vi.fn(),
+	mockResetSystemPromptBuild: vi.fn(),
+	mockSetSystemPromptBuild: vi.fn(),
+}));
 
 vi.mock("@/lib/system-prompts", () => ({
-	ensureSystemPromptBuild: () => mockEnsureSystemPromptBuild(),
-	resetSystemPromptBuild: () => mockResetSystemPromptBuild(),
-	setSystemPromptBuild: (prompt: string) => mockSetSystemPromptBuild(prompt),
+	ensureSystemPromptBuild: mockEnsureSystemPromptBuild,
+	resetSystemPromptBuild: mockResetSystemPromptBuild,
+	setSystemPromptBuild: mockSetSystemPromptBuild,
 }));
 
 describe("ModelConfigGate", () => {
