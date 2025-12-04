@@ -1,116 +1,119 @@
-/**
- * ==========================================================================
- * COLOR VARIABLES
- * ==========================================================================
- *
- * Central color system for the application. All color values are defined
- * here to ensure consistency across the entire application.
- *
- * NAMING CONVENTION:
- * - Semantic colors: --color-{purpose} (e.g., --color-surface, --color-primary)
- * - Palette colors: --{category}a{shade} (e.g., --primarya0, --surfacea10)
- *
- * USAGE:
- * - Use semantic colors for component styling
- * - Use palette colors for fine-tuned adjustments
- *
- * NOTE: These are the default (earth theme) values. Theme overrides are
- * defined in the themes/ directory.
- * ==========================================================================
- */
-
 :root {
 	/* ========================================
-	 * SEMANTIC COLORS
-	 * Core colors used throughout the application
+	 * SURFACE COLORS (Neutral Luxury Charcoal)
 	 * ======================================== */
 
-	/* Surface colors - backgrounds */
-	--color-surface: #1a1a1a;
-	--color-surface-variant: #21252b;
-	--color-outline: #2f3a44;
+	/* Deep luxury charcoal (not blue, not brown) */
+	--color-surface: #0f0f0f;
 
-	/* Text colors on surfaces */
-	--color-on-surface: #eee8d5;
-	--color-on-surface-variant: #b8a882;
+	/* Slightly warm charcoal for panels */
+	--color-surface-variant: #1a1a19;
 
-	/* Primary action colors */
-	--color-primary: #6d5a3d;
-	--color-primary-variant: #543d22;
-	--color-on-primary: #eee8d5;
-
-	/* Save/success action colors */
-	--color-save: #5a8a55;
-	--color-save-variant: #3d6639;
-	--color-on-save: #eee8d5;
-
-	/* Attention/warning colors */
-	--color-attention: #c89850;
-	--color-attention-variant: #9a7338;
-	--color-on-attention: #1a1a1a;
-
-	/* Destructive/error colors */
-	--color-destructive: #c0534d;
-	--color-destructive-variant: #9f3d37;
-	--color-on-destructive: #f9f2f2;
-
-	/* Tab state colors */
-	--color-tab-active: #4a7c6f;
-	--color-tab-active-variant: #3a6359;
-
-	/* Special UI colors */
-	--color-titlebar-background: #3d4958;
-	--workbench-composer-background: #21252bf3;
-
-	/* Elevation colors */
-	--color-elevation-1: #0000003d;
-	--color-elevation-2: #00000059;
+	/* Neutral-warm outline, not stark */
+	--color-outline: #2e2d2b;
 
 	/* ========================================
-	 * COLOR PALETTE
-	 * Extended palette for fine-tuned styling
+	 * TYPOGRAPHY (Warm Soft Whites)
 	 * ======================================== */
 
-	/* Base dark/light anchors */
-	--darka0: #1a1a1a;
-	--lighta0: #eee8d5;
+	/* Soft ivory — luxurious, not clinical white */
+	--color-on-surface: #e8e4dc;
 
-	/* Primary palette */
-	--primarya0: #6d5a3d;
-	--primarya10: #543d22;
-	--primarya20: #4a3520;
-	--primarya30: #8a7050;
-	--primarya40: #a38968;
-	--primarya50: #eee8d5;
+	/* Warm stone gray for secondary */
+	--color-on-surface-variant: #b9b4ab;
 
-	/* Accent color */
-	--accenta0: #543d22;
+	/* ========================================
+	 * PRIMARY ACCENT (Champagne Gold)
+	 * Low-saturation metallic warmth
+	 * ======================================== */
 
-	/* Surface palette */
-	--surfacea0: #1a1a1a;
-	--surfacea10: #21252b;
-	--surfacea20: #192226;
-	--surfacea30: #15130b;
-	--surfacea40: #2f3a44;
-	--surfacea50: #eee8d5;
+	--color-primary: #c7b083; /* Champagne Gold */
+	--color-primary-variant: #a38f6a; /* Deeper champagne */
+	--color-on-primary: #0d0d0d; /* Dark for contrast */
 
-	/* Surface tonal palette */
-	--surfacetonala0: #1a1a1a;
-	--surfacetonala10: #21252b;
-	--surfacetonala20: #192226;
-	--surfacetonala30: #15130b;
-	--surfacetonala40: #192226;
-	--surfacetonala50: #eee8d5;
+	/* ========================================
+	 * STATUS COLORS (Desaturated Luxury Tones)
+	 * ======================================== */
+
+	/* Success: muted olive-sage — elegant, not green neon */
+	--color-save: #8aa27a;
+	--color-save-variant: #6f8663;
+	--color-on-save: #0d0d0d;
+
+	/* Warning: muted antique gold */
+	--color-attention: #d1b46a;
+	--color-attention-variant: #b79c52;
+	--color-on-attention: #0d0d0d;
+
+	/* Error: softened garnet, not bright red */
+	--color-destructive: #b56f67;
+	--color-destructive-variant: #98564f;
+	--color-on-destructive: #0d0d0d;
+
+	/* Tabs use the champagne gold accent */
+	--color-tab-active: var(--color-primary);
+	--color-tab-active-variant: var(--color-primary-variant);
+
+	/* ========================================
+	 * SPECIAL UI COLORS
+	 * ======================================== */
+
+	/* Titlebar — deep walnut-charcoal */
+	--color-titlebar-background: #16130f;
+
+	/* Composer — lightly recessed charcoal */
+	--workbench-composer-background: #0b0b0b;
+
+	/* ========================================
+	 * ELEVATION / SHADOWS
+	 * ======================================== */
+
+	--color-elevation-1: #00000055;
+	--color-elevation-2: #00000078;
+
+	/* ========================================
+	 * PALETTE SYSTEM (Luxury Earth Tones)
+	 * ======================================== */
+
+	/* Base anchors */
+	--darka0: #0d0d0d;
+	--lighta0: #e8e4dc;
+	--accenta0: #c7b083; /* Champagne */
+
+	/* Primary palette (champagne → dark walnut gold) */
+	--primarya0: #c7b083;
+	--primarya10: #a38f6a;
+	--primarya20: #8a7757;
+	--primarya30: #dfceb1;
+	--primarya40: #f1e7d3;
+	--primarya50: #faf7f1;
+
+	/* Surface palette (charcoal + warm stone) */
+	--surfacea0: #0d0d0d;
+	--surfacea10: #1a1a19;
+	--surfacea20: #2e2d2b;
+	--surfacea30: #3c3b39;
+	--surfacea40: #4d4c49;
+	--surfacea50: #e8e4dc;
+
+	/* Tonal palette */
+	--surfacetonala0: #0d0d0d;
+	--surfacetonala10: #1a1a19;
+	--surfacetonala20: #2e2d2b;
+	--surfacetonala30: #3c3b39;
+	--surfacetonala40: #4d4c49;
+	--surfacetonala50: #e8e4dc;
 
 	/* ========================================
 	 * COMPONENT COLORS
-	 * Semantic colors for specific components
 	 * ======================================== */
 
-	--buttonbg: #6d5a3d;
-	--buttontext: #eee8d5;
-	--dropdownbg: #21252b;
-	--cardbg: #21252b;
-	--sliderbg: #3a3f48;
+	--buttonbg: var(--color-primary);
+	--buttontext: var(--color-on-primary);
+
+	--dropdownbg: #1a1a19;
+	--cardbg: var(--color-surface-variant);
+	--sliderbg: #2a2927;
+
 	--shadowcolor: #000000b3;
 }

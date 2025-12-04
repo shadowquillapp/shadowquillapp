@@ -1,5 +1,5 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-	LRUCache,
 	clearAllCaches,
 	clearSessionCache,
 	createPromptCacheKey,
@@ -7,9 +7,9 @@ import {
 	getPromptCache,
 	getTemplateCache,
 	hashString,
+	LRUCache,
 	saveToSessionCache,
 } from "@/lib/cache";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("LRUCache", () => {
 	describe("basic operations", () => {
@@ -598,7 +598,8 @@ describe("LRUCache edge cases", () => {
 					[Symbol.iterator]: function () {
 						return this;
 					},
-				} as unknown as IterableIterator<string>;
+					[Symbol.dispose]: () => {},
+				} as unknown as MapIterator<string>;
 			}
 			return originalKeys();
 		};

@@ -1,9 +1,9 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock the cache module
 vi.mock("@/lib/cache", () => ({
 	createPromptCacheKey: vi.fn(
-		(input, taskType, options) => `cache-key-${input}-${taskType}`,
+		(input, taskType, _options) => `cache-key-${input}-${taskType}`,
 	),
 	getPromptCache: vi.fn(() => ({
 		get: vi.fn(),
@@ -20,7 +20,6 @@ vi.mock("@/lib/system-prompts", () => ({
 }));
 
 import {
-	createPromptCacheKey,
 	getFromSessionCache,
 	getPromptCache,
 	saveToSessionCache,

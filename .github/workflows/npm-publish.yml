@@ -24,11 +24,14 @@ jobs:
         with:
           node-version: '25'
 
+      - name: Enable corepack
+        run: corepack enable
+
       - name: Install dependencies
-        run: npm ci
+        run: pnpm install --frozen-lockfile
 
       - name: Build application
-        run: npm run build:electron
+        run: pnpm run build:electron
 
       - name: Configure Git
         run: |

@@ -1,7 +1,7 @@
-import Titlebar from "@/components/Titlebar";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import Titlebar from "@/components/Titlebar";
 
 // Mock the local-config module
 vi.mock("@/lib/local-config", () => ({

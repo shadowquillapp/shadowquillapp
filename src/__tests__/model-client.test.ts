@@ -1,5 +1,5 @@
-import { ModelError, NetworkError } from "@/lib/errors";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { ModelError, NetworkError } from "@/lib/errors";
 
 // Mock the local-config module
 vi.mock("@/lib/local-config", () => ({

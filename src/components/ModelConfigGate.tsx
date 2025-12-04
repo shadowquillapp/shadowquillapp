@@ -1,4 +1,6 @@
 "use client";
+import { XMarkIcon } from "@heroicons/react/24/solid";
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	listAvailableModels,
 	readLocalModelConfig as readLocalModelConfigClient,
@@ -12,8 +14,6 @@ import {
 	resetSystemPromptBuild,
 	setSystemPromptBuild,
 } from "@/lib/system-prompts";
-import { XMarkIcon } from "@heroicons/react/24/solid";
-import { useEffect, useRef, useState } from "react";
 import { useDialog } from "./DialogProvider";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
@@ -65,16 +65,18 @@ export default function ModelConfigGate({ children }: Props) {
 		baseUrl: string;
 		model: string;
 	} | null>(null);
-	const [error, setError] = useState<string | null>(null);
+	const [_error, setError] = useState<string | null>(null);
 	const [localPort, setLocalPort] = useState<string>("11434");
 	const [model, setModel] = useState<string>("");
-	const [provider] = useState<"ollama">("ollama");
+	const [_provider] = useState<"ollama">("ollama");
 	const [saving, setSaving] = useState(false);
 	const [loadedOnce, setLoadedOnce] = useState(false);
 	const [validating, setValidating] = useState(false);
 	const [connectionError, setConnectionError] = useState<string | null>(null);
 	const [previouslyConfigured, setPreviouslyConfigured] = useState(false);
-	const [defaultProvider, setDefaultProvider] = useState<"ollama" | null>(null);
+	const [_defaultProvider, setDefaultProvider] = useState<"ollama" | null>(
+		null,
+	);
 	const [hasValidDefault, setHasValidDefault] = useState(false);
 	const [showProviderSelection, setShowProviderSelection] = useState(false);
 	const [ollamaCheckPerformed, setOllamaCheckPerformed] = useState(false);
@@ -102,6 +104,94 @@ export default function ModelConfigGate({ children }: Props) {
 			setElectronMode(true);
 		}
 	}, [electronMode]);
+
+	const performOllamaDetection = useCallback(async () => {
+		try {
+			const controller = new AbortController();
+			const t = setTimeout(() => controller.abort(), 2500);
+			const res = await fetch("http://localhost:11434/api/tags", {
+				signal: controller.signal,
+			});
+			clearTimeout(t);
+			return res.ok;
+		} catch {
+			return false;
+		}
+	}, []);
+
+	const isValidPort = (port: string): boolean => {
+		return /^\d{2,5}$/.test((port || "").trim());
+	};
+
+	const normalizeToBaseUrl = useCallback((value?: string): string => {
+		const raw = (value || "").trim();
+		if (!raw) return "";
+		if (/^\d{1,5}$/.test(raw)) return `http://localhost:${raw}`;
+		if (/^localhost:\d{1,5}$/.test(raw)) return `http://${raw}`;
+		if (/^https?:\/\//.test(raw)) return raw.replace(/\/$/, "");
+		return raw;
+	}, []);
+
+	const checkOllamaInstalled = useCallback(async () => {
+		try {
+			const win = window as WindowWithShadowQuill;
+			if (!win.shadowquill?.checkOllamaInstalled) {
+				return;
+			}
+			const result = await win.shadowquill.checkOllamaInstalled();
+			setOllamaInstalled(result.installed);
+		} catch (e) {
+			console.error("Failed to check Ollama installation:", e);
+		}
+	}, []);
+
+	const testLocalConnection = useCallback(
+		async (baseUrlParam?: string, configuredModel?: string) => {
+			const url = normalizeToBaseUrl(baseUrlParam ?? localPort);
+			if (!url) return;
+
+			setTestingLocal(true);
+			setLocalTestResult(null);
+			const start = Date.now();
+
+			try {
+				const models = await listAvailableModels(url);
+				const duration = Date.now() - start;
+
+				const gemmaModels = models.filter(
+					(m) => m?.name && /^gemma3\b/i.test(m.name),
+				);
+				const gemmaModelNames = gemmaModels.map((m) => m.name);
+				setLocalTestResult({
+					success: true,
+					url,
+					models: gemmaModels,
+					duration,
+				});
+				setAvailableModels(gemmaModelNames);
+				setConnectionError(null);
+				if (configuredModel && gemmaModelNames.includes(configuredModel)) {
+					setModel(configuredModel as string);
+				} else if (gemmaModelNames.length > 0) {
+					setModel(gemmaModelNames[0] ?? "");
+				} else {
+					setModel("");
+				}
+			} catch {
+				const duration = Date.now() - start;
+				setLocalTestResult({
+					success: false,
+					url,
+					error: "Connection failed",
+					duration,
+				});
+				setAvailableModels([]);
+			} finally {
+				setTestingLocal(false);
+			}
+		},
+		[localPort, normalizeToBaseUrl],
+	);
 
 	useEffect(() => {
 		try {
@@ -167,7 +257,7 @@ export default function ModelConfigGate({ children }: Props) {
 		return () => {
 			cancelled = true;
 		};
-	}, [electronMode, loadedOnce]);
+	}, [electronMode, loadedOnce, checkOllamaInstalled, testLocalConnection]);
 
 	const gated =
 		electronMode &&
@@ -191,7 +281,12 @@ export default function ModelConfigGate({ children }: Props) {
 		return () => {
 			cancelled = true;
 		};
-	}, [showProviderSelection, previouslyConfigured, ollamaCheckPerformed]);
+	}, [
+		showProviderSelection,
+		previouslyConfigured,
+		ollamaCheckPerformed,
+		performOllamaDetection,
+	]);
 
 	const retryOllamaDetection = async () => {
 		setOllamaCheckPerformed(false);
@@ -204,46 +299,6 @@ export default function ModelConfigGate({ children }: Props) {
 			setShowOllamaMissingModal(true);
 		}
 		setOllamaCheckPerformed(true);
-	};
-
-	const performOllamaDetection = async () => {
-		try {
-			const controller = new AbortController();
-			const t = setTimeout(() => controller.abort(), 2500);
-			const res = await fetch("http://localhost:11434/api/tags", {
-				signal: controller.signal,
-			});
-			clearTimeout(t);
-			return res.ok;
-		} catch {
-			return false;
-		}
-	};
-
-	const isValidPort = (port: string): boolean => {
-		return /^\d{2,5}$/.test((port || "").trim());
-	};
-
-	const normalizeToBaseUrl = (value?: string): string => {
-		const raw = (value || "").trim();
-		if (!raw) return "";
-		if (/^\d{1,5}$/.test(raw)) return `http://localhost:${raw}`;
-		if (/^localhost:\d{1,5}$/.test(raw)) return `http://${raw}`;
-		if (/^https?:\/\//.test(raw)) return raw.replace(/\/$/, "");
-		return raw;
-	};
-
-	const checkOllamaInstalled = async () => {
-		try {
-			const win = window as WindowWithShadowQuill;
-			if (!win.shadowquill?.checkOllamaInstalled) {
-				return;
-			}
-			const result = await win.shadowquill.checkOllamaInstalled();
-			setOllamaInstalled(result.installed);
-		} catch (e) {
-			console.error("Failed to check Ollama installation:", e);
-		}
 	};
 
 	const handleOpenOrInstallOllama = async () => {
@@ -289,49 +344,6 @@ export default function ModelConfigGate({ children }: Props) {
 		}
 	};
 
-	const testLocalConnection = async (
-		baseUrlParam?: string,
-		configuredModel?: string,
-	) => {
-		const url = normalizeToBaseUrl(baseUrlParam ?? localPort);
-		if (!url) return;
-
-		setTestingLocal(true);
-		setLocalTestResult(null);
-		const start = Date.now();
-
-		try {
-			const models = await listAvailableModels(url);
-			const duration = Date.now() - start;
-
-			const gemmaModels = models.filter(
-				(m) => m?.name && /^gemma3\b/i.test(m.name),
-			);
-			const gemmaModelNames = gemmaModels.map((m) => m.name);
-			setLocalTestResult({ success: true, url, models: gemmaModels, duration });
-			setAvailableModels(gemmaModelNames);
-			setConnectionError(null);
-			if (configuredModel && gemmaModelNames.includes(configuredModel)) {
-				setModel(configuredModel as string);
-			} else if (gemmaModelNames.length > 0) {
-				setModel(gemmaModelNames[0] ?? "");
-			} else {
-				setModel("");
-			}
-		} catch {
-			const duration = Date.now() - start;
-			setLocalTestResult({
-				success: false,
-				url,
-				error: "Connection failed",
-				duration,
-			});
-			setAvailableModels([]);
-		} finally {
-			setTestingLocal(false);
-		}
-	};
-
 	return (
 		<SystemPromptEditorWrapper>
 			<DataLocationModalWrapper />
@@ -353,6 +365,7 @@ export default function ModelConfigGate({ children }: Props) {
 								className="modal-content"
 								onClick={(e) => e.stopPropagation()}
 								onKeyDown={(e) => e.stopPropagation()}
+								role="dialog"
 							>
 								<div className="modal-header">
 									<div className="modal-title">
@@ -375,6 +388,7 @@ export default function ModelConfigGate({ children }: Props) {
 								onClick={(e) => e.stopPropagation()}
 								onKeyDown={(e) => e.stopPropagation()}
 								style={{ overflow: "hidden" }}
+								role="dialog"
 							>
 								<div className="modal-header">
 									<div
@@ -513,7 +527,7 @@ export default function ModelConfigGate({ children }: Props) {
 															type="button"
 															onClick={() => testLocalConnection()}
 															disabled={testingLocal || !isValidPort(localPort)}
-															className={`md-btn md-btn--primary ollama-field__action${!localTestResult?.success ? " pulse-glow" : ""}`}
+															className={`md-btn md-btn--primary ollama-field__action${!localTestResult?.success ? "pulse-glow" : ""}`}
 															title="Check for available Ollama models"
 															aria-label="Check for available Ollama models"
 														>
@@ -675,7 +689,7 @@ export default function ModelConfigGate({ children }: Props) {
 														!model ||
 														model.trim() === ""
 													}
-													className={`md-btn md-btn--primary${localTestResult?.success ? " pulse-glow" : ""}`}
+													className={`md-btn md-btn--primary${localTestResult?.success ? "pulse-glow" : ""}`}
 													style={{
 														display: "flex",
 														alignItems: "center",
@@ -782,7 +796,9 @@ export default function ModelConfigGate({ children }: Props) {
 
 function SystemPromptEditorWrapper({
 	children,
-}: { children: React.ReactNode }) {
+}: {
+	children: React.ReactNode;
+}) {
 	const { confirm } = useDialog();
 	const [open, setOpen] = useState(false);
 	const [loading, setLoading] = useState(false);
@@ -830,20 +846,22 @@ function SystemPromptEditorWrapper({
 			{children}
 			{open && (
 				<div className="modal-container">
-					<div
+					<button
+						type="button"
 						className="modal-backdrop-blur"
 						onClick={() => setOpen(false)}
 						onKeyDown={(e) => {
-							if (e.key === "Escape") setOpen(false);
+							if (e.key === "Escape") {
+								setOpen(false);
+							}
 						}}
-						role="button"
-						tabIndex={0}
 						aria-label="Close modal"
 					/>
 					<div
 						className="modal-content modal-content--large"
 						onClick={(e) => e.stopPropagation()}
 						onKeyDown={(e) => e.stopPropagation()}
+						role="dialog"
 					>
 						<div className="modal-header">
 							<div className="modal-title">Edit System Prompt</div>
@@ -1046,20 +1064,22 @@ function DataLocationModalWrapper() {
 		<>
 			{open && (
 				<div className="modal-container">
-					<div
+					<button
+						type="button"
 						className="modal-backdrop-blur"
 						onClick={() => setOpen(false)}
 						onKeyDown={(e) => {
-							if (e.key === "Escape") setOpen(false);
+							if (e.key === "Escape") {
+								setOpen(false);
+							}
 						}}
-						role="button"
-						tabIndex={0}
 						aria-label="Close modal"
 					/>
 					<div
 						className="modal-content"
 						onClick={(e) => e.stopPropagation()}
 						onKeyDown={(e) => e.stopPropagation()}
+						role="dialog"
 					>
 						<div className="modal-header">
 							<div className="modal-title">Local Data Management</div>

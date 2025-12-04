@@ -31,6 +31,15 @@ const CORE_GUIDELINES = `You are a prompt ENHANCER. Your output will be used as 
 
 ABSOLUTE RULE: Never answer the user's request. Only enhance their prompt.
 
+CRITICAL OUTPUT RULES:
+- Output ONLY the enhanced prompt text - nothing else
+- NO introductory phrases like "Okay, here's...", "Let me...", "I'll create...", etc.
+- NO explanatory commentary about what you're doing
+- NO meta-text describing the prompt
+- NO conversational wrappers or transitions
+- Start directly with the enhanced prompt content
+- End directly when the prompt is complete
+
 Rules:
 - Output an ENHANCED VERSION of the user's prompt, not the answer to their request
 - Add specificity, structure, context, and formatting requirements
@@ -235,6 +244,11 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(systemPrompt);
 	}
 
+	// Identity (if provided) - adds "Act as [identity]" context
+	if (options?.identity?.trim()) {
+		sections.push(`Act as ${options.identity.trim()}.`);
+	}
+
 	// Reinforce language again after system prompt
 	if (options?.language && options.language.toLowerCase() !== "english") {
 		sections.push(
@@ -281,7 +295,17 @@ export function buildUnifiedPromptCore(params: {
 	}
 
 	// Final instruction with word count reinforcement
-	let finalInstruction = `Transform the user input into an enhanced, detailed ${taskType} prompt. Output ONLY the improved prompt text that can be used with another AI system. Do NOT answer or fulfill the request - only enhance the prompt.`;
+	let finalInstruction = `Transform the user input into an enhanced, detailed ${taskType} prompt. 
+
+CRITICAL: Output ONLY the enhanced prompt text. Do NOT include:
+- NO introductory phrases ("Okay, here's...", "Let me...", "I'll create...")
+- NO explanatory commentary ("This enhanced prompt is designed to...", "Here's what this will do...")
+- NO meta-text describing the prompt
+- NO conversational wrappers or transitions
+- Start immediately with the enhanced prompt content
+- End when the prompt is complete - no closing remarks
+
+The output must be the enhanced prompt itself, ready to copy and paste into another AI system. Do NOT answer or fulfill the request - only enhance the prompt.`;
 
 	// Add strict word count reminder if detail level is specified
 	if (options?.detail) {
@@ -379,8 +403,15 @@ export function buildRefinementPromptCore(params: {
 	sections.push(`Refinement Request:\n${requestDelimiter}`);
 
 	// Final instruction
-	let finalInstruction =
-		"Apply the refinement request to the existing enhanced prompt. Output ONLY the refined prompt text. Do NOT include any explanations, commentary, or meta-text about the changes you made.";
+	let finalInstruction = `Apply the refinement request to the existing enhanced prompt. Output ONLY the refined prompt text. 
+
+CRITICAL: Do NOT include:
+- NO introductory phrases ("Okay, here's...", "Let me...", "I've updated...")
+- NO explanatory commentary about what changed
+- NO meta-text describing the refinement
+- NO conversational wrappers
+- Start immediately with the refined prompt content
+- End when the prompt is complete - no closing remarks`;
 
 	// Add strict word count reminder if detail level is specified
 	if (options?.detail) {

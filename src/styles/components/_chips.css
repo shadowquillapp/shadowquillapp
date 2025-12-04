@@ -38,6 +38,6 @@
 	padding: 2px 8px;
 	font-size: 11px;
 	text-transform: uppercase;
-	letter-spacing: .05em;
+	letter-spacing: 0.05em;
 	color: var(--color-on-surface-variant);
 }

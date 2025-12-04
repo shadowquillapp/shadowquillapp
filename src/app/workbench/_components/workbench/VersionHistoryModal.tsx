@@ -1,6 +1,6 @@
-import { Icon } from "@/components/Icon";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useEffect, useRef, useState } from "react";
+import { Icon } from "@/components/Icon";
 import type { MessageItem, VersionNodeMetadata } from "./types";
 
 interface Version {
@@ -30,12 +30,12 @@ export function VersionHistoryModal({
 	versions,
 	activeVersionId,
 	onJumpToVersion,
-	messages = [],
+	messages: _messages = [],
 	onCopy,
 	copiedMessageId = null,
 }: VersionHistoryModalProps) {
 	const [focusedIndex, setFocusedIndex] = useState<number>(0);
-	const itemRefs = useRef<(HTMLDivElement | null)[]>([]);
+	const itemRefs = useRef<(HTMLLIElement | null)[]>([]);
 	const modalRef = useRef<HTMLDivElement>(null);
 
 	// Close on Escape and handle keyboard navigation
@@ -75,18 +75,14 @@ export function VersionHistoryModal({
 	return (
 		<div
 			className="modal-container"
-			aria-modal="true"
 			aria-labelledby="version-history-title"
 			ref={modalRef}
+			role="dialog"
 		>
-			<div
+			<button
+				type="button"
 				className="modal-backdrop-blur"
 				onClick={onClose}
-				onKeyDown={(e) => {
-					if (e.key === "Enter" || e.key === " ") onClose();
-				}}
-				role="button"
-				tabIndex={0}
 				aria-label="Close modal"
 			/>
 			<dialog
@@ -129,7 +125,7 @@ export function VersionHistoryModal({
 							</div>
 						</output>
 					) : (
-						<div className="refine-timeline refine-timeline--modal">
+						<ul className="refine-timeline refine-timeline--modal">
 							{versions.map((version, index) => {
 								const versionNum = index + 1;
 								const isCurrentVersion = version.id === activeVersionId;
@@ -139,7 +135,7 @@ export function VersionHistoryModal({
 								const copyId = `vh-${version.id}`;
 
 								return (
-									<div
+									<li
 										key={version.id}
 										ref={(el) => {
 											itemRefs.current[index] = el;
@@ -231,10 +227,10 @@ export function VersionHistoryModal({
 												)}
 											</button>
 										</div>
-									</div>
+									</li>
 								);
 							})}
-						</div>
+						</ul>
 					)}
 				</section>
 			</dialog>

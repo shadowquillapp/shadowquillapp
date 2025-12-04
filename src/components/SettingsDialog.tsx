@@ -169,6 +169,7 @@ export default function SettingsDialog({
 				onClick={(e) => e.stopPropagation()}
 				onKeyDown={(e) => e.stopPropagation()}
 				style={{ overflow: "hidden" }}
+				role="dialog"
 			>
 				<style>{`
           .settings-dialog, .settings-dialog * {

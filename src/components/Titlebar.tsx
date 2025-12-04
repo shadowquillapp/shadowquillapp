@@ -1,10 +1,9 @@
 "use client";
 
-import { readLocalModelConfig } from "@/lib/local-config";
 import type React from "react";
 import { useEffect, useState } from "react";
+import { readLocalModelConfig } from "@/lib/local-config";
 import { Icon } from "./Icon";
-import { Logo } from "./Logo";
 
 interface ShadowQuillWindowApi {
 	getPlatform?: () => Promise<string>;
@@ -68,7 +67,7 @@ export default function Titlebar() {
 		ram: number;
 		gpu: string;
 	} | null>(null);
-	const [recommendation, setRecommendation] = useState<string | null>(null);
+	const [_recommendation, setRecommendation] = useState<string | null>(null);
 	const [currentModelId, setCurrentModelId] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -140,7 +139,7 @@ export default function Titlebar() {
 	}, []);
 
 	const isMac = platform === "darwin";
-	const isWindows = platform === "win32";
+	const _isWindows = platform === "win32";
 
 	// Filter out unwanted terms from CPU string
 	const cleanCpuName = (cpuName: string) => {

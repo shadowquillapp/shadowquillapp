@@ -31,8 +31,10 @@
 	background: var(--color-surface-variant);
 	color: var(--color-on-surface);
 	box-shadow: var(--shadow-1);
-	transition: background 120ms ease, border-color 120ms ease, box-shadow 120ms
-		ease;
+	transition:
+		background 120ms ease,
+		border-color 120ms ease,
+		box-shadow 120ms ease;
 	cursor: pointer;
 	font-size: 13px;
 	height: 32px;
@@ -161,7 +163,7 @@
 	transition: all 150ms ease;
 	height: 32px;
 	white-space: nowrap;
-	letter-spacing: .3px;
+	letter-spacing: 0.3px;
 }
 
 .preset-studio-btn:hover {

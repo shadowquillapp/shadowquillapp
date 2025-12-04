@@ -1,4 +1,3 @@
-import { DialogProvider, useDialog } from "@/components/DialogProvider";
 import {
 	act,
 	fireEvent,
@@ -8,11 +7,14 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { DialogProvider, useDialog } from "@/components/DialogProvider";
 
 // Test component that uses the dialog hooks
 function TestConsumer({
 	onReady,
-}: { onReady?: (dialog: ReturnType<typeof useDialog>) => void }) {
+}: {
+	onReady?: (dialog: ReturnType<typeof useDialog>) => void;
+}) {
 	const dialog = useDialog();
 	if (onReady) {
 		onReady(dialog);
@@ -438,7 +440,7 @@ describe("DialogProvider", () => {
 		});
 
 		it("should confirm on Enter key", async () => {
-			const user = userEvent.setup();
+			const _user = userEvent.setup();
 			let result: boolean | null = null;
 			let dialogApi: ReturnType<typeof useDialog> | null = null;
 
@@ -627,11 +629,11 @@ describe("DialogProvider", () => {
 	describe("event listener edge cases", () => {
 		it("should handle window.addEventListener throwing error", async () => {
 			const originalAddEventListener = window.addEventListener;
-			let callCount = 0;
+			let _callCount = 0;
 
 			// Make addEventListener throw on "app-info" event registration
 			window.addEventListener = vi.fn((type, listener, options) => {
-				callCount++;
+				_callCount++;
 				if (type === "app-info") {
 					throw new Error("addEventListener failed");
 				}

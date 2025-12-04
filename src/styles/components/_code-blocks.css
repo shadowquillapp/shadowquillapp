@@ -17,13 +17,13 @@
  * Rich text content styling
  * ======================================== */
 
-.message-prose pre code {
-	white-space: pre;
-}
-
 .message-prose code {
 	word-break: normal;
 	overflow-wrap: anywhere;
+}
+
+.message-prose pre code {
+	white-space: pre;
 }
 
 .message-prose,
@@ -68,7 +68,7 @@
 	font-size: 11px;
 	font-weight: 600;
 	text-transform: uppercase;
-	letter-spacing: .5px;
+	letter-spacing: 0.5px;
 	color: var(--color-on-surface-variant);
 }
 

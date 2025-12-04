@@ -1,7 +1,7 @@
-import SettingsDialog, { type SettingsTab } from "@/components/SettingsDialog";
 import { fireEvent, render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import SettingsDialog, { type SettingsTab } from "@/components/SettingsDialog";
 
 // Mock the settings content components
 vi.mock("@/components/settings/DisplayContent", () => ({

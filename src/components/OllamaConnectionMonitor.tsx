@@ -1,10 +1,10 @@
 "use client";
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	readLocalModelConfig,
 	validateLocalModelConnection,
 } from "@/lib/local-config";
-import { useCallback, useEffect, useRef, useState } from "react";
 import { useDialog } from "./DialogProvider";
 
 interface WindowWithShadowQuill extends Window {
@@ -19,7 +19,7 @@ export default function OllamaConnectionMonitor() {
 	const [isMonitoring, setIsMonitoring] = useState(false);
 	// Use ref for lastKnownStatus to avoid stale closures in callbacks
 	const lastKnownStatusRef = useRef<boolean | null>(null);
-	const [isOpeningOllama, setIsOpeningOllama] = useState(false);
+	const [_isOpeningOllama, setIsOpeningOllama] = useState(false);
 	// Use ref for ollamaInstalled to avoid stale closures
 	const ollamaInstalledRef = useRef<boolean | null>(null);
 

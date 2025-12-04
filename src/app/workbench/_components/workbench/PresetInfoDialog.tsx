@@ -1,8 +1,8 @@
-import { Icon, type IconName } from "@/components/Icon";
-import type { PresetLite } from "@/types";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
+import { Icon, type IconName } from "@/components/Icon";
+import type { PresetLite } from "@/types";
 
 interface PresetInfoDialogProps {
 	open: boolean;
@@ -33,7 +33,7 @@ const CATEGORIES = {
 		"durationSeconds",
 		"frameRate",
 	],
-	context: ["additionalContext", "examplesText"],
+	context: ["identity", "additionalContext", "examplesText"],
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
@@ -124,9 +124,10 @@ export function PresetInfoDialog({
 	];
 
 	return (
-		<div className="modal-container" aria-modal="true">
+		<div className="modal-container">
 			<div className="modal-backdrop-blur" />
 			<dialog
+				aria-modal="true"
 				open
 				className="modal-content"
 				onClick={(e) => e.stopPropagation()}

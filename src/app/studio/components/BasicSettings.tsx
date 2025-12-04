@@ -4,7 +4,6 @@ import TemperatureControl from "@/app/studio/components/TemperatureControl";
 import { CustomSelect } from "@/components/CustomSelect";
 import { Icon } from "@/components/Icon";
 import type { PresetLite } from "@/types";
-import React from "react";
 
 interface BasicSettingsProps {
 	preset: PresetLite;
@@ -147,27 +146,44 @@ export default function BasicSettings({
 								key={level}
 								type="button"
 								onClick={() => onFieldChange("detail", level)}
-								className={`relative rounded-xl border p-3 text-center transition-all duration-200 ${
-									isSelected
-										? "border-primary bg-primary/10"
-										: "border-[var(--color-outline)] bg-[var(--color-surface)] hover:border-primary/50 hover:bg-[var(--color-surface-variant)]"
-								}`}
+								className="relative rounded-xl border p-3 text-center transition-all duration-200"
+								style={{
+									borderColor: isSelected
+										? "var(--color-primary)"
+										: "var(--color-outline)",
+									background: isSelected
+										? "var(--color-primary)"
+										: "var(--color-surface-variant)",
+									color: isSelected
+										? "var(--color-on-primary)"
+										: "var(--color-on-surface)",
+								}}
+								onMouseEnter={(e) => {
+									if (!isSelected) {
+										e.currentTarget.style.background =
+											"color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-variant))";
+										e.currentTarget.style.borderColor = "var(--color-primary)";
+									}
+								}}
+								onMouseLeave={(e) => {
+									if (!isSelected) {
+										e.currentTarget.style.background =
+											"var(--color-surface-variant)";
+										e.currentTarget.style.borderColor = "var(--color-outline)";
+									}
+								}}
 							>
 								<div className="flex items-center justify-center gap-2">
 									<Icon
 										name={meta.icon}
 										className="h-4 w-4"
 										style={{
-											color: isSelected ? meta.color : "var(--color-secondary)",
+											color: isSelected
+												? "var(--color-on-primary)"
+												: "var(--color-on-surface-variant)",
 										}}
 									/>
-									<span
-										className={`font-semibold text-xs ${
-											isSelected ? "text-primary" : "text-on-surface"
-										}`}
-									>
-										{meta.label}
-									</span>
+									<span className="font-semibold text-xs">{meta.label}</span>
 								</div>
 							</button>
 						);

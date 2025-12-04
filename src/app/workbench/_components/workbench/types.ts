@@ -1,5 +1,4 @@
-import type { PresetOptions, TaskType } from "@/types";
-import type { TestMessage } from "@/types";
+import type { PresetOptions, TaskType, TestMessage } from "@/types";
 
 export type MessageItem = Pick<TestMessage, "id" | "role" | "content">;
 

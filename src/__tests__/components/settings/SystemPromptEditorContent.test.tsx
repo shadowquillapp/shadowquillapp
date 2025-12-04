@@ -1,6 +1,6 @@
-import SystemPromptEditorContent from "@/components/settings/SystemPromptEditorContent";
 import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import SystemPromptEditorContent from "@/components/settings/SystemPromptEditorContent";
 
 // Mock system-prompts
 const mockEnsureSystemPromptBuild = vi.fn();

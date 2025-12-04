@@ -2,8 +2,7 @@
 
 import { execSync } from "node:child_process";
 import fs from "node:fs";
-import path from "node:path";
-import { dirname } from "node:path";
+import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -22,7 +21,7 @@ if (!fs.existsSync(nextDir)) {
 		const hasBuildScript = packageJson.scripts?.["build:electron"];
 
 		if (hasBuildScript) {
-			execSync("npm run build:electron", {
+			execSync("pnpm run build:electron", {
 				stdio: "inherit",
 				cwd: path.join(__dirname, ".."),
 			});
@@ -38,7 +37,7 @@ if (!fs.existsSync(nextDir)) {
 			error.message,
 		);
 		console.warn(
-			"[postinstall] If the app fails to start, you may need to run: npm run build:electron",
+			"[postinstall] If the app fails to start, you may need to run: pnpm run build:electron",
 		);
 		// Don't exit with error - the package should include pre-built files
 	}

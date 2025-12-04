@@ -34,7 +34,7 @@
 .luxury-loader__text {
 	font-weight: 700;
 	font-size: 16px;
-	letter-spacing: .5px;
+	letter-spacing: 0.5px;
 	background: linear-gradient(
 		90deg,
 		var(--color-on-surface-variant) 0%,

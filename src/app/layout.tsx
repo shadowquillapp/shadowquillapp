@@ -22,7 +22,7 @@ export default function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	return (
-		<html lang="en" data-theme="dark" className={`${geist.variable}`}>
+		<html lang="en" className={`${geist.variable}`}>
 			<head>{/* No external CDN links to allow full offline operation */}</head>
 			<body className="flex h-screen flex-col overflow-hidden">
 				<DialogProvider>

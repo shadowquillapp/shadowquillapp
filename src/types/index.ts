@@ -120,6 +120,7 @@ export interface GenerationOptions {
 	reasoningStyle?: ReasoningStyle;
 	endOfPromptToken?: string;
 	outputXMLSchema?: string;
+	identity?: string;
 	additionalContext?: string;
 	examplesText?: string;
 	styleGuidelines?: string;
