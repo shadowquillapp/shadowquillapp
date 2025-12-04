@@ -1,6 +1,6 @@
 {
 	"name": "shadowquillapp",
-	"version": "0.3.2",
+	"version": "0.4.0",
 	"author": "ShadowQuill <info@shadowquill.org>",
 	"homepage": "https://shadowquill.org",
 	"description": "ShadowQuill",
@@ -87,7 +87,11 @@
 			"!**/*.map"
 		],
 		"asar": true,
-		"asarUnpack": ["**/*.node", ".next/**/*", "node_modules/next/**/*"],
+		"asarUnpack": [
+			"**/*.node",
+			".next/**/*",
+			"node_modules/next/**/*"
+		],
 		"extraMetadata": {
 			"main": "electron/main.cjs"
 		}
