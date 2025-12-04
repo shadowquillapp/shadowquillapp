@@ -145,12 +145,7 @@ export default function SettingsDialog({
 	const renderContentFor = (tab: SettingsTab | string) => {
 		switch (tab) {
 			case "system":
-				return (
-					<SystemPromptEditorContent
-						onSaved={() => {}}
-						onCancelReset={() => {}}
-					/>
-				);
+				return <SystemPromptEditorContent />;
 			case "ollama":
 				return <OllamaSetupContent />;
 			case "data":
