@@ -92,7 +92,6 @@ export default function ModelConfigGate({ children }: Props) {
 	const [openOllamaError, setOpenOllamaError] = useState<string | null>(null);
 	const [ollamaInstalled, setOllamaInstalled] = useState<boolean | null>(null);
 
-	// Client side enhancement
 	useEffect(() => {
 		if (
 			!electronMode &&
@@ -104,14 +103,12 @@ export default function ModelConfigGate({ children }: Props) {
 		}
 	}, [electronMode]);
 
-	// Ensure the 'Default' preset exists on startup (idempotent)
 	useEffect(() => {
 		try {
 			ensureDefaultPreset();
 		} catch {}
 	}, []);
 
-	// Load configuration and default provider on startup
 	useEffect(() => {
 		if (!electronMode || loadedOnce) return;
 		let cancelled = false;
@@ -119,29 +116,23 @@ export default function ModelConfigGate({ children }: Props) {
 		const load = async () => {
 			setFetching(true);
 			try {
-				// Check if Ollama is installed
 				await checkOllamaInstalled();
 
-				// Load config from local storage
 				const cfg = readLocalModelConfigClient();
 				if (cancelled) return;
 
-				// Default to Ollama since it's the only option
 				setDefaultProvider("ollama");
 
-				// Load existing configuration if available
 				if (cfg) {
 					setConfig(cfg);
 					if (cfg.provider === "ollama") {
 						const base = String(cfg.baseUrl || "http://localhost:11434");
 						const portMatch = base.match(/:(\d{1,5})/);
 						setLocalPort(portMatch?.[1] ?? "11434");
-						// Load available models immediately
 						testLocalConnection(cfg.baseUrl, cfg.model);
 					}
 					setPreviouslyConfigured(true);
 
-					// Validate loaded config
 					try {
 						setValidating(true);
 						const vr = await validateLocalModelConnectionClient(cfg);
@@ -157,7 +148,6 @@ export default function ModelConfigGate({ children }: Props) {
 					}
 				}
 
-				// Show provider selection if no valid default
 				setShowProviderSelection(true);
 			} catch (err) {
 				console.error("Failed to load configuration:", err);
@@ -183,18 +173,16 @@ export default function ModelConfigGate({ children }: Props) {
 		electronMode &&
 		(fetching || showProviderSelection || (!hasValidDefault && !config));
 
-	// Detect if Ollama is running when provider selection first appears (initial launch, not previously configured)
 	useEffect(() => {
 		if (!showProviderSelection) return;
-		if (previouslyConfigured) return; // don't override existing settings
-		if (ollamaCheckPerformed) return; // run once until user retries
+		if (previouslyConfigured) return;
+		if (ollamaCheckPerformed) return;
 		let cancelled = false;
 		const detect = async () => {
 			setOllamaCheckPerformed(true);
 			const isOk = await performOllamaDetection();
 			if (cancelled) return;
 			if (!isOk) {
-				// Not reachable: blank out the URL so user explicitly sets it and show modal
 				setLocalPort("");
 				setShowOllamaMissingModal(true);
 			}
@@ -205,11 +193,9 @@ export default function ModelConfigGate({ children }: Props) {
 		};
 	}, [showProviderSelection, previouslyConfigured, ollamaCheckPerformed]);
 
-	// Allow retry from modal
 	const retryOllamaDetection = async () => {
 		setOllamaCheckPerformed(false);
 		setShowOllamaMissingModal(false);
-		// trigger effect by manual check immediate
 		const isOk = await performOllamaDetection();
 		if (isOk) {
 			setLocalPort("11434");
@@ -220,7 +206,6 @@ export default function ModelConfigGate({ children }: Props) {
 		setOllamaCheckPerformed(true);
 	};
 
-	// Extract Ollama detection logic for better testability
 	const performOllamaDetection = async () => {
 		try {
 			const controller = new AbortController();
@@ -236,7 +221,6 @@ export default function ModelConfigGate({ children }: Props) {
 	};
 
 	const isValidPort = (port: string): boolean => {
-		// Only digits, length between 2 and 5
 		return /^\d{2,5}$/.test((port || "").trim());
 	};
 
@@ -269,13 +253,11 @@ export default function ModelConfigGate({ children }: Props) {
 		try {
 			const win = window as WindowWithShadowQuill;
 
-			// Check if installed first
 			if (ollamaInstalled === null) {
 				await checkOllamaInstalled();
 			}
 
 			if (ollamaInstalled === false) {
-				// Open download page
 				window.open("https://ollama.com/download", "_blank");
 				setIsOpeningOllama(false);
 				return;
@@ -291,7 +273,6 @@ export default function ModelConfigGate({ children }: Props) {
 			const result = await win.shadowquill.openOllama();
 
 			if (result.ok) {
-				// Wait 3 seconds then retest the connection
 				setTimeout(() => {
 					setOpenOllamaError(null);
 					void testLocalConnection();
@@ -308,8 +289,6 @@ export default function ModelConfigGate({ children }: Props) {
 		}
 	};
 
-	// Test connection to local Ollama server using specified baseUrl (or current localBaseUrl if not provided)
-	// If configuredModel is provided, it will be selected if found in available models
 	const testLocalConnection = async (
 		baseUrlParam?: string,
 		configuredModel?: string,
@@ -331,7 +310,7 @@ export default function ModelConfigGate({ children }: Props) {
 			const gemmaModelNames = gemmaModels.map((m) => m.name);
 			setLocalTestResult({ success: true, url, models: gemmaModels, duration });
 			setAvailableModels(gemmaModelNames);
-			setConnectionError(null); // Clear connection error on success
+			setConnectionError(null);
 			if (configuredModel && gemmaModelNames.includes(configuredModel)) {
 				setModel(configuredModel as string);
 			} else if (gemmaModelNames.length > 0) {
@@ -817,7 +796,6 @@ function SystemPromptEditorWrapper({
 		const load = async () => {
 			setLoading(true);
 			try {
-				// Load from local storage
 				try {
 					const value = ensureSystemPromptBuild();
 					setPrompt(value);
