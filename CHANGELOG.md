@@ -1,3 +1,11 @@
+## [0.4.3](https://github.com/shadowquillapp/shadowquillapp/compare/v0.4.2...v0.4.3) (2025-12-04)
+
+
+### Bug Fixes
+
+* correct version selection in ci workflow ([c023398](https://github.com/shadowquillapp/shadowquillapp/commit/c0233987163a5d44cd0ff30231b2884c4a469c52))
+* default theme correctly chosen on startup and factory reset ([a99dff2](https://github.com/shadowquillapp/shadowquillapp/commit/a99dff20d1f1c45969313b570807c42df656578b))
+
 ## [0.4.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.4.1...v0.4.2) (2025-12-04)
 
 ## [0.4.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.4.0...v0.4.1) (2025-12-04)
