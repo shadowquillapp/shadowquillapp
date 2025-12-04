@@ -527,7 +527,7 @@ export default function ModelConfigGate({ children }: Props) {
 															type="button"
 															onClick={() => testLocalConnection()}
 															disabled={testingLocal || !isValidPort(localPort)}
-															className={`md-btn md-btn--primary ollama-field__action${!localTestResult?.success ? "pulse-glow" : ""}`}
+															className={`md-btn md-btn--primary ollama-field__action${!localTestResult?.success ? " pulse-glow" : ""}`}
 															title="Check for available Ollama models"
 															aria-label="Check for available Ollama models"
 														>
@@ -689,7 +689,7 @@ export default function ModelConfigGate({ children }: Props) {
 														!model ||
 														model.trim() === ""
 													}
-													className={`md-btn md-btn--primary${localTestResult?.success ? "pulse-glow" : ""}`}
+													className={`md-btn md-btn--primary${localTestResult?.success ? " pulse-glow" : ""}`}
 													style={{
 														display: "flex",
 														alignItems: "center",
