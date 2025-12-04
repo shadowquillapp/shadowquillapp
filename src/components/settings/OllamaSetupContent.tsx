@@ -323,7 +323,7 @@ export default function OllamaSetupContent() {
 								type="button"
 								onClick={() => testLocalConnection()}
 								disabled={testingLocal || !isValidPort(localPort)}
-								className={`md-btn md-btn--primary ollama-field__action${statusTone !== "success" ? "pulse-glow" : ""}`}
+								className={`md-btn md-btn--primary ollama-field__action${statusTone !== "success" ? " pulse-glow" : ""}`}
 								title="Check for available Ollama models"
 								aria-label="Check for available Ollama models"
 							>
