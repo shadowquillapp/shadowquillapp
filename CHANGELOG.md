@@ -1,3 +1,17 @@
+# [0.4.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.3.2...v0.4.0) (2025-12-04)
+
+
+### Bug Fixes
+
+* handle factory reset flag before app is ready using env vars ([b37c82d](https://github.com/shadowquillapp/shadowquillapp/commit/b37c82d6644a364b8655438d024d39d8f8860a61))
+* improve Next.js server startup error handling and user feedback ([617b6a0](https://github.com/shadowquillapp/shadowquillapp/commit/617b6a0cd68aed1dc4b14f71cd938534f3e8a7dc))
+
+
+### Features
+
+* app version interface added to settings dialog ([7b92adc](https://github.com/shadowquillapp/shadowquillapp/commit/7b92adc0bf0839e4e0748dcc13866bc1da4abd46))
+* convert system prompt editor to read-only view ([a20c0ac](https://github.com/shadowquillapp/shadowquillapp/commit/a20c0acde7e616ef5cb1a46da9af2a12a44edc14))
+
 ## [0.3.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.3.1...v0.3.2) (2025-12-03)
 
 
