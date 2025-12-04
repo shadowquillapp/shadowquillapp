@@ -1,3 +1,10 @@
+## [0.4.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.4.0...v0.4.1) (2025-12-04)
+
+
+### Bug Fixes
+
+* depreciate npm package publishing ([401a6ce](https://github.com/shadowquillapp/shadowquillapp/commit/401a6ce4392d4815d929c124bad9732a40bfd099))
+
 # [0.4.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.3.2...v0.4.0) (2025-12-04)
 
 
