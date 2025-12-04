@@ -1,3 +1,16 @@
+# [0.5.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.4.4...v0.5.0) (2025-12-04)
+
+
+### Bug Fixes
+
+* broken workflow versioning pipeline ([4125051](https://github.com/shadowquillapp/shadowquillapp/commit/412505129ee51f38ebc37516b3fbe0ac90137581))
+
+
+### Features
+
+* .dmg installer for macOS stablized for distrubution. ([03ae4c8](https://github.com/shadowquillapp/shadowquillapp/commit/03ae4c8b7b4ca9b8b7f73f36b31bb1d08ad29e1e))
+* version updating automated in package.json and version.ts ([daa6ccd](https://github.com/shadowquillapp/shadowquillapp/commit/daa6ccdc416323ce2eb743f13bb5b08341eda2f2))
+
 ## [0.4.4](https://github.com/shadowquillapp/shadowquillapp/compare/v0.4.3...v0.4.4) (2025-12-04)
 
 
