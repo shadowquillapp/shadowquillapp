@@ -22,7 +22,7 @@ export default function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	return (
-		<html lang="en" className={`${geist.variable}`}>
+		<html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
 			<head>
 				{/* No external CDN links to allow full offline operation */}
 				<script src="/theme-init.js" />

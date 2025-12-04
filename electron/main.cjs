@@ -16,10 +16,69 @@ if (process.argv.includes("--factory-reset")) {
 	}
 }
 
+// Set userData path early (before app.whenReady) to prevent cache directory creation errors
+// This must be done before Electron tries to access the userData directory
+try {
+	const envPaths = resolveLocalOnlyDataRootsFromEnv();
+	if (envPaths) {
+		const fs = require("node:fs");
+		// Create userData directory if it doesn't exist
+		try {
+			fs.mkdirSync(envPaths.userDataDir, { recursive: true });
+		} catch (_) {
+			/* ignore */
+		}
+		// Set paths before app is ready (app.setPath can be called before app.whenReady)
+		app.setPath("appData", envPaths.appDataRoot);
+		app.setPath("userData", envPaths.userDataDir);
+		process.env.SHADOWQUILL_USER_DATA = envPaths.userDataDir;
+	}
+} catch (e) {
+	console.warn("[Electron] Failed to set early data paths:", e);
+}
+
 const isDev = !app.isPackaged;
 
 if (isDev) {
 	process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = "true";
+}
+
+// Disable disk cache to prevent Chromium cache upgrade errors
+// This fixes the "Failed to write a new fake index" and "Failed to create directory" errors
+app.commandLine.appendSwitch("--disable-cache");
+app.commandLine.appendSwitch("--disable-http-cache");
+app.commandLine.appendSwitch("--disable-background-networking");
+app.commandLine.appendSwitch("--disable-disk-cache");
+app.commandLine.appendSwitch("--disable-cache-persistent");
+app.commandLine.appendSwitch("--disable-back-forward-cache");
+app.commandLine.appendSwitch("--disable-hang-monitor");
+app.commandLine.appendSwitch("--disable-prompt-on-repost");
+app.commandLine.appendSwitch(
+	"--disable-component-extensions-with-background-pages",
+);
+app.commandLine.appendSwitch("--disable-shared-dictionary");
+app.commandLine.appendSwitch(
+	"--disable-features=CompressionDictionaryTransportBackend",
+);
+app.commandLine.appendSwitch(
+	"--disable-features=VizDisplayCompositor,VizHitTestSurfaceLayer",
+);
+app.commandLine.appendSwitch("--disable-background-timer-throttling");
+app.commandLine.appendSwitch("--disable-renderer-backgrounding");
+app.commandLine.appendSwitch("--disable-features=TranslateUI");
+app.commandLine.appendSwitch("--disable-ipc-flooding-protection");
+
+// Redirect cache to a temporary directory to avoid permission issues
+const os = require("node:os");
+const tempCachePath = require("node:path").join(
+	os.tmpdir(),
+	`shadowquill-cache-${Date.now()}`,
+);
+try {
+	require("node:fs").mkdirSync(tempCachePath, { recursive: true });
+	app.setPath("userCache", tempCachePath);
+} catch (e) {
+	console.warn("[Electron] Failed to create temp cache directory:", e);
 }
 
 require("./ipc/ollama-handlers.cjs");
