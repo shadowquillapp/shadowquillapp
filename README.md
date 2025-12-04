@@ -20,7 +20,9 @@ Powered by Ollama and Gemma 3, ShadowQuill operates 100% offline, offering a com
 
 ## Installation with `npm`
 
-> Current ShadowQuill version only supports Windows and macOS. Stable Linux builds coming soon...
+Please make sure you first have `node` and `npm` installed with the latest updates to properly install ShadowQuill through CLI. [How to install npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+
+> Current version only supports Windows and macOS. Stable Linux builds coming soon...
 
 1. Clone the repository:
 
