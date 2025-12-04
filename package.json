@@ -21,6 +21,7 @@
 	"scripts": {
 		"build": "pnpm run build:electron",
 		"build:electron": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SUPPRESS_SUPPORT_NOTES=1 node electron/build-electron.cjs",
+		"build:dmg": "pnpm run build:electron && electron-builder --mac --arm64 --publish never",
 		"check": "biome check .",
 		"check:unsafe": "biome check --write --unsafe .",
 		"check:write": "biome check --write .",
@@ -97,6 +98,39 @@
 		],
 		"extraMetadata": {
 			"main": "electron/main.cjs"
+		},
+		"mac": {
+			"target": [
+				{
+					"target": "dmg",
+					"arch": [
+						"arm64"
+					]
+				}
+			],
+			"icon": "build/shadowquill-icon.icns",
+			"category": "public.app-category.productivity"
+		},
+		"dmg": {
+			"title": "${productName} ${version}",
+			"icon": "build/shadowquill-icon.icns",
+			"background": null,
+			"contents": [
+				{
+					"x": 130,
+					"y": 220
+				},
+				{
+					"x": 410,
+					"y": 220,
+					"type": "link",
+					"path": "/Applications"
+				}
+			],
+			"window": {
+				"width": 540,
+				"height": 380
+			}
 		}
 	},
 	"overrides": {
