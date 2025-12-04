@@ -1,4 +1,4 @@
-name: Publish to NPM
+name: Semantic Release
 
 on:
   push:
@@ -7,13 +7,10 @@ on:
       - main
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     
     steps:
       - name: Checkout code
@@ -26,7 +23,6 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '25'
-          registry-url: 'https://registry.npmjs.org'
 
       - name: Install dependencies
         run: npm ci
@@ -41,7 +37,6 @@ jobs:
 
       - name: Run semantic-release
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: npx semantic-release
 
