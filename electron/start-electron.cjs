@@ -3,20 +3,17 @@
 // Starts Next.js dev (or prod) then launches Electron.
 const { spawn } = require("node:child_process");
 const path = require("node:path");
-
 const isProd = process.argv.includes("--prod");
-
-// Store references to child processes for cleanup
 let nextDevServer = null;
 let prodServer = null;
 
 /**
  * Helper to check if dev server is ready
- * @param {any} http - http module
- * @param {number} start - start timestamp
- * @param {number} timeoutMs - timeout in milliseconds
- * @param {() => void} resolve - resolve callback
- * @param {(err: Error) => void} reject - reject callback
+ * @param {any} http
+ * @param {number} start
+ * @param {number} timeoutMs
+ * @param {() => void} resolve
+ * @param {(err: Error) => void} reject
  */
 function checkDevServerReady(http, start, timeoutMs, resolve, reject) {
 	const req = http.get("http://localhost:31415", (res) => {
@@ -45,7 +42,6 @@ function startNext() {
 			BROWSER: "none",
 		};
 		if (!isProd) {
-			// Dev: run `next dev --turbo` via Node directly.
 			let nextBin;
 			try {
 				nextBin = require.resolve("next/dist/bin/next");
@@ -72,13 +68,10 @@ function startNext() {
 				);
 			});
 		} else {
-			// Prod: assume `next build` already run; start Next server programmatically.
 			(async () => {
 				try {
-					// Dynamically import Next.js and start the server
 					let nextFactory;
 					try {
-						// Try to require the Next.js factory function
 						const nextModule = require("next");
 						nextFactory =
 							typeof nextModule === "function"
@@ -136,12 +129,10 @@ function startNext() {
 function cleanup() {
 	console.log("[start-electron] Cleaning up...");
 
-	// Kill Next.js dev server if running
 	if (nextDevServer && !nextDevServer.killed) {
 		console.log("[start-electron] Killing Next.js dev server...");
 		try {
 			nextDevServer.kill("SIGTERM");
-			// Force kill if it doesn't stop
 			setTimeout(() => {
 				if (nextDevServer && !nextDevServer.killed) {
 					nextDevServer.kill("SIGKILL");
@@ -152,7 +143,6 @@ function cleanup() {
 		}
 	}
 
-	// Close prod server if running
 	if (prodServer) {
 		console.log("[start-electron] Closing production server...");
 		try {
@@ -174,7 +164,6 @@ function cleanup() {
 			env: { ...process.env, ELECTRON: "1", NEXT_PUBLIC_ELECTRON: "1" },
 		});
 
-		// Filter out harmless DevTools/Electron noise from stderr
 		if (proc.stderr) {
 			proc.stderr.on("data", (data) => {
 				const str = data.toString();
@@ -189,24 +178,18 @@ function cleanup() {
 			});
 		}
 
-		// Clean up when Electron exits
 		proc.on("exit", (code) => {
 			cleanup();
 			process.exit(code ?? 0);
 		});
-
-		// Clean up when this process is killed
 		process.on("SIGINT", () => {
 			cleanup();
 			process.exit(0);
 		});
-
 		process.on("SIGTERM", () => {
 			cleanup();
 			process.exit(0);
 		});
-
-		// Ensure cleanup happens on process exit
 		process.on("exit", () => {
 			if (nextDevServer && !nextDevServer.killed) {
 				nextDevServer.kill("SIGKILL");
