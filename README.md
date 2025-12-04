@@ -8,7 +8,6 @@
   [![Website](https://img.shields.io/badge/Website-shadowquill.org-8b7cf6)](https://shadowquill.org)
   [![Stars](https://img.shields.io/github/stars/shadowquillapp/shadowquillapp)](https://github.com/shadowquillapp/shadowquillapp/stargazers)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-  [![npm](https://img.shields.io/npm/v/shadowquillapp)](https://www.npmjs.com/package/shadowquillapp)
 </div>
 
 ## Overview
@@ -19,21 +18,29 @@ It transforms your natural language ideas into structured, high-quality prompts.
 
 Powered by Ollama and Gemma 3, ShadowQuill operates 100% offline, offering a completely local and free solution for AI-enhanced prompt generation.
 
-## Installation (Compatible with MacOS & Windows ONLY)
+## Installation with `npm`
 
-Install ShadowQuill using the official npm package:
+> Current ShadowQuill version only supports Windows and macOS. Stable Linux builds coming soon...
 
-```bash
-npm i shadowquillapp
-```
-
-Navigate to the installed package directory:
+1. Clone the repository:
 
 ```bash
-cd node_modules/shadowquillapp
+git clone https://github.com/shadowquillapp/shadowquillapp.git
 ```
 
-Start the application:
+2. Navigate into the ShadowQuill repository:
+
+```bash
+cd shadowquillapp
+```
+
+3. Install and build the application:
+
+```bash
+npm ci
+```
+
+4. Start ShadowQuill:
 
 ```bash
 npm start
@@ -129,16 +136,6 @@ ollama pull gemma3:27b  # Best quality (32GB+ RAM and RTX GPU)
 `Daily Helper` • `Brainstormer` • `Summary Ultra` • `Code Architect` • `Bug Fixer` • `Code Explainer` • `Email Pro` • `Deep Research` • `Social Media`
 
 ## Development
-
-### Prerequisites
-
-- Node.js @ latest
-- npm @ latest
-- React @ latest
-- Electrom @ latest
-- Next.js @ latest
-- Tailwind CSS @ latest
-- Biome linting @ latest
 
 ### Available Commands
 
