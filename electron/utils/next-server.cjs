@@ -184,7 +184,7 @@ async function startNextServer() {
 			});
 			if (fallbackHtml) {
 				console.log("[Electron] Using static fallback HTML");
-				httpServer = http.createServer((req, res) => {
+				httpServer = http.createServer((_req, res) => {
 					fs.createReadStream(fallbackHtml).pipe(res);
 				});
 				await new Promise((r) => httpServer.listen(0, () => r(undefined)));

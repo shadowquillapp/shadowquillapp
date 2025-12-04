@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import { buildDirectives } from "@/lib/prompt-directives";
 import {
 	buildAdvancedDirectives,
@@ -11,8 +12,8 @@ import { buildResearchDirectives } from "@/lib/prompt-directives/research";
 import { buildVideoDirectives } from "@/lib/prompt-directives/video";
 import { buildWritingDirectives } from "@/lib/prompt-directives/writing";
 import type {
-	CTAStyle,
 	CameraMovement,
+	CTAStyle,
 	Detail,
 	ImageStylePreset,
 	MarketingChannel,
@@ -23,7 +24,6 @@ import type {
 	Tone,
 	WritingStyle,
 } from "@/types";
-import { describe, expect, it } from "vitest";
 
 describe("buildDirectives", () => {
 	it("should return empty array when no options provided", () => {

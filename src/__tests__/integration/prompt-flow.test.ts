@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import {
 	buildUnifiedPromptCore,
 	validateBuilderInput,
@@ -5,7 +6,6 @@ import {
 } from "@/lib/prompt-builder-core";
 import { buildDirectives } from "@/lib/prompt-directives";
 import type { TaskType } from "@/types";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
  * Integration tests for the prompt generation flow

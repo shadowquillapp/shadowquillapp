@@ -12,9 +12,9 @@
  * ======================================== */
 
 .text-secondary {
-	color: var(--color-on-surface-variant) !important;
+	color: var(--color-on-surface-variant);
 }
 
 .text-primary {
-	color: var(--color-primary) !important;
+	color: var(--color-primary);
 }

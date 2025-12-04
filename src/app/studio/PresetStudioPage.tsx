@@ -1,12 +1,12 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
 import PresetEditor from "@/app/studio/components/PresetEditor";
 import PresetLibrary from "@/app/studio/components/PresetLibrary";
 import StudioHeader from "@/app/studio/components/StudioHeader";
 import { usePresetManager } from "@/app/studio/hooks/usePresetManager";
 import { useDialog } from "@/components/DialogProvider";
 import type { PresetLite } from "@/types";
-import React, { useState, useEffect, useCallback } from "react";
 
 export default function PresetStudioPage() {
 	const { confirm } = useDialog();
@@ -78,6 +78,7 @@ export default function PresetStudioPage() {
 			savedTheme = "purpledark";
 			localStorage.setItem("theme-preference", "purpledark");
 		}
+		// Default to earth theme if no saved preference
 		if (
 			savedTheme &&
 			(savedTheme === "earth" ||
@@ -89,6 +90,9 @@ export default function PresetStudioPage() {
 				"data-theme",
 				savedTheme === "earth" ? "" : savedTheme,
 			);
+		} else {
+			// No saved preference - use earth as default
+			document.documentElement.setAttribute("data-theme", "");
 		}
 	}, []);
 
@@ -201,7 +205,7 @@ export default function PresetStudioPage() {
 	);
 
 	// Handle save as new preset
-	const handleSaveAs = useCallback(
+	const _handleSaveAs = useCallback(
 		async (newName: string) => {
 			if (!editingPreset) return;
 
@@ -304,98 +308,99 @@ export default function PresetStudioPage() {
 	}, []);
 
 	return (
-		<>
-			<div className="page-animate flex h-full flex-col bg-surface-0 text-light">
-				<StudioHeader
-					isDirty={isDirty}
-					isSmallScreen={isSmallScreen}
-					onToggleSidebar={() => setSidebarOpen((v) => !v)}
-				/>
+		<div className="page-animate flex h-full flex-col bg-surface-0 text-light">
+			<StudioHeader
+				isDirty={isDirty}
+				isSmallScreen={isSmallScreen}
+				onToggleSidebar={() => setSidebarOpen((v) => !v)}
+			/>
 
-				{/* Sidebar backdrop for mobile */}
-				{isSmallScreen && sidebarOpen && (
+			{/* Sidebar backdrop for mobile */}
+			{isSmallScreen && sidebarOpen && (
+				<button
+					type="button"
+					style={{
+						position: "fixed",
+						inset: 0,
+						background: "rgba(0,0,0,0.5)",
+						zIndex: 25,
+						border: "none",
+						padding: 0,
+						cursor: "pointer",
+					}}
+					onClick={() => setSidebarOpen(false)}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							setSidebarOpen(false);
+						}
+					}}
+					aria-label="Close sidebar"
+				/>
+			)}
+
+			<main
+				className="flex flex-1 flex-col overflow-hidden xl:flex-row"
+				style={{ position: "relative" }}
+			>
+				{/* Generation Overlay - blocks all interactions when generating examples */}
+				{(isGeneratingExamples || regeneratingIndex !== null) && (
 					<div
+						className="generation-overlay"
 						style={{
-							position: "fixed",
+							position: "absolute",
 							inset: 0,
-							background: "rgba(0,0,0,0.5)",
-							zIndex: 25,
+							backgroundColor: "rgba(0, 0, 0, 0.35)",
+							zIndex: 100,
+							pointerEvents: "auto",
+							cursor: "not-allowed",
+							transition: "opacity 0.2s ease",
+							backdropFilter: "grayscale(0.5)",
 						}}
-						onClick={() => setSidebarOpen(false)}
-						onKeyDown={(e) => {
-							if (e.key === "Enter" || e.key === " ") {
-								setSidebarOpen(false);
-							}
-						}}
-						role="button"
-						tabIndex={0}
-						aria-label="Close sidebar"
+						onClick={(e) => e.stopPropagation()}
+						onKeyDown={(e) => e.stopPropagation()}
+						role="presentation"
+						aria-hidden="true"
 					/>
 				)}
-
-				<main
-					className="flex flex-1 flex-col overflow-hidden xl:flex-row"
-					style={{ position: "relative" }}
+				{/* Row 1 / Col 1: Preset Library */}
+				<aside
+					className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
+						isSmallScreen
+							? `fixed top-12 left-0 z-30 h-[calc(100vh-3rem)] w-[min(90vw,420px)] border-r ${
+									sidebarOpen ? "translate-x-0" : "-translate-x-full"
+								}`
+							: "w-[420px] flex-shrink-0 border-r"
+					}`}
+					style={{
+						background: "var(--color-surface-variant)",
+					}}
 				>
-					{/* Generation Overlay - blocks all interactions when generating examples */}
-					{(isGeneratingExamples || regeneratingIndex !== null) && (
-						<div
-							className="generation-overlay"
-							style={{
-								position: "absolute",
-								inset: 0,
-								backgroundColor: "rgba(0, 0, 0, 0.35)",
-								zIndex: 100,
-								pointerEvents: "auto",
-								cursor: "not-allowed",
-								transition: "opacity 0.2s ease",
-								backdropFilter: "grayscale(0.5)",
-							}}
-							onClick={(e) => e.stopPropagation()}
-							onKeyDown={(e) => e.stopPropagation()}
-							role="presentation"
-						/>
-					)}
-					{/* Row 1 / Col 1: Preset Library */}
-					<aside
-						className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
-							isSmallScreen
-								? `fixed top-12 left-0 z-30 h-[calc(100vh-3rem)] w-[min(90vw,420px)] border-r ${
-										sidebarOpen ? "translate-x-0" : "-translate-x-full"
-									}`
-								: "w-[420px] flex-shrink-0 border-r"
-						}`}
-						style={{
-							background: "var(--color-surface-variant)",
-						}}
-					>
-						<PresetLibrary
-							presets={presets}
-							selectedPresetId={selectedPresetId}
-							onSelectPreset={handleSelectPreset}
-							onCreateNew={handleNewPreset}
-							className="flex-1 overflow-hidden"
-						/>
-					</aside>
+					<PresetLibrary
+						presets={presets}
+						selectedPresetId={selectedPresetId}
+						onSelectPreset={handleSelectPreset}
+						onCreateNew={handleNewPreset}
+						className="flex-1 overflow-hidden"
+					/>
+				</aside>
 
-					{/* Row 2 / Col 2: Preset Editor */}
-					<div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface">
-						<PresetEditor
-							preset={editingPreset}
-							isDirty={isDirty}
-							isGeneratingExamples={isGeneratingExamples}
-							regeneratingIndex={regeneratingIndex}
-							onFieldChange={handleFieldChange}
-							onSave={handleSave}
-							onGenerateExamples={handleGenerateExamples}
-							onRegenerateExample={handleRegenerateExample}
-							onDuplicate={(id, name) => handleDuplicate(id, name)}
-							onDelete={(id) => handleDelete(id)}
-							className="flex h-full flex-1 flex-col overflow-hidden"
-						/>
-					</div>
-				</main>
-			</div>
-		</>
+				{/* Row 2 / Col 2: Preset Editor */}
+				<div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface">
+					<PresetEditor
+						preset={editingPreset}
+						isDirty={isDirty}
+						isGeneratingExamples={isGeneratingExamples}
+						regeneratingIndex={regeneratingIndex}
+						onFieldChange={handleFieldChange}
+						onSave={handleSave}
+						onGenerateExamples={handleGenerateExamples}
+						onRegenerateExample={handleRegenerateExample}
+						onDuplicate={(id, name) => handleDuplicate(id, name)}
+						onDelete={(id) => handleDelete(id)}
+						className="flex h-full flex-1 flex-col overflow-hidden"
+					/>
+				</div>
+			</main>
+		</div>
 	);
 }

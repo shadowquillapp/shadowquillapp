@@ -1,10 +1,7 @@
-import { CustomSelect } from "@/components/CustomSelect";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-
-// Fix for TypeScript - ensure vi is available in test scope
-const { fn } = vi;
+import { CustomSelect } from "@/components/CustomSelect";
 
 const defaultOptions = [
 	{ value: "option1", label: "Option 1" },
@@ -686,17 +683,27 @@ describe("CustomSelect", () => {
 			const parentClickHandler = vi.fn();
 
 			render(
-				// biome-ignore lint/a11y/useKeyWithClickEvents: test wrapper element
-				<div onClick={parentClickHandler}>
+				<button
+					type="button"
+					onClick={parentClickHandler}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							parentClickHandler();
+						}
+					}}
+				>
 					<CustomSelect
 						value=""
 						onChange={mockOnChange}
 						options={defaultOptions}
 					/>
-				</div>,
+				</button>,
 			);
 
-			const button = screen.getByRole("button");
+			const button = screen.getByRole("button", {
+				name: /select/i,
+				expanded: false,
+			});
 			await user.click(button);
 
 			// Parent should not receive click due to stopPropagation
@@ -708,17 +715,27 @@ describe("CustomSelect", () => {
 			const parentClickHandler = vi.fn();
 
 			render(
-				// biome-ignore lint/a11y/useKeyWithClickEvents: test wrapper element
-				<div onClick={parentClickHandler}>
+				<button
+					type="button"
+					onClick={parentClickHandler}
+					onKeyDown={(e) => {
+						if (e.key === "Enter" || e.key === " ") {
+							parentClickHandler();
+						}
+					}}
+				>
 					<CustomSelect
 						value=""
 						onChange={mockOnChange}
 						options={defaultOptions}
 					/>
-				</div>,
+				</button>,
 			);
 
-			const button = screen.getByRole("button");
+			const button = screen.getByRole("button", {
+				name: /select/i,
+				expanded: false,
+			});
 			await user.click(button);
 
 			const option = screen.getByText("Option 1");

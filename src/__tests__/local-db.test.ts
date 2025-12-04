@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	appendMessagesWithCap,
 	createProject,
@@ -7,7 +8,6 @@ import {
 	listProjectsByUser,
 	updateProjectVersionGraph,
 } from "@/lib/local-db";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Mock crypto.getRandomValues for consistent test behavior
 const mockCrypto = {
@@ -356,7 +356,7 @@ describe("local-db", () => {
 			);
 
 			vi.setSystemTime(new Date(2024, 0, 1, 0, 0, 4));
-			const result = await appendMessagesWithCap(
+			const _result = await appendMessagesWithCap(
 				project.id,
 				[{ role: "user", content: "Message 5" }],
 				3,

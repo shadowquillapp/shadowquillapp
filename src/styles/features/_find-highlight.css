@@ -23,7 +23,9 @@
 	box-shadow: 0 0 0 1px
 		color-mix(in srgb, var(--color-primary) 40%, transparent);
 	padding: 0 1px;
-	transition: background 150ms ease, box-shadow 150ms ease;
+	transition:
+		background 150ms ease,
+		box-shadow 150ms ease;
 }
 
 /* ========================================
@@ -33,9 +35,9 @@
 .find-highlight--active {
 	background: var(--color-primary);
 	color: var(--color-on-primary);
-	box-shadow: 0 0 0 2px
-		color-mix(in srgb, var(--color-primary) 60%, transparent), 0 2px 8px
-		color-mix(in srgb, var(--color-primary) 40%, transparent);
+	box-shadow:
+		0 0 0 2px color-mix(in srgb, var(--color-primary) 60%, transparent),
+		0 2px 8px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }
 
 /* ========================================
@@ -48,18 +50,18 @@
 
 @keyframes find-highlight-pulse {
 	0% {
-		box-shadow: 0 0 0 2px
-			color-mix(in srgb, var(--color-primary) 60%, transparent), 0 2px 8px
-			color-mix(in srgb, var(--color-primary) 40%, transparent);
+		box-shadow:
+			0 0 0 2px color-mix(in srgb, var(--color-primary) 60%, transparent),
+			0 2px 8px color-mix(in srgb, var(--color-primary) 40%, transparent);
 	}
 	50% {
-		box-shadow: 0 0 0 4px
-			color-mix(in srgb, var(--color-primary) 40%, transparent), 0 4px 16px
-			color-mix(in srgb, var(--color-primary) 60%, transparent);
+		box-shadow:
+			0 0 0 4px color-mix(in srgb, var(--color-primary) 40%, transparent),
+			0 4px 16px color-mix(in srgb, var(--color-primary) 60%, transparent);
 	}
 	100% {
-		box-shadow: 0 0 0 2px
-			color-mix(in srgb, var(--color-primary) 60%, transparent), 0 2px 8px
-			color-mix(in srgb, var(--color-primary) 40%, transparent);
+		box-shadow:
+			0 0 0 2px color-mix(in srgb, var(--color-primary) 60%, transparent),
+			0 2px 8px color-mix(in srgb, var(--color-primary) 40%, transparent);
 	}
 }

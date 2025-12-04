@@ -169,7 +169,7 @@ export function migrateVersionGraph(
 	const migratedNodes: Record<string, VersionNode> = {};
 
 	// Check if any node needs migration
-	for (const [id, node] of Object.entries(graph.nodes)) {
+	for (const [_id, node] of Object.entries(graph.nodes)) {
 		if (!("originalInput" in node) || !("outputMessageId" in node)) {
 			needsMigration = true;
 			break;

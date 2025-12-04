@@ -1,6 +1,6 @@
 "use client";
+import { useEffect, useState } from "react";
 import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
-import React, { useEffect, useState } from "react";
 import { useDialog } from "../DialogProvider";
 
 interface ShadowQuillApi {

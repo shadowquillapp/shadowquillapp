@@ -1,7 +1,7 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import { Icon } from "@/components/Icon";
-import React, { useState, useMemo } from "react";
 
 interface TemperatureControlProps {
 	value: number;
@@ -20,7 +20,7 @@ export default function TemperatureControl({
 	value,
 	onChange,
 }: TemperatureControlProps) {
-	const [showTooltip, setShowTooltip] = useState(false);
+	const [_showTooltip, _setShowTooltip] = useState(false);
 	const [isDragging, setIsDragging] = useState(false);
 
 	// Determine semantic band with enhanced descriptions
@@ -210,21 +210,45 @@ export default function TemperatureControl({
 
 			{/* Quick preset buttons */}
 			<div className="flex gap-2">
-				{PRESETS.map((preset) => (
-					<button
-						key={preset.value}
-						type="button"
-						onClick={() => onChange(preset.value)}
-						className={`flex-1 rounded-lg border px-2 py-1.5 font-medium text-[10px] transition-all duration-150 ${
-							Math.abs(value - preset.value) < 0.05
-								? "border-primary bg-primary/10 text-primary"
-								: "border-[var(--color-outline)] bg-[var(--color-surface-variant)] text-secondary hover:bg-[var(--color-surface)] hover:text-on-surface"
-						}`}
-						title={preset.description}
-					>
-						{preset.label}
-					</button>
-				))}
+				{PRESETS.map((preset) => {
+					const isSelected = Math.abs(value - preset.value) < 0.05;
+					return (
+						<button
+							key={preset.value}
+							type="button"
+							onClick={() => onChange(preset.value)}
+							className="flex-1 rounded-lg border px-2 py-1.5 font-medium text-[10px] transition-all duration-150"
+							style={{
+								borderColor: isSelected
+									? "var(--color-primary)"
+									: "var(--color-outline)",
+								background: isSelected
+									? "var(--color-primary)"
+									: "var(--color-surface-variant)",
+								color: isSelected
+									? "var(--color-on-primary)"
+									: "var(--color-on-surface)",
+							}}
+							onMouseEnter={(e) => {
+								if (!isSelected) {
+									e.currentTarget.style.background =
+										"color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-variant))";
+									e.currentTarget.style.borderColor = "var(--color-primary)";
+								}
+							}}
+							onMouseLeave={(e) => {
+								if (!isSelected) {
+									e.currentTarget.style.background =
+										"var(--color-surface-variant)";
+									e.currentTarget.style.borderColor = "var(--color-outline)";
+								}
+							}}
+							title={preset.description}
+						>
+							{preset.label}
+						</button>
+					);
+				})}
 			</div>
 
 			{/* Global styles for range input */}

@@ -1,10 +1,10 @@
+import { describe, expect, it } from "vitest";
 import {
 	buildRefinementPromptCore,
 	buildUnifiedPromptCore,
 	validateBuilderInput,
 	validateBuilderInputTyped,
 } from "@/lib/prompt-builder-core";
-import { describe, expect, it } from "vitest";
 
 describe("validateBuilderInput", () => {
 	it("should reject empty input", () => {

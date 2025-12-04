@@ -47,7 +47,7 @@ ipcMain.handle("shadowquill:checkOllamaInstalled", async () => {
 				}
 			}
 		}
-	} catch (e) {
+	} catch (_e) {
 		return { installed: false };
 	}
 });

@@ -53,7 +53,7 @@ app.whenReady().then(async () => {
 	setupSecurity(isDev);
 
 	if (isDev) {
-		const win = createWindow(isDev);
+		const _win = createWindow(isDev);
 	} else {
 		const serverResult = await startNextServer();
 		if (serverResult?.port) {

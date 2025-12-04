@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import AdvancedSettings from "@/app/studio/components/AdvancedSettings";
 import BasicSettings from "@/app/studio/components/BasicSettings";
 import LivePreview from "@/app/studio/components/LivePreview";
@@ -7,7 +8,6 @@ import SaveAsDialog from "@/app/studio/components/SaveAsDialog";
 import TypeSpecificFields from "@/app/studio/components/TypeSpecificFields";
 import { Icon } from "@/components/Icon";
 import type { PresetLite } from "@/types";
-import React, { useEffect, useState } from "react";
 
 interface PresetEditorProps {
 	preset: PresetLite | null;
@@ -73,27 +73,32 @@ export default function PresetEditor({
 				<div className="flex-1 overflow-y-auto px-6 py-4">
 					<div className="mx-auto max-w-5xl">
 						{/* Tabs */}
-						<div className="flex flex-wrap items-center border-[var(--color-outline)] border-b">
+						<div
+							className="flex flex-wrap items-center border-[var(--color-outline)] border-b"
+							role="tablist"
+						>
 							<button
 								type="button"
+								role="tab"
+								aria-selected={activeTab === "basic"}
 								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
 									activeTab === "basic"
 										? "border-b-surface bg-surface text-light"
 										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
 								}`}
-								aria-selected={activeTab === "basic"}
 								onClick={() => setActiveTab("basic")}
 							>
 								Basic Settings
 							</button>
 							<button
 								type="button"
+								role="tab"
+								aria-selected={activeTab === "advanced"}
 								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
 									activeTab === "advanced"
 										? "border-b-surface bg-surface text-light"
 										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
 								}`}
-								aria-selected={activeTab === "advanced"}
 								onClick={() => setActiveTab("advanced")}
 							>
 								Advanced Settings
@@ -104,12 +109,13 @@ export default function PresetEditor({
 							{preset.taskType !== "general" && (
 								<button
 									type="button"
+									role="tab"
+									aria-selected={activeTab === "type"}
 									className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
 										activeTab === "type"
 											? "border-b-surface bg-surface text-light"
 											: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
 									}`}
-									aria-selected={activeTab === "type"}
 									onClick={() => setActiveTab("type")}
 								>
 									{preset.taskType.charAt(0).toUpperCase() +
@@ -119,12 +125,13 @@ export default function PresetEditor({
 							)}
 							<button
 								type="button"
+								role="tab"
+								aria-selected={activeTab === "output"}
 								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
 									activeTab === "output"
 										? "border-b-surface bg-surface text-light"
 										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
 								}`}
-								aria-selected={activeTab === "output"}
 								onClick={() => setActiveTab("output")}
 							>
 								Output Settings
@@ -134,12 +141,13 @@ export default function PresetEditor({
 							</button>
 							<button
 								type="button"
+								role="tab"
+								aria-selected={activeTab === "preview"}
 								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
 									activeTab === "preview"
 										? "border-b-surface bg-surface text-light"
 										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
 								}`}
-								aria-selected={activeTab === "preview"}
 								onClick={() => setActiveTab("preview")}
 							>
 								Live Examples
@@ -189,6 +197,29 @@ export default function PresetEditor({
 											/>
 										</div>
 									)}
+
+									<div>
+										<label
+											htmlFor="identity"
+											className="mb-1 block font-medium text-secondary text-xs"
+										>
+											Identity
+										</label>
+										<input
+											id="identity"
+											type="text"
+											value={preset.options?.identity || ""}
+											onChange={(e) =>
+												onFieldChange("identity", e.target.value)
+											}
+											placeholder="e.g., You are an expert programmer, You are a helpful writing assistant, You are a helpful customer support agent, etc..."
+											className="md-input w-full px-3 py-2 text-sm"
+										/>
+										<p className="mt-1 text-secondary text-xs opacity-80">
+											Optional. If provided, will be used as "Act as [identity]"
+											in prompt generation.
+										</p>
+									</div>
 
 									<div>
 										<label

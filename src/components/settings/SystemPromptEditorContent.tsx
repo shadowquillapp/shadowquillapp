@@ -1,6 +1,6 @@
 "use client";
+import { useEffect, useState } from "react";
 import { ensureSystemPromptBuild } from "@/lib/system-prompts";
-import React, { useEffect, useState } from "react";
 
 export default function SystemPromptEditorContent() {
 	const [loading, setLoading] = useState(true);

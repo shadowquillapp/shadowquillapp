@@ -1,8 +1,8 @@
+import { XMarkIcon } from "@heroicons/react/24/solid";
+import type React from "react";
+import { useEffect, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
 import { Icon } from "@/components/Icon";
-import { XMarkIcon } from "@heroicons/react/24/solid";
-import { useEffect, useRef, useState } from "react";
-import type React from "react";
 import type { PromptPresetSummary } from "./types";
 
 const visuallyHidden: React.CSSProperties = {
@@ -49,7 +49,9 @@ export function PresetPickerModal({
 }: PresetPickerModalProps) {
 	const { confirm } = useDialog();
 	const [searchQuery, setSearchQuery] = useState("");
-	const [selectedTaskType, setSelectedTaskType] = useState<string | null>(null);
+	const [_selectedTaskType, setSelectedTaskType] = useState<string | null>(
+		null,
+	);
 	const [activeSection, setActiveSection] = useState<"presets" | "saved">(
 		"presets",
 	);
@@ -320,6 +322,7 @@ export function PresetPickerModal({
 			}}
 		>
 			<div className="modal-backdrop-blur" />
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: modal content needs to stop propagation */}
 			<div
 				className="modal-content"
 				ref={modalContentRef}
@@ -712,231 +715,225 @@ export function PresetPickerModal({
 										))}
 									</div>
 								)
-							) : (
-								/* Saved Projects List */
-								<>
-									{filteredProjects.length === 0 ? (
-										<div
-											className="text-secondary"
-											style={{
-												display: "flex",
-												flexDirection: "column",
-												alignItems: "center",
-												gap: 10,
-												fontSize: 13,
-												padding: 24,
-												textAlign: "center",
-											}}
-										>
-											{savedProjects.length === 0 ? (
-												<>
-													<Icon
-														name="folder-open"
-														style={{ width: 32, height: 32, opacity: 0.4 }}
-													/>
-													No saved workbenches yet.
-													<div style={{ opacity: 0.8 }}>
-														Run a prompt to create your first workbench.
-													</div>
-												</>
-											) : (
-												<>
-													No matching workbenches found.
-													<div style={{ opacity: 0.8 }}>
-														Try a different search term.
-													</div>
-													{searchQuery && (
-														<button
-															type="button"
-															className="md-btn"
-															onClick={() => setSearchQuery("")}
-															style={{
-																padding: "6px 10px",
-																fontSize: 12,
-																borderRadius: 8,
-																border:
-																	"1px solid var(--color-outline-variant)",
-																background: "var(--color-surface)",
-																color: "var(--color-on-surface)",
-															}}
-														>
-															Reset
-														</button>
-													)}
-												</>
-											)}
-										</div>
+							) : /* Saved Projects List */
+							filteredProjects.length === 0 ? (
+								<div
+									className="text-secondary"
+									style={{
+										display: "flex",
+										flexDirection: "column",
+										alignItems: "center",
+										gap: 10,
+										fontSize: 13,
+										padding: 24,
+										textAlign: "center",
+									}}
+								>
+									{savedProjects.length === 0 ? (
+										<>
+											<Icon
+												name="folder-open"
+												style={{ width: 32, height: 32, opacity: 0.4 }}
+											/>
+											No saved workbenches yet.
+											<div style={{ opacity: 0.8 }}>
+												Run a prompt to create your first workbench.
+											</div>
+										</>
 									) : (
-										<div
-											style={{
-												display: "flex",
-												flexDirection: "column",
-												gap: 8,
-											}}
-										>
-											{filteredProjects.map((project) => {
-												const isDeleting = deletingProjectId === project.id;
-												return (
+										<>
+											No matching workbenches found.
+											<div style={{ opacity: 0.8 }}>
+												Try a different search term.
+											</div>
+											{searchQuery && (
+												<button
+													type="button"
+													className="md-btn"
+													onClick={() => setSearchQuery("")}
+													style={{
+														padding: "6px 10px",
+														fontSize: 12,
+														borderRadius: 8,
+														border: "1px solid var(--color-outline-variant)",
+														background: "var(--color-surface)",
+														color: "var(--color-on-surface)",
+													}}
+												>
+													Reset
+												</button>
+											)}
+										</>
+									)}
+								</div>
+							) : (
+								<div
+									style={{
+										display: "flex",
+										flexDirection: "column",
+										gap: 8,
+									}}
+								>
+									{filteredProjects.map((project) => {
+										const isDeleting = deletingProjectId === project.id;
+										return (
+											<div
+												key={project.id}
+												style={{
+													display: "flex",
+													alignItems: "center",
+													gap: 8,
+													opacity: isDeleting ? 0.5 : 1,
+													transition: "opacity 0.2s",
+												}}
+											>
+												<button
+													type="button"
+													className="md-btn"
+													onClick={() => {
+														if (onSelectProject) {
+															onSelectProject(project.id);
+														}
+														onClose();
+													}}
+													disabled={isDeleting}
+													style={{
+														display: "flex",
+														alignItems: "center",
+														gap: 8,
+														padding: "12px",
+														textAlign: "left",
+														background: "var(--color-surface-variant)",
+														border: "1px solid var(--color-outline)",
+														borderRadius: 8,
+														transition: "box-shadow 0.15s, border-color 0.15s",
+														flex: 1,
+														height: 44,
+													}}
+													onMouseEnter={(e) => {
+														if (isDeleting) return;
+														e.currentTarget.style.boxShadow =
+															"0 2px 8px rgba(0,0,0,0.08)";
+														e.currentTarget.style.borderColor =
+															"var(--color-outline-variant)";
+													}}
+													onMouseLeave={(e) => {
+														e.currentTarget.style.boxShadow = "none";
+														e.currentTarget.style.borderColor =
+															"var(--color-outline)";
+													}}
+													onFocus={(e) => {
+														e.currentTarget.style.boxShadow =
+															"0 0 0 3px var(--focus-ring, rgba(99,102,241,0.25))";
+														e.currentTarget.style.borderColor =
+															"var(--color-primary)";
+													}}
+													onBlur={(e) => {
+														e.currentTarget.style.boxShadow = "none";
+														e.currentTarget.style.borderColor =
+															"var(--color-outline)";
+													}}
+												>
 													<div
-														key={project.id}
 														style={{
 															display: "flex",
 															alignItems: "center",
-															gap: 8,
-															opacity: isDeleting ? 0.5 : 1,
-															transition: "opacity 0.2s",
+															justifyContent: "center",
+															width: 24,
+															height: 24,
+															borderRadius: 6,
+															background:
+																"color-mix(in oklab, var(--color-secondary) 15%, transparent)",
+															color: "var(--color-secondary)",
+															flexShrink: 0,
 														}}
 													>
-														<button
-															type="button"
-															className="md-btn"
-															onClick={() => {
-																if (onSelectProject) {
-																	onSelectProject(project.id);
-																}
-																onClose();
-															}}
-															disabled={isDeleting}
+														<Icon
+															name="file-text"
+															style={{ width: 14, height: 14 }}
+														/>
+													</div>
+													<div
+														style={{
+															flex: 1,
+															minWidth: 0,
+															overflow: "hidden",
+															paddingRight: 8, // Ensure space for ellipsis
+														}}
+													>
+														<div
 															style={{
-																display: "flex",
-																alignItems: "center",
-																gap: 8,
-																padding: "12px",
-																textAlign: "left",
-																background: "var(--color-surface-variant)",
-																border: "1px solid var(--color-outline)",
-																borderRadius: 8,
-																transition:
-																	"box-shadow 0.15s, border-color 0.15s",
-																flex: 1,
-																height: 44,
-															}}
-															onMouseEnter={(e) => {
-																if (isDeleting) return;
-																e.currentTarget.style.boxShadow =
-																	"0 2px 8px rgba(0,0,0,0.08)";
-																e.currentTarget.style.borderColor =
-																	"var(--color-outline-variant)";
-															}}
-															onMouseLeave={(e) => {
-																e.currentTarget.style.boxShadow = "none";
-																e.currentTarget.style.borderColor =
-																	"var(--color-outline)";
-															}}
-															onFocus={(e) => {
-																e.currentTarget.style.boxShadow =
-																	"0 0 0 3px var(--focus-ring, rgba(99,102,241,0.25))";
-																e.currentTarget.style.borderColor =
-																	"var(--color-primary)";
-															}}
-															onBlur={(e) => {
-																e.currentTarget.style.boxShadow = "none";
-																e.currentTarget.style.borderColor =
-																	"var(--color-outline)";
+																fontSize: 12,
+																fontWeight: 600,
+																color: "var(--color-on-surface)",
+																overflow: "hidden",
+																textOverflow: "ellipsis",
+																whiteSpace: "nowrap",
+																maxWidth: "200px", // Force truncation to show ellipsis
+																paddingTop: 2,
 															}}
 														>
-															<div
-																style={{
-																	display: "flex",
-																	alignItems: "center",
-																	justifyContent: "center",
-																	width: 24,
-																	height: 24,
-																	borderRadius: 6,
-																	background:
-																		"color-mix(in oklab, var(--color-secondary) 15%, transparent)",
-																	color: "var(--color-secondary)",
-																	flexShrink: 0,
-																}}
-															>
-																<Icon
-																	name="file-text"
-																	style={{ width: 14, height: 14 }}
-																/>
-															</div>
-															<div
-																style={{
-																	flex: 1,
-																	minWidth: 0,
-																	overflow: "hidden",
-																	paddingRight: 8, // Ensure space for ellipsis
-																}}
-															>
-																<div
-																	style={{
-																		fontSize: 12,
-																		fontWeight: 600,
-																		color: "var(--color-on-surface)",
-																		overflow: "hidden",
-																		textOverflow: "ellipsis",
-																		whiteSpace: "nowrap",
-																		maxWidth: "200px", // Force truncation to show ellipsis
-																		paddingTop: 2,
-																	}}
-																>
-																	{project.title ?? "Untitled"}
-																</div>
-																<div
-																	style={{
-																		fontSize: 10,
-																		color: "var(--color-on-surface-variant)",
-																		opacity: 0.75,
-																		paddingBottom: 2,
-																		marginTop: -2,
-																	}}
-																>
-																	{new Date(
-																		project.updatedAt,
-																	).toLocaleDateString(undefined, {
-																		month: "short",
-																		day: "numeric",
-																		year: "numeric",
-																	})}
-																	{" · "}
-																	{new Date(
-																		project.updatedAt,
-																	).toLocaleTimeString(undefined, {
-																		hour: "2-digit",
-																		minute: "2-digit",
-																	})}
-																</div>
-															</div>
-															<Icon
-																name="chevron-right"
-																style={{
-																	width: 14,
-																	height: 14,
-																	opacity: 0.4,
-																	flexShrink: 0,
-																}}
-															/>
-														</button>
-
-														{/* Delete button */}
-														{onDeleteProject && (
-															<button
-																type="button"
-																onClick={(e) =>
-																	handleDeleteProject(e, project.id)
-																}
-																disabled={isDeleting}
-																title="Delete workbench"
-																aria-label="Delete workbench"
-																className="flex items-center justify-center"
-															>
-																<Icon
-																	name="trash"
-																	className="h-4 w-4"
-																	style={{ color: "#ef4444" }}
-																/>
-															</button>
-														)}
+															{project.title ?? "Untitled"}
+														</div>
+														<div
+															style={{
+																fontSize: 10,
+																color: "var(--color-on-surface-variant)",
+																opacity: 0.75,
+																paddingBottom: 2,
+																marginTop: -2,
+															}}
+														>
+															{new Date(project.updatedAt).toLocaleDateString(
+																undefined,
+																{
+																	month: "short",
+																	day: "numeric",
+																	year: "numeric",
+																},
+															)}
+															{" · "}
+															{new Date(project.updatedAt).toLocaleTimeString(
+																undefined,
+																{
+																	hour: "2-digit",
+																	minute: "2-digit",
+																},
+															)}
+														</div>
 													</div>
-												);
-											})}
-										</div>
-									)}
-								</>
+													<Icon
+														name="chevron-right"
+														style={{
+															width: 14,
+															height: 14,
+															opacity: 0.4,
+															flexShrink: 0,
+														}}
+													/>
+												</button>
+
+												{/* Delete button */}
+												{onDeleteProject && (
+													<button
+														type="button"
+														onClick={(e) => handleDeleteProject(e, project.id)}
+														disabled={isDeleting}
+														title="Delete workbench"
+														aria-label="Delete workbench"
+														className="flex items-center justify-center"
+													>
+														<Icon
+															name="trash"
+															className="h-4 w-4"
+															style={{ color: "#ef4444" }}
+														/>
+													</button>
+												)}
+											</div>
+										);
+									})}
+								</div>
 							)}
 						</div>
 					</div>

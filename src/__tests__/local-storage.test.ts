@@ -1,11 +1,5 @@
-import {
-	clearAllStorageForFactoryReset,
-	getJSON,
-	isFactoryResetInProgress,
-	remove,
-	setJSON,
-} from "@/lib/local-storage";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getJSON, remove, setJSON } from "@/lib/local-storage";
 
 // Helper to access internal state - we need to reload the module to reset state
 const resetModule = async () => {

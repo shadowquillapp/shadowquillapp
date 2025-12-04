@@ -1,3 +1,4 @@
+import { describe, expect, it } from "vitest";
 import {
 	normalizeAspectRatio,
 	normalizeCameraMovement,
@@ -7,7 +8,6 @@ import {
 	normalizeStylePreset,
 	normalizeVideoStylePreset,
 } from "@/lib/prompt-normalization";
-import { describe, expect, it } from "vitest";
 
 describe("normalizeStylePreset", () => {
 	it("should return valid image style presets", () => {

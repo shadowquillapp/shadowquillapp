@@ -1,5 +1,5 @@
-import { Icon } from "@/components/Icon";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import { Icon } from "@/components/Icon";
 import type { PromptPresetSummary } from "./types";
 
 export interface TabInfo {
@@ -180,9 +180,11 @@ export function TabBar({
 							{onReorderTabs &&
 								draggedIndex !== null &&
 								draggedIndex !== index && (
-									<div
+									<button
 										key={`drop-before-${tab.id}`}
+										type="button"
 										className={`drop-zone ${dragOverIndex === index ? "drop-target" : ""}`}
+										aria-label="Drop zone for reordering tabs"
 										onDragOver={(e) => {
 											if (draggedIndex === null || draggedIndex === index)
 												return;
@@ -224,7 +226,7 @@ export function TabBar({
 											alignItems: "center",
 											justifyContent: "center",
 										}}
-									/>
+									></button>
 								)}
 
 							<div
@@ -401,8 +403,10 @@ export function TabBar({
 
 				{/* Drop zone after last tab */}
 				{onReorderTabs && draggedIndex !== null && (
-					<div
+					<button
+						type="button"
 						className={`drop-zone ${dragOverIndex === tabs.length ? "drop-target" : ""}`}
+						aria-label="Drop zone for reordering tabs"
 						onDragOver={(e) => {
 							if (draggedIndex === null) return;
 							e.preventDefault();
@@ -435,7 +439,7 @@ export function TabBar({
 							alignItems: "center",
 							justifyContent: "center",
 						}}
-					/>
+					></button>
 				)}
 
 				{/* New tab button - positioned right after tabs */}

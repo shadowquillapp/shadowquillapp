@@ -1,83 +1,115 @@
 /**
  * ==========================================================================
- * DARK THEME
+ * TRUE DARK THEME (Achromatic / Neutral)
  * ==========================================================================
  *
- * A neutral dark theme with blue accents.
- * Standard dark mode with good accessibility.
+ * A strict neutral gray palette with no blue undertones in the background.
+ * Uses a "Soft Blue" accent for focus states.
  *
  * ACTIVATION: Set data-theme="dark" on the root element
  * ==========================================================================
  */
 
 [data-theme="dark"] {
-	/* Surface colors */
-	--color-surface: #121212;
-	--color-surface-variant: #1e1e1e;
-	--color-outline: #333;
+	/* --- Surface Colors (The Grays) --- */
+	/* Main Background: Almost pure black/darkest gray. No blue tint. */
+	--color-surface: #000008c9;
 
-	/* Text colors */
-	--color-on-surface: #e0e0e0;
-	--color-on-surface-variant: #9e9e9e;
+	/* Panels/Cards: A rich dark gray (Charcoal) */
+	--color-surface-variant: #171717;
 
-	/* Primary colors */
-	--color-primary: #4a9eff;
-	--color-primary-variant: #2b7fd9;
-	--color-on-primary: #fff;
+	/* Borders: Subtle neutral gray to separate sections */
+	--color-outline: #262626;
 
-	/* Status colors */
-	--color-save: #4caf50;
-	--color-save-variant: #388e3c;
-	--color-on-save: #fff;
-	--color-attention: #ff9800;
-	--color-attention-variant: #f57c00;
-	--color-on-attention: #000;
-	--color-destructive: #ef5350;
-	--color-destructive-variant: #d32f2f;
-	--color-on-destructive: #fff;
+	/* --- Typography (The Light Grays) --- */
+	/* Primary Text: Soft White (not harsh pure white) */
+	--color-on-surface: #e5e5e5;
+
+	/* Secondary Text: Mid-tone Gray */
+	--color-on-surface-variant: #a3a3a3;
+
+	/* --- Accent Colors (The Soft Blue) --- */
+	/* Primary: A desaturated, airy blue (Cornflower/Sky) */
+	--color-primary: #79c0ff;
+
+	/* Hover: Slightly deeper soft blue */
+	--color-primary-variant: #58a6ff;
+
+	/* Text on Primary: Dark gray for readability */
+	--color-on-primary: #0a0a0a;
+
+	/* --- Status Colors (Muted for Dark Mode) --- */
+	/* Success: Muted Sage Green */
+	--color-save: #56d364;
+	--color-save-variant: #3fb950;
+	--color-on-save: #0a0a0a;
+
+	/* Warning: Soft Gold */
+	--color-attention: #e3b341;
+	--color-attention-variant: #d29922;
+	--color-on-attention: #0a0a0a;
+
+	/* Destructive: Soft Salmon/Red */
+	--color-destructive: #ff7b72;
+	--color-destructive-variant: #f85149;
+	--color-on-destructive: #0a0a0a;
 
 	/* Tab colors */
-	--color-tab-active: #26a69a;
-	--color-tab-active-variant: #1e8a80;
+	--color-tab-active: #79c0ff;
+	--color-tab-active-variant: #58a6ff;
 
-	/* Special UI colors */
-	--color-titlebar-background: #1e1e1e;
-	--workbench-composer-background: #1e1e1eef;
+	/* --- Special UI Colors --- */
+	/* Titlebar: Matches the panel gray */
+	--color-titlebar-background: #1919279c;
 
-	/* Palette colors */
-	--darka0: #121212;
-	--lighta0: #e0e0e0;
-	--primarya0: #4a9eff;
-	--primarya10: #2b7fd9;
-	--primarya20: #1e5fa8;
-	--primarya30: #6fb3ff;
-	--primarya40: #9ac9ff;
-	--primarya50: #d4e9ff;
-	--accenta0: #2b7fd9;
+	/* Input/Composer: Darker than panels to look "recessed" */
+	--workbench-composer-background: #000000;
 
-	/* Surface palette */
-	--surfacea0: #121212;
-	--surfacea10: #1e1e1e;
-	--surfacea20: #2a2a2a;
-	--surfacea30: #333;
-	--surfacea40: #424242;
-	--surfacea50: #9e9e9e;
+	/* Input Card: Lighter than surface-variant for better visibility */
+	--color-input-card: #262626;
 
-	/* Surface tonal palette */
-	--surfacetonala0: #121212;
-	--surfacetonala10: #1a1a1a;
-	--surfacetonala20: #242424;
-	--surfacetonala30: #2e2e2e;
-	--surfacetonala40: #383838;
-	--surfacetonala50: #8a8a8a;
+	/* Output Panel: Lighter than surface-variant with 3D effect */
+	--color-output-panel: #2a2a2a;
 
-	/* Component colors */
-	--buttonbg: #4a9eff;
-	--buttontext: #fff;
-	--dropdownbg: #1e1e1e;
-	--cardbg: #1e1e1e;
+	/* --- Palette Definitions --- */
+	/* Base Anchors */
+	--darka0: #0a0a0a;
+	--lighta0: #e5e5e5;
+	--accenta0: #79c0ff;
 
-	/* Shadows */
-	--shadow-1: 0 2px 8px #0006;
-	--shadow-2: 0 6px 16px #00000080;
+	/* Soft Blue Ramps */
+	--primarya0: #79c0ff;
+	--primarya10: #58a6ff;
+	--primarya20: #1f6feb;
+	--primarya30: #79c0ff;
+	--primarya40: #a5d9ff;
+	--primarya50: #cceeff;
+
+	/* Surface Palette (Neutral Grays) */
+	--surfacea0: #0a0a0a; /* Background */
+	--surfacea10: #171717; /* Card */
+	--surfacea20: #262626; /* Hover */
+	--surfacea30: #404040; /* Border */
+	--surfacea40: #525252; /* Disabled */
+	--surfacea50: #737373; /* Icon */
+
+	/* Tonal Palette (Strictly Achromatic) */
+	--surfacetonala0: #0a0a0a;
+	--surfacetonala10: #171717;
+	--surfacetonala20: #262626;
+	--surfacetonala30: #404040;
+	--surfacetonala40: #525252;
+	--surfacetonala50: #737373;
+
+	/* Component Mappings */
+	--buttonbg: var(--color-primary);
+	--buttontext: var(--color-on-primary);
+	--dropdownbg: #1f1f1f;
+	--cardbg: var(--color-surface-variant);
+
+	/* Shadows: Pure black shadows for "True Dark" */
+	--shadow-1:
+		0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -2px rgba(0, 0, 0, 0.5);
+	--shadow-2:
+		0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -4px rgba(0, 0, 0, 0.7);
 }

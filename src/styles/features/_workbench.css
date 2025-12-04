@@ -221,7 +221,7 @@
 	font-weight: 600;
 	color: var(--color-on-surface-variant);
 	text-transform: uppercase;
-	letter-spacing: .5px;
+	letter-spacing: 0.5px;
 	margin-bottom: 4px;
 }
 

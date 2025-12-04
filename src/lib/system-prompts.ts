@@ -33,7 +33,11 @@ Example of WRONG behavior:
 - WRONG output: "Roses are red, violets are blue..." (This is answering the request, not enhancing the prompt)
 
 Output rules:
-- Output ONLY the enhanced prompt text
+- Output ONLY the enhanced prompt text - nothing else
+- NO introductory phrases ("Okay, here's...", "Let me...", "I'll create...")
+- NO explanatory commentary or meta-text about the prompt
+- NO conversational wrappers or transitions
+- Start immediately with the enhanced prompt content
 - Match the requested format (plain text, markdown, or XML)
 - If a specific language is requested, write your ENTIRE output in that language
 - The enhanced prompt should be ready to paste into another AI system`;

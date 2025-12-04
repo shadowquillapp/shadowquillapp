@@ -1,6 +1,6 @@
 {
 	"name": "shadowquillapp",
-	"version": "0.4.0",
+	"version": "0.4.1",
 	"author": "ShadowQuill <info@shadowquill.org>",
 	"homepage": "https://shadowquill.org",
 	"description": "ShadowQuill",
@@ -19,11 +19,11 @@
 		".next/**/*"
 	],
 	"scripts": {
-		"build": "npm run build:electron",
+		"build": "pnpm run build:electron",
 		"build:electron": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SUPPRESS_SUPPORT_NOTES=1 node electron/build-electron.cjs",
-		"check": "biome check --config-path=config/biome.jsonc .",
-		"check:unsafe": "biome check --config-path=config/biome.jsonc --write --unsafe .",
-		"check:write": "biome check --config-path=config/biome.jsonc --write .",
+		"check": "biome check .",
+		"check:unsafe": "biome check --write --unsafe .",
+		"check:write": "biome check --write .",
 		"dev": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SUPPRESS_SUPPORT_NOTES=1 SKIP_ENV_VALIDATION=true ELECTRON=1 NEXT_PUBLIC_ELECTRON=1 node ./electron/start-electron.cjs",
 		"postinstall": "node scripts/postinstall.js",
 		"start": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SUPPRESS_SUPPORT_NOTES=1 SKIP_ENV_VALIDATION=true ELECTRON=1 NEXT_PUBLIC_ELECTRON=1 node ./electron/start-electron.cjs --prod",
@@ -34,38 +34,41 @@
 	},
 	"dependencies": {
 		"@heroicons/react": "^2.2.0",
-		"@tailwindcss/postcss": "^4.0.15",
-		"cross-env": "^7.0.3",
-		"next": "^16.0.3",
-		"react": "^19.0.0",
-		"react-dom": "^19.0.0",
-		"systeminformation": "^5.25.11",
-		"tailwindcss": "^4.0.15"
+		"@tailwindcss/postcss": "^4.1.17",
+		"cross-env": "^10.1.0",
+		"next": "^16.0.7",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"systeminformation": "^5.27.11",
+		"tailwindcss": "^4.1.17"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^1.9.4",
+		"@biomejs/biome": "^2.3.8",
+		"@electron-forge/cli": "^7.10.2",
 		"@semantic-release/changelog": "^6.0.3",
 		"@semantic-release/commit-analyzer": "^13.0.1",
 		"@semantic-release/git": "^10.0.1",
 		"@semantic-release/github": "^12.0.2",
 		"@semantic-release/npm": "^13.1.2",
 		"@semantic-release/release-notes-generator": "^14.1.0",
-		"@testing-library/jest-dom": "^6.6.3",
+		"@testing-library/jest-dom": "^6.9.1",
 		"@testing-library/react": "^16.3.0",
 		"@testing-library/user-event": "^14.6.1",
 		"@types/estree": "^1.0.8",
-		"@types/node": "^20.19.10",
-		"@types/react": "^19.1.11",
-		"@types/react-dom": "^19.0.0",
-		"@vitest/coverage-v8": "^4.0.14",
+		"@types/eslint": "^9.6.1",
+		"@types/eslint-scope": "^8.3.2",
+		"@types/node": "^24.10.1",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"@vitest/coverage-v8": "^4.0.15",
 		"conventional-changelog-conventionalcommits": "^9.1.0",
+		"electron": "^39.2.5",
 		"electron-builder": "^26.0.12",
-		"jsdom": "^26.1.0",
+		"jsdom": "^27.2.0",
 		"semantic-release": "^25.0.2",
-		"electron": "^38.0.0",
-		"tsx": "^4.20.5",
-		"typescript": "^5.8.2",
-		"vitest": "^4.0.14"
+		"tsx": "^4.21.0",
+		"typescript": "^5.9.3",
+		"vitest": "^4.0.15"
 	},
 	"build": {
 		"appId": "shadowquillapp",
@@ -87,7 +90,11 @@
 			"!**/*.map"
 		],
 		"asar": true,
-		"asarUnpack": ["**/*.node", ".next/**/*", "node_modules/next/**/*"],
+		"asarUnpack": [
+			"**/*.node",
+			".next/**/*",
+			"node_modules/next/**/*"
+		],
 		"extraMetadata": {
 			"main": "electron/main.cjs"
 		}
@@ -101,7 +108,7 @@
 			"@tailwindcss/postcss": {}
 		}
 	},
-	"packageManager": "npm@11.6.2",
+	"packageManager": "pnpm@9.15.0",
 	"engines": {
 		"node": ">=25.2.1"
 	}
