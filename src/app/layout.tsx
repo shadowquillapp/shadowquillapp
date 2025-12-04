@@ -23,7 +23,10 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
 	return (
 		<html lang="en" className={`${geist.variable}`}>
-			<head>{/* No external CDN links to allow full offline operation */}</head>
+			<head>
+				{/* No external CDN links to allow full offline operation */}
+				<script src="/theme-init.js" />
+			</head>
 			<body className="flex h-screen flex-col overflow-hidden">
 				<DialogProvider>
 					<Titlebar />
