@@ -14,7 +14,6 @@ export function MessageRenderer({
 	copiedMessageId,
 	onCopy,
 }: MessageRendererProps) {
-	// Syntax highlighting helpers
 	const highlightJSON = useCallback((rawCode: string) => {
 		const normalize = () => {
 			if (!rawCode) return "";
@@ -603,20 +602,16 @@ export function MessageRenderer({
 	}, []);
 
 	const renderMessageContent = () => {
-		// Handle both proper code blocks and malformed ones (e.g., missing closing backticks)
 		const codeBlockRegex = /```([^\n]*)\n?([\s\S]*?)```/g;
 		const unclosedCodeBlockRegex = /```([^\n]*)\n([\s\S]+)$/;
-		// Ensure UI matches copy behavior: hide a final bare fence line (exactly ```) from display.
 		const displayContent = /(?:^|\n)```$/.test(content)
 			? content.replace(/```$/, "")
 			: content;
 		const parts = [];
 		let lastIndex = 0;
 
-		// First check for unclosed code block at the end
 		const unclosedMatch = unclosedCodeBlockRegex.exec(displayContent);
 		if (unclosedMatch) {
-			// If we find an unclosed code block, treat it as a complete block
 			const [fullMatch, language, code] = unclosedMatch;
 			const beforeBlock = displayContent.slice(0, unclosedMatch.index);
 
@@ -630,8 +625,6 @@ export function MessageRenderer({
 
 			const languageLabel = (language || "").trim();
 			const lang = (languageLabel || "code").toLowerCase();
-
-			// Clean up duplicate opening markers (e.g., ```xml\n```xml\n<content>)
 			let cleanedCode = code || "";
 			const duplicateMarkerPattern = new RegExp(
 				`^\\s*\`\`\`${lang}\\s*\\n`,
@@ -678,7 +671,6 @@ export function MessageRenderer({
 		) {
 			if (match.index > lastIndex) {
 				const textBefore = displayContent.slice(lastIndex, match.index);
-				// Remove a trailing fence-only line (e.g., ``` at bottom of a text segment)
 				const cleanedTextBefore = textBefore.replace(/\n?\s*`{3,}\s*$/g, "");
 				if (cleanedTextBefore.trim()) {
 					parts.push(
@@ -724,11 +716,9 @@ export function MessageRenderer({
 		if (lastIndex < displayContent.length) {
 			let remainingText = displayContent.slice(lastIndex);
 			if (remainingText.trim()) {
-				// Drop a trailing fence-only line (closing ```), so it is not rendered
 				remainingText = remainingText.replace(/\n?\s*`{3,}\s*$/g, "");
 			}
 			if (remainingText.trim()) {
-				// Check if text starts with a language identifier followed by XML/HTML/JSON
 				const langWithCodePattern = /^(xml|html|svg|json)\s*\n+([\s\S]+)$/i;
 				const langMatch = langWithCodePattern.exec(remainingText.trim());
 
@@ -752,7 +742,6 @@ export function MessageRenderer({
 						</div>,
 					);
 				} else {
-					// Check if remaining text looks like XML/HTML that wasn't in code blocks
 					const xmlPattern = /^\s*<[\s\S]*>\s*$/;
 					if (xmlPattern.test(remainingText.trim())) {
 						parts.push(

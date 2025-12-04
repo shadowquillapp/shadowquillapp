@@ -5,7 +5,6 @@ import { useEffect, useRef, useState } from "react";
 import type React from "react";
 import type { PromptPresetSummary } from "./types";
 
-// Minimal visually hidden style for a11y announcements
 const visuallyHidden: React.CSSProperties = {
 	position: "absolute",
 	width: 1,
@@ -123,12 +122,10 @@ export function PresetPickerModal({
 		return (project.title ?? "Untitled").toLowerCase().includes(q);
 	};
 
-	// Close on Escape
 	useEffect(() => {
 		if (!open) return;
 		const onEsc = (e: KeyboardEvent) => {
 			if (e.key === "Escape") {
-				// If the search is focused and has a value, clear instead of close
 				const active = document.activeElement;
 				if (active === searchInputRef.current && searchQuery) {
 					e.preventDefault();
@@ -142,7 +139,6 @@ export function PresetPickerModal({
 		return () => document.removeEventListener("keydown", onEsc);
 	}, [open, onClose, searchQuery]);
 
-	// Reset search when modal opens/closes
 	useEffect(() => {
 		if (!open) {
 			setSearchQuery("");
@@ -150,18 +146,15 @@ export function PresetPickerModal({
 			setActiveSection("presets");
 			setIsAnimating(false);
 			setContentHeight("auto");
-			// Restore focus back to opener
 			try {
 				lastActiveEl.current?.focus();
 			} catch {}
 		}
 	}, [open]);
 
-	// Handle tab switching with animation
 	const handleTabSwitch = (newSection: "presets" | "saved") => {
 		if (newSection === activeSection || isAnimating) return;
 
-		// Capture current height before animating
 		const currentHeight = contentWrapperRef.current?.offsetHeight;
 		if (currentHeight) {
 			setContentHeight(currentHeight);
@@ -170,10 +163,8 @@ export function PresetPickerModal({
 		setSlideDirection(newSection === "saved" ? "left" : "right");
 		setIsAnimating(true);
 
-		// After exit animation, switch content and trigger enter animation
 		setTimeout(() => {
 			setActiveSection(newSection);
-			// Measure new content height after DOM update
 			requestAnimationFrame(() => {
 				const newHeight = contentWrapperRef.current?.scrollHeight;
 				if (newHeight) {
@@ -181,7 +172,6 @@ export function PresetPickerModal({
 				}
 				setTimeout(() => {
 					setIsAnimating(false);
-					// After animation completes, reset to auto for dynamic content
 					setTimeout(() => {
 						setContentHeight("auto");
 					}, 200);
@@ -190,19 +180,15 @@ export function PresetPickerModal({
 		}, 150);
 	};
 
-	// Autofocus the search input when the modal opens
 	useEffect(() => {
 		if (!open) return;
-		// Save the element that was focused before opening
 		lastActiveEl.current = document.activeElement as HTMLElement | null;
-		// Defer focus to after render
 		const id = window.requestAnimationFrame(() => {
 			searchInputRef.current?.focus();
 		});
 		return () => window.cancelAnimationFrame(id);
 	}, [open]);
 
-	// Focus trap within the modal
 	useEffect(() => {
 		if (!open) return;
 		const handler = (e: KeyboardEvent) => {
@@ -237,13 +223,11 @@ export function PresetPickerModal({
 
 	if (!open) return null;
 
-	// Filter presets
 	const filteredPresets = presets.filter((preset) => {
 		return doesMatchSearch(preset, searchQuery);
 	});
 	const presetKeys = filteredPresets.map((p) => p.id ?? p.name);
 
-	// Filter saved projects
 	const filteredProjects = savedProjects
 		.filter((project) => doesMatchProjectSearch(project, searchQuery))
 		.sort(
@@ -265,7 +249,6 @@ export function PresetPickerModal({
 	) => {
 		const idx = presetKeys.indexOf(key);
 		if (idx === -1) return;
-		// Global shortcuts: Home/End jump
 		if (e.key === "Home") {
 			e.preventDefault();
 			const firstKey = presetKeys[0];
@@ -289,7 +272,6 @@ export function PresetPickerModal({
 			return;
 		}
 		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-			// Compute columns from container width and minimum card width
 			const container = gridRef.current;
 			const minCardWidth = 190;
 			const columns = container?.clientWidth
@@ -328,7 +310,6 @@ export function PresetPickerModal({
 			aria-modal="true"
 			aria-labelledby="preset-picker-title"
 			onKeyDown={(e) => {
-				// "/" to focus search unless typing in an input/textarea
 				if (e.key === "/" && e.target instanceof HTMLElement) {
 					const tag = (e.target.tagName || "").toLowerCase();
 					if (tag !== "input" && tag !== "textarea") {
@@ -365,13 +346,11 @@ export function PresetPickerModal({
 				</div>
 
 				<div className="modal-body" style={{ padding: 20 }}>
-					{/* A11y live region for results count */}
 					<output aria-live="polite" style={visuallyHidden}>
 						{activeSection === "presets"
 							? `${filteredPresets.length} presets found`
 							: `${filteredProjects.length} saved workbenches found`}
 					</output>
-					{/* Tab Switcher + Search Bar (sticky) */}
 					<div
 						style={{
 							position: "sticky",
