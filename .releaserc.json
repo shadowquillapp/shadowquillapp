@@ -24,6 +24,8 @@
 		],
 		"@semantic-release/release-notes-generator",
 		"@semantic-release/changelog",
+		"@semantic-release/npm",
+		"./scripts/update-version.js",
 		[
 			"@semantic-release/git",
 			{
