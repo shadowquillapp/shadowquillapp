@@ -19,7 +19,9 @@
 	color: var(--color-on-surface-variant);
 	text-decoration: underline;
 	text-underline-offset: 2px;
-	transition: color 120ms ease, background-color 120ms ease;
+	transition:
+		color 120ms ease,
+		background-color 120ms ease;
 	border-radius: 4px;
 	padding: 2px 4px;
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@/components/Icon";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
@@ -61,12 +60,16 @@ export default function SaveAsDialog({
 	if (!isOpen) return null;
 
 	return (
+		// biome-ignore lint/a11y/useSemanticElements: modal backdrop needs to be a div for proper styling
 		<div
 			className="modal-container"
 			onClick={onCancel}
 			onKeyDown={(e) => {
 				if (e.key === "Escape") onCancel();
 			}}
+			role="button"
+			tabIndex={0}
+			aria-label="Modal backdrop"
 		>
 			<div className="modal-backdrop-blur" />
 			<dialog

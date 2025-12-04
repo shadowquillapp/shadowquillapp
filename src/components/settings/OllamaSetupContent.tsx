@@ -1,12 +1,11 @@
 "use client";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
 	listAvailableModels,
 	readLocalModelConfig as readLocalModelConfigClient,
 	validateLocalModelConnection as validateLocalModelConnectionClient,
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
-import React, { useEffect, useMemo, useState } from "react";
-import { CustomSelect } from "../CustomSelect";
 import { Icon } from "../Icon";
 
 type TestResult = null | {
@@ -38,6 +37,77 @@ export default function OllamaSetupContent() {
 	const [openOllamaError, setOpenOllamaError] = useState<string | null>(null);
 	const [ollamaInstalled, setOllamaInstalled] = useState<boolean | null>(null);
 
+	const isValidPort = (port: string): boolean => {
+		return /^\d{2,5}$/.test((port || "").trim());
+	};
+
+	const normalizeToBaseUrl = useCallback((value?: string): string => {
+		const raw = (value || "").trim();
+		if (!raw) return "";
+		if (/^\d{1,5}$/.test(raw)) return `http://localhost:${raw}`;
+		if (/^localhost:\d{1,5}$/.test(raw)) return `http://${raw}`;
+		if (/^https?:\/\//.test(raw)) return raw.replace(/\/$/, "");
+		return raw;
+	}, []);
+
+	const testLocalConnection = useCallback(
+		async (baseUrlParam?: string, configuredModel?: string) => {
+			const url = normalizeToBaseUrl(baseUrlParam ?? localPort);
+			if (!url) return;
+			setTestingLocal(true);
+			setLocalTestResult(null);
+			const start = Date.now();
+			try {
+				const models = await listAvailableModels(url);
+				const duration = Date.now() - start;
+				const gemmaModels = models.filter(
+					(m) => m?.name && /^gemma3\b/i.test(m.name),
+				);
+				const gemmaModelNames = gemmaModels.map((m) => m.name);
+				setLocalTestResult({
+					success: true,
+					url,
+					models: gemmaModels,
+					duration,
+				});
+				setAvailableModels(gemmaModelNames);
+				setConnectionError(null); // Clear connection error on success
+				if (configuredModel && gemmaModelNames.includes(configuredModel)) {
+					setModel(configuredModel as string);
+				} else if (gemmaModelNames.length > 0) {
+					setModel(gemmaModelNames[0] ?? "");
+				} else {
+					setModel("");
+				}
+			} catch {
+				const duration = Date.now() - start;
+				setLocalTestResult({
+					success: false,
+					url,
+					error: "Connection failed",
+					duration,
+				});
+				setAvailableModels([]);
+			} finally {
+				setTestingLocal(false);
+			}
+		},
+		[localPort, normalizeToBaseUrl],
+	);
+
+	const checkOllamaInstalled = useCallback(async () => {
+		try {
+			const win = window as WindowWithShadowQuill;
+			if (!win.shadowquill?.checkOllamaInstalled) {
+				return;
+			}
+			const result = await win.shadowquill.checkOllamaInstalled();
+			setOllamaInstalled(result.installed);
+		} catch (e) {
+			console.error("Failed to check Ollama installation:", e);
+		}
+	}, []);
+
 	useEffect(() => {
 		const load = async () => {
 			try {
@@ -55,73 +125,7 @@ export default function OllamaSetupContent() {
 		};
 		void load();
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, []);
-
-	const isValidPort = (port: string): boolean => {
-		return /^\d{2,5}$/.test((port || "").trim());
-	};
-
-	const normalizeToBaseUrl = (value?: string): string => {
-		const raw = (value || "").trim();
-		if (!raw) return "";
-		if (/^\d{1,5}$/.test(raw)) return `http://localhost:${raw}`;
-		if (/^localhost:\d{1,5}$/.test(raw)) return `http://${raw}`;
-		if (/^https?:\/\//.test(raw)) return raw.replace(/\/$/, "");
-		return raw;
-	};
-
-	const testLocalConnection = async (
-		baseUrlParam?: string,
-		configuredModel?: string,
-	) => {
-		const url = normalizeToBaseUrl(baseUrlParam ?? localPort);
-		if (!url) return;
-		setTestingLocal(true);
-		setLocalTestResult(null);
-		const start = Date.now();
-		try {
-			const models = await listAvailableModels(url);
-			const duration = Date.now() - start;
-			const gemmaModels = models.filter(
-				(m) => m?.name && /^gemma3\b/i.test(m.name),
-			);
-			const gemmaModelNames = gemmaModels.map((m) => m.name);
-			setLocalTestResult({ success: true, url, models: gemmaModels, duration });
-			setAvailableModels(gemmaModelNames);
-			setConnectionError(null); // Clear connection error on success
-			if (configuredModel && gemmaModelNames.includes(configuredModel)) {
-				setModel(configuredModel as string);
-			} else if (gemmaModelNames.length > 0) {
-				setModel(gemmaModelNames[0] ?? "");
-			} else {
-				setModel("");
-			}
-		} catch {
-			const duration = Date.now() - start;
-			setLocalTestResult({
-				success: false,
-				url,
-				error: "Connection failed",
-				duration,
-			});
-			setAvailableModels([]);
-		} finally {
-			setTestingLocal(false);
-		}
-	};
-
-	const checkOllamaInstalled = async () => {
-		try {
-			const win = window as WindowWithShadowQuill;
-			if (!win.shadowquill?.checkOllamaInstalled) {
-				return;
-			}
-			const result = await win.shadowquill.checkOllamaInstalled();
-			setOllamaInstalled(result.installed);
-		} catch (e) {
-			console.error("Failed to check Ollama installation:", e);
-		}
-	};
+	}, [checkOllamaInstalled, testLocalConnection]);
 
 	const handleOpenOrInstallOllama = async () => {
 		setIsOpeningOllama(true);
@@ -226,7 +230,7 @@ export default function OllamaSetupContent() {
 	const selectedModelMetadata = localTestResult?.models?.find(
 		(m) => m.name === model,
 	);
-	const formattedModelSize = selectedModelMetadata
+	const _formattedModelSize = selectedModelMetadata
 		? (selectedModelMetadata.size / (1024 * 1024 * 1024)).toFixed(1)
 		: null;
 
@@ -319,7 +323,7 @@ export default function OllamaSetupContent() {
 								type="button"
 								onClick={() => testLocalConnection()}
 								disabled={testingLocal || !isValidPort(localPort)}
-								className={`md-btn md-btn--primary ollama-field__action${statusTone !== "success" ? " pulse-glow" : ""}`}
+								className={`md-btn md-btn--primary ollama-field__action${statusTone !== "success" ? "pulse-glow" : ""}`}
 								title="Check for available Ollama models"
 								aria-label="Check for available Ollama models"
 							>

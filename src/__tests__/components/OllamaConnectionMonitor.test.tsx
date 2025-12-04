@@ -1,6 +1,6 @@
-import OllamaConnectionMonitor from "@/components/OllamaConnectionMonitor";
 import { act, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import OllamaConnectionMonitor from "@/components/OllamaConnectionMonitor";
 
 // Mock DialogProvider
 const mockConfirm = vi.fn();

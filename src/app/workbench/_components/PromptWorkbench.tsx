@@ -1,5 +1,8 @@
 "use client";
 
+import { Cog6ToothIcon, PaintBrushIcon } from "@heroicons/react/24/solid";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
 import FeatherLoader from "@/components/FeatherLoader";
 import { Icon } from "@/components/Icon";
@@ -20,7 +23,7 @@ import {
 } from "@/lib/local-db";
 import { getJSON, setJSON } from "@/lib/local-storage";
 import { callLocalModelClient } from "@/lib/model-client";
-import { type Preset, getPresets } from "@/lib/presets";
+import { getPresets, type Preset } from "@/lib/presets";
 import {
 	buildRefinementPrompt,
 	buildUnifiedPrompt,
@@ -34,38 +37,6 @@ import {
 	normalizeStylePreset,
 	normalizeVideoStylePreset,
 } from "@/lib/prompt-normalization";
-import { Cog6ToothIcon, PaintBrushIcon } from "@heroicons/react/24/solid";
-import { useRouter } from "next/navigation";
-import {
-	type ReactNode,
-	useCallback,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from "react";
-import { MessageRenderer } from "./workbench/MessageRenderer";
-import { PresetInfoDialog } from "./workbench/PresetInfoDialog";
-import { PresetPickerModal } from "./workbench/PresetPickerModal";
-import { TabBar } from "./workbench/TabBar";
-import { VersionHistoryModal } from "./workbench/VersionHistoryModal";
-import { VersionNavigator } from "./workbench/VersionNavigator";
-import type {
-	MessageItem,
-	PromptPresetSummary,
-	VersionGraph,
-} from "./workbench/types";
-import { useTabManager } from "./workbench/useTabManager";
-import {
-	appendVersion,
-	createVersionGraph,
-	getOutputMessageId,
-	migrateVersionGraph,
-	redoVersion,
-	undoVersion,
-	versionList,
-} from "./workbench/version-graph";
-
 import type {
 	CameraMovement,
 	Detail,
@@ -80,17 +51,38 @@ import type {
 	Tone,
 	VideoStylePreset,
 } from "@/types";
+import { MessageRenderer } from "./workbench/MessageRenderer";
+import { PresetInfoDialog } from "./workbench/PresetInfoDialog";
+import { PresetPickerModal } from "./workbench/PresetPickerModal";
+import { TabBar } from "./workbench/TabBar";
+import type {
+	MessageItem,
+	PromptPresetSummary,
+	VersionGraph,
+} from "./workbench/types";
+import { useTabManager } from "./workbench/useTabManager";
+import { VersionHistoryModal } from "./workbench/VersionHistoryModal";
+import { VersionNavigator } from "./workbench/VersionNavigator";
+import {
+	appendVersion,
+	createVersionGraph,
+	getOutputMessageId,
+	migrateVersionGraph,
+	redoVersion,
+	undoVersion,
+	versionList,
+} from "./workbench/version-graph";
 
 export default function PromptWorkbench() {
 	const { showInfo, confirm } = useDialog();
 	const router = useRouter();
-	const [modelLabel, setModelLabel] = useState<string>("Gemma 3 4B");
+	const [_modelLabel, setModelLabel] = useState<string>("Gemma 3 4B");
 	const [availableModels, setAvailableModels] = useState<
 		Array<{ name: string; size: number }>
 	>([]);
 	const [currentModelId, setCurrentModelId] = useState<string | null>(null);
 	const [modelMenuOpen, setModelMenuOpen] = useState(false);
-	const [modelMenuUp, setModelMenuUp] = useState(false);
+	const [_modelMenuUp, setModelMenuUp] = useState(false);
 	const modelBtnRef = useRef<HTMLButtonElement | null>(null);
 	const modelMenuRef = useRef<HTMLDivElement | null>(null);
 	const [showVersionHistory, setShowVersionHistory] = useState(false);
@@ -103,7 +95,7 @@ export default function PromptWorkbench() {
 	); // percentage - persisted
 	const [isResizing, setIsResizing] = useState(false);
 	const panelsRef = useRef<HTMLDivElement | null>(null);
-	const [currentTheme, setCurrentTheme] = useState<
+	const [_currentTheme, setCurrentTheme] = useState<
 		"earth" | "purpledark" | "dark" | "light"
 	>("earth");
 	const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
@@ -138,6 +130,7 @@ export default function PromptWorkbench() {
 	const [reasoningStyle, setReasoningStyle] = useState<ReasoningStyle>("none");
 	const [endOfPromptToken, setEndOfPromptToken] = useState("<|endofprompt|>");
 	const [outputXMLSchema, setOutputXMLSchema] = useState("");
+	const [identity, setIdentity] = useState("");
 	const [additionalContext, setAdditionalContext] = useState("");
 	const [examplesText, setExamplesText] = useState("");
 	const [presets, setPresets] = useState<
@@ -150,7 +143,7 @@ export default function PromptWorkbench() {
 	>([]);
 	const [loadingPresets, setLoadingPresets] = useState(false);
 	const [selectedPresetKey, setSelectedPresetKey] = useState("");
-	const [recentPresetKeys, setRecentPresetKeys] = useState<string[]>([]);
+	const [_recentPresetKeys, setRecentPresetKeys] = useState<string[]>([]);
 
 	// Tab management
 	const tabManager = useTabManager();
@@ -211,6 +204,7 @@ export default function PromptWorkbench() {
 			savedTheme = "purpledark";
 			localStorage.setItem("theme-preference", "purpledark");
 		}
+		// Default to earth theme if no saved preference
 		if (
 			savedTheme &&
 			(savedTheme === "earth" ||
@@ -223,6 +217,10 @@ export default function PromptWorkbench() {
 				"data-theme",
 				savedTheme === "earth" ? "" : savedTheme,
 			);
+		} else {
+			// No saved preference - use earth as default
+			setCurrentTheme("earth");
+			document.documentElement.setAttribute("data-theme", "");
 		}
 		// Load recent presets (initial)
 		try {
@@ -240,13 +238,13 @@ export default function PromptWorkbench() {
 	// Drag handlers for controls
 
 	const modelIds = useMemo(() => ["gemma3:4b", "gemma3:12b", "gemma3:27b"], []);
-	const activeIndex = useMemo(
+	const _activeIndex = useMemo(
 		() => Math.max(0, modelIds.indexOf(currentModelId ?? "")),
 		[currentModelId, modelIds],
 	);
 
 	// Refresh available models
-	const refreshModels = useCallback(async () => {
+	const _refreshModels = useCallback(async () => {
 		try {
 			const models = await listAvailableModels("http://localhost:11434");
 			setAvailableModels(models);
@@ -368,6 +366,7 @@ export default function PromptWorkbench() {
 					((o as Record<string, unknown>).outputSchema as string) ??
 					"",
 			);
+			setIdentity(o.identity ?? "");
 			setAdditionalContext(o.additionalContext ?? "");
 			setExamplesText(o.examplesText ?? "");
 			if (trackRecent) {
@@ -402,7 +401,7 @@ export default function PromptWorkbench() {
 		[],
 	);
 
-	const seedDraftFromPreset = useCallback((preset: PromptPresetSummary) => {
+	const _seedDraftFromPreset = useCallback((_preset: PromptPresetSummary) => {
 		return "";
 	}, []);
 
@@ -616,6 +615,7 @@ export default function PromptWorkbench() {
 				reasoningStyle,
 				...(endOfPromptToken && { endOfPromptToken }),
 				...(format === "xml" && outputXMLSchema && { outputXMLSchema }),
+				...(identity && { identity }),
 				...(additionalContext && { additionalContext }),
 				...(examplesText && { examplesText }),
 			};
@@ -772,6 +772,7 @@ export default function PromptWorkbench() {
 		reasoningStyle,
 		endOfPromptToken,
 		outputXMLSchema,
+		identity,
 		additionalContext,
 		examplesText,
 	]);
@@ -984,7 +985,7 @@ export default function PromptWorkbench() {
 				if (data.title) {
 					tabManager.updateTabLabel(newTabId, data.title);
 				}
-			} catch (e) {
+			} catch (_e) {
 				// Use tabId-based error if we have a tab, otherwise show info dialog
 				if (tabManager.activeTab) {
 					tabManager.setError("Failed to load project");
@@ -1118,16 +1119,16 @@ export default function PromptWorkbench() {
 			: activeVersion;
 
 	// Get output and input for the context display
-	const contextOutput = contextVersion?.outputMessageId
+	const _contextOutput = contextVersion?.outputMessageId
 		? activeMessages.find(
 				(m) =>
 					m.id === contextVersion.outputMessageId && m.role === "assistant",
 			)?.content
 		: null;
-	const contextInput = contextVersion?.originalInput ?? null;
+	const _contextInput = contextVersion?.originalInput ?? null;
 
 	// For refinement mode display, show what will be refined (the active version's output)
-	const lastVersionWithOutput =
+	const _lastVersionWithOutput =
 		versionsWithOutput[versionsWithOutput.length - 1];
 	const outputToRefine = activeVersion?.outputMessageId
 		? activeMessages.find(
@@ -1313,6 +1314,8 @@ export default function PromptWorkbench() {
 						}}
 						onClick={(e) => e.stopPropagation()}
 						onKeyDown={(e) => e.stopPropagation()}
+						role="presentation"
+						aria-hidden="true"
 					/>
 				)}
 				<header
@@ -1417,9 +1420,11 @@ export default function PromptWorkbench() {
 							className="group relative flex min-h-0 flex-1 flex-col rounded-2xl"
 							style={{
 								// Solid background + solid border (no gradient)
-								background: "var(--color-surface-variant)",
+								// Use input-card variable if available, fallback to surface-variant
+								background:
+									"var(--color-input-card, var(--color-surface-variant))",
 								border: "1px solid var(--color-outline)",
-								boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
+								boxShadow: "0 6px 12px rgba(0,0,0,0.18)",
 							}}
 						>
 							{/* Header bar inside the text area container */}
@@ -1427,7 +1432,7 @@ export default function PromptWorkbench() {
 								className="flex shrink-0 items-center justify-between gap-3 rounded-t-2xl px-3 py-2.5 md:px-4"
 								style={{
 									background:
-										"linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 50%) 0%, var(--color-surface-variant) 100%)",
+										"linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-input-card, var(--color-surface-variant)) 50%) 0%, var(--color-input-card, var(--color-surface-variant)) 100%)",
 									borderBottom:
 										"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
 								}}
@@ -1813,7 +1818,7 @@ export default function PromptWorkbench() {
 													{ label: "4B", id: "gemma3:4b" },
 													{ label: "12B", id: "gemma3:12b" },
 													{ label: "27B", id: "gemma3:27b" },
-												].map((model, idx) => {
+												].map((model, _idx) => {
 													const isInstalled = availableModels.some(
 														(m) => m.name === model.id,
 													);
@@ -2101,10 +2106,12 @@ export default function PromptWorkbench() {
 					</section>
 
 					{/* CENTER: Resize Handle + Version Navigator */}
-					<div
+					<button
+						type="button"
 						className={`panel-resize-container relative hidden flex-col items-center justify-center md:flex ${isResizing ? "panel-resize-container--active" : ""}`}
 						onMouseDown={handleResizeStart}
 						title="Drag to resize panels"
+						aria-label="Resize panels"
 						style={{
 							width: "8px",
 							flexShrink: 0,
@@ -2126,7 +2133,7 @@ export default function PromptWorkbench() {
 								justCreatedVersion={justCreatedVersion}
 							/>
 						)}
-					</div>
+					</button>
 
 					{/* RIGHT PANE: Output */}
 					<section
@@ -2151,9 +2158,15 @@ export default function PromptWorkbench() {
 						<div
 							className={`group relative flex min-h-0 flex-1 flex-col rounded-2xl ${activeTab?.sending ? "output-generating" : ""}`}
 							style={{
-								background: "var(--color-surface-variant)",
+								// Clean solid background
+								background:
+									"var(--color-output-panel, var(--color-surface-variant))",
+								// Subtle border with highlight for depth
 								border: "1px solid var(--color-outline)",
-								boxShadow: "0 2px 6px rgba(0,0,0,0.18)",
+								borderTop:
+									"1px solid color-mix(in srgb, var(--color-outline), rgba(255,255,255,0.1))",
+								// Clean elevation shadow - single, well-defined
+								boxShadow: "0 6px 12px rgba(0,0,0,0.18)",
 							}}
 						>
 							{/* Toolbar Header inside container */}
@@ -2161,7 +2174,7 @@ export default function PromptWorkbench() {
 								className="flex shrink-0 items-center justify-between gap-3 rounded-t-2xl px-3 py-2.5 md:px-4"
 								style={{
 									background:
-										"linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 50%) 0%, var(--color-surface-variant) 100%)",
+										"linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-output-panel, var(--color-surface-variant)) 50%) 0%, var(--color-output-panel, var(--color-surface-variant)) 100%)",
 									borderBottom:
 										"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
 								}}

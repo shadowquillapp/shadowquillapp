@@ -2,7 +2,6 @@
 
 import { CustomSelect } from "@/components/CustomSelect";
 import type { PresetLite } from "@/types";
-import React from "react";
 
 interface AdvancedSettingsProps {
 	preset: PresetLite;

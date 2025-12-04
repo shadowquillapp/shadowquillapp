@@ -1,5 +1,5 @@
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-	type Preset,
 	compareVersions,
 	deletePresetByIdOrName,
 	ensureDefaultPreset,
@@ -9,11 +9,11 @@ import {
 	getPresetHistory,
 	getPresets,
 	importPresetWithHistory,
+	type Preset,
 	rollbackPreset,
 	savePreset,
 } from "@/lib/presets";
 import type { VersionedPreset } from "@/types";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Helper to clear localStorage before each test
 const clearStorage = () => {
@@ -628,12 +628,8 @@ describe("exportPresetWithHistory", () => {
 		const exported = exportPresetWithHistory("test-1");
 
 		expect(exported).not.toBeNull();
-		expect(Object.prototype.hasOwnProperty.call(exported, "options")).toBe(
-			false,
-		);
-		expect(Object.prototype.hasOwnProperty.call(exported, "versions")).toBe(
-			false,
-		);
+		expect(Object.hasOwn(exported as VersionedPreset, "options")).toBe(false);
+		expect(Object.hasOwn(exported as VersionedPreset, "versions")).toBe(false);
 	});
 });
 

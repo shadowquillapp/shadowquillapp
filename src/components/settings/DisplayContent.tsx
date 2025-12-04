@@ -46,7 +46,7 @@ export default function DisplayContent() {
 	} | null>(null);
 	const [currentTheme, setCurrentTheme] = React.useState<
 		"earth" | "purpledark" | "dark" | "light"
-	>("dark");
+	>("earth");
 
 	React.useEffect(() => {
 		const api = (window as WindowWithShadowQuill).shadowquill;
@@ -70,6 +70,7 @@ export default function DisplayContent() {
 			savedTheme = "purpledark";
 			localStorage.setItem("theme-preference", "purpledark");
 		}
+		// Default to earth theme if no saved preference
 		if (
 			savedTheme &&
 			(savedTheme === "earth" ||
@@ -78,6 +79,14 @@ export default function DisplayContent() {
 				savedTheme === "light")
 		) {
 			setCurrentTheme(savedTheme);
+			document.documentElement.setAttribute(
+				"data-theme",
+				savedTheme === "earth" ? "" : savedTheme,
+			);
+		} else {
+			// No saved preference - use earth as default
+			setCurrentTheme("earth");
+			document.documentElement.setAttribute("data-theme", "");
 		}
 
 		const init = async () => {

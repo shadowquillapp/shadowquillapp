@@ -1,7 +1,6 @@
 /** @jsxImportSource react */
 "use client";
 import { APP_VERSION } from "@/lib/version";
-import React from "react";
 
 export default function AppVersionContent() {
 	return (

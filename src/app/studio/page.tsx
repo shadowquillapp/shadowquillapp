@@ -1,5 +1,5 @@
-import PresetStudioPage from "@/app/studio/PresetStudioPage";
 import type { Metadata } from "next";
+import PresetStudioPage from "@/app/studio/PresetStudioPage";
 
 export const metadata: Metadata = {
 	title: "Preset Studio | ShadowQuill",

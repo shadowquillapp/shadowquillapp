@@ -3,6 +3,7 @@
 // Starts Next.js dev (or prod) then launches Electron.
 const { spawn } = require("node:child_process");
 const path = require("node:path");
+const { URL } = require("node:url");
 const isProd = process.argv.includes("--prod");
 let nextDevServer = null;
 let prodServer = null;
@@ -16,7 +17,8 @@ let prodServer = null;
  * @param {(err: Error) => void} reject
  */
 function checkDevServerReady(http, start, timeoutMs, resolve, reject) {
-	const req = http.get("http://localhost:31415", (res) => {
+	const url = new URL("http://localhost:31415");
+	const req = http.get(url, (res) => {
 		res.destroy();
 		resolve();
 	});

@@ -1,5 +1,3 @@
-import React from "react";
-
 interface FeatherLoaderProps {
 	className?: string;
 	text?: string;

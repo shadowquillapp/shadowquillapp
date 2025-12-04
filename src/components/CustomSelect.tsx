@@ -1,7 +1,7 @@
-import { Icon, type IconName } from "@/components/Icon";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { Icon, type IconName } from "@/components/Icon";
 
 interface Option {
 	value: string;

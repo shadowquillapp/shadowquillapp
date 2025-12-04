@@ -1,5 +1,5 @@
+import { beforeEach, describe, expect, it } from "vitest";
 import {
-	type Preset,
 	compareVersions,
 	deletePresetByIdOrName,
 	ensureDefaultPreset,
@@ -12,7 +12,6 @@ import {
 	rollbackPreset,
 	savePreset,
 } from "@/lib/presets";
-import { beforeEach, describe, expect, it } from "vitest";
 
 /**
  * Integration tests for the preset management workflow

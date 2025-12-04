@@ -1,10 +1,10 @@
+import { useCallback, useState } from "react";
 import {
 	generatePresetExamples,
 	generateSingleExample,
 } from "@/lib/example-generator";
 import { getDefaultPresets } from "@/lib/presets";
 import type { PresetLite } from "@/types";
-import { useCallback, useState } from "react";
 
 const STORAGE_KEY = "PC_PRESETS";
 

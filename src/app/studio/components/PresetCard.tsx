@@ -2,7 +2,6 @@
 
 import { Icon } from "@/components/Icon";
 import type { PresetLite } from "@/types";
-import React from "react";
 
 interface PresetCardProps {
 	preset: PresetLite;

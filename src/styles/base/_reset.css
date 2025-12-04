@@ -62,5 +62,5 @@ a[role="button"],
 button[disabled],
 a[aria-disabled="true"],
 [aria-disabled="true"] {
-	cursor: not-allowed !important;
+	cursor: not-allowed;
 }

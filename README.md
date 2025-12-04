@@ -18,34 +18,34 @@ It transforms your natural language ideas into structured, high-quality prompts.
 
 Powered by Ollama and Gemma 3, ShadowQuill operates 100% offline, offering a completely local and free solution for AI-enhanced prompt generation.
 
-## Installation with `npm`
+## Installation with Node.js
 
-Please make sure you first have `node` and `npm` installed with the latest updates to properly install ShadowQuill through CLI. [How to install npm](https://docs.npmjs.com/downloading-and-installing-node-js-and-npm)
+Please make sure you first have `node` installed with the latest updates. ShadowQuill uses Node.js's built-in `corepack` to manage packages, so no separate package manager installation is required. [How to install Node.js](https://nodejs.org/)
 
-> Current version only supports Windows and macOS. Stable Linux builds coming soon...
+> Current version only supports Windows and macOS. Stable Linux builds coming soon..
 
-1. Clone the repository:
+1 Clone the repository:
 
 ```bash
 git clone https://github.com/shadowquillapp/shadowquillapp.git
 ```
 
-2. Navigate into the ShadowQuill repository:
+2 Navigate into the ShadowQuill repository:
 
 ```bash
 cd shadowquillapp
 ```
 
-3. Install and build the application:
+3 Install and build the application:
 
 ```bash
-npm ci
+pnpm install
 ```
 
-4. Start ShadowQuill:
+4 Start ShadowQuill:
 
 ```bash
-npm start
+pnpm start
 ```
 
 > **Note:** Make sure you have [Ollama installed](#1-prerequisites) and at least one Gemma 3 model downloaded before starting ShadowQuill.
@@ -143,23 +143,24 @@ ollama pull gemma3:27b  # Best quality (32GB+ RAM and RTX GPU)
 
 ```bash
 # Setup
-npm install              # Install dependencies
+corepack enable          # Enable corepack (one-time setup, built into Node.js)
+pnpm install             # Install dependencies
 
 # Development
-npm run dev              # Start ShadowQuill in development mode
-npm run typecheck        # Run TypeScript type checking
+pnpm run dev             # Start ShadowQuill in development mode
+pnpm run typecheck       # Run TypeScript type checking
 
 # Testing
-npm run test             # Run tests
-npm run test:coverage    # Run tests with coverage report
+pnpm run test            # Run tests
+pnpm run test:coverage   # Run tests with coverage report
 
 # Code Quality
-npm run check            # Run Biome linter
-npm run check:write      # Fix Biome lint errors (safe changes only)
+pnpm run check           # Run Biome linter
+pnpm run check:write     # Fix Biome lint errors (safe changes only)
 
 # Production
-npm run build            # Build for production
-npm start                # Start ShadowQuill in production mode (requires `npm run build` first)
+pnpm run build           # Build for production
+pnpm start               # Start ShadowQuill in production mode (requires `pnpm run build` first)
 ```
 
 ## Value Sensitive Design (VSD) Philosophy

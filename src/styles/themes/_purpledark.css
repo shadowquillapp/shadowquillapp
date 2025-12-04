@@ -1,10 +1,10 @@
 /**
  * ==========================================================================
- * PURPLE DARK THEME
+ * LUXURIOUS PURPLE DARK THEME
  * ==========================================================================
  *
- * A vibrant dark theme with purple accents.
- * Provides high contrast and a modern aesthetic.
+ * A rich, mature dark theme using deep royal purples and velvet tones.
+ * High-end, immersive, and elegant—avoids neon or playful hues.
  *
  * ACTIVATION: Set data-theme="purpledark" on the root element
  * ==========================================================================
@@ -12,72 +12,77 @@
 
 [data-theme="purpledark"] {
 	/* Surface colors */
-	--color-surface: #0f0f17;
-	--color-surface-variant: #1a1a2e;
-	--color-outline: #2a2a3e;
+	--color-surface: #0d0c12; /* deeper, softer black-purple */
+	--color-surface-variant: #161520; /* velvet purple */
+	--color-outline: #2b2940; /* muted plum outline */
 
 	/* Text colors */
-	--color-on-surface: #e8e8f0;
-	--color-on-surface-variant: #a8a8bd;
+	--color-on-surface: #e6e0f4; /* soft lavender white */
+	--color-on-surface-variant: #b7b0c9; /* muted cool lavender */
 
-	/* Primary colors */
-	--color-primary: #8b7cf6;
-	--color-primary-variant: #6d5bf0;
+	/* Primary colors (royal/mature purples) */
+	--color-primary: #6d56c7; /* deep imperial purple */
+	--color-primary-variant: #5843a8; /* richer, darker variant */
 	--color-on-primary: #fff;
 
-	/* Status colors */
-	--color-save: #65a15f;
-	--color-save-variant: #288020;
+	/* Status colors (toned down for luxury) */
+	--color-save: #5a8f66; /* muted emerald */
+	--color-save-variant: #396c44;
 	--color-on-save: #fff;
-	--color-attention: #e4a14a;
-	--color-attention-variant: #a76d21;
+
+	--color-attention: #d08c42; /* warm amber */
+	--color-attention-variant: #9a6228;
 	--color-on-attention: #fff;
-	--color-destructive: #f26b7a;
-	--color-destructive-variant: #d94a59;
+
+	--color-destructive: #c75a66; /* muted wine-red */
+	--color-destructive-variant: #a14450;
 	--color-on-destructive: #fff;
 
-	/* Tab colors */
-	--color-tab-active: #e056a0;
-	--color-tab-active-variant: #c44588;
+	/* Tab colors (deep berry luxury tone) */
+	--color-tab-active: #8a3f76; /* deep berry/plum */
+	--color-tab-active-variant: #6b305c;
 
 	/* Special UI colors */
-	--color-titlebar-background: #5450a8;
-	--workbench-composer-background: #2e2a4bef;
+	--color-titlebar-background: #3e396b; /* refined royal purple */
+	--workbench-composer-background: #1a1828ee;
 
 	/* Palette colors */
-	--darka0: #0f0f17;
-	--lighta0: #e8e8f0;
-	--primarya0: #8b7cf6;
-	--primarya10: #6d5bf0;
-	--primarya20: #5a4fcf;
-	--primarya30: #a594f7;
-	--primarya40: #c4b9f8;
-	--primarya50: #e8e4fc;
-	--accenta0: #6d5bf0;
+	--darka0: #0d0c12;
+	--lighta0: #e6e0f4;
+
+	--primarya0: #6d56c7;
+	--primarya10: #5843a8;
+	--primarya20: #46388c;
+	--primarya30: #9b87df;
+	--primarya40: #c0b7ed;
+	--primarya50: #e6e0f4;
+
+	--accenta0: #5843a8;
 
 	/* Surface palette */
-	--surfacea0: #0f0f17;
-	--surfacea10: #1a1a2e;
-	--surfacea20: #2a2a3e;
-	--surfacea30: #3a3a4e;
-	--surfacea40: #2a2a3e;
-	--surfacea50: #a8a8bd;
+	--surfacea0: #0d0c12;
+	--surfacea10: #161520;
+	--surfacea20: #222132;
+	--surfacea30: #2d2a3f;
+	--surfacea40: #3a3650;
+	--surfacea50: #b7b0c9;
 
 	/* Surface tonal palette */
-	--surfacetonala0: #0f0f17;
-	--surfacetonala10: #1a1a2e;
-	--surfacetonala20: #2a2a3e;
-	--surfacetonala30: #3a3a4e;
-	--surfacetonala40: #2a2a3e;
-	--surfacetonala50: #a8a8bd;
+	--surfacetonala0: #0d0c12;
+	--surfacetonala10: #161520;
+	--surfacetonala20: #222132;
+	--surfacetonala30: #2d2a3f;
+	--surfacetonala40: #3a3650;
+	--surfacetonala50: #b7b0c9;
 
 	/* Component colors */
-	--buttonbg: #8b7cf6;
+	--buttonbg: #6d56c7; /* imperial purple button */
 	--buttontext: #fff;
-	--dropdownbg: #1a1a2e;
-	--cardbg: #1a1a2e;
 
-	/* Shadows */
-	--shadow-1: 0 2px 8px #0f0f1766;
-	--shadow-2: 0 6px 16px #0f0f1780;
+	--dropdownbg: #161520;
+	--cardbg: #161520;
+
+	/* Richer, warmer shadows */
+	--shadow-1: 0 2px 8px #0d0c1270;
+	--shadow-2: 0 6px 16px #0d0c12a0;
 }

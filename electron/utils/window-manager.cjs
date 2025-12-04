@@ -82,7 +82,7 @@ function createWindow(isDev) {
 	try {
 		const langs = ["en-US"];
 		win.webContents.session.setSpellCheckerLanguages(langs);
-	} catch (e) {
+	} catch (_e) {
 		/* ignore */
 	}
 
@@ -139,7 +139,7 @@ function createWindow(isDev) {
 
 	let spellcheckEnabled = true;
 
-	win.webContents.on("context-menu", (event, params) => {
+	win.webContents.on("context-menu", (_event, params) => {
 		/** @type {import('electron').MenuItemConstructorOptions[]} */
 		const template = [];
 

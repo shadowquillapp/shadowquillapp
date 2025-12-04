@@ -10,9 +10,9 @@ interface MessageRendererProps {
 
 export function MessageRenderer({
 	content,
-	messageId,
-	copiedMessageId,
-	onCopy,
+	messageId: _messageId,
+	copiedMessageId: _copiedMessageId,
+	onCopy: _onCopy,
 }: MessageRendererProps) {
 	const highlightJSON = useCallback((rawCode: string) => {
 		const normalize = () => {
@@ -612,7 +612,7 @@ export function MessageRenderer({
 
 		const unclosedMatch = unclosedCodeBlockRegex.exec(displayContent);
 		if (unclosedMatch) {
-			const [fullMatch, language, code] = unclosedMatch;
+			const [_fullMatch, language, code] = unclosedMatch;
 			const beforeBlock = displayContent.slice(0, unclosedMatch.index);
 
 			if (beforeBlock.trim()) {
@@ -658,7 +658,7 @@ export function MessageRenderer({
 			);
 
 			return parts.length > 0 ? (
-				<>{parts}</>
+				parts
 			) : (
 				<span style={{ whiteSpace: "pre-wrap" }}>{content}</span>
 			);
@@ -772,7 +772,7 @@ export function MessageRenderer({
 		}
 
 		return parts.length > 0 ? (
-			<>{parts}</>
+			parts
 		) : (
 			<span style={{ whiteSpace: "pre-wrap" }}>{displayContent}</span>
 		);

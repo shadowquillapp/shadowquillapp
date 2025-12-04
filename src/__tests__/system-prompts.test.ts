@@ -1,3 +1,4 @@
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	DEFAULT_BUILD_PROMPT,
 	ensureSystemPromptBuild,
@@ -5,7 +6,6 @@ import {
 	resetSystemPromptBuild,
 	setSystemPromptBuild,
 } from "@/lib/system-prompts";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const STORAGE_KEY = "SYSTEM_PROMPT_BUILD";
 

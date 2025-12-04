@@ -1,83 +1,110 @@
-/**
- * ==========================================================================
- * LIGHT THEME
- * ==========================================================================
- *
- * A clean light theme with blue accents.
- * Optimal for daytime use and high ambient light conditions.
- *
- * ACTIVATION: Set data-theme="light" on the root element
- * ==========================================================================
- */
-
 [data-theme="light"] {
-	/* Surface colors */
-	--color-surface: #fafbfc;
-	--color-surface-variant: #fff;
-	--color-outline: #d1d9e0;
+	/* ========================================
+	 * SURFACE COLORS (Soft, Muted Light)
+	 * ======================================== */
 
-	/* Text colors */
-	--color-on-surface: #1a202c;
-	--color-on-surface-variant: #4a5568;
+	/* Main surface: warm soft beige, slightly darker */
+	--color-surface: #ebe6dd; /* Previously #f7f4ef — now ~15% darker */
 
-	/* Primary colors */
-	--color-primary: #2563eb;
-	--color-primary-variant: #1e40af;
-	--color-on-primary: #fff;
+	/* Cards/panels: gentle warm neutral, not pure white */
+	--color-surface-variant: #f3eee6;
 
-	/* Status colors */
-	--color-save: #059669;
-	--color-save-variant: #047857;
-	--color-on-save: #fff;
-	--color-attention: #dc2626;
-	--color-attention-variant: #b91c1c;
-	--color-on-attention: #fff;
-	--color-destructive: #dc2626;
-	--color-destructive-variant: #b91c1c;
-	--color-on-destructive: #fff;
+	/* Outlines: softened stone grey */
+	--color-outline: #c9c3ba;
 
-	/* Tab colors */
-	--color-tab-active: #0891b2;
-	--color-tab-active-variant: #0e7490;
+	/* ========================================
+	 * TYPOGRAPHY (Charcoal + Warm Gray)
+	 * ======================================== */
 
-	/* Special UI colors */
-	--color-titlebar-background: #e5e9f0;
-	--workbench-composer-background: #fffe;
+	--color-on-surface: #1f1e1c; /* Still charcoal */
+	--color-on-surface-variant: #5b564f; /* Slight warm taupe */
 
-	/* Palette colors */
-	--darka0: #fafbfc;
-	--lighta0: #1a202c;
-	--primarya0: #2563eb;
-	--primarya10: #1e40af;
-	--primarya20: #1e3a8a;
-	--primarya30: #60a5fa;
-	--primarya40: #93c5fd;
-	--primarya50: #dbeafe;
-	--accenta0: #1e40af;
+	/* ========================================
+	 * PRIMARY ACCENT (Champagne Gold)
+	 * ======================================== */
 
-	/* Surface palette */
-	--surfacea0: #fafbfc;
-	--surfacea10: #fff;
-	--surfacea20: #f3f4f6;
-	--surfacea30: #e5e7eb;
-	--surfacea40: #d1d5db;
-	--surfacea50: #6b7280;
+	--color-primary: #b89c6b;
+	--color-primary-variant: #9c8459;
+	--color-on-primary: #ffffff;
 
-	/* Surface tonal palette */
-	--surfacetonala0: #fafbfc;
-	--surfacetonala10: #f9fafb;
-	--surfacetonala20: #f3f4f6;
-	--surfacetonala30: #e5e7eb;
-	--surfacetonala40: #d1d5db;
-	--surfacetonala50: #6b7280;
+	/* ========================================
+	 * STATUS COLORS (Muted Earth Tones)
+	 * ======================================== */
 
-	/* Component colors */
-	--buttonbg: #2563eb;
-	--buttontext: #fff;
-	--dropdownbg: #fff;
-	--cardbg: #fff;
+	--color-save: #6f8f5f;
+	--color-save-variant: #58744c;
+	--color-on-save: #ffffff;
 
-	/* Shadows - softer for light theme */
-	--shadow-1: 0 1px 3px #0000000d, 0 1px 2px #0000000f;
-	--shadow-2: 0 4px 6px -1px #0000001a, 0 2px 4px -1px #0000000f;
+	--color-attention: #c9a454;
+	--color-attention-variant: #aa8740;
+	--color-on-attention: #ffffff;
+
+	--color-destructive: #b76a62;
+	--color-destructive-variant: #98544e;
+	--color-on-destructive: #ffffff;
+
+	/* ========================================
+	 * TABS
+	 * ======================================== */
+
+	--color-tab-active: var(--color-primary);
+	--color-tab-active-variant: var(--color-primary-variant);
+
+	/* ========================================
+	 * SPECIAL UI COLORS
+	 * ======================================== */
+
+	/* Titlebar: muted stone beige */
+	--color-titlebar-background: #e3dcd3;
+
+	/* Composer: slightly lifted but not bright white */
+	--workbench-composer-background: #f1ece4f2;
+
+	/* ========================================
+	 * PALETTE (Muted Light Ramp)
+	 * ======================================== */
+
+	--darka0: #ebe6dd;
+	--lighta0: #1f1e1c;
+	--accenta0: #b89c6b;
+
+	/* Primary — unchanged Champagne ramp */
+	--primarya0: #b89c6b;
+	--primarya10: #9c8459;
+	--primarya20: #826e4c;
+	--primarya30: #d8c7a2;
+	--primarya40: #ede4d1;
+	--primarya50: #f7f4ef;
+
+	/* Surface palette — all dimmed slightly */
+	--surfacea0: #ebe6dd;
+	--surfacea10: #f3eee6;
+	--surfacea20: #e0dacf;
+	--surfacea30: #d3ccc0;
+	--surfacea40: #c9c3ba;
+	--surfacea50: #7c746a;
+
+	/* Tonal */
+	--surfacetonala0: #ebe6dd;
+	--surfacetonala10: #f0ebe4;
+	--surfacetonala20: #e0dacf;
+	--surfacetonala30: #d3ccc0;
+	--surfacetonala40: #c9c3ba;
+	--surfacetonala50: #7c746a;
+
+	/* ========================================
+	 * COMPONENT COLORS
+	 * ======================================== */
+
+	--buttonbg: var(--color-primary);
+	--buttontext: #ffffff;
+
+	--dropdownbg: #f3eee6;
+	--cardbg: #f3eee6;
+
+	/* Softer, warmer, diffused shadows */
+	--shadow-1: 0 1px 3px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.04);
+
+	--shadow-2:
+		0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.05);
 }

@@ -1,5 +1,5 @@
-import type { PresetLite, TaskType } from "@/types";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { PresetLite, TaskType } from "@/types";
 
 // We need to test the module's internal pure functions
 // Since they're not exported, we'll test them through the exported functions

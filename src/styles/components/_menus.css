@@ -41,7 +41,9 @@
 	color: var(--color-on-surface);
 	background: transparent;
 	border: none;
-	transition: background 120ms, color 120ms;
+	transition:
+		background 120ms,
+		color 120ms;
 	cursor: pointer;
 }
 

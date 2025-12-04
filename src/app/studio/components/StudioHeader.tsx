@@ -1,10 +1,10 @@
 "use client";
 
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Logo } from "@/components/Logo";
 import SettingsDialog from "@/components/SettingsDialog";
-import { useRouter } from "next/navigation";
-import React, { useState, useEffect } from "react";
 
 interface StudioHeaderProps {
 	isDirty?: boolean;

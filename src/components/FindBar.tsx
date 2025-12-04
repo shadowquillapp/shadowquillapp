@@ -37,6 +37,34 @@ export default function FindBar() {
 		setCurrentMatch(0);
 	}, []);
 
+	// Activate a specific match (make it the "current" one)
+	const activateMatch = useCallback((marks: HTMLElement[], index: number) => {
+		// Remove active class from all
+		for (const m of marks) {
+			m.classList.remove(ACTIVE_CLASS);
+			m.classList.remove(PULSE_CLASS);
+		}
+
+		// Add active class to current
+		const activeMatch = marks[index];
+		if (activeMatch) {
+			activeMatch.classList.add(ACTIVE_CLASS);
+			activeMatch.classList.add(PULSE_CLASS);
+
+			// Scroll into view
+			activeMatch.scrollIntoView({
+				behavior: "smooth",
+				block: "center",
+				inline: "nearest",
+			});
+
+			// Remove pulse class after animation
+			setTimeout(() => {
+				activeMatch.classList.remove(PULSE_CLASS);
+			}, 400);
+		}
+	}, []);
+
 	// Perform search and highlight matches
 	const performSearch = useCallback(
 		(text: string) => {
@@ -146,36 +174,8 @@ export default function FindBar() {
 				activateMatch(marks, 0);
 			}
 		},
-		[clearHighlights],
+		[clearHighlights, activateMatch],
 	);
-
-	// Activate a specific match (make it the "current" one)
-	const activateMatch = useCallback((marks: HTMLElement[], index: number) => {
-		// Remove active class from all
-		for (const m of marks) {
-			m.classList.remove(ACTIVE_CLASS);
-			m.classList.remove(PULSE_CLASS);
-		}
-
-		// Add active class to current
-		const activeMatch = marks[index];
-		if (activeMatch) {
-			activeMatch.classList.add(ACTIVE_CLASS);
-			activeMatch.classList.add(PULSE_CLASS);
-
-			// Scroll into view
-			activeMatch.scrollIntoView({
-				behavior: "smooth",
-				block: "center",
-				inline: "nearest",
-			});
-
-			// Remove pulse class after animation
-			setTimeout(() => {
-				activeMatch.classList.remove(PULSE_CLASS);
-			}, 400);
-		}
-	}, []);
 
 	// Navigate to next match
 	const goToNext = useCallback(() => {

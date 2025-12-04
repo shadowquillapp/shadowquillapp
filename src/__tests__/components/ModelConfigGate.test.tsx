@@ -1,7 +1,7 @@
-import ModelConfigGate from "@/components/ModelConfigGate";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import ModelConfigGate from "@/components/ModelConfigGate";
 
 // Mock DialogProvider
 const mockConfirm = vi.fn();
@@ -1485,7 +1485,7 @@ describe("ModelConfigGate", () => {
 
 		it("should handle non-standard URL format as passthrough", async () => {
 			// This test covers line 257 - the fallback case in normalizeToBaseUrl
-			const user = userEvent.setup();
+			const _user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 
 			const originalFetch = global.fetch;
@@ -3372,7 +3372,7 @@ describe("ModelConfigGate", () => {
 
 	describe("Modal content keyboard interactions", () => {
 		it("should stop keyboard event propagation in system prompt modal content", async () => {
-			const user = userEvent.setup();
+			const _user = userEvent.setup();
 			mockEnsureSystemPromptBuild.mockReturnValue("Initial prompt");
 
 			mockReadLocalModelConfig.mockReturnValue({
@@ -3417,7 +3417,7 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should stop keyboard event propagation in data location modal content", async () => {
-			const user = userEvent.setup();
+			const _user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://localhost:11434",
@@ -3512,7 +3512,7 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should close system prompt modal when Escape is pressed on backdrop", async () => {
-			const user = userEvent.setup();
+			const _user = userEvent.setup();
 			mockEnsureSystemPromptBuild.mockReturnValue("Test prompt");
 
 			mockReadLocalModelConfig.mockReturnValue({

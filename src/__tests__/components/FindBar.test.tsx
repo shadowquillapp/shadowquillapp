@@ -1,4 +1,3 @@
-import FindBar from "@/components/FindBar";
 import {
 	act,
 	fireEvent,
@@ -8,6 +7,7 @@ import {
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import FindBar from "@/components/FindBar";
 
 // Store callbacks to trigger them in tests
 let showCallback: (() => void) | null = null;

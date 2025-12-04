@@ -1,8 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import { Icon } from "@/components/Icon";
 import type { PresetExample, PresetLite } from "@/types";
-import React, { useState } from "react";
 
 interface LivePreviewProps {
 	preset: PresetLite | null;

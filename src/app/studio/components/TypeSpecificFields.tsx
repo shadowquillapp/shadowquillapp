@@ -2,7 +2,6 @@
 
 import { CustomSelect } from "@/components/CustomSelect";
 import type { PresetOptions, TaskType } from "@/types";
-import React from "react";
 
 interface TypeSpecificFieldsProps {
 	taskType: TaskType;
@@ -213,7 +212,7 @@ export default function TypeSpecificFields({
 							onChange={(e) => {
 								const val = Math.max(
 									1,
-									Math.min(60, Number.parseInt(e.target.value) || 5),
+									Math.min(60, Number.parseInt(e.target.value, 10) || 5),
 								);
 								onFieldChange("durationSeconds", val);
 							}}
@@ -231,7 +230,9 @@ export default function TypeSpecificFields({
 						<CustomSelect
 							id="frame-rate"
 							value={String(options.frameRate || 24)}
-							onChange={(v) => onFieldChange("frameRate", Number.parseInt(v))}
+							onChange={(v) =>
+								onFieldChange("frameRate", Number.parseInt(v, 10))
+							}
 							options={[
 								{ value: "24", label: "24 fps (Cinematic)" },
 								{ value: "30", label: "30 fps (Standard)" },
@@ -448,7 +449,7 @@ export default function TypeSpecificFields({
 									"targetWordCount",
 									Math.max(
 										50,
-										Math.min(5000, Number.parseInt(e.target.value) || 800),
+										Math.min(5000, Number.parseInt(e.target.value, 10) || 800),
 									),
 								)
 							}
