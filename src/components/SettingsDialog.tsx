@@ -3,15 +3,22 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
+import AppVersionContent from "./settings/AppVersionContent";
 import DisplayContent from "./settings/DisplayContent";
 import LocalDataManagementContent from "./settings/LocalDataManagementContent";
 import OllamaSetupContent from "./settings/OllamaSetupContent";
 import SystemPromptEditorContent from "./settings/SystemPromptEditorContent";
 
-export type SettingsTab = "system" | "ollama" | "data" | "display";
+export type SettingsTab = "system" | "ollama" | "data" | "display" | "version";
 
 // Tab order for determining animation direction
-const TAB_ORDER: SettingsTab[] = ["ollama", "system", "data", "display"];
+const TAB_ORDER: SettingsTab[] = [
+	"ollama",
+	"system",
+	"data",
+	"display",
+	"version",
+];
 
 interface Props {
 	open: boolean;
@@ -150,6 +157,8 @@ export default function SettingsDialog({
 				return <LocalDataManagementContent />;
 			case "display":
 				return <DisplayContent />;
+			case "version":
+				return <AppVersionContent />;
 			default:
 				return null;
 		}
@@ -338,6 +347,7 @@ export default function SettingsDialog({
 							<TabItem tab="system" label="System Prompt" />
 							<TabItem tab="data" label="Data Management" />
 							<TabItem tab="display" label="Display" />
+							<TabItem tab="version" label="App Version" />
 						</nav>
 						{/* Right content */}
 						<div
@@ -358,7 +368,13 @@ export default function SettingsDialog({
 								<div ref={contentWrapperRef}>
 									{/* Render only the displayed tab with animations */}
 									{(
-										["system", "ollama", "data", "display"] as SettingsTab[]
+										[
+											"system",
+											"ollama",
+											"data",
+											"display",
+											"version",
+										] as SettingsTab[]
 									).map((tab) => {
 										const isDisplayed = displayedTab === tab;
 										const isTargetTab = activeTab === tab;
