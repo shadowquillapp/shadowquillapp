@@ -4,6 +4,10 @@
 	"author": "ShadowQuill <info@shadowquill.org>",
 	"homepage": "https://shadowquill.org",
 	"description": "ShadowQuill",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/shadowquillapp/shadowquillapp.git"
+	},
 	"type": "module",
 	"files": [
 		"src/**/*",
