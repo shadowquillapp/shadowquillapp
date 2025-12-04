@@ -1,3 +1,10 @@
+## [0.4.4](https://github.com/shadowquillapp/shadowquillapp/compare/v0.4.3...v0.4.4) (2025-12-04)
+
+
+### Bug Fixes
+
+* caching error output resolved. ([fe544a8](https://github.com/shadowquillapp/shadowquillapp/commit/fe544a869fe3dbfb2eb458e6ae104b7dece88321))
+
 ## [0.4.3](https://github.com/shadowquillapp/shadowquillapp/compare/v0.4.2...v0.4.3) (2025-12-04)
 
 
