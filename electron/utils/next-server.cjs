@@ -11,6 +11,10 @@ async function startNextServer() {
 	process.env.ELECTRON = "1";
 	process.env.NODE_ENV = "production";
 
+	// Declare variables before try block so they're accessible in catch block
+	const appDir = path.join(__dirname, "..", "..");
+	let nextAppDir = appDir;
+
 	try {
 		console.log(
 			"[Electron] Starting embedded Next.js server (packaged). __dirname=",
@@ -23,12 +27,11 @@ async function startNextServer() {
 			process.versions.electron,
 		);
 
-		const appDir = path.join(__dirname, "..", "..");
 		const resourcesDir =
-			process.resourcesPath || path.join(__dirname, "..", "..", "..");
+			process.resourcesPath || path.join(__dirname, "..", "..");
 		const unpackedDir = path.join(resourcesDir, "app.asar.unpacked");
 		const candidateDirs = [unpackedDir, appDir];
-		const nextAppDir =
+		nextAppDir =
 			candidateDirs.find((d) => {
 				try {
 					return fs.existsSync(path.join(d, ".next"));
@@ -132,7 +135,20 @@ async function startNextServer() {
 		);
 		const addr = httpServer.address();
 		console.log("[Electron] Server listening on", addr);
-		if (addr && typeof addr === "object") nextServerPort = addr.port;
+		if (
+			addr &&
+			typeof addr === "object" &&
+			typeof addr.port === "number" &&
+			Number.isFinite(addr.port)
+		) {
+			nextServerPort = addr.port;
+		} else {
+			throw new Error(`Server address is invalid: ${JSON.stringify(addr)}`);
+		}
+
+		if (!nextServerPort) {
+			throw new Error("Failed to determine server port after startup");
+		}
 
 		return { port: nextServerPort, server: httpServer };
 	} catch (e) {
@@ -173,7 +189,25 @@ async function startNextServer() {
 				});
 				await new Promise((r) => httpServer.listen(0, () => r(undefined)));
 				const addr = httpServer.address();
-				if (addr && typeof addr === "object") nextServerPort = addr.port;
+				if (
+					addr &&
+					typeof addr === "object" &&
+					typeof addr.port === "number" &&
+					Number.isFinite(addr.port)
+				) {
+					nextServerPort = addr.port;
+				} else {
+					throw new Error(
+						`Fallback server address is invalid: ${JSON.stringify(addr)}`,
+					);
+				}
+
+				if (!nextServerPort) {
+					throw new Error(
+						"Failed to determine fallback server port after startup",
+					);
+				}
+
 				return { port: nextServerPort, server: httpServer };
 			}
 		} catch (e2) {
