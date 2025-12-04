@@ -3,6 +3,45 @@ const path = require("node:path");
 const fs = require("node:fs");
 const { app } = require("electron");
 
+/**
+ * Resolve data roots using environment variables (safe to call before app is ready)
+ */
+function resolveLocalOnlyDataRootsFromEnv() {
+	let homeDir;
+	if (process.platform === "win32") {
+		homeDir = process.env.USERPROFILE || process.env.HOME || "";
+	} else {
+		homeDir = process.env.HOME || "";
+	}
+
+	if (process.platform === "win32") {
+		const localBase = process.env.LOCALAPPDATA?.trim().length
+			? process.env.LOCALAPPDATA
+			: path.join(homeDir, "AppData", "Local");
+		return {
+			appDataRoot: localBase,
+			userDataDir: path.join(localBase, "ShadowQuill"),
+		};
+	}
+
+	if (process.platform === "darwin") {
+		const appDataRoot = path.join(homeDir, "Library", "Application Support");
+		return {
+			appDataRoot,
+			userDataDir: path.join(appDataRoot, "ShadowQuill"),
+		};
+	}
+
+	const appDataRoot = path.join(homeDir, ".local", "share");
+	return {
+		appDataRoot,
+		userDataDir: path.join(appDataRoot, "ShadowQuill"),
+	};
+}
+
+/**
+ * Resolve data roots using app.getPath (must be called after app is ready)
+ */
 function resolveLocalOnlyDataRoots() {
 	const homeDir = app.getPath("home");
 	if (process.platform === "win32") {
@@ -92,7 +131,7 @@ function handleFactoryResetFlag(userDataDir) {
 			env: { ...process.env },
 		}).unref();
 	}
-	app.exit(0);
+	process.exit(0);
 	return true;
 }
 
@@ -119,6 +158,7 @@ function checkAndOptionallyClearZoneIdentifier() {
 
 module.exports = {
 	resolveLocalOnlyDataRoots,
+	resolveLocalOnlyDataRootsFromEnv,
 	setupDataPaths,
 	handleFactoryResetFlag,
 	checkAndOptionallyClearZoneIdentifier,
