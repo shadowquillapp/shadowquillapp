@@ -52,7 +52,6 @@ contextBridge.exposeInMainWorld("shadowquill", {
 	},
 });
 
-// Forward info notifications from main to renderer UI to show in-app dialogs
 try {
 	ipcRenderer.on("shadowquill:info", (_event, payload) => {
 		try {
