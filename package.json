@@ -26,6 +26,7 @@
 		"build": "pnpm run build:electron",
 		"build:electron": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SUPPRESS_SUPPORT_NOTES=1 node electron/build-electron.cjs",
 		"build:dmg": "pnpm run build:electron && electron-builder --mac --arm64 --publish never",
+		"build:win": "pnpm run build:electron && electron-builder --win --x64 --publish never",
 		"check": "biome check .",
 		"check:unsafe": "biome check --write --unsafe .",
 		"check:write": "biome check --write .",
@@ -135,6 +136,21 @@
 				"width": 540,
 				"height": 380
 			}
+		},
+		"win": {
+			"target": [
+				{
+					"target": "nsis",
+					"arch": [
+						"x64"
+					]
+				}
+			],
+			"icon": "build/icon.ico"
+		},
+		"nsis": {
+			"oneClick": false,
+			"allowToChangeInstallationDirectory": true
 		}
 	},
 	"overrides": {
