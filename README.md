@@ -1,7 +1,7 @@
 <div align="center">
   <img src="https://shadowquill.org/images/logo-circle.png" alt="ShadowQuill Logo" width="120" height="120">
   
-# ShadowQuill
+# ShadowQuill v0.5.0
   
 **Privacy-First AI Prompt Studio**
   
