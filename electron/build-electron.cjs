@@ -12,7 +12,7 @@ try {
 
 	const env = {
 		...process.env,
-		NODE_OPTIONS: "--max-old-space-size=4096",
+		NODE_OPTIONS: "--max-old-space-size=4096 --no-deprecation",
 		SKIP_ENV_VALIDATION: "true",
 		ELECTRON: "1",
 		NEXT_PUBLIC_ELECTRON: "1",
