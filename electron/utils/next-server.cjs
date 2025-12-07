@@ -1,4 +1,3 @@
-// Next.js server startup for production
 const path = require("node:path");
 const fs = require("node:fs");
 const http = require("node:http");
@@ -11,7 +10,6 @@ async function startNextServer() {
 	process.env.ELECTRON = "1";
 	process.env.NODE_ENV = "production";
 
-	// Declare variables before try block so they're accessible in catch block
 	const appDir = path.join(__dirname, "..", "..");
 	let nextAppDir = appDir;
 

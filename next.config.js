@@ -9,14 +9,12 @@ const config = {
 	images: { unoptimized: true },
 	turbopack: {},
 	webpack: (config) => {
-		// Find the oneOf rule which contains the JS/TS rules
 		const oneOfRule = config.module.rules.find(
 			(rule) => rule.oneOf !== undefined,
 		);
 
 		if (oneOfRule?.oneOf) {
 			for (const rule of oneOfRule.oneOf) {
-				// Find rules that process JS/TS files and have an exclude
 				if (
 					rule.test &&
 					rule.exclude &&
@@ -24,19 +22,15 @@ const config = {
 						rule.test.toString().includes("jsx?"))
 				) {
 					const originalExclude = rule.exclude;
-					// Convert exclude to a function if it isn't already
 					if (typeof originalExclude !== "function") {
-						// If it's a regex or string, convert to function
 						const originalValue = originalExclude;
 						rule.exclude = (modulePath) => {
-							// Allow shadowquillapp package
 							if (
 								typeof modulePath === "string" &&
 								modulePath.includes("node_modules/shadowquillapp")
 							) {
 								return false;
 							}
-							// Apply original exclude logic
 							if (originalValue instanceof RegExp) {
 								return originalValue.test(modulePath);
 							}
@@ -57,16 +51,13 @@ const config = {
 							return false;
 						};
 					} else {
-						// It's already a function, wrap it
 						rule.exclude = (modulePath, ...args) => {
-							// Allow shadowquillapp package
 							if (
 								typeof modulePath === "string" &&
 								modulePath.includes("node_modules/shadowquillapp")
 							) {
 								return false;
 							}
-							// Call original function
 							return originalExclude(modulePath, ...args);
 						};
 					}
