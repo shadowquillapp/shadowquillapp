@@ -47,7 +47,7 @@ pnpm install
 pnpm start
 ```
 
-> **Note:** Make sure you have [Ollama installed](#1-prerequisites) and at least one Gemma 3 model downloaded before starting ShadowQuill.
+> **Note:** Make sure to have [Ollama installed](#1-prerequisites) and at least one Gemma 3 model downloaded
 
 ## Tech Stack
 
