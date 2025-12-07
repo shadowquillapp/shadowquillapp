@@ -18,25 +18,10 @@ It transforms your natural language ideas into structured, high-quality prompts.
 
 Powered by Ollama and Gemma 3, ShadowQuill operates 100% offline, offering a completely local and free solution for AI-enhanced prompt generation.
 
-## Installation 
+## Installation with `node` and `pnpm`
 
-### Download the installers (Windows & macOS Silicon)
-
-Download from latest release v0.6.0:
-
-<p>
-  <a href="#">
-    <img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows-blue?logo=windows&logoColor=white">
-  </a>
-  &nbsp;
-  <a href="https://github.com/shadowquillapp/shadowquillapp/releases/download/v0.6.0/ShadowQuill-0.6.0-arm64.dmg">
-    <img alt="Download for macOS (arm64)" src="https://img.shields.io/badge/Download-macOS--ARM64-000000?logo=apple&logoColor=white">
-  </a>
-</p>
-
-### With `pnpm` and `node`
-
-Please make sure you first have `node` installed with the latest updates. ShadowQuill uses Node.js's built-in `corepack` to manage packages, so no separate package manager installation is required. [How to install Node.js](https://nodejs.org/) [How to install pnpm](https://pnpm.io/installation)
+- [How to install `node`](https://nodejs.org/)
+- [How to install `pnpm`](https://pnpm.io/installation)
 
 1 Clone the repository:
 
