@@ -1,4 +1,3 @@
-// IPC handlers for data paths and factory reset
 const path = require("node:path");
 const fs = require("node:fs");
 const { ipcMain, app, session } = require("electron");
@@ -13,24 +12,70 @@ function getHttpServer() {
 	return httpServer;
 }
 
+function getStorageFilePath() {
+	try {
+		const userData = app.getPath("userData");
+		const storageDir = path.join(userData, "storage");
+		if (!fs.existsSync(storageDir)) {
+			fs.mkdirSync(storageDir, { recursive: true });
+		}
+		return path.join(storageDir, "app-data.json");
+	} catch (e) {
+		console.error("[Storage] Failed to get storage file path:", e);
+		return null;
+	}
+}
+
+function loadStorageData() {
+	try {
+		const filePath = getStorageFilePath();
+		if (!filePath) return {};
+
+		if (fs.existsSync(filePath)) {
+			const data = fs.readFileSync(filePath, "utf8");
+			return JSON.parse(data);
+		}
+		return {};
+	} catch (e) {
+		console.error("[Storage] Failed to load storage data:", e);
+		return {};
+	}
+}
+
+function saveStorageData(data) {
+	try {
+		const filePath = getStorageFilePath();
+		if (!filePath) return false;
+
+		const tempPath = `${filePath}.tmp`;
+		fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), "utf8");
+		fs.renameSync(tempPath, filePath);
+		return true;
+	} catch (e) {
+		console.error("[Storage] Failed to save storage data:", e);
+		return false;
+	}
+}
+
 function registerDataIPCHandlers() {
-	// Remove all existing handlers to avoid duplicates
 	const handlerNames = [
 		"shadowquill:getDataPaths",
 		"shadowquill:factoryReset",
 		"shadowquill:restartApp",
 		"shadowquill:getEnvSafety",
+		"shadowquill:storage:getItem",
+		"shadowquill:storage:setItem",
+		"shadowquill:storage:removeItem",
+		"shadowquill:storage:clear",
+		"shadowquill:storage:getAll",
 	];
 
 	for (const handlerName of handlerNames) {
 		try {
 			ipcMain.removeHandler(handlerName);
-		} catch (_) {
-			// Handler may not exist, ignore
-		}
+		} catch (_) {}
 	}
 
-	// Re-register all handlers
 	ipcMain.handle("shadowquill:getDataPaths", () => {
 		try {
 			const userData = app.getPath("userData");
@@ -146,6 +191,56 @@ function registerDataIPCHandlers() {
 			zoneIdentifierPresent: zone.zoneIdentifierPresent,
 			zoneRemoved: zone.removed,
 		};
+	});
+
+	ipcMain.handle("shadowquill:storage:getItem", (_, key) => {
+		try {
+			const data = loadStorageData();
+			return data[key] ?? null;
+		} catch (e) {
+			console.error("[Storage] getItem failed:", e);
+			return null;
+		}
+	});
+
+	ipcMain.handle("shadowquill:storage:setItem", (_, key, value) => {
+		try {
+			const data = loadStorageData();
+			data[key] = value;
+			return saveStorageData(data);
+		} catch (e) {
+			console.error("[Storage] setItem failed:", e);
+			return false;
+		}
+	});
+
+	ipcMain.handle("shadowquill:storage:removeItem", (_, key) => {
+		try {
+			const data = loadStorageData();
+			delete data[key];
+			return saveStorageData(data);
+		} catch (e) {
+			console.error("[Storage] removeItem failed:", e);
+			return false;
+		}
+	});
+
+	ipcMain.handle("shadowquill:storage:clear", () => {
+		try {
+			return saveStorageData({});
+		} catch (e) {
+			console.error("[Storage] clear failed:", e);
+			return false;
+		}
+	});
+
+	ipcMain.handle("shadowquill:storage:getAll", () => {
+		try {
+			return loadStorageData();
+		} catch (e) {
+			console.error("[Storage] getAll failed:", e);
+			return {};
+		}
 	});
 }
 
