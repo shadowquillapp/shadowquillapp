@@ -291,12 +291,17 @@ describe("DisplayContent", () => {
 
 	describe("theme migration", () => {
 		it("should migrate old 'default' theme to 'purpledark'", () => {
-			getItemSpy.mockReturnValue("default");
+			// Mock getItem to return JSON-stringified value
+			getItemSpy.mockReturnValue(JSON.stringify("default"));
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 
 			render(<DisplayContent />);
 
-			expect(setItemSpy).toHaveBeenCalledWith("theme-preference", "purpledark");
+			// setJSON stringifies the value, so check for JSON-stringified "purpledark"
+			expect(setItemSpy).toHaveBeenCalledWith(
+				"theme-preference",
+				JSON.stringify("purpledark"),
+			);
 		});
 
 		it("should load valid saved theme on mount", () => {
