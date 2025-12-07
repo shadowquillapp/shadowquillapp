@@ -1,4 +1,3 @@
-// Data path resolution and factory reset utilities
 const path = require("node:path");
 const fs = require("node:fs");
 const { app } = require("electron");

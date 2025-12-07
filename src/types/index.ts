@@ -1,7 +1,3 @@
-// ============================================
-// Core Types - Single Source of Truth
-// ============================================
-
 export type TaskType =
 	| "general"
 	| "coding"
@@ -10,10 +6,6 @@ export type TaskType =
 	| "writing"
 	| "marketing"
 	| "video";
-
-// ============================================
-// Basic Option Types
-// ============================================
 
 export type Tone =
 	| "neutral"
@@ -32,10 +24,6 @@ export type ReasoningStyle =
 	| "plan_then_solve"
 	| "tree_of_thought";
 
-// ============================================
-// Image Types
-// ============================================
-
 export type ImageStylePreset =
 	| "photorealistic"
 	| "illustration"
@@ -46,10 +34,6 @@ export type ImageStylePreset =
 export type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
 
 export type TargetResolution = "720p" | "1080p" | "2K" | "4K";
-
-// ============================================
-// Video Types
-// ============================================
 
 export type VideoStylePreset =
 	| "cinematic"
@@ -78,10 +62,6 @@ export type ShotType =
 
 export type FrameRate = 24 | 30 | 60;
 
-// ============================================
-// Writing Types
-// ============================================
-
 export type WritingStyle =
 	| "narrative"
 	| "expository"
@@ -92,21 +72,11 @@ export type PointOfView = "first" | "second" | "third";
 
 export type ReadingLevel = "basic" | "intermediate" | "expert";
 
-// ============================================
-// Marketing Types
-// ============================================
-
 export type MarketingChannel = "email" | "landing_page" | "social" | "ad";
 
 export type CTAStyle = "soft" | "standard" | "strong";
 
-// ============================================
-// Unified Generation Options
-// Used by both presets and prompt generation
-// ============================================
-
 export interface GenerationOptions {
-	// Basic settings
 	tone?: Tone;
 	detail?: Detail;
 	format?: Format;
@@ -114,7 +84,6 @@ export interface GenerationOptions {
 	temperature?: number;
 	audience?: string;
 
-	// Advanced settings
 	useDelimiters?: boolean;
 	includeVerification?: boolean;
 	reasoningStyle?: ReasoningStyle;
@@ -125,47 +94,36 @@ export interface GenerationOptions {
 	examplesText?: string;
 	styleGuidelines?: string;
 
-	// Image settings
 	stylePreset?: ImageStylePreset | VideoStylePreset;
 	aspectRatio?: AspectRatio;
 	targetResolution?: TargetResolution;
 
-	// Video settings
 	cameraMovement?: CameraMovement;
 	shotType?: ShotType;
 	durationSeconds?: number;
 	frameRate?: FrameRate;
 	includeStoryboard?: boolean;
 
-	// Coding settings
 	includeTests?: boolean;
 	techStack?: string;
 	projectContext?: string;
 	codingConstraints?: string;
 
-	// Research settings
 	requireCitations?: boolean;
 
-	// Writing settings
 	writingStyle?: WritingStyle;
 	pointOfView?: PointOfView;
 	readingLevel?: ReadingLevel;
 	targetWordCount?: number;
 	includeHeadings?: boolean;
 
-	// Marketing settings
 	marketingChannel?: MarketingChannel;
 	ctaStyle?: CTAStyle;
 	valueProps?: string;
 	complianceNotes?: string;
 }
 
-// Alias for backward compatibility
 export type PresetOptions = GenerationOptions;
-
-// ============================================
-// Preset Example Types
-// ============================================
 
 /**
  * A generated example for a preset, showing input and output
@@ -179,10 +137,6 @@ export interface PresetExample {
 	generatedAt: number;
 }
 
-// ============================================
-// Preset Types
-// ============================================
-
 export interface PresetLite {
 	id?: string;
 	name: string;
@@ -192,33 +146,18 @@ export interface PresetLite {
 	generatedExamples?: [PresetExample, PresetExample];
 }
 
-/**
- * A snapshot of a preset's options at a specific point in time
- */
 export interface PresetVersion {
-	/** Auto-incrementing version number */
 	version: number;
-	/** When this version was created */
 	timestamp: number;
-	/** The task type for this version */
 	taskType: TaskType;
-	/** The options snapshot for this version */
 	options: GenerationOptions;
-	/** Optional description of changes */
 	changelog?: string;
 }
 
-/**
- * Extended preset with version history support
- */
 export interface VersionedPreset extends PresetLite {
-	/** Array of historical versions (most recent first) */
 	versions?: PresetVersion[];
-	/** Current active version number */
 	currentVersion?: number;
-	/** When the preset was first created */
 	createdAt?: number;
-	/** When the preset was last modified */
 	updatedAt?: number;
 }
 
@@ -226,10 +165,6 @@ export interface ValidationError {
 	field: string;
 	message: string;
 }
-
-// ============================================
-// Database / Storage Types
-// ============================================
 
 export interface AppSetting {
 	id: string;

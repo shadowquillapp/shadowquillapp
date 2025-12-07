@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 // @ts-nocheck
-// Starts Next.js dev (or prod) then launches Electron.
 const { spawn } = require("node:child_process");
 const path = require("node:path");
 const { URL } = require("node:url");
