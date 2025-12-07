@@ -1,4 +1,3 @@
-// Window creation and management
 const path = require("node:path");
 const { BrowserWindow, shell, Menu } = require("electron");
 const { loadWindowState, saveWindowState } = require("./window-state.cjs");
@@ -21,6 +20,7 @@ function createWindow(isDev) {
 			contextIsolation: true,
 			preload: path.join(__dirname, "..", "preload.cjs"),
 			spellcheck: true,
+			partition: "persist:main",
 		},
 		title: "",
 	});
@@ -56,9 +56,16 @@ function createWindow(isDev) {
 		debouncedSaveState();
 	});
 
-	win.on("close", () => {
+	win.on("close", (_event) => {
 		if (saveStateTimeout) clearTimeout(saveStateTimeout);
 		saveWindowState(win);
+
+		try {
+			win.webContents.session.flushStorageData();
+			console.log("[Window] Storage flushed on close");
+		} catch (e) {
+			console.error("[Window] Failed to flush storage on close:", e);
+		}
 	});
 
 	win.webContents.once("did-finish-load", () => {
@@ -77,6 +84,18 @@ function createWindow(isDev) {
         };
       })();
     `);
+
+		const flushInterval = setInterval(() => {
+			try {
+				win.webContents.session.flushStorageData();
+			} catch (e) {
+				console.warn("[Window] Periodic storage flush failed:", e);
+			}
+		}, 30000);
+
+		win.once("closed", () => {
+			clearInterval(flushInterval);
+		});
 	});
 
 	try {
