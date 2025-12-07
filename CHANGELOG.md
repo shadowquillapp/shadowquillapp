@@ -1,3 +1,16 @@
+# [0.6.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.5.0...v0.6.0) (2025-12-07)
+
+
+### Bug Fixes
+
+* correct contrast in default theme ([a8e6fd2](https://github.com/shadowquillapp/shadowquillapp/commit/a8e6fd2380710b833d492b95220fd5dcdb284f97))
+
+
+### Features
+
+* implement electron storage system with IPC handlers ([93f9bc5](https://github.com/shadowquillapp/shadowquillapp/commit/93f9bc5738cd98cbba9ff9135ba2157512cc355e))
+* improve electron storage persistence and shutdown handling ([2435855](https://github.com/shadowquillapp/shadowquillapp/commit/2435855c8bff67543a2abc2d7ca010b4b1543b43))
+
 # [0.5.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.4.4...v0.5.0) (2025-12-04)
 
 
