@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { getJSON, setJSON } from "@/lib/local-storage";
 import {
 	DEFAULT_BUILD_PROMPT,
 	ensureSystemPromptBuild,
@@ -39,21 +40,21 @@ describe("system-prompts", () => {
 
 		it("should return stored prompt when one exists", () => {
 			const customPrompt = "My custom system prompt";
-			localStorage.setItem(STORAGE_KEY, customPrompt);
+			setJSON(STORAGE_KEY, customPrompt);
 
 			const result = getSystemPromptBuild();
 			expect(result).toBe(customPrompt);
 		});
 
 		it("should return DEFAULT_BUILD_PROMPT when stored value is empty string", () => {
-			localStorage.setItem(STORAGE_KEY, "");
+			setJSON(STORAGE_KEY, "");
 
 			const result = getSystemPromptBuild();
 			expect(result).toBe(DEFAULT_BUILD_PROMPT);
 		});
 
 		it("should return DEFAULT_BUILD_PROMPT when stored value is only whitespace", () => {
-			localStorage.setItem(STORAGE_KEY, "   \n\t  ");
+			setJSON(STORAGE_KEY, "   \n\t  ");
 
 			const result = getSystemPromptBuild();
 			expect(result).toBe(DEFAULT_BUILD_PROMPT);
@@ -61,7 +62,7 @@ describe("system-prompts", () => {
 
 		it("should trim whitespace from stored prompt", () => {
 			const customPrompt = "  Custom prompt with whitespace  ";
-			localStorage.setItem(STORAGE_KEY, customPrompt);
+			setJSON(STORAGE_KEY, customPrompt);
 
 			const result = getSystemPromptBuild();
 			expect(result).toBe("Custom prompt with whitespace");
@@ -71,7 +72,7 @@ describe("system-prompts", () => {
 	describe("ensureSystemPromptBuild", () => {
 		it("should return stored prompt when one exists", () => {
 			const customPrompt = "Existing custom prompt";
-			localStorage.setItem(STORAGE_KEY, customPrompt);
+			setJSON(STORAGE_KEY, customPrompt);
 
 			const result = ensureSystemPromptBuild();
 			expect(result).toBe(customPrompt);
@@ -81,34 +82,34 @@ describe("system-prompts", () => {
 			const result = ensureSystemPromptBuild();
 
 			expect(result).toBe(DEFAULT_BUILD_PROMPT);
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(DEFAULT_BUILD_PROMPT);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(DEFAULT_BUILD_PROMPT);
 		});
 
 		it("should write DEFAULT_BUILD_PROMPT when stored value is empty", () => {
-			localStorage.setItem(STORAGE_KEY, "");
+			setJSON(STORAGE_KEY, "");
 
 			const result = ensureSystemPromptBuild();
 
 			expect(result).toBe(DEFAULT_BUILD_PROMPT);
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(DEFAULT_BUILD_PROMPT);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(DEFAULT_BUILD_PROMPT);
 		});
 
 		it("should write DEFAULT_BUILD_PROMPT when stored value is only whitespace", () => {
-			localStorage.setItem(STORAGE_KEY, "   ");
+			setJSON(STORAGE_KEY, "   ");
 
 			const result = ensureSystemPromptBuild();
 
 			expect(result).toBe(DEFAULT_BUILD_PROMPT);
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(DEFAULT_BUILD_PROMPT);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(DEFAULT_BUILD_PROMPT);
 		});
 
 		it("should not overwrite existing valid prompt", () => {
 			const customPrompt = "Valid custom prompt";
-			localStorage.setItem(STORAGE_KEY, customPrompt);
+			setJSON(STORAGE_KEY, customPrompt);
 
 			ensureSystemPromptBuild();
 
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(customPrompt);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(customPrompt);
 		});
 	});
 
@@ -119,7 +120,7 @@ describe("system-prompts", () => {
 			const result = setSystemPromptBuild(newPrompt);
 
 			expect(result).toBe(newPrompt);
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(newPrompt);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(newPrompt);
 		});
 
 		it("should trim whitespace from the prompt", () => {
@@ -128,30 +129,30 @@ describe("system-prompts", () => {
 			const result = setSystemPromptBuild(newPrompt);
 
 			expect(result).toBe("Prompt with whitespace");
-			expect(localStorage.getItem(STORAGE_KEY)).toBe("Prompt with whitespace");
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe("Prompt with whitespace");
 		});
 
 		it("should return DEFAULT_BUILD_PROMPT when empty string is provided", () => {
 			const result = setSystemPromptBuild("");
 
 			expect(result).toBe(DEFAULT_BUILD_PROMPT);
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(DEFAULT_BUILD_PROMPT);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(DEFAULT_BUILD_PROMPT);
 		});
 
 		it("should return DEFAULT_BUILD_PROMPT when only whitespace is provided", () => {
 			const result = setSystemPromptBuild("   \n\t  ");
 
 			expect(result).toBe(DEFAULT_BUILD_PROMPT);
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(DEFAULT_BUILD_PROMPT);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(DEFAULT_BUILD_PROMPT);
 		});
 
 		it("should overwrite existing prompt", () => {
-			localStorage.setItem(STORAGE_KEY, "Old prompt");
+			setJSON(STORAGE_KEY, "Old prompt");
 
 			const result = setSystemPromptBuild("New prompt");
 
 			expect(result).toBe("New prompt");
-			expect(localStorage.getItem(STORAGE_KEY)).toBe("New prompt");
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe("New prompt");
 		});
 
 		it("should handle multiline prompts", () => {
@@ -162,7 +163,7 @@ Line 3`;
 			const result = setSystemPromptBuild(multilinePrompt);
 
 			expect(result).toBe(multilinePrompt);
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(multilinePrompt);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(multilinePrompt);
 		});
 
 		it("should handle prompts with special characters", () => {
@@ -171,18 +172,18 @@ Line 3`;
 			const result = setSystemPromptBuild(specialPrompt);
 
 			expect(result).toBe(specialPrompt);
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(specialPrompt);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(specialPrompt);
 		});
 	});
 
 	describe("resetSystemPromptBuild", () => {
 		it("should reset to DEFAULT_BUILD_PROMPT", () => {
-			localStorage.setItem(STORAGE_KEY, "Custom prompt");
+			setJSON(STORAGE_KEY, "Custom prompt");
 
 			const result = resetSystemPromptBuild();
 
 			expect(result).toBe(DEFAULT_BUILD_PROMPT);
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(DEFAULT_BUILD_PROMPT);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(DEFAULT_BUILD_PROMPT);
 		});
 
 		it("should return DEFAULT_BUILD_PROMPT even when nothing was stored", () => {
@@ -192,11 +193,11 @@ Line 3`;
 		});
 
 		it("should overwrite any existing value", () => {
-			localStorage.setItem(STORAGE_KEY, "Very long custom prompt...");
+			setJSON(STORAGE_KEY, "Very long custom prompt...");
 
 			resetSystemPromptBuild();
 
-			expect(localStorage.getItem(STORAGE_KEY)).toBe(DEFAULT_BUILD_PROMPT);
+			expect(getJSON<string>(STORAGE_KEY, "")).toBe(DEFAULT_BUILD_PROMPT);
 		});
 	});
 
