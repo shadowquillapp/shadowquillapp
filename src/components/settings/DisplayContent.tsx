@@ -1,6 +1,7 @@
 /** @jsxImportSource react */
 "use client";
 import React from "react";
+import { getJSON, setJSON } from "@/lib/local-storage";
 import { Icon, type IconName } from "../Icon";
 
 interface ShadowQuillViewApi {
@@ -58,19 +59,13 @@ export default function DisplayContent() {
 		});
 
 		// Load saved theme
-		let savedTheme = localStorage.getItem("theme-preference") as
-			| "earth"
-			| "purpledark"
-			| "dark"
-			| "light"
-			| "default"
-			| null;
-		// Migrate old 'default' theme to 'purpledark'
+		let savedTheme = getJSON<
+			"earth" | "purpledark" | "dark" | "light" | "default" | null
+		>("theme-preference", null);
 		if (savedTheme === "default") {
 			savedTheme = "purpledark";
-			localStorage.setItem("theme-preference", "purpledark");
+			setJSON("theme-preference", "purpledark");
 		}
-		// Default to earth theme if no saved preference
 		if (
 			savedTheme &&
 			(savedTheme === "earth" ||
@@ -84,7 +79,6 @@ export default function DisplayContent() {
 				savedTheme === "earth" ? "" : savedTheme,
 			);
 		} else {
-			// No saved preference - use earth as default
 			setCurrentTheme("earth");
 			document.documentElement.setAttribute("data-theme", "");
 		}
@@ -124,7 +118,6 @@ export default function DisplayContent() {
 		return () => window.removeEventListener("resize", onResize);
 	}, []);
 
-	// Listen for zoom changes from keyboard shortcuts
 	React.useEffect(() => {
 		const api = (window as WindowWithShadowQuill).shadowquill;
 		if (!api?.view?.onZoomChanged) return;

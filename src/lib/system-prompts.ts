@@ -1,3 +1,5 @@
+import { getJSON, setJSON } from "./local-storage";
+
 const SYSTEM_PROMPT_BUILD_KEY = "SYSTEM_PROMPT_BUILD";
 
 /**
@@ -45,7 +47,7 @@ Output rules:
 function readRawPrompt(): string {
 	if (typeof window === "undefined") return "";
 	try {
-		return localStorage.getItem(SYSTEM_PROMPT_BUILD_KEY) || "";
+		return getJSON<string>(SYSTEM_PROMPT_BUILD_KEY, "") || "";
 	} catch {
 		return "";
 	}
@@ -54,7 +56,7 @@ function readRawPrompt(): string {
 function writeRawPrompt(value: string): void {
 	if (typeof window === "undefined") return;
 	try {
-		localStorage.setItem(SYSTEM_PROMPT_BUILD_KEY, value);
+		setJSON(SYSTEM_PROMPT_BUILD_KEY, value);
 	} catch {
 		// ignore storage failures
 	}

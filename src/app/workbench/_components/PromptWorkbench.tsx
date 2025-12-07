@@ -145,7 +145,6 @@ export default function PromptWorkbench() {
 	const [selectedPresetKey, setSelectedPresetKey] = useState("");
 	const [_recentPresetKeys, setRecentPresetKeys] = useState<string[]>([]);
 
-	// Tab management
 	const tabManager = useTabManager();
 	const [showPresetPicker, setShowPresetPicker] = useState(false);
 	const [presetPickerForNewTab, setPresetPickerForNewTab] = useState(false);
@@ -171,7 +170,6 @@ export default function PromptWorkbench() {
 		setProjectList(list);
 	}, []);
 
-	// Load local Ollama models only
 	useEffect(() => {
 		const load = async () => {
 			try {
@@ -190,21 +188,14 @@ export default function PromptWorkbench() {
 		load();
 	}, []);
 
-	// Theme management
 	useEffect(() => {
-		let savedTheme = localStorage.getItem("theme-preference") as
-			| "earth"
-			| "purpledark"
-			| "dark"
-			| "light"
-			| "default"
-			| null;
-		// Migrate old 'default' theme to 'purpledark'
+		let savedTheme = getJSON<
+			"earth" | "purpledark" | "dark" | "light" | "default" | null
+		>("theme-preference", null);
 		if (savedTheme === "default") {
 			savedTheme = "purpledark";
-			localStorage.setItem("theme-preference", "purpledark");
+			setJSON("theme-preference", "purpledark");
 		}
-		// Default to earth theme if no saved preference
 		if (
 			savedTheme &&
 			(savedTheme === "earth" ||
@@ -218,24 +209,17 @@ export default function PromptWorkbench() {
 				savedTheme === "earth" ? "" : savedTheme,
 			);
 		} else {
-			// No saved preference - use earth as default
 			setCurrentTheme("earth");
 			document.documentElement.setAttribute("data-theme", "");
 		}
-		// Load recent presets (initial)
 		try {
-			const stored = localStorage.getItem("recent-presets");
-			if (stored) {
-				const arr = JSON.parse(stored);
-				if (Array.isArray(arr))
-					setRecentPresetKeys(arr.filter((x) => typeof x === "string"));
-			}
+			const arr = getJSON<string[]>("recent-presets", null);
+			if (arr && Array.isArray(arr))
+				setRecentPresetKeys(arr.filter((x) => typeof x === "string"));
 		} catch {
 			/* noop */
 		}
 	}, []);
-
-	// Drag handlers for controls
 
 	const modelIds = useMemo(() => ["gemma3:4b", "gemma3:12b", "gemma3:27b"], []);
 	const _activeIndex = useMemo(
@@ -243,7 +227,6 @@ export default function PromptWorkbench() {
 		[currentModelId, modelIds],
 	);
 
-	// Refresh available models
 	const _refreshModels = useCallback(async () => {
 		try {
 			const models = await listAvailableModels("http://localhost:11434");
@@ -259,7 +242,6 @@ export default function PromptWorkbench() {
 		}
 	}, []);
 
-	// Position model dropdown to avoid viewport overflow
 	useEffect(() => {
 		if (!modelMenuOpen) return;
 		const btn = modelBtnRef.current;
@@ -291,7 +273,6 @@ export default function PromptWorkbench() {
 		};
 	}, [modelMenuOpen]);
 
-	// Global event to open Settings dialog with initial tab
 	useEffect(() => {
 		const handler = (e: Event) => {
 			try {
@@ -305,7 +286,6 @@ export default function PromptWorkbench() {
 		return () => window.removeEventListener("open-app-settings", handler);
 	}, []);
 
-	// Ensure project exists or create one
 	const ensureProject = useCallback(
 		async (firstLine: string) => {
 			const activeTab = tabManager.activeTab;
@@ -374,7 +354,7 @@ export default function PromptWorkbench() {
 				setRecentPresetKeys((prev) => {
 					const next = [key, ...prev.filter((k) => k !== key)].slice(0, 3);
 					try {
-						localStorage.setItem("recent-presets", JSON.stringify(next));
+						setJSON("recent-presets", next);
 					} catch {}
 					return next;
 				});
@@ -424,9 +404,8 @@ export default function PromptWorkbench() {
 			const newKey = summary.id ?? summary.name;
 			setSelectedPresetKey(newKey);
 			try {
-				localStorage.setItem("last-selected-preset", newKey);
+				setJSON("last-selected-preset", newKey);
 			} catch {}
-			// Create a new tab with this preset
 			if (tabManager.canCreateTab) {
 				tabManager.createTab(summary);
 			}
@@ -450,15 +429,12 @@ export default function PromptWorkbench() {
 					const set = new Set(list.map((p) => p.id ?? p.name));
 					const cleaned = prev.filter((k) => set.has(k)).slice(0, 3);
 					try {
-						localStorage.setItem("recent-presets", JSON.stringify(cleaned));
+						setJSON("recent-presets", cleaned);
 					} catch {}
 					return cleaned;
 				});
 				if (!selectedPresetKey) {
-					const lastKey =
-						(typeof window !== "undefined"
-							? localStorage.getItem("last-selected-preset")
-							: null) || "";
+					const lastKey = getJSON<string>("last-selected-preset", "") || "";
 					const pick =
 						(lastKey && list.find((p) => (p.id ?? p.name) === lastKey)) ||
 						list[0] ||
@@ -467,8 +443,7 @@ export default function PromptWorkbench() {
 						const key = pick.id ?? pick.name;
 						setSelectedPresetKey(key);
 						try {
-							if (typeof window !== "undefined")
-								localStorage.setItem("last-selected-preset", key);
+							setJSON("last-selected-preset", key);
 						} catch {}
 						applyPreset(pick);
 					}
@@ -480,7 +455,6 @@ export default function PromptWorkbench() {
 		void load();
 	}, [applyPreset, selectedPresetKey]);
 
-	// Check for preset applied from Preset Studio page
 	useEffect(() => {
 		const applyPresetFromStorage = () => {
 			try {
@@ -497,18 +471,14 @@ export default function PromptWorkbench() {
 		applyPresetFromStorage();
 	}, [loadPreset]);
 
-	// Auto-show preset picker when no tabs are open
 	useEffect(() => {
-		// Wait for presets to be loaded
 		if (loadingPresets || presets.length === 0) return;
 
-		// Reset the auto-show flag when tabs exist
 		if (tabManager.tabs.length > 0) {
 			hasAutoShownPresetPicker.current = false;
 			return;
 		}
 
-		// If no tabs and we haven't auto-shown yet, show the preset picker
 		if (!hasAutoShownPresetPicker.current && !showPresetPicker) {
 			hasAutoShownPresetPicker.current = true;
 			setShowPresetPicker(true);
@@ -528,10 +498,8 @@ export default function PromptWorkbench() {
 		const text = activeTab.draft.trim();
 		if (!text || activeTab.sending) return;
 
-		// Check if user is on a past version - if so, confirm before proceeding
 		const graph = activeTab.versionGraph;
 		if (graph.activeId !== graph.tailId) {
-			// Count how many versions will be removed
 			let versionsToRemove = 0;
 			let cursor = graph.nodes[graph.activeId]?.nextId;
 			while (cursor) {
@@ -550,7 +518,6 @@ export default function PromptWorkbench() {
 			if (!confirmed) return;
 		}
 
-		// Capture original input before processing
 		const originalInput = text;
 
 		tabManager.setSending(true);
@@ -580,7 +547,6 @@ export default function PromptWorkbench() {
 					tabManager.updateMessage(user.id, { id: createdUserId });
 			} catch {}
 
-			// Pre-compute normalized values to avoid spreading undefined with exactOptionalPropertyTypes
 			const normalizedImageStyle = normalizeStylePreset(stylePreset);
 			const normalizedVideoStyle = normalizeVideoStylePreset(videoStylePreset);
 			const normalizedAspect = normalizeAspectRatio(aspectRatio);
@@ -633,7 +599,6 @@ export default function PromptWorkbench() {
 			let refinedVersionId: string | undefined;
 
 			if (isRefinementMode) {
-				// REFINEMENT MODE: Use the last version's output as the base to refine
 				const lastVersionWithOutput =
 					versionsWithOutput[versionsWithOutput.length - 1];
 				refinedVersionId = lastVersionWithOutput?.id;
@@ -651,7 +616,6 @@ export default function PromptWorkbench() {
 						options,
 					});
 				} else {
-					// Fallback to initial mode if we can't find the previous output
 					built = await buildUnifiedPrompt({
 						input: text,
 						taskType,
@@ -659,7 +623,6 @@ export default function PromptWorkbench() {
 					});
 				}
 			} else {
-				// INITIAL MODE: Generate base output from user input
 				built = await buildUnifiedPrompt({
 					input: text,
 					taskType,
@@ -694,7 +657,6 @@ export default function PromptWorkbench() {
 				await refreshProjectList();
 			} catch {}
 
-			// Update version graph
 			const currentGraph = activeTab.versionGraph;
 			const timestamp = new Date().toLocaleTimeString([], {
 				hour: "2-digit",
@@ -719,10 +681,8 @@ export default function PromptWorkbench() {
 			tabManager.setVersionGraph(updatedGraph);
 			tabManager.markDirty(false);
 
-			// Clear the input after successful generation so user can enter refinement
 			tabManager.updateDraft("");
 
-			// Auto-sync tab name to the prompt input (only for base version, not refinements)
 			if (!isRefinementMode) {
 				const truncatedLabel =
 					originalInput.length > 40
@@ -731,14 +691,12 @@ export default function PromptWorkbench() {
 				tabManager.updateTabLabel(activeTab.id, truncatedLabel);
 			}
 
-			// Trigger version creation animation
 			setJustCreatedVersion(true);
 			setOutputAnimateKey((prev) => prev + 1);
 			setTimeout(() => setJustCreatedVersion(false), 700);
 		} catch (e: unknown) {
 			const error = e as Error & { name?: string };
 			if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
-				// Silent abort
 			} else {
 				tabManager.setError(error?.message || "Something went wrong");
 			}
@@ -790,15 +748,12 @@ export default function PromptWorkbench() {
 		tabManager.setSending(false);
 	}, [tabManager]);
 
-	// Version navigation handlers
 	const goToPreviousVersion = useCallback(() => {
 		const tab = tabManager.activeTab;
 		if (!tab) return;
 		const prevGraph = undoVersion(tab.versionGraph);
 		if (prevGraph) {
 			const prevNode = prevGraph.nodes[prevGraph.activeId];
-			// Keep draft empty when navigating to a version that has output (refinement mode)
-			// The original input is shown in the context preview, not the editable field
 			if (prevNode && !prevNode.outputMessageId) {
 				tabManager.updateDraft(prevNode.originalInput || prevNode.content);
 			} else {
@@ -816,8 +771,6 @@ export default function PromptWorkbench() {
 		const nextGraph = redoVersion(tab.versionGraph);
 		if (nextGraph) {
 			const nextNode = nextGraph.nodes[nextGraph.activeId];
-			// Keep draft empty when navigating to a version that has output (refinement mode)
-			// The original input is shown in the context preview, not the editable field
 			if (nextNode && !nextNode.outputMessageId) {
 				tabManager.updateDraft(nextNode.originalInput || nextNode.content);
 			} else {
@@ -831,7 +784,6 @@ export default function PromptWorkbench() {
 
 	const endRef = useRef<HTMLDivElement | null>(null);
 
-	// Auto-scroll to bottom when messages change or when sending
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional - scroll when messages/sending changes
 	useEffect(() => {
 		const container = scrollContainerRef.current;
@@ -863,20 +815,16 @@ export default function PromptWorkbench() {
 		[projectList],
 	);
 
-	// Project selection & deletion
 	const loadProject = useCallback(
 		async (id: string) => {
 			try {
-				// Check if project is already open in a tab
 				const existingTab = tabManager.findTabByProjectId(id);
 				if (existingTab) {
 					tabManager.switchTab(existingTab.id);
 					return;
 				}
 
-				// Check if we can create a new tab
 				if (!tabManager.canCreateTab) {
-					// Use activeTab's error if available, otherwise show alert
 					if (tabManager.activeTab) {
 						tabManager.setError(
 							"Maximum number of tabs reached. Close a tab to open this project.",
@@ -909,7 +857,6 @@ export default function PromptWorkbench() {
 					}
 				}
 
-				// If no preset found, use first available preset
 				if (!projectPreset) {
 					if (presets.length > 0) {
 						projectPreset = presets[0] ?? null;
@@ -924,13 +871,10 @@ export default function PromptWorkbench() {
 					return;
 				}
 
-				// Apply preset configuration
 				applyPreset(projectPreset, { trackRecent: false });
 
-				// Create new tab and capture the tab ID for synchronous operations
 				const newTabId = tabManager.createTab(projectPreset);
 
-				// Build the version graph
 				let graph: VersionGraph;
 				if (
 					data.versionGraph &&
@@ -942,14 +886,12 @@ export default function PromptWorkbench() {
 						loaded,
 					);
 				} else {
-					// Reconstruct history from user messages for legacy sessions
 					graph = createVersionGraph("", "Start", "", null);
 					const userMsgs = loaded.filter((m) => m.role === "user");
 					const assistantMsgs = loaded.filter((m) => m.role === "assistant");
 
 					if (userMsgs.length > 0) {
 						userMsgs.forEach((msg, i) => {
-							// Try to link with corresponding assistant message
 							const outputId = assistantMsgs[i]?.id ?? null;
 							graph = appendVersion(
 								graph,
@@ -962,12 +904,10 @@ export default function PromptWorkbench() {
 					}
 				}
 
-				// Jump to the most recent version when opening a saved project
 				if (graph.tailId && graph.nodes[graph.tailId]) {
 					graph = { ...graph, activeId: graph.tailId };
 				}
 
-				// Apply all data to the new tab using explicit tabId-based operations
 				tabManager.setMessagesForTab(newTabId, loaded);
 				tabManager.setVersionGraphForTab(newTabId, graph);
 				tabManager.attachProjectForTab(newTabId, id);
@@ -981,12 +921,10 @@ export default function PromptWorkbench() {
 					tabManager.updateDraftForTab(newTabId, "");
 				}
 
-				// Update tab label with project title
 				if (data.title) {
 					tabManager.updateTabLabel(newTabId, data.title);
 				}
 			} catch (_e) {
-				// Use tabId-based error if we have a tab, otherwise show info dialog
 				if (tabManager.activeTab) {
 					tabManager.setError("Failed to load project");
 				} else {
@@ -997,7 +935,6 @@ export default function PromptWorkbench() {
 		[tabManager, presets, applyPreset, showInfo],
 	);
 
-	// Auto-save version graph
 	useEffect(() => {
 		if (!activeTab?.projectId || !activeTab?.versionGraph) return;
 		const timer = setTimeout(() => {
@@ -1015,7 +952,6 @@ export default function PromptWorkbench() {
 				await refreshProjectList();
 			} catch {}
 
-			// Close any tabs with this project
 			for (const tab of tabManager.tabs) {
 				if (tab.projectId === id) {
 					tabManager.closeTab(tab.id);
@@ -1036,7 +972,6 @@ export default function PromptWorkbench() {
 	const copyMessage = useCallback(
 		async (messageId: string, content: string) => {
 			try {
-				// Strip a single OUTER fenced code block (e.g., ```xml ... ```) from copied text
 				let textToCopy = content;
 				const fenceMatch = textToCopy.match(
 					/^\s*```([^\n]*)\n?([\s\S]*?)\n```[\s\r]*$/,
@@ -1044,7 +979,6 @@ export default function PromptWorkbench() {
 				if (fenceMatch) {
 					const lang = (fenceMatch[1] || "").trim().toLowerCase();
 					textToCopy = fenceMatch[2] || "";
-					// Clean duplicate opening marker inside inner content if present (e.g., ```xml\n at start)
 					if (lang) {
 						const duplicateMarkerPattern = new RegExp(
 							`^\\s*\\\`\\\`\\\`${lang}\\s*\\n`,
@@ -1059,7 +993,6 @@ export default function PromptWorkbench() {
 				setTimeout(() => setCopiedMessageId(null), 2000);
 			} catch {
 				const textArea = document.createElement("textarea");
-				// Fallback path mirrors fenced stripping as above
 				let textToCopy = content;
 				const fenceMatch = textToCopy.match(
 					/^\s*```([^\n]*)\n?([\s\S]*?)\n```[\s\r]*$/,
@@ -1091,11 +1024,9 @@ export default function PromptWorkbench() {
 		? versionList(activeTab.versionGraph).filter((v) => v.label !== "Start")
 		: [];
 
-	// Refinement mode: true when there's at least one version with generated output
 	const versionsWithOutput = versions.filter((v) => v.outputMessageId);
 	const isRefinementMode = versionsWithOutput.length > 0;
 
-	// Get the currently ACTIVE version for context display
 	const activeVersionId = activeTab?.versionGraph.activeId;
 	const activeVersion = activeVersionId
 		? activeTab?.versionGraph.nodes[activeVersionId]
@@ -1106,19 +1037,14 @@ export default function PromptWorkbench() {
 	const activeVersionNumber =
 		activeVersionIndex >= 0 ? activeVersionIndex + 1 : 0;
 
-	// Determine if the active version is a refinement
 	const activeVersionIsRefinement =
 		activeVersion?.metadata?.isRefinement === true;
 
-	// Get the version to show in context (for refinement, show what's being refined)
-	// When creating a new refinement, use the active version's output
-	// When viewing a refinement version, show the version it refined
 	const contextVersion =
 		activeVersionIsRefinement && activeVersion?.metadata?.refinedVersionId
 			? activeTab?.versionGraph.nodes[activeVersion.metadata.refinedVersionId]
 			: activeVersion;
 
-	// Get output and input for the context display
 	const _contextOutput = contextVersion?.outputMessageId
 		? activeMessages.find(
 				(m) =>
@@ -1127,7 +1053,6 @@ export default function PromptWorkbench() {
 		: null;
 	const _contextInput = contextVersion?.originalInput ?? null;
 
-	// For refinement mode display, show what will be refined (the active version's output)
 	const _lastVersionWithOutput =
 		versionsWithOutput[versionsWithOutput.length - 1];
 	const outputToRefine = activeVersion?.outputMessageId
@@ -1137,7 +1062,6 @@ export default function PromptWorkbench() {
 		: null;
 	const inputThatGeneratedOutput = activeVersion?.originalInput ?? null;
 
-	// Live word count for the editor header
 	const wordCount = useMemo(() => {
 		const text = activeTab?.draft || "";
 		const trimmed = text.trim();
@@ -1155,7 +1079,6 @@ export default function PromptWorkbench() {
 		[activeMessages],
 	);
 
-	// Get the active version's output message for word/char counts
 	const activeVersionOutput = useMemo(() => {
 		if (!activeVersion?.outputMessageId) return null;
 		return activeMessages.find(
@@ -1175,10 +1098,8 @@ export default function PromptWorkbench() {
 		return text.length;
 	}, [activeVersionOutput]);
 
-	// Global keyboard shortcuts for tabs
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
-			// New tab
 			if ((e.metaKey || e.ctrlKey) && e.key === "t") {
 				e.preventDefault();
 				if (tabManager.canCreateTab) {
@@ -1186,7 +1107,6 @@ export default function PromptWorkbench() {
 					setPresetPickerForNewTab(true);
 				}
 			}
-			// Close tab
 			if ((e.metaKey || e.ctrlKey) && e.key === "w") {
 				e.preventDefault();
 				if (activeTab) {
@@ -1207,12 +1127,10 @@ export default function PromptWorkbench() {
 		return () => document.removeEventListener("keydown", onKeyDown);
 	}, [activeTab, tabManager]);
 
-	// Panel resize handlers
 	const grabOffsetRef = useRef<number>(0);
 	const handleResizeStart = useCallback(
 		(e: React.MouseEvent) => {
 			e.preventDefault();
-			// Calculate and store the offset from the center divider to maintain cursor position
 			if (panelsRef.current) {
 				const rect = panelsRef.current.getBoundingClientRect();
 				const currentDividerX = rect.left + (rect.width * leftPanelWidth) / 100;
@@ -1223,7 +1141,6 @@ export default function PromptWorkbench() {
 		[leftPanelWidth],
 	);
 
-	// Track the latest panel width in a ref for saving on resize end
 	const latestPanelWidthRef = useRef(leftPanelWidth);
 	useEffect(() => {
 		latestPanelWidthRef.current = leftPanelWidth;
@@ -1235,18 +1152,13 @@ export default function PromptWorkbench() {
 		const handleMouseMove = (e: MouseEvent) => {
 			if (!panelsRef.current) return;
 			const rect = panelsRef.current.getBoundingClientRect();
-			// Subtract the grab offset so cursor stays where the user grabbed
 			const adjustedX = e.clientX - grabOffsetRef.current;
 			const newWidth = ((adjustedX - rect.left) / rect.width) * 100;
 
-			// Minimum pixel width for both panes
 			const MIN_PANE_WIDTH_PX = 480;
-			// Calculate minimum percentage based on container width
 			const minPercentage = (MIN_PANE_WIDTH_PX / rect.width) * 100;
-			// Max percentage for left pane = 100% - minPercentage (to leave room for right pane)
 			const maxPercentage = 100 - minPercentage;
 
-			// Clamp between minPercentage and maxPercentage (ensuring both panes have at least 480px)
 			setLeftPanelWidth(
 				Math.min(maxPercentage, Math.max(minPercentage, newWidth)),
 			);
@@ -1254,13 +1166,11 @@ export default function PromptWorkbench() {
 
 		const handleMouseUp = () => {
 			setIsResizing(false);
-			// Persist the panel width to localStorage
 			setJSON("shadowquill:panelWidth", latestPanelWidthRef.current);
 		};
 
 		document.addEventListener("mousemove", handleMouseMove);
 		document.addEventListener("mouseup", handleMouseUp);
-		// Add cursor style to body during resize
 		document.body.style.cursor = "col-resize";
 		document.body.style.userSelect = "none";
 

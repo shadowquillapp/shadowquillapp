@@ -3,6 +3,7 @@ import {
 	generatePresetExamples,
 	generateSingleExample,
 } from "@/lib/example-generator";
+import { getJSON, setJSON } from "@/lib/local-storage";
 import { getDefaultPresets } from "@/lib/presets";
 import type { PresetLite } from "@/types";
 
@@ -15,12 +16,11 @@ export function usePresetManager() {
 		null,
 	);
 
-	// Load presets from localStorage
+	// Load presets from storage
 	const loadPresets = useCallback(() => {
 		try {
-			const stored = localStorage.getItem(STORAGE_KEY);
-			if (stored) {
-				const parsed = JSON.parse(stored);
+			const parsed = getJSON<PresetLite[]>(STORAGE_KEY, null);
+			if (parsed && Array.isArray(parsed)) {
 				// Ensure each preset has an ID
 				const presetsWithIds = parsed.map((preset: PresetLite) => ({
 					...preset,
@@ -33,7 +33,7 @@ export function usePresetManager() {
 				// Create default presets if none exist
 				const defaultPresets = getDefaultPresets();
 				setPresets(defaultPresets);
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(defaultPresets));
+				setJSON(STORAGE_KEY, defaultPresets);
 			}
 		} catch (error) {
 			console.error("Failed to load presets:", error);
@@ -73,7 +73,7 @@ export function usePresetManager() {
 					savedPreset = newPreset;
 				}
 
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets));
+				setJSON(STORAGE_KEY, updatedPresets);
 				setPresets(updatedPresets);
 				return savedPreset;
 			} catch (error) {
@@ -89,7 +89,7 @@ export function usePresetManager() {
 		async (presetId: string) => {
 			try {
 				const updatedPresets = presets.filter((p) => p.id !== presetId);
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets));
+				setJSON(STORAGE_KEY, updatedPresets);
 				setPresets(updatedPresets);
 			} catch (error) {
 				console.error("Failed to delete preset:", error);
@@ -115,7 +115,7 @@ export function usePresetManager() {
 				};
 
 				const updatedPresets = [...presets, duplicated];
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets));
+				setJSON(STORAGE_KEY, updatedPresets);
 				setPresets(updatedPresets);
 				return duplicated;
 			} catch (error) {
@@ -167,7 +167,7 @@ export function usePresetManager() {
 					}));
 
 				const updatedPresets = [...presets, ...newPresets];
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets));
+				setJSON(STORAGE_KEY, updatedPresets);
 				setPresets(updatedPresets);
 
 				return newPresets.length;
@@ -196,7 +196,7 @@ export function usePresetManager() {
 				const updatedPresets = presets.map((p) =>
 					p.id === preset.id ? presetWithExamples : p,
 				);
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets));
+				setJSON(STORAGE_KEY, updatedPresets);
 				setPresets(updatedPresets);
 
 				return presetWithExamples;
@@ -234,7 +234,7 @@ export function usePresetManager() {
 				const updatedPresets = presets.map((p) =>
 					p.id === preset.id ? presetWithExamples : p,
 				);
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedPresets));
+				setJSON(STORAGE_KEY, updatedPresets);
 				setPresets(updatedPresets);
 
 				return presetWithExamples;

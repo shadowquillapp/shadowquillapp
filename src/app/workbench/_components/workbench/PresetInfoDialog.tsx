@@ -2,6 +2,7 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { Icon, type IconName } from "@/components/Icon";
+import { setJSON } from "@/lib/local-storage";
 import type { PresetLite } from "@/types";
 
 interface PresetInfoDialogProps {
@@ -60,11 +61,11 @@ export function PresetInfoDialog({
 	const router = useRouter();
 
 	const handleOpenInStudio = () => {
-		// Set the preset ID in localStorage so it auto-selects when studio loads
+		// Set the preset ID in storage so it auto-selects when studio loads
 		if (preset.id) {
-			localStorage.setItem("last-selected-preset", preset.id);
+			setJSON("last-selected-preset", preset.id);
 		} else if (preset.name) {
-			localStorage.setItem("last-selected-preset", preset.name);
+			setJSON("last-selected-preset", preset.name);
 		}
 		onClose();
 		router.push("/studio");
