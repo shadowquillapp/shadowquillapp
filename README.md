@@ -22,20 +22,17 @@ Powered by Ollama and Gemma 3, ShadowQuill operates 100% offline, offering a com
 
 ### Download the installers (Windows & macOS Silicon)
 
+Download from latest release v0.6.0:
+
 <p>
   <a href="">
     <img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows-blue?logo=windows&logoColor=white">
   </a>
   &nbsp;
-  <a href="">
+  <a href="https://github.com/shadowquillapp/shadowquillapp/releases/download/v0.6.0/ShadowQuill-0.6.0-arm64.dmg">
     <img alt="Download for macOS (arm64)" src="https://img.shields.io/badge/Download-macOS--ARM64-000000?logo=apple&logoColor=white">
   </a>
 </p>
-
-Direct links:
-- Windows (installer): https://github.com/shadowquillapp/shadowquillapp/releases/download/v0.5.0/ShadowQuill.Setup.0.5.0.exe
-- macOS (arm64 DMG): https://github.com/shadowquillapp/shadowquillapp/releases/download/v0.5.0/ShadowQuill-0.5.0-arm64.dmg
-
 
 ### With `pnpm` and `node`
 
