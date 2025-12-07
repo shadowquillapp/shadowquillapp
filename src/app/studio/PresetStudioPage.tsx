@@ -6,6 +6,7 @@ import PresetLibrary from "@/app/studio/components/PresetLibrary";
 import StudioHeader from "@/app/studio/components/StudioHeader";
 import { usePresetManager } from "@/app/studio/hooks/usePresetManager";
 import { useDialog } from "@/components/DialogProvider";
+import { getJSON, setJSON } from "@/lib/local-storage";
 import type { PresetLite } from "@/types";
 
 export default function PresetStudioPage() {
@@ -48,8 +49,9 @@ export default function PresetStudioPage() {
 		// Only auto-select if we don't already have an editing preset
 		// (to avoid overwriting a new preset being created)
 		if (presets.length > 0 && !selectedPresetId && !editingPreset) {
-			const lastSelectedPresetKey = localStorage.getItem(
+			const lastSelectedPresetKey = getJSON<string>(
 				"last-selected-preset",
+				null,
 			);
 			if (lastSelectedPresetKey) {
 				const preset = presets.find(
@@ -66,17 +68,13 @@ export default function PresetStudioPage() {
 
 	// Load and apply saved theme
 	useEffect(() => {
-		let savedTheme = localStorage.getItem("theme-preference") as
-			| "earth"
-			| "purpledark"
-			| "dark"
-			| "light"
-			| "default"
-			| null;
+		let savedTheme = getJSON<
+			"earth" | "purpledark" | "dark" | "light" | "default" | null
+		>("theme-preference", null);
 		// Migrate old 'default' theme to 'purpledark'
 		if (savedTheme === "default") {
 			savedTheme = "purpledark";
-			localStorage.setItem("theme-preference", "purpledark");
+			setJSON("theme-preference", "purpledark");
 		}
 		// Default to earth theme if no saved preference
 		if (

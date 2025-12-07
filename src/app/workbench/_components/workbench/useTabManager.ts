@@ -1,5 +1,10 @@
 import { useCallback, useEffect, useReducer, useRef } from "react";
-import { isFactoryResetInProgress } from "@/lib/local-storage";
+import {
+	getJSON,
+	isFactoryResetInProgress,
+	remove,
+	setJSON,
+} from "@/lib/local-storage";
 import type { MessageItem, PromptPresetSummary, VersionGraph } from "./types";
 import { createVersionGraph } from "./version-graph";
 
@@ -134,16 +139,13 @@ const reducer = (
 			const { tabId } = action.payload;
 			const newTabs = state.tabs.filter((t) => t.id !== tabId);
 
-			// If no tabs left, return empty state
 			if (newTabs.length === 0) {
 				return { tabs: [], activeTabId: null };
 			}
 
-			// If closing active tab, switch to adjacent tab
 			let newActiveId = state.activeTabId;
 			if (state.activeTabId === tabId) {
 				const closedIndex = state.tabs.findIndex((t) => t.id === tabId);
-				// Try next tab, otherwise previous
 				newActiveId =
 					newTabs[closedIndex]?.id ??
 					newTabs[closedIndex - 1]?.id ??
@@ -307,10 +309,8 @@ export function useTabManager() {
 	const [state, dispatch] = useReducer(reducer, initialState);
 	const isInitialized = useRef(false);
 
-	// Get active tab
 	const activeTab = state.tabs.find((t) => t.id === state.activeTabId) ?? null;
 
-	// Persist state to localStorage
 	useEffect(() => {
 		if (!isInitialized.current) return; // Don't save during initial load
 		if (isFactoryResetInProgress()) return; // Don't save during factory reset
@@ -329,13 +329,12 @@ export function useTabManager() {
 		};
 
 		try {
-			localStorage.setItem(STORAGE_KEY, JSON.stringify(persistData));
+			setJSON(STORAGE_KEY, persistData);
 		} catch (error) {
 			console.error("Failed to persist tabs:", error);
 		}
 	}, [state.tabs, state.activeTabId]);
 
-	// Save on beforeunload to ensure data is persisted when app closes
 	useEffect(() => {
 		const handleBeforeUnload = () => {
 			if (!isInitialized.current) return;
@@ -355,7 +354,7 @@ export function useTabManager() {
 			};
 
 			try {
-				localStorage.setItem(STORAGE_KEY, JSON.stringify(persistData));
+				setJSON(STORAGE_KEY, persistData);
 			} catch (error) {
 				console.error("Failed to persist tabs on unload:", error);
 			}
@@ -367,23 +366,23 @@ export function useTabManager() {
 		};
 	}, [state.tabs, state.activeTabId]);
 
-	// Restore state from localStorage on mount
 	useEffect(() => {
 		try {
-			const stored = localStorage.getItem(STORAGE_KEY);
-			if (stored) {
-				const parsed = JSON.parse(stored);
+			const parsed = getJSON<{
+				tabs: unknown[];
+				activeTabId: string | null;
+			}>(STORAGE_KEY, null);
+			if (parsed) {
 				if (
 					parsed.tabs &&
 					Array.isArray(parsed.tabs) &&
 					parsed.tabs.length > 0
 				) {
-					// Validate and restore tabs
 					const restoredTabs: Tab[] = parsed.tabs
 						.filter((t: unknown) => {
 							const tab = t as Record<string, unknown>;
 							return tab?.id && tab.preset && tab.label;
-						}) // Validate required fields
+						})
 						.map((t: unknown) => {
 							const tab = t as Record<string, unknown>;
 							return {
@@ -405,7 +404,6 @@ export function useTabManager() {
 						});
 
 					if (restoredTabs.length > 0) {
-						// Validate activeTabId exists in restored tabs
 						const validActiveTabId =
 							parsed.activeTabId &&
 							restoredTabs.some((t) => t.id === parsed.activeTabId)
@@ -424,18 +422,14 @@ export function useTabManager() {
 			}
 		} catch (error) {
 			console.error("Failed to restore tabs:", error);
-			// Clear corrupted data
 			try {
-				localStorage.removeItem(STORAGE_KEY);
-			} catch {
-				// Ignore cleanup errors
-			}
+				remove(STORAGE_KEY);
+			} catch {}
 		} finally {
 			isInitialized.current = true;
 		}
 	}, []);
 
-	// Tab management functions
 	const createTab = useCallback((preset: PromptPresetSummary): string => {
 		const tabId = `tab-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 		dispatch({ type: "CREATE_TAB", payload: { preset, tabId } });
@@ -458,7 +452,6 @@ export function useTabManager() {
 		dispatch({ type: "REORDER_TABS", payload: { fromIndex, toIndex } });
 	}, []);
 
-	// Active tab operations
 	const updateDraft = useCallback(
 		(draft: string) => {
 			if (!activeTab) return;
@@ -569,7 +562,6 @@ export function useTabManager() {
 		[activeTab],
 	);
 
-	// Check if a project is already open in a tab
 	const findTabByProjectId = useCallback(
 		(projectId: string): Tab | null => {
 			return state.tabs.find((t) => t.projectId === projectId) ?? null;
@@ -577,7 +569,6 @@ export function useTabManager() {
 		[state.tabs],
 	);
 
-	// Explicit tabId-based setters (don't rely on activeTab - safe for async operations)
 	const updateDraftForTab = useCallback((tabId: string, draft: string) => {
 		dispatch({ type: "UPDATE_TAB_DRAFT", payload: { tabId, draft } });
 	}, []);
@@ -625,7 +616,6 @@ export function useTabManager() {
 		reorderTabs,
 		findTabByProjectId,
 
-		// Active tab operations
 		updateDraft,
 		setMessages,
 		pushMessage,
@@ -637,7 +627,6 @@ export function useTabManager() {
 		setPreset,
 		markDirty,
 
-		// Explicit tabId-based operations (for async-safe usage)
 		updateDraftForTab,
 		setMessagesForTab,
 		setVersionGraphForTab,

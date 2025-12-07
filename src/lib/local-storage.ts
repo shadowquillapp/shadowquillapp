@@ -1,14 +1,18 @@
-// Global flag to prevent saves during factory reset
+import { storage } from "./electron-storage";
+
 let _factoryResetInProgress = false;
 
 export function isFactoryResetInProgress(): boolean {
 	return _factoryResetInProgress;
 }
 
-export function getJSON<T>(key: string, defaultValue: T): T {
+export function getJSON<T>(key: string, defaultValue: T): T;
+export function getJSON<T>(key: string, defaultValue: T | null): T | null;
+export function getJSON<T>(key: string, defaultValue: T | null): T | null {
 	try {
-		const raw =
-			typeof window !== "undefined" ? localStorage.getItem(key) : null;
+		if (typeof window === "undefined") return defaultValue;
+
+		const raw = storage.getItem(key);
 		if (!raw) return defaultValue;
 		return JSON.parse(raw) as T;
 	} catch {
@@ -17,11 +21,10 @@ export function getJSON<T>(key: string, defaultValue: T): T {
 }
 
 export function setJSON<T>(key: string, value: T): void {
-	// Block all writes during factory reset
 	if (_factoryResetInProgress) return;
 	try {
 		if (typeof window !== "undefined") {
-			localStorage.setItem(key, JSON.stringify(value));
+			storage.setItem(key, JSON.stringify(value));
 		}
 	} catch {
 		// ignore
@@ -31,7 +34,7 @@ export function setJSON<T>(key: string, value: T): void {
 export function remove(key: string): void {
 	try {
 		if (typeof window !== "undefined") {
-			localStorage.removeItem(key);
+			storage.removeItem(key);
 		}
 	} catch {
 		// ignore
@@ -46,38 +49,33 @@ export function remove(key: string): void {
 export function clearAllStorageForFactoryReset(): void {
 	if (typeof window === "undefined") return;
 
-	// Set flag to block any further writes
 	_factoryResetInProgress = true;
 
-	// All known localStorage keys used by the app
 	const localStorageKeys = [
-		"workbench-tabs-v1", // Tab manager
-		"PC_PRESETS", // Presets
-		"PC_PROJECTS", // Projects
-		"PC_TEST_MESSAGES", // Test messages
-		"theme-preference", // Theme
-		"recent-presets", // Recent presets
-		"last-selected-preset", // Last selected preset
-		"SYSTEM_PROMPT_BUILD", // System prompt build
+		"workbench-tabs-v1",
+		"PC_PRESETS",
+		"PC_PROJECTS",
+		"PC_TEST_MESSAGES",
+		"theme-preference",
+		"recent-presets",
+		"last-selected-preset",
+		"SYSTEM_PROMPT_BUILD",
 	];
 
-	// Clear known keys first
 	for (const key of localStorageKeys) {
 		try {
-			localStorage.removeItem(key);
+			storage.removeItem(key);
 		} catch {
 			// ignore
 		}
 	}
 
-	// Also clear entire localStorage to catch any keys we might have missed
 	try {
-		localStorage.clear();
+		storage.clear();
 	} catch {
 		// ignore
 	}
 
-	// Clear sessionStorage
 	try {
 		sessionStorage.clear();
 	} catch {
