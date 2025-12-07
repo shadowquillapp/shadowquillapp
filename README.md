@@ -142,24 +142,28 @@ ollama pull gemma3:27b  # Best quality (32GB+ RAM and RTX GPU)
 
 ```bash
 # Setup
-corepack enable          # Enable corepack (one-time setup, built into Node.js)
 pnpm install             # Install dependencies
 
-# Development
-pnpm run dev             # Start ShadowQuill in development mode
+# (Optional)
+pnpm update              # Check for package updates
+pnpm upgrade             # Check for package upgrades
+
+# Code Quality
 pnpm run typecheck       # Run TypeScript type checking
+pnpm run check           # Run Biome linter
+pnpm run check:write     # Fix Biome lint errors (safe changes only)
+pnpm run check:unsafe    # Fix Biome lint errors (safe + unsafe changes)
 
 # Testing
 pnpm run test            # Run tests
 pnpm run test:coverage   # Run tests with coverage report
 
-# Code Quality
-pnpm run check           # Run Biome linter
-pnpm run check:write     # Fix Biome lint errors (safe changes only)
+# Development
+pnpm run dev             # Start ShadowQuill in development mode
 
 # Production
 pnpm run build           # Build for production
-pnpm start               # Start ShadowQuill in production mode (requires `pnpm run build` first)
+pnpm start               # Start ShadowQuill in production mode
 ```
 
 ## Value Sensitive Design (VSD) Philosophy
