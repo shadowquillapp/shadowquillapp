@@ -1,10 +1,10 @@
 <div align="center">
   <img src="https://shadowquill.org/images/logo-circle.png" alt="ShadowQuill Logo" width="120" height="120">
-  
-# ShadowQuill v0.5.0
-  
+
+# ShadowQuill v0.6.0
+
 **Privacy-First AI Prompt Studio**
-  
+
   [![Website](https://img.shields.io/badge/Website-shadowquill.org-8b7cf6)](https://shadowquill.org)
   [![Stars](https://img.shields.io/github/stars/shadowquillapp/shadowquillapp)](https://github.com/shadowquillapp/shadowquillapp/stargazers)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -19,6 +19,25 @@ It transforms your natural language ideas into structured, high-quality prompts.
 Powered by Ollama and Gemma 3, ShadowQuill operates 100% offline, offering a completely local and free solution for AI-enhanced prompt generation.
 
 ## Installation 
+
+### Download the installers (Windows & macOS Silicon)
+
+<p>
+  <a href="">
+    <img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows-blue?logo=windows&logoColor=white">
+  </a>
+  &nbsp;
+  <a href="">
+    <img alt="Download for macOS (arm64)" src="https://img.shields.io/badge/Download-macOS--ARM64-000000?logo=apple&logoColor=white">
+  </a>
+</p>
+
+Direct links:
+- Windows (installer): https://github.com/shadowquillapp/shadowquillapp/releases/download/v0.5.0/ShadowQuill.Setup.0.5.0.exe
+- macOS (arm64 DMG): https://github.com/shadowquillapp/shadowquillapp/releases/download/v0.5.0/ShadowQuill-0.5.0-arm64.dmg
+
+
+### With `pnpm` and `node`
 
 Please make sure you first have `node` installed with the latest updates. ShadowQuill uses Node.js's built-in `corepack` to manage packages, so no separate package manager installation is required. [How to install Node.js](https://nodejs.org/) [How to install pnpm](https://pnpm.io/installation)
 
