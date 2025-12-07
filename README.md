@@ -25,7 +25,7 @@ Powered by Ollama and Gemma 3, ShadowQuill operates 100% offline, offering a com
 Download from latest release v0.6.0:
 
 <p>
-  <a href="">
+  <a href="#">
     <img alt="Download for Windows" src="https://img.shields.io/badge/Download-Windows-blue?logo=windows&logoColor=white">
   </a>
   &nbsp;
