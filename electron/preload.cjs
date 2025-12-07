@@ -1,4 +1,3 @@
-// Preload script: expose limited IPC for selecting data directory.
 const { contextBridge, ipcRenderer } = require("electron");
 
 contextBridge.exposeInMainWorld("shadowquill", {
@@ -11,6 +10,15 @@ contextBridge.exposeInMainWorld("shadowquill", {
 	openOllama: () => ipcRenderer.invoke("shadowquill:openOllama"),
 	getPlatform: () => ipcRenderer.invoke("shadowquill:getPlatform"),
 	getSystemSpecs: () => ipcRenderer.invoke("shadowquill:getSystemSpecs"),
+	storage: {
+		getItem: (key) => ipcRenderer.invoke("shadowquill:storage:getItem", key),
+		setItem: (key, value) =>
+			ipcRenderer.invoke("shadowquill:storage:setItem", key, value),
+		removeItem: (key) =>
+			ipcRenderer.invoke("shadowquill:storage:removeItem", key),
+		clear: () => ipcRenderer.invoke("shadowquill:storage:clear"),
+		getAll: () => ipcRenderer.invoke("shadowquill:storage:getAll"),
+	},
 	window: {
 		minimize: () => ipcRenderer.invoke("shadowquill:window:minimize"),
 		maximizeToggle: () =>
