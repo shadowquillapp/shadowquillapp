@@ -1,4 +1,3 @@
-// Electron main process for ShadowQuill standalone
 // @ts-nocheck
 const { app, BrowserWindow } = require("electron");
 
@@ -8,7 +7,6 @@ const {
 	resolveLocalOnlyDataRootsFromEnv,
 } = require("./utils/data-paths.cjs");
 
-// Handle factory reset flag before app is ready (using env vars instead of app.getPath)
 if (process.argv.includes("--factory-reset")) {
 	const envPaths = resolveLocalOnlyDataRootsFromEnv();
 	if (envPaths && handleFactoryResetFlag(envPaths.userDataDir)) {
@@ -16,19 +14,15 @@ if (process.argv.includes("--factory-reset")) {
 	}
 }
 
-// Set userData path early (before app.whenReady) to prevent cache directory creation errors
-// This must be done before Electron tries to access the userData directory
 try {
 	const envPaths = resolveLocalOnlyDataRootsFromEnv();
 	if (envPaths) {
 		const fs = require("node:fs");
-		// Create userData directory if it doesn't exist
 		try {
 			fs.mkdirSync(envPaths.userDataDir, { recursive: true });
 		} catch (_) {
 			/* ignore */
 		}
-		// Set paths before app is ready (app.setPath can be called before app.whenReady)
 		app.setPath("appData", envPaths.appDataRoot);
 		app.setPath("userData", envPaths.userDataDir);
 		process.env.SHADOWQUILL_USER_DATA = envPaths.userDataDir;
@@ -43,13 +37,10 @@ if (isDev) {
 	process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = "true";
 }
 
-// Disable disk cache to prevent Chromium cache upgrade errors
-// This fixes the "Failed to write a new fake index" and "Failed to create directory" errors
 app.commandLine.appendSwitch("--disable-cache");
 app.commandLine.appendSwitch("--disable-http-cache");
 app.commandLine.appendSwitch("--disable-background-networking");
 app.commandLine.appendSwitch("--disable-disk-cache");
-app.commandLine.appendSwitch("--disable-cache-persistent");
 app.commandLine.appendSwitch("--disable-back-forward-cache");
 app.commandLine.appendSwitch("--disable-hang-monitor");
 app.commandLine.appendSwitch("--disable-prompt-on-repost");
@@ -68,7 +59,6 @@ app.commandLine.appendSwitch("--disable-renderer-backgrounding");
 app.commandLine.appendSwitch("--disable-features=TranslateUI");
 app.commandLine.appendSwitch("--disable-ipc-flooding-protection");
 
-// Redirect cache to a temporary directory to avoid permission issues
 const os = require("node:os");
 const tempCachePath = require("node:path").join(
 	os.tmpdir(),
@@ -96,7 +86,6 @@ const { setupSecurity } = require("./utils/security.cjs");
 const { startNextServer, getServerPort } = require("./utils/next-server.cjs");
 
 app.whenReady().then(async () => {
-	// Setup data paths after app is ready (now safe to call app.getPath)
 	setupDataPaths();
 
 	try {
@@ -127,11 +116,8 @@ app.whenReady().then(async () => {
 				);
 			});
 		} else if (serverResult === null) {
-			// startNextServer() already showed an error dialog and called app.quit()
-			// No need to show another dialog or quit again
 			console.error("[Electron] Server startup failed - error already handled");
 		} else {
-			// Unexpected case: serverResult exists but has no port
 			console.error("[Electron] Server started but no valid port was returned");
 			const { dialog } = require("electron");
 			dialog.showErrorBox(
@@ -174,15 +160,45 @@ app.on("window-all-closed", () => {
 	app.quit();
 });
 
-app.on("before-quit", () => {
+let isQuitting = false;
+
+app.on("before-quit", (event) => {
+	if (isQuitting) return;
+	isQuitting = true;
+
+	event.preventDefault();
+
+	const { session } = require("electron");
+	try {
+		session.defaultSession.flushStorageData();
+		console.log("[Electron] Default session storage flushed");
+	} catch (e) {
+		console.error("[Electron] Failed to flush default session storage:", e);
+	}
+
+	try {
+		const persistentSession = session.fromPartition("persist:main");
+		persistentSession.flushStorageData();
+		console.log("[Electron] Persistent partition storage flushed");
+	} catch (_e) {
+		console.log(
+			"[Electron] Persistent partition not found (this is normal if not used)",
+		);
+	}
+
 	try {
 		const { getHttpServer } = require("./ipc/data-handlers.cjs");
 		const httpServer = getHttpServer();
 		if (httpServer) {
 			console.log("[Electron] Closing production server...");
-			httpServer.close();
+			httpServer.close(() => {
+				app.quit();
+			});
+		} else {
+			app.quit();
 		}
 	} catch (e) {
 		console.error("[Electron] Error during cleanup:", e);
+		app.quit();
 	}
 });
