@@ -4,10 +4,10 @@
 	 * ======================================== */
 
 	/* Deep luxury charcoal (not blue, not brown) */
-	--color-surface: #0f0f0f;
+	--color-surface: #1a1a1a;
 
 	/* Slightly warm charcoal for panels */
-	--color-surface-variant: #1a1a19;
+	--color-surface-variant: #252523;
 
 	/* Neutral-warm outline, not stark */
 	--color-outline: #2e2d2b;
@@ -29,7 +29,7 @@
 
 	--color-primary: #c7b083; /* Champagne Gold */
 	--color-primary-variant: #a38f6a; /* Deeper champagne */
-	--color-on-primary: #0d0d0d; /* Dark for contrast */
+	--color-on-primary: #1a1a1a; /* Dark for contrast */
 
 	/* ========================================
 	 * STATUS COLORS (Desaturated Luxury Tones)
@@ -38,17 +38,17 @@
 	/* Success: muted olive-sage — elegant, not green neon */
 	--color-save: #8aa27a;
 	--color-save-variant: #6f8663;
-	--color-on-save: #0d0d0d;
+	--color-on-save: #1a1a1a;
 
 	/* Warning: muted antique gold */
 	--color-attention: #d1b46a;
 	--color-attention-variant: #b79c52;
-	--color-on-attention: #0d0d0d;
+	--color-on-attention: #1a1a1a;
 
 	/* Error: softened garnet, not bright red */
 	--color-destructive: #b56f67;
 	--color-destructive-variant: #98564f;
-	--color-on-destructive: #0d0d0d;
+	--color-on-destructive: #1a1a1a;
 
 	/* Tabs use the champagne gold accent */
 	--color-tab-active: var(--color-primary);
@@ -59,10 +59,10 @@
 	 * ======================================== */
 
 	/* Titlebar — deep walnut-charcoal */
-	--color-titlebar-background: #16130f;
+	--color-titlebar-background: #1f1c18;
 
 	/* Composer — lightly recessed charcoal */
-	--workbench-composer-background: #0b0b0b;
+	--workbench-composer-background: #151515;
 
 	/* ========================================
 	 * ELEVATION / SHADOWS
@@ -76,7 +76,7 @@
 	 * ======================================== */
 
 	/* Base anchors */
-	--darka0: #0d0d0d;
+	--darka0: #1a1a1a;
 	--lighta0: #e8e4dc;
 	--accenta0: #c7b083; /* Champagne */
 
@@ -89,16 +89,16 @@
 	--primarya50: #faf7f1;
 
 	/* Surface palette (charcoal + warm stone) */
-	--surfacea0: #0d0d0d;
-	--surfacea10: #1a1a19;
+	--surfacea0: #1a1a1a;
+	--surfacea10: #252523;
 	--surfacea20: #2e2d2b;
 	--surfacea30: #3c3b39;
 	--surfacea40: #4d4c49;
 	--surfacea50: #e8e4dc;
 
 	/* Tonal palette */
-	--surfacetonala0: #0d0d0d;
-	--surfacetonala10: #1a1a19;
+	--surfacetonala0: #1a1a1a;
+	--surfacetonala10: #252523;
 	--surfacetonala20: #2e2d2b;
 	--surfacetonala30: #3c3b39;
 	--surfacetonala40: #4d4c49;
@@ -111,7 +111,7 @@
 	--buttonbg: var(--color-primary);
 	--buttontext: var(--color-on-primary);
 
-	--dropdownbg: #1a1a19;
+	--dropdownbg: #252523;
 	--cardbg: var(--color-surface-variant);
 	--sliderbg: #2a2927;
 
