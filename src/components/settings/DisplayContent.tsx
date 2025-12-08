@@ -117,7 +117,7 @@ export default function DisplayContent() {
 		};
 		window.addEventListener("resize", onResize);
 		return () => window.removeEventListener("resize", onResize);
-	}, []);
+	}, [currentTheme]);
 
 	React.useEffect(() => {
 		const api = (window as WindowWithShadowQuill).shadowquill;
