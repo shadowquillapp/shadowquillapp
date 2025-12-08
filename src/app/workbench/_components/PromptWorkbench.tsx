@@ -2015,35 +2015,37 @@ export default function PromptWorkbench() {
 						)}
 					</section>
 
-					{/* CENTER: Resize Handle + Version Navigator */}
-					<button
-						type="button"
-						className={`panel-resize-container relative hidden flex-col items-center justify-center md:flex ${isResizing ? "panel-resize-container--active" : ""}`}
-						onMouseDown={handleResizeStart}
-						title="Drag to resize panels"
-						aria-label="Resize panels"
-						style={{
-							width: "8px",
-							flexShrink: 0,
-						}}
-					>
+				{/* CENTER: Resize Handle + Version Navigator */}
+				<div
+					className={`panel-resize-container relative hidden flex-col items-center justify-center md:flex ${isResizing ? "panel-resize-container--active" : ""}`}
+					onMouseDown={handleResizeStart}
+					role="separator"
+					aria-orientation="vertical"
+					aria-label="Resize panels"
+					title="Drag to resize panels"
+					style={{
+						width: "8px",
+						flexShrink: 0,
+						cursor: "col-resize",
+					}}
+				>
 						{/* Single centered resize line - top segment */}
 						<div className="panel-resize-line panel-resize-line--top" />
 						{/* Single centered resize line - bottom segment */}
 						<div className="panel-resize-line panel-resize-line--bottom" />
 
-						{/* Version Navigator - sits in the cutout */}
-						{activeTab && (
-							<VersionNavigator
-								versionGraph={activeTab.versionGraph}
-								onPrev={goToPreviousVersion}
-								onNext={goToNextVersion}
-								onOpenHistory={() => setShowVersionHistory(true)}
-								isGenerating={activeTab.sending}
-								justCreatedVersion={justCreatedVersion}
-							/>
-						)}
-					</button>
+					{/* Version Navigator - sits in the cutout */}
+					{activeTab && (
+						<VersionNavigator
+							versionGraph={activeTab.versionGraph}
+							onPrev={goToPreviousVersion}
+							onNext={goToNextVersion}
+							onOpenHistory={() => setShowVersionHistory(true)}
+							isGenerating={activeTab.sending}
+							justCreatedVersion={justCreatedVersion}
+						/>
+					)}
+				</div>
 
 					{/* RIGHT PANE: Output */}
 					<section
