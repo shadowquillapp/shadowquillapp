@@ -164,9 +164,10 @@ describe("DisplayContent", () => {
 
 			await user.click(screen.getByLabelText("Select Dark theme"));
 
+			// setJSON stringifies the value, so check for JSON-stringified "dark"
 			expect(localStorage.setItem).toHaveBeenCalledWith(
 				"theme-preference",
-				"dark",
+				JSON.stringify("dark"),
 			);
 			expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
 		});
