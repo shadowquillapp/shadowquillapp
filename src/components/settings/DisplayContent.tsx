@@ -45,20 +45,11 @@ export default function DisplayContent() {
 		isMaximized?: boolean;
 		isFullScreen?: boolean;
 	} | null>(null);
+	// Initialize theme from localStorage immediately to prevent reset on mount
 	const [currentTheme, setCurrentTheme] = React.useState<
 		"earth" | "purpledark" | "dark" | "light"
-	>("earth");
-
-	React.useEffect(() => {
-		const api = (window as WindowWithShadowQuill).shadowquill;
-		const hasApi = !!api?.view?.getZoomFactor;
-		setAvailable(hasApi);
-		setContentSize({
-			w: window.innerWidth,
-			h: window.innerHeight,
-		});
-
-		// Load saved theme
+	>(() => {
+		// Load saved theme synchronously during initialization
 		let savedTheme = getJSON<
 			"earth" | "purpledark" | "dark" | "light" | "default" | null
 		>("theme-preference", null);
@@ -73,15 +64,25 @@ export default function DisplayContent() {
 				savedTheme === "dark" ||
 				savedTheme === "light")
 		) {
-			setCurrentTheme(savedTheme);
-			document.documentElement.setAttribute(
-				"data-theme",
-				savedTheme === "earth" ? "" : savedTheme,
-			);
-		} else {
-			setCurrentTheme("earth");
-			document.documentElement.setAttribute("data-theme", "");
+			return savedTheme;
 		}
+		return "earth";
+	});
+
+	React.useEffect(() => {
+		const api = (window as WindowWithShadowQuill).shadowquill;
+		const hasApi = !!api?.view?.getZoomFactor;
+		setAvailable(hasApi);
+		setContentSize({
+			w: window.innerWidth,
+			h: window.innerHeight,
+		});
+
+		// Ensure theme is applied to document (in case it wasn't set during init)
+		document.documentElement.setAttribute(
+			"data-theme",
+			currentTheme === "earth" ? "" : currentTheme,
+		);
 
 		const init = async () => {
 			if (!hasApi) return;
@@ -160,7 +161,7 @@ export default function DisplayContent() {
 			"data-theme",
 			theme === "earth" ? "" : theme,
 		);
-		localStorage.setItem("theme-preference", theme);
+		setJSON("theme-preference", theme);
 	};
 
 	const percent = Math.round(zoomFactor * 100);
