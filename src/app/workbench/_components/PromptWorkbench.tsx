@@ -2015,37 +2015,42 @@ export default function PromptWorkbench() {
 						)}
 					</section>
 
-				{/* CENTER: Resize Handle + Version Navigator */}
-				<div
-					className={`panel-resize-container relative hidden flex-col items-center justify-center md:flex ${isResizing ? "panel-resize-container--active" : ""}`}
-					onMouseDown={handleResizeStart}
-					role="separator"
-					aria-orientation="vertical"
-					aria-label="Resize panels"
-					title="Drag to resize panels"
-					style={{
-						width: "8px",
-						flexShrink: 0,
-						cursor: "col-resize",
-					}}
-				>
+					{/* CENTER: Resize Handle + Version Navigator */}
+					{/* biome-ignore lint/a11y/useSemanticElements: Interactive resize handle requires div, not hr */}
+					<div
+						className={`panel-resize-container relative hidden flex-col items-center justify-center md:flex ${isResizing ? "panel-resize-container--active" : ""}`}
+						onMouseDown={handleResizeStart}
+						role="separator"
+						aria-orientation="vertical"
+						aria-label="Resize panels"
+						aria-valuenow={leftPanelWidth}
+						aria-valuemin={0}
+						aria-valuemax={100}
+						tabIndex={0}
+						title="Drag to resize panels"
+						style={{
+							width: "8px",
+							flexShrink: 0,
+							cursor: "col-resize",
+						}}
+					>
 						{/* Single centered resize line - top segment */}
 						<div className="panel-resize-line panel-resize-line--top" />
 						{/* Single centered resize line - bottom segment */}
 						<div className="panel-resize-line panel-resize-line--bottom" />
 
-					{/* Version Navigator - sits in the cutout */}
-					{activeTab && (
-						<VersionNavigator
-							versionGraph={activeTab.versionGraph}
-							onPrev={goToPreviousVersion}
-							onNext={goToNextVersion}
-							onOpenHistory={() => setShowVersionHistory(true)}
-							isGenerating={activeTab.sending}
-							justCreatedVersion={justCreatedVersion}
-						/>
-					)}
-				</div>
+						{/* Version Navigator - sits in the cutout */}
+						{activeTab && (
+							<VersionNavigator
+								versionGraph={activeTab.versionGraph}
+								onPrev={goToPreviousVersion}
+								onNext={goToNextVersion}
+								onOpenHistory={() => setShowVersionHistory(true)}
+								isGenerating={activeTab.sending}
+								justCreatedVersion={justCreatedVersion}
+							/>
+						)}
+					</div>
 
 					{/* RIGHT PANE: Output */}
 					<section
