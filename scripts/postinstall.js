@@ -1,9 +1,8 @@
-#!/usr/bin/env node
-
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { platform } from "node:os";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -21,9 +20,11 @@ if (!fs.existsSync(nextDir)) {
 		const hasBuildScript = packageJson.scripts?.["build:electron"];
 
 		if (hasBuildScript) {
+			const isWindows = platform() === "win32";
 			execSync("pnpm run build:electron", {
 				stdio: "inherit",
 				cwd: path.join(__dirname, ".."),
+				shell: isWindows,
 			});
 			console.log("[postinstall] Build complete!");
 		} else {
