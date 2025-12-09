@@ -1276,15 +1276,25 @@ export default function PromptWorkbench() {
 							paddingBottom: "6px",
 						}}
 					>
-						<button
-							type="button"
-							onClick={() => router.push("/studio")}
-							className="md-btn md-btn--primary"
-							title="Open Preset Studio"
-							style={{ minWidth: 0 }}
-						>
-							<PaintBrushIcon className="h-4 w-4" />
-						</button>
+					<button
+						type="button"
+						onClick={() => {
+							// Set the active tab's preset as the selected preset
+							const activeTab = tabManager.activeTab;
+							if (activeTab?.preset) {
+								const presetKey = activeTab.preset.id ?? activeTab.preset.name;
+								if (presetKey) {
+									setJSON("last-selected-preset", presetKey);
+								}
+							}
+							router.push("/studio");
+						}}
+						className="md-btn md-btn--primary"
+						title="Open Preset Studio"
+						style={{ minWidth: 0 }}
+					>
+						<PaintBrushIcon className="h-4 w-4" />
+					</button>
 						<button
 							type="button"
 							className="md-btn"
@@ -2002,6 +2012,14 @@ export default function PromptWorkbench() {
 									type="button"
 									onClick={(e) => {
 										e.stopPropagation();
+										// Set the active tab's preset as the selected preset
+										const activeTab = tabManager.activeTab;
+										if (activeTab?.preset) {
+											const presetKey = activeTab.preset.id ?? activeTab.preset.name;
+											if (presetKey) {
+												setJSON("last-selected-preset", presetKey);
+											}
+										}
 										router.push("/studio");
 									}}
 									className="md-btn md-btn--primary"
