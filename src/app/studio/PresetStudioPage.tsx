@@ -54,8 +54,11 @@ export default function PresetStudioPage() {
 				null,
 			);
 			if (lastSelectedPresetKey) {
+				// Match by ID first, then by name (for presets without IDs)
 				const preset = presets.find(
-					(p: PresetLite) => p.id === lastSelectedPresetKey,
+					(p: PresetLite) =>
+						p.id === lastSelectedPresetKey ||
+						p.name === lastSelectedPresetKey,
 				);
 				if (preset) {
 					setSelectedPresetId(preset.id || null);
