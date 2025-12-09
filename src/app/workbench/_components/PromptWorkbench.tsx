@@ -1276,25 +1276,26 @@ export default function PromptWorkbench() {
 							paddingBottom: "6px",
 						}}
 					>
-					<button
-						type="button"
-						onClick={() => {
-							// Set the active tab's preset as the selected preset
-							const activeTab = tabManager.activeTab;
-							if (activeTab?.preset) {
-								const presetKey = activeTab.preset.id ?? activeTab.preset.name;
-								if (presetKey) {
-									setJSON("last-selected-preset", presetKey);
+						<button
+							type="button"
+							onClick={() => {
+								// Set the active tab's preset as the selected preset
+								const activeTab = tabManager.activeTab;
+								if (activeTab?.preset) {
+									const presetKey =
+										activeTab.preset.id ?? activeTab.preset.name;
+									if (presetKey) {
+										setJSON("last-selected-preset", presetKey);
+									}
 								}
-							}
-							router.push("/studio");
-						}}
-						className="md-btn md-btn--primary"
-						title="Open Preset Studio"
-						style={{ minWidth: 0 }}
-					>
-						<PaintBrushIcon className="h-4 w-4" />
-					</button>
+								router.push("/studio");
+							}}
+							className="md-btn md-btn--primary"
+							title="Open Preset Studio"
+							style={{ minWidth: 0 }}
+						>
+							<PaintBrushIcon className="h-4 w-4" />
+						</button>
 						<button
 							type="button"
 							className="md-btn"
@@ -2015,7 +2016,8 @@ export default function PromptWorkbench() {
 										// Set the active tab's preset as the selected preset
 										const activeTab = tabManager.activeTab;
 										if (activeTab?.preset) {
-											const presetKey = activeTab.preset.id ?? activeTab.preset.name;
+											const presetKey =
+												activeTab.preset.id ?? activeTab.preset.name;
 											if (presetKey) {
 												setJSON("last-selected-preset", presetKey);
 											}
@@ -2119,10 +2121,8 @@ export default function PromptWorkbench() {
 									{/* Version Badge */}
 									<button
 										type="button"
-										className={`flex items-center gap-1.5 ${
-											versions.length > 0
-												? "cursor-pointer opacity-100"
-												: "cursor-default opacity-40"
+										className={`md-btn ${
+											versions.length > 0 ? "md-btn--primary" : ""
 										}`}
 										onClick={() => {
 											if (versions.length > 0) setShowVersionHistory(true);
@@ -2133,42 +2133,6 @@ export default function PromptWorkbench() {
 												? "View version history"
 												: "No versions"
 										}
-										style={{
-											padding: "4px 10px",
-											borderRadius: "20px",
-											background:
-												versions.length > 0
-													? "var(--color-primary)"
-													: "var(--color-surface)",
-											color:
-												versions.length > 0
-													? "var(--color-on-primary)"
-													: "var(--color-on-surface-variant)",
-											border:
-												versions.length > 0
-													? "1px solid transparent"
-													: "1px solid var(--color-outline)",
-											boxShadow: "var(--shadow-1)",
-											transition:
-												"background 120ms ease, border-color 120ms ease, box-shadow 120ms ease",
-										}}
-										onMouseEnter={(e) => {
-											if (versions.length > 0) {
-												e.currentTarget.style.background =
-													"var(--color-primary-variant)";
-												e.currentTarget.style.boxShadow = "var(--shadow-2)";
-												e.currentTarget.style.borderColor =
-													"var(--color-primary)";
-											}
-										}}
-										onMouseLeave={(e) => {
-											if (versions.length > 0) {
-												e.currentTarget.style.background =
-													"var(--color-primary)";
-												e.currentTarget.style.boxShadow = "var(--shadow-1)";
-												e.currentTarget.style.borderColor = "transparent";
-											}
-										}}
 									>
 										<Icon
 											name="git-compare"
