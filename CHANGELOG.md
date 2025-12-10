@@ -1,3 +1,17 @@
+# [0.7.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.6.0...v0.7.0) (2025-12-10)
+
+
+### Bug Fixes
+
+* electron builder bug during postinstall script ([a32e1e5](https://github.com/shadowquillapp/shadowquillapp/commit/a32e1e580fc6c9ad20ccac03447249b0416959d2))
+* pnpm package manager deprecation bugs ([a792615](https://github.com/shadowquillapp/shadowquillapp/commit/a792615e26be8bdaad89205cf762a7eff26f6042))
+* Preset Studio bug where selected preset memory is not persisted ([138f583](https://github.com/shadowquillapp/shadowquillapp/commit/138f5836a80d18161391d2c2d8da370f260db06c))
+
+
+### Features
+
+* overall UI improvements to workbench, as well as better styling theme coloring. ([782ba05](https://github.com/shadowquillapp/shadowquillapp/commit/782ba058dce2b3e8c8b0b2d312318ecdd64c28a0))
+
 # [0.6.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.5.0...v0.6.0) (2025-12-07)
 
 
