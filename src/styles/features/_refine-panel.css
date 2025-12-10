@@ -1,16 +1,3 @@
-/**
- * ==========================================================================
- * REFINE PANEL FEATURE STYLES
- * ==========================================================================
- *
- * Styles for the refinement panel and timeline components.
- *
- * COMPONENT CLASSES:
- * - .refine-panel: Main refinement panel container
- * - .refine-timeline: Refinement history timeline
- * ==========================================================================
- */
-
 /* ========================================
  * REFINE PANEL CONTAINER
  * ======================================== */
@@ -18,11 +5,7 @@
 .refine-panel {
 	border-bottom: 1px solid
 		color-mix(in srgb, var(--color-primary), transparent 75%);
-	background: linear-gradient(
-		135deg,
-		color-mix(in srgb, var(--color-primary), var(--color-surface) 95%) 0%,
-		color-mix(in srgb, var(--color-primary), var(--color-surface) 97%) 100%
-	);
+	background: var(--color-surface);
 }
 
 /* ========================================
@@ -44,7 +27,7 @@
 }
 
 .refine-timeline {
-	padding: 2px 10px 8px;
+	padding: var(--space-1) var(--space-3) var(--space-2);
 	max-height: 220px;
 	overflow-y: auto;
 	display: flex;
@@ -73,8 +56,8 @@
 .refine-panel__header {
 	display: flex;
 	align-items: center;
-	gap: 8px;
-	padding: 6px 10px;
+	gap: var(--space-2);
+	padding: var(--space-2) var(--space-3);
 	min-height: 28px;
 	cursor: pointer;
 	user-select: none;
@@ -97,14 +80,14 @@
 .refine-panel__left {
 	display: flex;
 	align-items: center;
-	gap: 12px;
+	gap: var(--space-3);
 	flex-shrink: 0;
 }
 
 .refine-panel__badge {
 	display: inline-flex;
 	align-items: center;
-	gap: 4px;
+	gap: var(--space-1);
 }
 
 .refine-panel__badge-icon {
@@ -129,7 +112,7 @@
 .refine-count {
 	display: inline-flex;
 	align-items: center;
-	gap: 4px;
+	gap: var(--space-1);
 	font-size: 10px;
 	color: var(--color-on-surface-variant);
 }
@@ -141,9 +124,9 @@
 .refine-panel__toggle {
 	display: flex;
 	align-items: center;
-	gap: 3px;
-	padding: 2px 6px 2px 12px;
-	border-radius: 4px;
+	gap: var(--space-1);
+	padding: var(--space-1) var(--space-2) var(--space-1) var(--space-3);
+	border-radius: var(--radius-sm);
 	color: var(--color-on-surface-variant);
 	opacity: 0.4;
 	transition:
@@ -183,7 +166,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: flex-end;
-	gap: 4px;
+	gap: var(--space-1);
 	min-width: 0;
 	font-size: 9px;
 	color: var(--color-on-surface-variant);
@@ -230,45 +213,46 @@
 
 .refine-timeline__item {
 	display: flex;
-	gap: 8px;
+	gap: var(--space-2);
 	position: relative;
-	padding: 4px 0;
-	transition: background 100ms ease;
+	padding: var(--space-1) 0;
+	transition: none;
 	border: none;
 	background: none;
 	width: 100%;
 	text-align: left;
 }
 
-.refine-timeline__item:hover {
-	border-radius: 6px;
-	margin: 0 -4px;
-	padding: 4px;
-}
-
 /* Timeline line */
 .refine-timeline__item::before {
 	content: "";
 	position: absolute;
-	left: 9px;
+	left: 10px;
 	top: 0;
 	bottom: 0;
-	width: 1.5px;
-	background: color-mix(in srgb, var(--color-outline), transparent 50%);
+	width: 2px;
+	background: color-mix(in srgb, var(--color-outline), transparent 30%);
 	z-index: 0;
-	transition: background 100ms ease;
+	transform: translateX(-50%);
+	pointer-events: none;
+	transition: none;
+	will-change: auto;
 }
 
 .refine-timeline__item:hover::before {
-	left: 13px;
+	left: 10px;
+	transform: translateX(-50%);
+	transition: none;
 }
 
 .refine-timeline__item:first-child::before {
-	top: 50%;
+	top: 10px;
 }
 
 .refine-timeline__item:last-child::before {
-	bottom: 50%;
+	bottom: auto;
+	top: 0;
+	height: calc(var(--space-1) + 10px);
 }
 
 .refine-timeline__item:only-child::before {
@@ -291,7 +275,6 @@
 	flex-shrink: 0;
 	font-size: 8px;
 	font-weight: 700;
-	transition: all 100ms ease;
 	border: 1.5px solid;
 }
 
@@ -332,7 +315,7 @@
 		var(--color-surface),
 		var(--color-surface-variant) 70%
 	);
-	border: 1px solid color-mix(in srgb, var(--color-outline), transparent 70%);
+	border: 1px solid color-mix(in srgb, var(--color-outline), transparent 20%);
 	border-radius: 6px;
 	overflow: hidden;
 	transition:
@@ -340,8 +323,29 @@
 		box-shadow 100ms ease;
 }
 
+.refine-timeline__content[role="button"] {
+	cursor: pointer;
+}
+
 .refine-timeline__item:hover .refine-timeline__content {
-	border-color: color-mix(in srgb, var(--color-outline), transparent 40%);
+	background: color-mix(
+		in srgb,
+		var(--color-surface-variant),
+		var(--color-surface) 60%
+	);
+	border-color: color-mix(in srgb, var(--color-outline), transparent 0%);
+	box-shadow: 0 0 0 1px
+		color-mix(in srgb, var(--color-primary), transparent 85%);
+}
+
+.refine-timeline__item--current:hover .refine-timeline__content {
+	background: color-mix(
+		in srgb,
+		var(--color-primary),
+		var(--color-surface) 95%
+	);
+	border-color: color-mix(in srgb, var(--color-outline), transparent 20%);
+	box-shadow: none;
 }
 
 .refine-timeline__item--current .refine-timeline__content {
@@ -350,14 +354,14 @@
 		var(--color-primary),
 		var(--color-surface) 95%
 	);
-	border-color: color-mix(in srgb, var(--color-primary), transparent 60%);
+	border-color: color-mix(in srgb, var(--color-outline), transparent 20%);
 }
 
 .refine-timeline__header {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 1px 6px;
+	padding: var(--space-1) var(--space-2);
 	background: color-mix(in srgb, var(--color-surface-variant), transparent 60%);
 	border-bottom: 1px solid
 		color-mix(in srgb, var(--color-outline), transparent 80%);
@@ -370,7 +374,7 @@
 .refine-timeline__title {
 	display: flex;
 	align-items: center;
-	gap: 4px;
+	gap: var(--space-1);
 }
 
 .refine-timeline__type {
@@ -399,7 +403,7 @@
 .refine-timeline__actions {
 	display: flex;
 	align-items: center;
-	gap: 6px;
+	gap: var(--space-2);
 }
 
 /* ========================================
@@ -412,8 +416,8 @@
 	justify-content: center;
 	width: 18px;
 	height: 18px;
-	border-radius: 4px;
-	border: none;
+	border-radius: 6px;
+	border: 1px solid var(--color-outline);
 	background: color-mix(in srgb, var(--color-outline), transparent 80%);
 	color: var(--color-on-surface);
 	opacity: 0.6;
@@ -445,6 +449,9 @@
 	cursor: pointer;
 	padding: 0;
 	flex-shrink: 0;
+	position: relative;
+	transition: none;
+	transform: none;
 }
 
 .refine-timeline__item-btn:disabled {
@@ -456,7 +463,7 @@
  * ======================================== */
 
 .refine-timeline__body {
-	padding: 6px 8px;
+	padding: var(--space-2) var(--space-2);
 	font-size: 10px;
 	line-height: 1.45;
 	color: var(--color-on-surface);
@@ -466,15 +473,6 @@
 	overflow: hidden;
 	opacity: 0.8;
 	font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-	border: none;
-	background: none;
-	width: 100%;
-	text-align: left;
-	cursor: pointer;
-}
-
-.refine-timeline__body:disabled {
-	cursor: default;
 }
 
 .refine-timeline__item--current .refine-timeline__body {

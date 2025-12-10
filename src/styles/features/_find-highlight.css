@@ -1,17 +1,3 @@
-/**
- * ==========================================================================
- * FIND/HIGHLIGHT FEATURE STYLES
- * ==========================================================================
- *
- * Styles for search result highlighting in content.
- *
- * COMPONENT CLASSES:
- * - .find-highlight: Highlighted search match
- * - .find-highlight--active: Currently focused match
- * - .find-highlight--pulse: Pulse animation on navigation
- * ==========================================================================
- */
-
 /* ========================================
  * BASE HIGHLIGHT
  * ======================================== */

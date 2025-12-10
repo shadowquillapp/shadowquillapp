@@ -1,18 +1,3 @@
-/**
- * ==========================================================================
- * SPACING & DIMENSION VARIABLES
- * ==========================================================================
- *
- * Consistent spacing scale and dimension tokens used throughout the app.
- * Based on a 4px grid system for visual harmony.
- *
- * USAGE:
- * - Use --space-{n} for margins, paddings, and gaps
- * - Use --radius-{size} for border-radius
- * - Use --shadow-{level} for box shadows
- * ==========================================================================
- */
-
 :root {
 	/* ========================================
 	 * SPACING SCALE
