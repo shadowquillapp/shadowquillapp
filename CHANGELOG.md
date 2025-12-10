@@ -1,3 +1,11 @@
+## [0.7.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.7.0...v0.7.1) (2025-12-10)
+
+
+### Bug Fixes
+
+* tab isolation bug ([96fc9a4](https://github.com/shadowquillapp/shadowquillapp/commit/96fc9a4e5853354458950950cf0a082d50e24147))
+* theme colors corrected ([8fcc6ec](https://github.com/shadowquillapp/shadowquillapp/commit/8fcc6ecea826592b54cd9a57732667b5ddcb3d05))
+
 # [0.7.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.6.0...v0.7.0) (2025-12-10)
 
 
