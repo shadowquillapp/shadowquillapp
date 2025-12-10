@@ -207,12 +207,43 @@ export default function Titlebar() {
 			className={`flex items-center gap-2 px-2 font-medium text-[10px] ${isMac ? "mr-2" : "ml-2"}`}
 		>
 			<div className="flex items-center gap-2 rounded-full border border-transparent bg-white/0 px-2 py-0.5 text-zinc-500 transition-all hover:border-white/10 hover:bg-white/5 hover:text-zinc-300">
+				<div
+					className={
+						"flex items-center rounded-md py-0.5 font-bold text-[10px]"
+					}
+					style={{
+						color: "var(--color-on-surface-variant)",
+						background: "transparent",
+					}}
+					title={
+						currentModelId
+							? `Current model: ${currentModelId}`
+							: "Model not configured"
+					}
+				>
+					<span className="uppercase tracking-wide">
+						{currentModelId
+							? `Gemma 3 ${(currentModelId.split(":")[1] || "").toUpperCase()}`
+							: "Gemma 3 —"}
+					</span>
+				</div>
+				<div
+					className="h-2.5 w-[1px]"
+					style={{
+						backgroundColor: "var(--color-outline)",
+					}}
+				/>
 				<div className="flex items-center gap-1" title={`CPU: ${specs.cpu}`}>
 					<span className="max-w-[100px] truncate">
 						{cleanCpuName(specs.cpu)}
 					</span>
 				</div>
-				<div className="h-2.5 w-[1px] bg-white/10" />
+				<div
+					className="h-2.5 w-[1px]"
+					style={{
+						backgroundColor: "var(--color-outline)",
+					}}
+				/>
 
 				<div
 					className="flex items-center gap-1"
@@ -220,34 +251,16 @@ export default function Titlebar() {
 				>
 					<span>{(specs.ram / 1024 ** 3).toFixed(0)} GB</span>
 				</div>
-				<div className="h-2.5 w-[1px] bg-white/10" />
+				<div
+					className="h-2.5 w-[1px]"
+					style={{
+						backgroundColor: "var(--color-outline)",
+					}}
+				/>
 				<div className="flex items-center gap-1" title={`GPU: ${specs.gpu}`}>
 					<span className="max-w-[100px] truncate">{specs.gpu}</span>
 				</div>
 			</div>
-		</div>
-	);
-
-	const modelChip = (
-		<div
-			className={
-				"mr-2 ml-1 flex items-center rounded-md px-1.5 py-0.5 font-bold text-[10px]"
-			}
-			style={{
-				color: "var(--color-on-surface-variant)",
-				background: "transparent",
-			}}
-			title={
-				currentModelId
-					? `Current model: ${currentModelId}`
-					: "Model not configured"
-			}
-		>
-			<span className="uppercase tracking-wide">
-				{currentModelId
-					? `Gemma 3 ${(currentModelId.split(":")[1] || "").toUpperCase()}`
-					: "Gemma 3 —"}
-			</span>
 		</div>
 	);
 
@@ -268,7 +281,6 @@ export default function Titlebar() {
 					</div>
 					<div className="flex-1" />
 					{specsDisplay}
-					<div className="app-region-no-drag">{modelChip}</div>
 				</>
 			)}
 
@@ -276,7 +288,6 @@ export default function Titlebar() {
 			{!isMac && (
 				<>
 					{specsDisplay}
-					<div className="app-region-no-drag">{modelChip}</div>
 					<div className="flex-1" />
 					<div className="app-region-no-drag ml-auto flex gap-2 px-2">
 						{buttons}
