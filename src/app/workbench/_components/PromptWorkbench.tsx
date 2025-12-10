@@ -106,33 +106,33 @@ export default function PromptWorkbench() {
 		"system" | "ollama" | "data" | "display"
 	>("ollama");
 	const textareaContainerRef = useRef<HTMLDivElement | null>(null);
-	const [taskType, setTaskType] = useState<TaskType>("general");
-	const [tone, setTone] = useState<Tone>("neutral");
-	const [detail, setDetail] = useState<Detail>("normal");
-	const [format, setFormat] = useState<Format>("markdown");
-	const [language, setLanguage] = useState("English");
-	const [temperature, setTemperature] = useState(0.7);
-	const [stylePreset, setStylePreset] =
+	const [_taskType, setTaskType] = useState<TaskType>("general");
+	const [_tone, setTone] = useState<Tone>("neutral");
+	const [_detail, setDetail] = useState<Detail>("normal");
+	const [_format, setFormat] = useState<Format>("markdown");
+	const [_language, setLanguage] = useState("English");
+	const [_temperature, setTemperature] = useState(0.7);
+	const [_stylePreset, setStylePreset] =
 		useState<ImageStylePreset>("photorealistic");
-	const [aspectRatio, setAspectRatio] = useState<ImageAspectRatio>("1:1");
-	const [videoStylePreset, setVideoStylePreset] =
+	const [_aspectRatio, setAspectRatio] = useState<ImageAspectRatio>("1:1");
+	const [_videoStylePreset, setVideoStylePreset] =
 		useState<VideoStylePreset>("cinematic");
-	const [cameraMovement, setCameraMovement] =
+	const [_cameraMovement, setCameraMovement] =
 		useState<CameraMovement>("static");
-	const [shotType, setShotType] = useState<ShotType>("medium");
-	const [durationSeconds, setDurationSeconds] = useState<number>(5);
-	const [frameRate, setFrameRate] = useState<FrameRate>(24);
-	const [includeStoryboard, setIncludeStoryboard] = useState(false);
-	const [includeTests, setIncludeTests] = useState(true);
-	const [requireCitations, setRequireCitations] = useState(true);
-	const [useDelimiters, setUseDelimiters] = useState(true);
-	const [includeVerification, setIncludeVerification] = useState(false);
-	const [reasoningStyle, setReasoningStyle] = useState<ReasoningStyle>("none");
-	const [endOfPromptToken, setEndOfPromptToken] = useState("<|endofprompt|>");
-	const [outputXMLSchema, setOutputXMLSchema] = useState("");
-	const [identity, setIdentity] = useState("");
-	const [additionalContext, setAdditionalContext] = useState("");
-	const [examplesText, setExamplesText] = useState("");
+	const [_shotType, setShotType] = useState<ShotType>("medium");
+	const [_durationSeconds, setDurationSeconds] = useState<number>(5);
+	const [_frameRate, setFrameRate] = useState<FrameRate>(24);
+	const [_includeStoryboard, setIncludeStoryboard] = useState(false);
+	const [_includeTests, setIncludeTests] = useState(true);
+	const [_requireCitations, setRequireCitations] = useState(true);
+	const [_useDelimiters, setUseDelimiters] = useState(true);
+	const [_includeVerification, setIncludeVerification] = useState(false);
+	const [_reasoningStyle, setReasoningStyle] = useState<ReasoningStyle>("none");
+	const [_endOfPromptToken, setEndOfPromptToken] = useState("<|endofprompt|>");
+	const [_outputXMLSchema, setOutputXMLSchema] = useState("");
+	const [_identity, setIdentity] = useState("");
+	const [_additionalContext, setAdditionalContext] = useState("");
+	const [_examplesText, setExamplesText] = useState("");
 	const [presets, setPresets] = useState<
 		Array<{
 			id?: string;
@@ -471,6 +471,14 @@ export default function PromptWorkbench() {
 		applyPresetFromStorage();
 	}, [loadPreset]);
 
+	// Sync component state when active tab changes - CRITICAL for tab isolation
+	useEffect(() => {
+		const activeTab = tabManager.activeTab;
+		if (activeTab?.preset) {
+			applyPreset(activeTab.preset, { trackRecent: false });
+		}
+	}, [tabManager.activeTab?.preset, applyPreset, tabManager.activeTab]);
+
 	useEffect(() => {
 		if (loadingPresets || presets.length === 0) return;
 
@@ -547,43 +555,83 @@ export default function PromptWorkbench() {
 					tabManager.updateMessage(user.id, { id: createdUserId });
 			} catch {}
 
-			const normalizedImageStyle = normalizeStylePreset(stylePreset);
-			const normalizedVideoStyle = normalizeVideoStylePreset(videoStylePreset);
-			const normalizedAspect = normalizeAspectRatio(aspectRatio);
-			const normalizedCamera = normalizeCameraMovement(cameraMovement);
-			const normalizedShot = normalizeShotType(shotType);
-			const normalizedDuration = normalizeDurationSeconds(durationSeconds);
-			const normalizedFrame = normalizeFrameRate(frameRate);
+			// Use the active tab's preset directly to ensure tab isolation
+			const tabPreset = activeTab.preset;
+			const tabTaskType = tabPreset.taskType;
+			const tabOptions = tabPreset.options ?? ({} as GenerationOptions);
+
+			const normalizedImageStyle = normalizeStylePreset(
+				(tabOptions.stylePreset as ImageStylePreset) ?? "photorealistic",
+			);
+			const normalizedVideoStyle = normalizeVideoStylePreset(
+				(tabOptions.stylePreset as VideoStylePreset) ?? "cinematic",
+			);
+			const normalizedAspect = normalizeAspectRatio(
+				tabOptions.aspectRatio ?? "1:1",
+			);
+			const normalizedCamera = normalizeCameraMovement(
+				tabOptions.cameraMovement ?? "static",
+			);
+			const normalizedShot = normalizeShotType(tabOptions.shotType ?? "medium");
+			const normalizedDuration = normalizeDurationSeconds(
+				typeof tabOptions.durationSeconds === "number"
+					? tabOptions.durationSeconds
+					: 5,
+			);
+			const normalizedFrame = normalizeFrameRate(
+				typeof tabOptions.frameRate === "number"
+					? (tabOptions.frameRate as FrameRate)
+					: 24,
+			);
 
 			const options: GenerationOptions = {
-				tone,
-				detail,
-				format,
-				...(language && { language }),
-				temperature,
-				...(taskType === "image" &&
+				tone: tabOptions.tone ?? "neutral",
+				detail: tabOptions.detail ?? "normal",
+				format: tabOptions.format ?? "markdown",
+				...(tabOptions.language && { language: tabOptions.language }),
+				temperature:
+					typeof tabOptions.temperature === "number"
+						? tabOptions.temperature
+						: 0.7,
+				...(tabTaskType === "image" &&
 					normalizedImageStyle && { stylePreset: normalizedImageStyle }),
-				...(taskType === "video" &&
+				...(tabTaskType === "video" &&
 					normalizedVideoStyle && { stylePreset: normalizedVideoStyle }),
-				...((taskType === "image" || taskType === "video") &&
+				...((tabTaskType === "image" || tabTaskType === "video") &&
 					normalizedAspect && { aspectRatio: normalizedAspect }),
-				...(taskType === "coding" && { includeTests }),
-				...(taskType === "research" && { requireCitations }),
-				...(taskType === "video" && {
+				...(tabTaskType === "coding" && {
+					includeTests: !!tabOptions.includeTests,
+				}),
+				...(tabTaskType === "research" && {
+					requireCitations: !!tabOptions.requireCitations,
+				}),
+				...(tabTaskType === "video" && {
 					...(normalizedCamera && { cameraMovement: normalizedCamera }),
 					...(normalizedShot && { shotType: normalizedShot }),
 					...(normalizedDuration && { durationSeconds: normalizedDuration }),
 					...(normalizedFrame && { frameRate: normalizedFrame }),
-					includeStoryboard,
+					includeStoryboard: !!tabOptions.includeStoryboard,
 				}),
-				useDelimiters,
-				includeVerification,
-				reasoningStyle,
-				...(endOfPromptToken && { endOfPromptToken }),
-				...(format === "xml" && outputXMLSchema && { outputXMLSchema }),
-				...(identity && { identity }),
-				...(additionalContext && { additionalContext }),
-				...(examplesText && { examplesText }),
+				useDelimiters:
+					typeof tabOptions.useDelimiters === "boolean"
+						? tabOptions.useDelimiters
+						: true,
+				includeVerification: !!tabOptions.includeVerification,
+				reasoningStyle: (tabOptions.reasoningStyle as ReasoningStyle) ?? "none",
+				...(tabOptions.endOfPromptToken && {
+					endOfPromptToken: tabOptions.endOfPromptToken,
+				}),
+				...(tabOptions.format === "xml" &&
+					tabOptions.outputXMLSchema && {
+						outputXMLSchema: tabOptions.outputXMLSchema,
+					}),
+				...(tabOptions.identity && { identity: tabOptions.identity }),
+				...(tabOptions.additionalContext && {
+					additionalContext: tabOptions.additionalContext,
+				}),
+				...(tabOptions.examplesText && {
+					examplesText: tabOptions.examplesText,
+				}),
 			};
 
 			// Check if we're in refinement mode (has at least one version with output)
@@ -612,26 +660,26 @@ export default function PromptWorkbench() {
 					built = await buildRefinementPrompt({
 						previousOutput: lastOutputMessage.content,
 						refinementRequest: text,
-						taskType,
+						taskType: tabTaskType,
 						options,
 					});
 				} else {
 					built = await buildUnifiedPrompt({
 						input: text,
-						taskType,
+						taskType: tabTaskType,
 						options,
 					});
 				}
 			} else {
 				built = await buildUnifiedPrompt({
 					input: text,
-					taskType,
+					taskType: tabTaskType,
 					options,
 				});
 			}
 
 			const output = await callLocalModelClient(built, {
-				taskType,
+				taskType: tabTaskType,
 				options,
 			});
 			const assistant: MessageItem = {
@@ -672,7 +720,7 @@ export default function PromptWorkbench() {
 				originalInput,
 				finalAssistantId,
 				{
-					taskType,
+					taskType: tabTaskType,
 					options: options as Record<string, unknown>,
 					isRefinement: isRefinementMode,
 					...(refinedVersionId && { refinedVersionId }),
@@ -709,30 +757,7 @@ export default function PromptWorkbench() {
 		ensureProject,
 		refreshProjectList,
 		confirm,
-		taskType,
-		tone,
-		detail,
-		format,
-		language,
-		temperature,
-		stylePreset,
-		videoStylePreset,
-		aspectRatio,
-		includeTests,
-		requireCitations,
-		cameraMovement,
-		shotType,
-		durationSeconds,
-		frameRate,
-		includeStoryboard,
-		useDelimiters,
-		includeVerification,
-		reasoningStyle,
-		endOfPromptToken,
-		outputXMLSchema,
-		identity,
-		additionalContext,
-		examplesText,
+		// Removed all component-level state dependencies - we now use activeTab.preset directly
 	]);
 
 	const stopGenerating = useCallback(() => {
