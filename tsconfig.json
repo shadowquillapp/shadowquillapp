@@ -39,5 +39,12 @@
 		".next/types/**/*.ts",
 		".next/dev/types/**/*.ts"
 	],
-	"exclude": ["node_modules", ".next", "public", "dist", "build"]
+	"exclude": [
+		"node_modules",
+		".next",
+		"public",
+		"dist",
+		"build",
+		"**/__tests__/**"
+	]
 }
