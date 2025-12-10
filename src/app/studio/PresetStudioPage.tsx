@@ -349,12 +349,12 @@ export default function PresetStudioPage() {
 						style={{
 							position: "absolute",
 							inset: 0,
-							backgroundColor: "rgba(0, 0, 0, 0.35)",
+							backgroundColor: "rgba(255, 255, 255, 0.08)",
 							zIndex: 100,
 							pointerEvents: "auto",
 							cursor: "not-allowed",
 							transition: "opacity 0.2s ease",
-							backdropFilter: "grayscale(0.5)",
+							backdropFilter: "blur(1px) brightness(0.85)",
 						}}
 						onClick={(e) => e.stopPropagation()}
 						onKeyDown={(e) => e.stopPropagation()}
