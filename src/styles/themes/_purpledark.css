@@ -1,88 +1,51 @@
-/**
- * ==========================================================================
- * LUXURIOUS PURPLE DARK THEME
- * ==========================================================================
- *
- * A rich, mature dark theme using deep royal purples and velvet tones.
- * High-end, immersive, and elegant—avoids neon or playful hues.
- *
- * ACTIVATION: Set data-theme="purpledark" on the root element
- * ==========================================================================
- */
-
 [data-theme="purpledark"] {
-	/* Surface colors */
-	--color-surface: #0d0c12; /* deeper, softer black-purple */
-	--color-surface-variant: #161520; /* velvet purple */
-	--color-outline: #2b2940; /* muted plum outline */
-
-	/* Text colors */
-	--color-on-surface: #e6e0f4; /* soft lavender white */
-	--color-on-surface-variant: #b7b0c9; /* muted cool lavender */
-
-	/* Primary colors (royal/mature purples) */
-	--color-primary: #6d56c7; /* deep imperial purple */
-	--color-primary-variant: #5843a8; /* richer, darker variant */
+	--color-surface: #0d0c12;
+	--color-surface-variant: #161520;
+	--color-outline: #2b2940;
+	--color-on-surface: #e6e0f4;
+	--color-on-surface-variant: #b7b0c9;
+	--color-primary: #6d56c7;
+	--color-primary-variant: #5843a8;
 	--color-on-primary: #fff;
-
-	/* Status colors (toned down for luxury) */
-	--color-save: #5a8f66; /* muted emerald */
+	--color-save: #5a8f66;
 	--color-save-variant: #396c44;
 	--color-on-save: #fff;
-
-	--color-attention: #d08c42; /* warm amber */
+	--color-attention: #d08c42;
 	--color-attention-variant: #9a6228;
 	--color-on-attention: #fff;
-
-	--color-destructive: #c75a66; /* muted wine-red */
+	--color-destructive: #c75a66;
 	--color-destructive-variant: #a14450;
 	--color-on-destructive: #fff;
-
-	/* Tab colors (deep berry luxury tone) */
-	--color-tab-active: #8a3f76; /* deep berry/plum */
+	--color-tab-active: #8a3f76;
 	--color-tab-active-variant: #6b305c;
-
-	/* Special UI colors */
-	--color-titlebar-background: #3e396b; /* refined royal purple */
+	--color-titlebar-background: #3e396b;
+	--color-tabbar-background: #161520;
 	--workbench-composer-background: #1a1828ee;
-
-	/* Palette colors */
 	--darka0: #0d0c12;
 	--lighta0: #e6e0f4;
-
 	--primarya0: #6d56c7;
 	--primarya10: #5843a8;
 	--primarya20: #46388c;
 	--primarya30: #9b87df;
 	--primarya40: #c0b7ed;
 	--primarya50: #e6e0f4;
-
 	--accenta0: #5843a8;
-
-	/* Surface palette */
 	--surfacea0: #0d0c12;
 	--surfacea10: #161520;
 	--surfacea20: #222132;
 	--surfacea30: #2d2a3f;
 	--surfacea40: #3a3650;
 	--surfacea50: #b7b0c9;
-
-	/* Surface tonal palette */
 	--surfacetonala0: #0d0c12;
 	--surfacetonala10: #161520;
 	--surfacetonala20: #222132;
 	--surfacetonala30: #2d2a3f;
 	--surfacetonala40: #3a3650;
 	--surfacetonala50: #b7b0c9;
-
-	/* Component colors */
-	--buttonbg: #6d56c7; /* imperial purple button */
+	--buttonbg: #6d56c7;
 	--buttontext: #fff;
-
 	--dropdownbg: #161520;
 	--cardbg: #161520;
-
-	/* Richer, warmer shadows */
 	--shadow-1: 0 2px 8px #0d0c1270;
 	--shadow-2: 0 6px 16px #0d0c12a0;
 }

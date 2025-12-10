@@ -42,9 +42,9 @@
  * Import this file in your main app entry point (layout.tsx).
  *
  * THEMES:
- * - default (earth): Warm, earthy tones (no data-theme needed)
+ * - default (earth): Warm, earthy tones
  * - purpledark: Vibrant purple accents
- * - dark: Neutral dark with blue accents
+ * - dark: dark with blue accents
  * - light: Clean light theme
  *
  * Set theme via: <html data-theme="dark">
