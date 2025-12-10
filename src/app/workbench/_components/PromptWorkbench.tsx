@@ -1356,7 +1356,7 @@ export default function PromptWorkbench() {
 								className="flex shrink-0 items-center justify-between rounded-t-2xl"
 								style={{
 									background:
-										"linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-input-card, var(--color-surface-variant)) 50%) 0%, var(--color-input-card, var(--color-surface-variant)) 100%)",
+										"linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 50%, var(--color-input-card) 50%) 0%, var(--color-input-card) 100%)",
 									borderBottom:
 										"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
 									gap: "var(--space-3)",
