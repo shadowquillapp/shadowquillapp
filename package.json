@@ -46,7 +46,8 @@
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"systeminformation": "^5.27.13",
-		"tailwindcss": "^4.1.17"
+		"tailwindcss": "^4.1.17",
+		"tmp": "^0.2.5"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.8",
