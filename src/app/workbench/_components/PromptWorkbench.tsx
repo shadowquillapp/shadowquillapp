@@ -1215,12 +1215,12 @@ export default function PromptWorkbench() {
 						style={{
 							position: "absolute",
 							inset: 0,
-							backgroundColor: "rgba(0, 0, 0, 0.35)",
+							backgroundColor: "rgba(255, 255, 255, 0.08)",
 							zIndex: 100,
 							pointerEvents: "auto",
 							cursor: "not-allowed",
 							transition: "opacity 0.2s ease",
-							backdropFilter: "grayscale(0.5)",
+							backdropFilter: "blur(1px) brightness(0.85)",
 						}}
 						onClick={(e) => e.stopPropagation()}
 						onKeyDown={(e) => e.stopPropagation()}
@@ -1232,8 +1232,9 @@ export default function PromptWorkbench() {
 					className="simple-workbench__header"
 					style={{
 						flexWrap: "nowrap",
-						gap: "8px",
-						padding: "8px 12px 2px 12px",
+						gap: "var(--space-2)",
+						padding:
+							"var(--space-2) var(--space-3) var(--space-1) var(--space-3)",
 						alignItems: "flex-end",
 					}}
 				>
@@ -1241,7 +1242,7 @@ export default function PromptWorkbench() {
 						className="simple-workbench__header-left"
 						style={{
 							display: "flex",
-							gap: "8px",
+							gap: "var(--space-2)",
 							flexWrap: "nowrap",
 							flex: "1 1 auto",
 							minWidth: 0,
@@ -1271,9 +1272,9 @@ export default function PromptWorkbench() {
 						className="simple-workbench__header-actions"
 						style={{
 							display: "flex",
-							gap: "8px",
+							gap: "var(--space-2)",
 							flexShrink: 0,
-							paddingBottom: "6px",
+							paddingBottom: "var(--space-2)",
 						}}
 					>
 						<button
@@ -1318,12 +1319,12 @@ export default function PromptWorkbench() {
 						height: "100%",
 						overflow: "hidden",
 						position: "relative",
-						marginRight: "8px",
+						marginRight: "var(--space-2)",
 					}}
 				>
 					{/* LEFT PANE: Input */}
 					<section
-						className="prompt-input-pane flex h-full flex-col gap-4 overflow-hidden bg-surface p-4 md:p-6"
+						className="prompt-input-pane flex h-full flex-col overflow-hidden bg-surface"
 						style={{
 							backgroundColor: "var(--color-surface)",
 							width: `${leftPanelWidth}%`,
@@ -1334,6 +1335,8 @@ export default function PromptWorkbench() {
 							pointerEvents: tabManager.tabs.length === 0 ? "none" : "auto",
 							transition: isResizing ? "none" : "opacity 0.3s ease",
 							filter: tabManager.tabs.length === 0 ? "grayscale(0.3)" : "none",
+							gap: "var(--space-4)",
+							padding: "var(--space-6)",
 						}}
 					>
 						{/* Editor Area with Integrated Toolbar */}
@@ -1350,23 +1353,29 @@ export default function PromptWorkbench() {
 						>
 							{/* Header bar inside the text area container */}
 							<div
-								className="flex shrink-0 items-center justify-between gap-3 rounded-t-2xl px-3 py-2.5 md:px-4"
+								className="flex shrink-0 items-center justify-between rounded-t-2xl"
 								style={{
 									background:
 										"linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-input-card, var(--color-surface-variant)) 50%) 0%, var(--color-input-card, var(--color-surface-variant)) 100%)",
 									borderBottom:
 										"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
+									gap: "var(--space-3)",
+									padding:
+										"var(--space-3) var(--space-3) var(--space-3) var(--space-3)",
 								}}
 							>
 								{/* Left: Badge & Stats */}
-								<div className="flex min-w-0 items-center gap-3">
+								<div
+									className="flex min-w-0 items-center"
+									style={{ gap: "var(--space-3)" }}
+								>
 									{/* Editor Badge - Changes based on refinement mode */}
 									<div
 										style={{
 											display: "flex",
 											alignItems: "center",
-											gap: "6px",
-											padding: "4px 10px",
+											gap: "var(--space-2)",
+											padding: "var(--space-1) var(--space-3)",
 											borderRadius: "20px",
 											background: isRefinementMode
 												? "linear-gradient(135deg, var(--color-tertiary), color-mix(in srgb, var(--color-tertiary), var(--color-surface) 30%))"
@@ -1407,10 +1416,13 @@ export default function PromptWorkbench() {
 									</div>
 
 									{/* Stats - Hidden on very small screens */}
-									<div className="hidden items-center gap-2 text-on-surface-variant/70 sm:flex">
+									<div
+										className="hidden items-center text-on-surface-variant/70 sm:flex"
+										style={{ gap: "var(--space-1)" }}
+									>
 										<div
-											className="flex items-center gap-1.5"
-											style={{ fontSize: "10px" }}
+											className="flex items-center"
+											style={{ fontSize: "10px", gap: "var(--space-1)" }}
 										>
 											<Icon
 												name="file-text"
@@ -1421,10 +1433,18 @@ export default function PromptWorkbench() {
 											</span>
 											<span style={{ opacity: 0.5 }}>words</span>
 										</div>
-										<span style={{ opacity: 0.3 }}>•</span>
+										<span
+											style={{
+												opacity: 0.3,
+												marginLeft: "var(--space-1)",
+												marginRight: "var(--space-1)",
+											}}
+										>
+											•
+										</span>
 										<div
-											className="flex items-center gap-1"
-											style={{ fontSize: "10px" }}
+											className="flex items-center"
+											style={{ fontSize: "10px", gap: "var(--space-1)" }}
 										>
 											<span style={{ fontVariantNumeric: "tabular-nums" }}>
 												{charCount.toLocaleString()}
@@ -1435,7 +1455,10 @@ export default function PromptWorkbench() {
 								</div>
 
 								{/* Right: Actions */}
-								<div className="flex items-center gap-1">
+								<div
+									className="flex items-center"
+									style={{ gap: "var(--space-1)" }}
+								>
 									{/* Copy Button */}
 									<button
 										type="button"
@@ -1449,7 +1472,7 @@ export default function PromptWorkbench() {
 										style={{
 											width: 28,
 											height: 28,
-											borderRadius: "8px",
+											borderRadius: "var(--radius-sm)",
 											background:
 												copiedMessageId === "prompt-draft"
 													? "var(--color-save)"
@@ -1584,7 +1607,30 @@ export default function PromptWorkbench() {
 																	{versionNum}
 																</div>
 															</button>
-															<div className="refine-timeline__content">
+															<div
+																className="refine-timeline__content"
+																{...(!isCurrentVersion
+																	? {
+																			onClick: handleJumpToVersion,
+																			role: "button",
+																			tabIndex: 0,
+																			onKeyDown: (e) => {
+																				if (
+																					e.key === "Enter" ||
+																					e.key === " "
+																				) {
+																					e.preventDefault();
+																					handleJumpToVersion();
+																				}
+																			},
+																		}
+																	: {})}
+																title={
+																	isCurrentVersion
+																		? "Current version"
+																		: `Jump to v${versionNum}`
+																}
+															>
 																<div className="refine-timeline__header">
 																	<div className="refine-timeline__title">
 																		<span
@@ -1623,21 +1669,11 @@ export default function PromptWorkbench() {
 																		</button>
 																	</div>
 																</div>
-																<button
-																	type="button"
-																	onClick={handleJumpToVersion}
-																	disabled={isCurrentVersion}
-																	className="refine-timeline__body"
-																	title={
-																		isCurrentVersion
-																			? "Current version"
-																			: `Jump to v${versionNum}`
-																	}
-																>
+																<div className="refine-timeline__body">
 																	{versionInput || (
 																		<em style={{ opacity: 0.5 }}>Empty</em>
 																	)}
-																</button>
+																</div>
 															</div>
 														</div>
 													);
@@ -1689,8 +1725,8 @@ export default function PromptWorkbench() {
 								<div
 									className="absolute z-10"
 									style={{
-										left: "20px",
-										bottom: "20px",
+										left: "var(--space-4)",
+										bottom: "var(--space-4)",
 										// Disable during generation
 										pointerEvents: isGenerating ? "none" : "auto",
 										opacity: isGenerating ? 0.5 : 1,
@@ -1716,16 +1752,17 @@ export default function PromptWorkbench() {
 													"color-mix(in srgb, var(--color-surface), transparent 70%)",
 												backdropFilter: "blur(4px)",
 												WebkitBackdropFilter: "blur(4px)",
-												padding: "8px",
+												padding: "var(--space-2)",
 											}}
 										>
 											{/* Header */}
 											<div
-												className="mb-1 text-center font-bold text-[10px] uppercase tracking-wider"
+												className="text-center font-bold text-[10px] uppercase tracking-wider"
 												style={{
 													color: "var(--color-on-surface)",
 													opacity: 0.7,
 													lineHeight: 1,
+													marginBottom: "var(--space-1)",
 												}}
 											>
 												GEMMA 3
@@ -1733,7 +1770,7 @@ export default function PromptWorkbench() {
 											{/* Stops */}
 											<div
 												className="relative z-[1] flex h-full flex-col items-stretch justify-between"
-												style={{ height: "calc(100% - 16px)" }}
+												style={{ height: "calc(100% - var(--space-4))" }}
 											>
 												{[
 													{ label: "4B", id: "gemma3:4b" },
@@ -1784,7 +1821,7 @@ export default function PromptWorkbench() {
 																	? "color-mix(in srgb, var(--color-primary), var(--color-surface) 72%)"
 																	: "transparent",
 																border: isActive
-																	? "1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 55%)"
+																	? "1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 20%)"
 																	: "1px solid transparent",
 															}}
 														>
@@ -1813,12 +1850,12 @@ export default function PromptWorkbench() {
 											: "rounded-full bg-[var(--color-primary)] text-on-primary hover:bg-[var(--color-primary-variant)]"
 									}`}
 									style={{
-										width: activeTab?.sending ? "auto" : "min(48px, 10vw)",
-										height: activeTab?.sending ? "auto" : "min(48px, 10vw)",
+										width: activeTab?.sending ? "auto" : "min(42px, 10vw)",
+										height: activeTab?.sending ? "auto" : "min(42px, 10vw)",
 										minWidth: activeTab?.sending ? "auto" : "36px",
 										minHeight: activeTab?.sending ? "auto" : "36px",
-										right: "20px",
-										bottom: "20px",
+										right: "var(--space-4)",
+										bottom: "var(--space-4)",
 										border: activeTab?.sending
 											? "none"
 											: "1px solid var(--color-outline)",
@@ -1863,6 +1900,8 @@ export default function PromptWorkbench() {
 												width: "22px",
 												height: "22px",
 												fontSize: "22px",
+												left: "calc(var(--space-1) / 3)",
+												color: "var(--color-on-primary)",
 											}}
 										/>
 									)}
@@ -1876,7 +1915,17 @@ export default function PromptWorkbench() {
 							<div
 								role="button"
 								tabIndex={0}
-								className="flex cursor-pointer items-center gap-3 rounded-xl p-2.5 text-left transition-all hover:opacity-90 md:p-3"
+								className="flex cursor-pointer items-center rounded-xl text-left transition-all hover:opacity-90"
+								style={{
+									gap: "var(--space-3)",
+									padding: "var(--space-3)",
+									background:
+										"linear-gradient(135deg, color-mix(in srgb, var(--color-primary), var(--color-surface-variant) 85%) 0%, var(--color-surface-variant) 100%)",
+									border:
+										"1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
+									boxShadow:
+										"0 2px 8px color-mix(in srgb, var(--color-primary), transparent 85%)",
+								}}
 								onClick={() => setShowPresetInfo(true)}
 								onKeyDown={(e) => {
 									if (e.key === "Enter" || e.key === " ") {
@@ -1885,14 +1934,6 @@ export default function PromptWorkbench() {
 									}
 								}}
 								title="Click for full preset details"
-								style={{
-									background:
-										"linear-gradient(135deg, color-mix(in srgb, var(--color-primary), var(--color-surface-variant) 85%) 0%, var(--color-surface-variant) 100%)",
-									border:
-										"1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
-									boxShadow:
-										"0 2px 8px color-mix(in srgb, var(--color-primary), transparent 85%)",
-								}}
 							>
 								{/* Icon */}
 								<div
@@ -1922,13 +1963,19 @@ export default function PromptWorkbench() {
 								</div>
 
 								{/* Title & Type */}
-								<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-									<span className="truncate font-bold text-[13px] text-on-surface leading-tight">
+								<div
+									className="flex min-w-0 flex-1 items-center"
+									style={{ gap: "var(--space-3)" }}
+								>
+									<span className="min-w-0 flex-1 truncate font-bold text-[13px] text-on-surface leading-tight">
 										{activeTab.preset.name}
 									</span>
 
 									{/* Tags Row */}
-									<div className="flex flex-wrap items-center gap-1.5">
+									<div
+										className="flex shrink-0 flex-wrap items-center"
+										style={{ gap: "var(--space-2)" }}
+									>
 										{/* Task Type Badge */}
 										<span
 											style={{
@@ -2007,30 +2054,6 @@ export default function PromptWorkbench() {
 										)}
 									</div>
 								</div>
-
-								{/* Edit Button */}
-								<button
-									type="button"
-									onClick={(e) => {
-										e.stopPropagation();
-										// Set the active tab's preset as the selected preset
-										const activeTab = tabManager.activeTab;
-										if (activeTab?.preset) {
-											const presetKey =
-												activeTab.preset.id ?? activeTab.preset.name;
-											if (presetKey) {
-												setJSON("last-selected-preset", presetKey);
-											}
-										}
-										router.push("/studio");
-									}}
-									className="md-btn md-btn--primary"
-									title="Edit preset in Studio"
-									aria-label="Edit preset in Studio"
-									style={{ minWidth: 0 }}
-								>
-									<PaintBrushIcon className="h-4 w-4" />
-								</button>
 							</div>
 						)}
 					</section>
@@ -2049,7 +2072,7 @@ export default function PromptWorkbench() {
 						tabIndex={0}
 						title="Drag to resize panels"
 						style={{
-							width: "8px",
+							width: "var(--space-2)",
 							flexShrink: 0,
 							cursor: "col-resize",
 						}}
@@ -2074,7 +2097,7 @@ export default function PromptWorkbench() {
 
 					{/* RIGHT PANE: Output */}
 					<section
-						className="prompt-output-pane relative flex h-full flex-col gap-4 overflow-hidden p-4 md:p-6"
+						className="prompt-output-pane relative flex h-full flex-col overflow-hidden"
 						style={{
 							flex: 1,
 							minWidth: 480,
@@ -2089,6 +2112,8 @@ export default function PromptWorkbench() {
 							filter: tabManager.tabs.length === 0 ? "grayscale(0.3)" : "none",
 							// Elevate above overlay when generating so the animation is visible
 							zIndex: isGenerating ? 150 : "auto",
+							gap: "var(--space-4)",
+							padding: "var(--space-6)",
 						}}
 					>
 						{/* Content Body with Integrated Toolbar Style */}
@@ -2108,22 +2133,26 @@ export default function PromptWorkbench() {
 						>
 							{/* Toolbar Header inside container */}
 							<div
-								className="flex shrink-0 items-center justify-between gap-3 rounded-t-2xl px-3 py-2.5 md:px-4"
+								className="flex shrink-0 items-center justify-between rounded-t-2xl"
 								style={{
 									background:
 										"linear-gradient(180deg, color-mix(in srgb, var(--color-surface), var(--color-output-panel, var(--color-surface-variant)) 50%) 0%, var(--color-output-panel, var(--color-surface-variant)) 100%)",
 									borderBottom:
 										"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
+									gap: "var(--space-3)",
+									padding:
+										"var(--space-3) var(--space-3) var(--space-3) var(--space-3)",
 								}}
 							>
 								{/* Left: Title & Stats */}
-								<div className="flex min-w-0 items-center gap-3">
+								<div
+									className="flex min-w-0 items-center"
+									style={{ gap: "var(--space-3)" }}
+								>
 									{/* Version Badge */}
 									<button
 										type="button"
-										className={`md-btn ${
-											versions.length > 0 ? "md-btn--primary" : ""
-										}`}
+										className={`md-btn ${versions.length > 0 ? "md-btn" : ""}`}
 										onClick={() => {
 											if (versions.length > 0) setShowVersionHistory(true);
 										}}
@@ -2155,10 +2184,13 @@ export default function PromptWorkbench() {
 									</button>
 
 									{/* Stats - Hidden on very small screens */}
-									<div className="hidden items-center gap-2 text-on-surface-variant/70 sm:flex">
+									<div
+										className="hidden items-center text-on-surface-variant/70 sm:flex"
+										style={{ gap: "var(--space-1)" }}
+									>
 										<div
-											className="flex items-center gap-1.5"
-											style={{ fontSize: "10px" }}
+											className="flex items-center"
+											style={{ fontSize: "10px", gap: "var(--space-1)" }}
 										>
 											<Icon
 												name="file-text"
@@ -2169,10 +2201,18 @@ export default function PromptWorkbench() {
 											</span>
 											<span style={{ opacity: 0.5 }}>words</span>
 										</div>
-										<span style={{ opacity: 0.3 }}>•</span>
+										<span
+											style={{
+												opacity: 0.3,
+												marginLeft: "var(--space-1)",
+												marginRight: "var(--space-1)",
+											}}
+										>
+											•
+										</span>
 										<div
-											className="flex items-center gap-1"
-											style={{ fontSize: "10px" }}
+											className="flex items-center"
+											style={{ fontSize: "10px", gap: "var(--space-1)" }}
 										>
 											<span style={{ fontVariantNumeric: "tabular-nums" }}>
 												{outputCharCount.toLocaleString()}
@@ -2183,7 +2223,10 @@ export default function PromptWorkbench() {
 								</div>
 
 								{/* Right: Actions */}
-								<div className="flex items-center gap-1">
+								<div
+									className="flex items-center"
+									style={{ gap: "var(--space-1)" }}
+								>
 									{/* Copy Button */}
 									<button
 										type="button"
@@ -2202,7 +2245,7 @@ export default function PromptWorkbench() {
 										style={{
 											width: 28,
 											height: 28,
-											borderRadius: "8px",
+											borderRadius: "var(--radius-sm)",
 											background:
 												copiedMessageId === lastAssistantMessage?.id
 													? "var(--color-save)"
@@ -2232,10 +2275,17 @@ export default function PromptWorkbench() {
 							{/* Scrollable Content Area */}
 							<div
 								ref={scrollContainerRef}
-								className="custom-scrollbar relative min-h-0 flex-1 overflow-y-auto p-3 md:p-6"
+								className="custom-scrollbar relative min-h-0 flex-1 overflow-y-auto"
+								style={{
+									paddingLeft: "var(--space-6)",
+									paddingRight: "var(--space-6)",
+								}}
 							>
 								{!hasMessages ? (
-									<div className="flex h-full flex-col items-center justify-center gap-4 text-center opacity-60">
+									<div
+										className="flex h-full flex-col items-center justify-center text-center opacity-60"
+										style={{ gap: "var(--space-4)" }}
+									>
 										<div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--color-outline)] bg-surface">
 											<Logo className="h-8 w-8 opacity-50 grayscale" />
 										</div>
@@ -2243,7 +2293,10 @@ export default function PromptWorkbench() {
 											<p className="font-medium text-on-surface text-sm">
 												Ready to Generate
 											</p>
-											<p className="mt-1 text-on-surface-variant text-xs">
+											<p
+												className="text-on-surface-variant text-xs"
+												style={{ marginTop: "var(--space-1)" }}
+											>
 												Run your prompt to see the results appear here.
 											</p>
 										</div>
@@ -2267,7 +2320,8 @@ export default function PromptWorkbench() {
 										return (
 											<div
 												key={outputAnimateKey}
-												className="output-animate-in flex flex-col gap-6"
+												className="output-animate-in flex flex-col"
+												style={{ gap: "var(--space-6)" }}
 											>
 												{activeTab?.sending ? (
 													<div
@@ -2281,7 +2335,10 @@ export default function PromptWorkbench() {
 														<FeatherLoader />
 													</div>
 												) : activeOutput ? (
-													<div className="group relative flex flex-col gap-3">
+													<div
+														className="group relative flex flex-col"
+														style={{ gap: "var(--space-3)" }}
+													>
 														{/* Message Content */}
 														<div className="max-w-none font-mono text-[11px] text-on-surface leading-relaxed">
 															<MessageRenderer
@@ -2293,7 +2350,14 @@ export default function PromptWorkbench() {
 														</div>
 													</div>
 												) : (
-													<div className="flex flex-col items-center justify-center gap-3 py-12 text-center opacity-60">
+													<div
+														className="flex flex-col items-center justify-center text-center opacity-60"
+														style={{
+															gap: "var(--space-3)",
+															paddingTop: "var(--space-8)",
+															paddingBottom: "var(--space-8)",
+														}}
+													>
 														<div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--color-outline)] bg-surface">
 															<Icon
 																name="file-text"
@@ -2304,7 +2368,10 @@ export default function PromptWorkbench() {
 															<p className="font-medium text-on-surface text-sm">
 																No Output for This Version
 															</p>
-															<p className="mt-1 text-on-surface-variant text-xs">
+															<p
+																className="text-on-surface-variant text-xs"
+																style={{ marginTop: "var(--space-1)" }}
+															>
 																This version is a manual save. Run the prompt to
 																generate output.
 															</p>
@@ -2321,7 +2388,16 @@ export default function PromptWorkbench() {
 
 						{/* Error Toast/Banner */}
 						{activeTab?.error && (
-							<div className="slide-in-from-bottom-2 absolute right-6 bottom-6 left-6 flex animate-in items-center gap-3 rounded-lg border border-attention/10 bg-attention/10 p-4 text-attention shadow-lg">
+							<div
+								className="slide-in-from-bottom-2 absolute flex animate-in items-center rounded-lg border border-attention/10 bg-attention/10 text-attention shadow-lg"
+								style={{
+									right: "var(--space-6)",
+									bottom: "var(--space-6)",
+									left: "var(--space-6)",
+									gap: "var(--space-3)",
+									padding: "var(--space-4)",
+								}}
+							>
 								<Icon name="warning" className="h-5 w-5 shrink-0" />
 								<p className="font-medium text-sm">{activeTab.error}</p>
 								<button
