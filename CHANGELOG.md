@@ -1,3 +1,10 @@
+## [0.7.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.7.1...v0.7.2) (2025-12-10)
+
+
+### Bug Fixes
+
+* dependabot vulnurability with tmp package resolved -> upgraded from 0.2.3 to 0.2.4 ([9c0d419](https://github.com/shadowquillapp/shadowquillapp/commit/9c0d419e827b661e2add961b25ff7a5cefb0b814))
+
 ## [0.7.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.7.0...v0.7.1) (2025-12-10)
 
 
