@@ -1,119 +1,51 @@
 :root {
-	/* ========================================
-	 * SURFACE COLORS (Neutral Luxury Charcoal)
-	 * ======================================== */
-
-	/* Deep luxury charcoal (not blue, not brown) */
-	--color-surface: #1a1a1a;
-
-	/* Slightly warm charcoal for panels */
-	--color-surface-variant: #252523;
-
-	/* Neutral-warm outline, not stark */
-	--color-outline: #2e2d2b;
-
-	/* ========================================
-	 * TYPOGRAPHY (Warm Soft Whites)
-	 * ======================================== */
-
-	/* Soft ivory — luxurious, not clinical white */
-	--color-on-surface: #e8e4dc;
-
-	/* Warm stone gray for secondary */
-	--color-on-surface-variant: #b9b4ab;
-
-	/* ========================================
-	 * PRIMARY ACCENT (Champagne Gold)
-	 * Low-saturation metallic warmth
-	 * ======================================== */
-
-	--color-primary: #c7b083; /* Champagne Gold */
-	--color-primary-variant: #a38f6a; /* Deeper champagne */
-	--color-on-primary: #1a1a1a; /* Dark for contrast */
-
-	/* ========================================
-	 * STATUS COLORS (Desaturated Luxury Tones)
-	 * ======================================== */
-
-	/* Success: muted olive-sage — elegant, not green neon */
-	--color-save: #8aa27a;
-	--color-save-variant: #6f8663;
-	--color-on-save: #1a1a1a;
-
-	/* Warning: muted antique gold */
-	--color-attention: #d1b46a;
-	--color-attention-variant: #b79c52;
-	--color-on-attention: #1a1a1a;
-
-	/* Error: softened garnet, not bright red */
-	--color-destructive: #b56f67;
-	--color-destructive-variant: #98564f;
-	--color-on-destructive: #1a1a1a;
-
-	/* Tabs use the champagne gold accent */
+	--color-surface: #2f3136;
+	--color-surface-variant: #53504d;
+	--color-outline: #4f535c;
+	--color-primary: #e0c38c;
+	--color-primary-variant: #d4b06a;
+	--color-on-primary: #ffffff;
+	--color-save: #9cc298;
+	--color-save-variant: #7ea87a;
+	--color-on-save: #2f3136;
+	--color-attention: #e8cf82;
+	--color-attention-variant: #d6ba65;
+	--color-on-attention: #2f3136;
+	--color-destructive: #e08c86;
+	--color-destructive-variant: #c46b65;
+	--color-on-destructive: #2f3136;
 	--color-tab-active: var(--color-primary);
 	--color-tab-active-variant: var(--color-primary-variant);
-
-	/* ========================================
-	 * SPECIAL UI COLORS
-	 * ======================================== */
-
-	/* Titlebar — deep walnut-charcoal */
-	--color-titlebar-background: #1f1c18;
-
-	/* Composer — lightly recessed charcoal */
-	--workbench-composer-background: #151515;
-
-	/* ========================================
-	 * ELEVATION / SHADOWS
-	 * ======================================== */
-
-	--color-elevation-1: #00000055;
-	--color-elevation-2: #00000078;
-
-	/* ========================================
-	 * PALETTE SYSTEM (Luxury Earth Tones)
-	 * ======================================== */
-
-	/* Base anchors */
-	--darka0: #1a1a1a;
-	--lighta0: #e8e4dc;
-	--accenta0: #c7b083; /* Champagne */
-
-	/* Primary palette (champagne → dark walnut gold) */
-	--primarya0: #c7b083;
-	--primarya10: #a38f6a;
-	--primarya20: #8a7757;
-	--primarya30: #dfceb1;
-	--primarya40: #f1e7d3;
-	--primarya50: #faf7f1;
-
-	/* Surface palette (charcoal + warm stone) */
-	--surfacea0: #1a1a1a;
-	--surfacea10: #252523;
-	--surfacea20: #2e2d2b;
-	--surfacea30: #3c3b39;
-	--surfacea40: #4d4c49;
-	--surfacea50: #e8e4dc;
-
-	/* Tonal palette */
-	--surfacetonala0: #1a1a1a;
-	--surfacetonala10: #252523;
-	--surfacetonala20: #2e2d2b;
-	--surfacetonala30: #3c3b39;
-	--surfacetonala40: #4d4c49;
-	--surfacetonala50: #e8e4dc;
-
-	/* ========================================
-	 * COMPONENT COLORS
-	 * ======================================== */
-
+	--color-titlebar-background: #202225;
+	--color-tabbar-background: #40444b;
+	--workbench-composer-background: #40444b;
+	--color-elevation-1: rgba(0, 0, 0, 0.25);
+	--color-elevation-2: rgba(0, 0, 0, 0.45);
+	--darka0: #2f3136;
+	--lighta0: #ffffff;
+	--accenta0: #e0c38c;
+	--primarya0: #e0c38c;
+	--primarya10: #d4b06a;
+	--primarya20: #c9a555;
+	--primarya30: #ede0c2;
+	--primarya40: #f5ebd5;
+	--primarya50: #ffffff;
+	--surfacea0: #2f3136;
+	--surfacea10: #36393f;
+	--surfacea20: #3b3e45;
+	--surfacea30: #40444b;
+	--surfacea40: #4f545c;
+	--surfacea50: #dcddde;
+	--surfacetonala0: #2f3136;
+	--surfacetonala10: #36393f;
+	--surfacetonala20: #40444b;
+	--surfacetonala30: #585d66;
+	--surfacetonala40: #72767d;
+	--surfacetonala50: #b9bbbe;
 	--buttonbg: var(--color-primary);
 	--buttontext: var(--color-on-primary);
-
-	--dropdownbg: #252523;
+	--dropdownbg: #36393f;
 	--cardbg: var(--color-surface-variant);
-	--sliderbg: #2a2927;
-
-	--shadowcolor: #000000b3;
+	--sliderbg: #4f545c;
+	--shadowcolor: rgba(0, 0, 0, 0.4);
 }
