@@ -70,9 +70,9 @@ export function VersionNavigator({
 			</button>
 
 			{/* Center: Version indicator */}
-			<div 
+			<div
 				className="version-nav-vertical__center"
-				style={{ cursor: 'default', pointerEvents: 'none' }}
+				style={{ cursor: "default", pointerEvents: "none" }}
 			>
 				<Icon name="code-compare" style={{ width: 16, height: 16 }} />
 			</div>
