@@ -470,8 +470,8 @@
 
 .refine-timeline__body {
 	padding: calc(var(--space-1) - 1px) var(--space-2);
-	font-size: 8px;
-	line-height: 1.3;
+	font-size: 10px;
+	line-height: 1.2;
 	color: var(--color-on-surface);
 	white-space: pre-wrap;
 	word-break: break-word;
