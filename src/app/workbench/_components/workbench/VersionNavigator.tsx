@@ -8,7 +8,6 @@ interface VersionNavigatorProps {
 	versionGraph: VersionGraph;
 	onPrev: () => void;
 	onNext: () => void;
-	onOpenHistory?: () => void;
 	isGenerating?: boolean;
 	justCreatedVersion?: boolean;
 }
@@ -17,7 +16,6 @@ export function VersionNavigator({
 	versionGraph,
 	onPrev,
 	onNext,
-	onOpenHistory,
 	isGenerating = false,
 	justCreatedVersion = false,
 }: VersionNavigatorProps) {
@@ -72,16 +70,12 @@ export function VersionNavigator({
 			</button>
 
 			{/* Center: Version indicator */}
-			<button
-				type="button"
+			<div 
 				className="version-nav-vertical__center"
-				onClick={onOpenHistory}
-				disabled={!onOpenHistory}
-				title={tooltipText}
-				aria-label="View version history"
+				style={{ cursor: 'default', pointerEvents: 'none' }}
 			>
 				<Icon name="code-compare" style={{ width: 16, height: 16 }} />
-			</button>
+			</div>
 
 			{/* Down: Next button */}
 			<button
