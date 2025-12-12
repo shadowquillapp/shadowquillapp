@@ -1,3 +1,15 @@
+# [0.8.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.7.2...v0.8.0) (2025-12-12)
+
+
+### Bug Fixes
+
+* some preset settings generated prompts incorrectly + removed redudent version history modal ([9889aab](https://github.com/shadowquillapp/shadowquillapp/commit/9889aabbc399023f0fea02244f2e694f1178da44))
+
+
+### Features
+
+* version switching dropdown added ([3a9a0e2](https://github.com/shadowquillapp/shadowquillapp/commit/3a9a0e2128975bcff155aecabc22ed1e90b33409))
+
 ## [0.7.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.7.1...v0.7.2) (2025-12-10)
 
 
