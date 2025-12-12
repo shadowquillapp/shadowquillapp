@@ -3,6 +3,7 @@
 import { Cog6ToothIcon, PaintBrushIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDialog } from "@/components/DialogProvider";
 import FeatherLoader from "@/components/FeatherLoader";
 import { Icon } from "@/components/Icon";
@@ -87,6 +88,8 @@ export default function PromptWorkbench() {
 	const [showPresetInfo, setShowPresetInfo] = useState(false);
 	const [justCreatedVersion, setJustCreatedVersion] = useState(false);
 	const [showRefinementContext, setShowRefinementContext] = useState(false);
+	const [showVersionDropdown, setShowVersionDropdown] = useState(false);
+	const versionDropdownRef = useRef<HTMLButtonElement | null>(null);
 	const [outputAnimateKey, setOutputAnimateKey] = useState(0);
 	const [leftPanelWidth, setLeftPanelWidth] = useState(() =>
 		getJSON<number>("shadowquill:panelWidth", 50),
@@ -887,6 +890,32 @@ export default function PromptWorkbench() {
 		}
 	}, [tabManager]);
 
+	const jumpToVersion = useCallback((versionId: string) => {
+		const tab = tabManager.activeTab;
+		if (!tab) return;
+		const versionNode = tab.versionGraph.nodes[versionId];
+		if (!versionNode) return;
+		
+		// Keep draft empty when jumping to a version that has output (refinement mode)
+		// The original input is shown in the context preview, not the editable field
+		if (!versionNode.outputMessageId) {
+			tabManager.updateDraft(
+				versionNode.originalInput || versionNode.content,
+			);
+		} else {
+			tabManager.updateDraft("");
+		}
+		// Update the version graph to point to this version
+		const updatedGraph = {
+			...tab.versionGraph,
+			activeId: versionId,
+		};
+		tabManager.setVersionGraph(updatedGraph);
+		tabManager.markDirty(false);
+		setOutputAnimateKey((prev) => prev + 1);
+		setShowVersionDropdown(false);
+	}, [tabManager]);
+
 	const endRef = useRef<HTMLDivElement | null>(null);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional - scroll when messages/sending changes
@@ -1128,6 +1157,24 @@ export default function PromptWorkbench() {
 	const versions = activeTab
 		? versionList(activeTab.versionGraph).filter((v) => v.label !== "Start")
 		: [];
+
+	// Close version dropdown when clicking outside
+	useEffect(() => {
+		if (!showVersionDropdown) return;
+
+		const handleClickOutside = (e: MouseEvent) => {
+			if (
+				versionDropdownRef.current &&
+				!versionDropdownRef.current.contains(e.target as Node) &&
+				!(e.target as Element).closest(".version-dropdown-menu")
+			) {
+				setShowVersionDropdown(false);
+			}
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => document.removeEventListener("mousedown", handleClickOutside);
+	}, [showVersionDropdown]);
 
 	const versionsWithOutput = versions.filter((v) => v.outputMessageId);
 	const isRefinementMode = versionsWithOutput.length > 0;
@@ -2254,37 +2301,145 @@ export default function PromptWorkbench() {
 									style={{ gap: "var(--space-3)" }}
 								>
 									{/* Version Badge */}
-									<button
-										type="button"
-										className={`md-btn ${versions.length > 0 ? "md-btn" : ""}`}
-										disabled={versions.length === 0}
-										title={
-											versions.length > 0 && activeTab
-												? `Version ${versions.findIndex(
-														(v) => v.id === activeTab?.versionGraph.activeId,
-													) + 1}`
-												: "No versions"
-										}
-									>
-										<Icon
-											name="git-compare"
-											style={{ width: 11, height: 11 }}
-										/>
-										<span
-											style={{
-												fontSize: "10px",
-												fontWeight: 700,
-												letterSpacing: "0.02em",
+									<div style={{ position: "relative" }}>
+										<button
+											ref={versionDropdownRef}
+											type="button"
+											className={`md-btn ${versions.length > 0 ? "md-btn" : ""}`}
+											disabled={versions.length === 0}
+											onClick={() => {
+												if (versions.length > 0) {
+													setShowVersionDropdown(!showVersionDropdown);
+												}
 											}}
+											title={
+												versions.length > 0 && activeTab
+													? `Version ${versions.findIndex(
+															(v) => v.id === activeTab?.versionGraph.activeId,
+														) + 1} - Click to switch versions`
+													: "No versions"
+											}
 										>
-											v
-											{versions.length > 0 && activeTab
-												? versions.findIndex(
-														(v) => v.id === activeTab.versionGraph.activeId,
-													) + 1
-												: 0}
-										</span>
-									</button>
+											<Icon
+												name="git-compare"
+												style={{ width: 11, height: 11 }}
+											/>
+											<span
+												style={{
+													fontSize: "10px",
+													fontWeight: 700,
+													letterSpacing: "0.02em",
+												}}
+											>
+												v
+												{versions.length > 0 && activeTab
+													? versions.findIndex(
+															(v) => v.id === activeTab.versionGraph.activeId,
+														) + 1
+													: 0}
+											</span>
+										</button>
+										{showVersionDropdown &&
+											versions.length > 0 &&
+											typeof document !== "undefined" &&
+											createPortal(
+												<div
+													className="version-dropdown-menu menu-panel fixed z-[10001] overflow-y-auto slide-in-from-top-2 animate-in"
+													style={{
+														top:
+															(versionDropdownRef.current?.getBoundingClientRect()
+																.bottom || 0) + 4,
+														left:
+															versionDropdownRef.current?.getBoundingClientRect()
+																.left || 0,
+														width:
+															versionDropdownRef.current?.getBoundingClientRect()
+																.width || 0,
+														maxHeight: 300,
+													}}
+												>
+													{versions.map((version, index) => {
+														const versionNum = index + 1;
+														const isCurrentVersion = Boolean(
+															activeTab &&
+															version.id === activeTab.versionGraph.activeId,
+														);
+														const isRefinement =
+															version.metadata?.isRefinement === true;
+
+														return (
+															<button
+																key={version.id}
+																type="button"
+																onClick={(e) => {
+																	e.stopPropagation();
+																	if (!isCurrentVersion && activeTab) {
+																		jumpToVersion(version.id);
+																	}
+																}}
+																className="menu-item"
+																style={{
+																	opacity: isCurrentVersion ? 0.6 : 1,
+																	cursor: isCurrentVersion
+																		? "default"
+																		: "pointer",
+																	background: isCurrentVersion
+																		? "var(--color-primary)"
+																		: "transparent",
+																	color: isCurrentVersion
+																		? "var(--color-on-primary)"
+																		: "var(--color-on-surface)",
+																}}
+																disabled={isCurrentVersion}
+															>
+																<span
+																	style={{
+																		display: "flex",
+																		alignItems: "center",
+																		justifyContent: "space-between",
+																		width: "100%",
+																	}}
+																>
+																	<span
+																		style={{
+																			display: "flex",
+																			alignItems: "center",
+																			gap: "8px",
+																		}}
+																	>
+																		<span
+																			style={{
+																				fontSize: "12px",
+																				fontWeight: 600,
+																			}}
+																		>
+																			v{versionNum}
+																		</span>
+																		<span
+																			style={{
+																				fontSize: "11px",
+																				opacity: 0.7,
+																				textTransform: "uppercase",
+																				letterSpacing: "0.05em",
+																			}}
+																		>
+																			{isRefinement ? "Refinement" : "Base"}
+																		</span>
+																	</span>
+																	{isCurrentVersion && (
+																		<Icon
+																			name="check"
+																			style={{ width: 14, height: 14 }}
+																		/>
+																	)}
+																</span>
+															</button>
+														);
+													})}
+												</div>,
+												document.body,
+											)}
+									</div>
 
 									{/* Stats - Hidden on very small screens */}
 									<div
