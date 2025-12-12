@@ -61,7 +61,6 @@ import type {
 	VersionGraph,
 } from "./workbench/types";
 import { useTabManager } from "./workbench/useTabManager";
-import { VersionHistoryModal } from "./workbench/VersionHistoryModal";
 import { VersionNavigator } from "./workbench/VersionNavigator";
 import {
 	appendVersion,
@@ -85,7 +84,6 @@ export default function PromptWorkbench() {
 	const [_modelMenuUp, setModelMenuUp] = useState(false);
 	const modelBtnRef = useRef<HTMLButtonElement | null>(null);
 	const modelMenuRef = useRef<HTMLDivElement | null>(null);
-	const [showVersionHistory, setShowVersionHistory] = useState(false);
 	const [showPresetInfo, setShowPresetInfo] = useState(false);
 	const [justCreatedVersion, setJustCreatedVersion] = useState(false);
 	const [showRefinementContext, setShowRefinementContext] = useState(false);
@@ -130,7 +128,6 @@ export default function PromptWorkbench() {
 	const [_reasoningStyle, setReasoningStyle] = useState<ReasoningStyle>("none");
 	const [_endOfPromptToken, setEndOfPromptToken] = useState("<|endofprompt|>");
 	const [_outputXMLSchema, setOutputXMLSchema] = useState("");
-	const [_identity, setIdentity] = useState("");
 	const [_additionalContext, setAdditionalContext] = useState("");
 	const [_examplesText, setExamplesText] = useState("");
 	const [presets, setPresets] = useState<
@@ -346,7 +343,6 @@ export default function PromptWorkbench() {
 					((o as Record<string, unknown>).outputSchema as string) ??
 					"",
 			);
-			setIdentity(o.identity ?? "");
 			setAdditionalContext(o.additionalContext ?? "");
 			setExamplesText(o.examplesText ?? "");
 			if (trackRecent) {
@@ -479,6 +475,66 @@ export default function PromptWorkbench() {
 		}
 	}, [tabManager.activeTab?.preset, applyPreset, tabManager.activeTab]);
 
+	// Reload presets when window gains focus (e.g., after editing in Preset Studio)
+	useEffect(() => {
+		const handleFocus = () => {
+			// Reload presets when window gains focus
+			const data = getPresets();
+			const list = (data ?? []).map((p: Preset) => ({
+				...(p.id && { id: p.id }),
+				name: p.name,
+				taskType: p.taskType,
+				...(p.options && { options: p.options }),
+			}));
+			setPresets(list);
+		};
+
+		window.addEventListener("focus", handleFocus);
+		return () => window.removeEventListener("focus", handleFocus);
+	}, []);
+
+	// Listen for preset changes from other tabs/windows via localStorage events
+	useEffect(() => {
+		const handleStorageChange = (e: StorageEvent) => {
+			if (e.key === "PC_PRESETS" && e.newValue) {
+				// Presets were updated, reload them
+				try {
+					const data = JSON.parse(e.newValue) as Preset[];
+					const list = (data ?? []).map((p: Preset) => ({
+						...(p.id && { id: p.id }),
+						name: p.name,
+						taskType: p.taskType,
+						...(p.options && { options: p.options }),
+					}));
+					setPresets(list);
+				} catch (error) {
+					console.error("Failed to parse preset changes from storage:", error);
+				}
+			}
+		};
+
+		window.addEventListener("storage", handleStorageChange);
+		return () => window.removeEventListener("storage", handleStorageChange);
+	}, []);
+
+	// Update tabs whose presets have been modified
+	useEffect(() => {
+		if (presets.length === 0) return;
+		if (!tabManager.setPresetForTab) return;
+		const { tabs, setPresetForTab } = tabManager;
+		tabs.forEach((tab) => {
+			if (tab.preset.id) {
+				const updatedPreset = presets.find((p) => p.id === tab.preset.id);
+				if (updatedPreset) {
+					const summary = presetToSummary(updatedPreset);
+					if (JSON.stringify(tab.preset) !== JSON.stringify(summary)) {
+						setPresetForTab(tab.id, summary);
+					}
+				}
+			}
+		});
+	}, [presets, presetToSummary, tabManager]);
+
 	useEffect(() => {
 		if (loadingPresets || presets.length === 0) return;
 
@@ -593,6 +649,7 @@ export default function PromptWorkbench() {
 					typeof tabOptions.temperature === "number"
 						? tabOptions.temperature
 						: 0.7,
+				...(tabOptions.audience?.trim() && { audience: tabOptions.audience.trim() }),
 				...(tabTaskType === "image" &&
 					normalizedImageStyle && { stylePreset: normalizedImageStyle }),
 				...(tabTaskType === "video" &&
@@ -601,9 +658,27 @@ export default function PromptWorkbench() {
 					normalizedAspect && { aspectRatio: normalizedAspect }),
 				...(tabTaskType === "coding" && {
 					includeTests: !!tabOptions.includeTests,
+					...(tabOptions.techStack?.trim() && { techStack: tabOptions.techStack.trim() }),
+					...(tabOptions.projectContext?.trim() && { projectContext: tabOptions.projectContext.trim() }),
+					...(tabOptions.codingConstraints?.trim() && { codingConstraints: tabOptions.codingConstraints.trim() }),
 				}),
 				...(tabTaskType === "research" && {
 					requireCitations: !!tabOptions.requireCitations,
+				}),
+				...(tabTaskType === "writing" && {
+					...(tabOptions.writingStyle && { writingStyle: tabOptions.writingStyle }),
+					...(tabOptions.pointOfView && { pointOfView: tabOptions.pointOfView }),
+					...(tabOptions.readingLevel && { readingLevel: tabOptions.readingLevel }),
+					...(typeof tabOptions.targetWordCount === "number" && {
+						targetWordCount: tabOptions.targetWordCount,
+					}),
+					includeHeadings: !!tabOptions.includeHeadings,
+				}),
+				...(tabTaskType === "marketing" && {
+					...(tabOptions.marketingChannel && { marketingChannel: tabOptions.marketingChannel }),
+					...(tabOptions.ctaStyle && { ctaStyle: tabOptions.ctaStyle }),
+					...(tabOptions.valueProps?.trim() && { valueProps: tabOptions.valueProps.trim() }),
+					...(tabOptions.complianceNotes?.trim() && { complianceNotes: tabOptions.complianceNotes.trim() }),
 				}),
 				...(tabTaskType === "video" && {
 					...(normalizedCamera && { cameraMovement: normalizedCamera }),
@@ -625,7 +700,12 @@ export default function PromptWorkbench() {
 					tabOptions.outputXMLSchema && {
 						outputXMLSchema: tabOptions.outputXMLSchema,
 					}),
-				...(tabOptions.identity && { identity: tabOptions.identity }),
+				...(tabOptions.identity?.trim() && {
+					identity: tabOptions.identity.trim(),
+				}),
+				...(tabOptions.styleGuidelines?.trim() && {
+					styleGuidelines: tabOptions.styleGuidelines.trim(),
+				}),
 				...(tabOptions.additionalContext && {
 					additionalContext: tabOptions.additionalContext,
 				}),
@@ -2113,7 +2193,6 @@ export default function PromptWorkbench() {
 								versionGraph={activeTab.versionGraph}
 								onPrev={goToPreviousVersion}
 								onNext={goToNextVersion}
-								onOpenHistory={() => setShowVersionHistory(true)}
 								isGenerating={activeTab.sending}
 								justCreatedVersion={justCreatedVersion}
 							/>
@@ -2178,13 +2257,12 @@ export default function PromptWorkbench() {
 									<button
 										type="button"
 										className={`md-btn ${versions.length > 0 ? "md-btn" : ""}`}
-										onClick={() => {
-											if (versions.length > 0) setShowVersionHistory(true);
-										}}
 										disabled={versions.length === 0}
 										title={
-											versions.length > 0
-												? "View version history"
+											versions.length > 0 && activeTab
+												? `Version ${versions.findIndex(
+														(v) => v.id === activeTab?.versionGraph.activeId,
+													) + 1}`
 												: "No versions"
 										}
 									>
@@ -2444,39 +2522,6 @@ export default function PromptWorkbench() {
 					open={settingsOpen}
 					onClose={() => setSettingsOpen(false)}
 					initialTab={settingsInitialTab}
-				/>
-			)}
-
-			{/* Version History Modal */}
-			{activeTab && (
-				<VersionHistoryModal
-					open={showVersionHistory}
-					onClose={() => setShowVersionHistory(false)}
-					versions={versions}
-					activeVersionId={activeTab.versionGraph.activeId}
-					onJumpToVersion={(versionId) => {
-						// Get the version node
-						const versionNode = activeTab.versionGraph.nodes[versionId];
-						// Keep draft empty when jumping to a version that has output (refinement mode)
-						// The original input is shown in the context preview, not the editable field
-						if (versionNode && !versionNode.outputMessageId) {
-							tabManager.updateDraft(
-								versionNode.originalInput || versionNode.content,
-							);
-						} else {
-							tabManager.updateDraft("");
-						}
-						// Update the version graph to point to this version
-						const updatedGraph = {
-							...activeTab.versionGraph,
-							activeId: versionId,
-						};
-						tabManager.setVersionGraph(updatedGraph);
-						tabManager.markDirty(false);
-					}}
-					messages={activeMessages}
-					onCopy={copyMessage}
-					copiedMessageId={copiedMessageId}
 				/>
 			)}
 
