@@ -8,7 +8,7 @@ interface VersionNavigatorProps {
 	versionGraph: VersionGraph;
 	onPrev: () => void;
 	onNext: () => void;
-	onOpenHistory: () => void;
+	onOpenHistory?: () => void;
 	isGenerating?: boolean;
 	justCreatedVersion?: boolean;
 }
@@ -76,6 +76,7 @@ export function VersionNavigator({
 				type="button"
 				className="version-nav-vertical__center"
 				onClick={onOpenHistory}
+				disabled={!onOpenHistory}
 				title={tooltipText}
 				aria-label="View version history"
 			>

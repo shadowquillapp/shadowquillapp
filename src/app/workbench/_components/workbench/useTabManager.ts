@@ -601,6 +601,16 @@ export function useTabManager() {
 		dispatch({ type: "SET_TAB_ERROR", payload: { tabId, error } });
 	}, []);
 
+	const setPresetForTab = useCallback(
+		(tabId: string, preset: PromptPresetSummary) => {
+			dispatch({
+				type: "SET_TAB_PRESET",
+				payload: { tabId, preset },
+			});
+		},
+		[],
+	);
+
 	return {
 		tabs: state.tabs,
 		activeTabId: state.activeTabId,
@@ -632,5 +642,6 @@ export function useTabManager() {
 		setVersionGraphForTab,
 		attachProjectForTab,
 		setErrorForTab,
+		setPresetForTab,
 	};
 }
