@@ -67,7 +67,7 @@
 		"@types/node": "^24.10.4",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"@vitest/coverage-v8": "^4.0.15",
+		"@vitest/coverage-v8": "^4.0.16",
 		"conventional-changelog-conventionalcommits": "^9.1.0",
 		"electron": "^39.2.7",
 		"electron-builder": "^26.0.12",
@@ -75,7 +75,7 @@
 		"semantic-release": "^25.0.2",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3",
-		"vitest": "^4.0.15"
+		"vitest": "^4.0.16"
 	},
 	"build": {
 		"appId": "shadowquillapp",
