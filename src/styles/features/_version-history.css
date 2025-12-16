@@ -471,7 +471,12 @@
 }
 
 .version-nav-vertical--generating {
-	display: none;
+	opacity: 0;
+	transform: scale(0.9);
+	pointer-events: none;
+	transition:
+		opacity 0.2s ease,
+		transform 0.2s ease;
 }
 
 .version-nav-vertical__btn:disabled {

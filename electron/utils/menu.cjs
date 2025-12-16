@@ -85,8 +85,8 @@ function createApplicationMenu() {
 					click: () => {
 						const w = BrowserWindow.getFocusedWindow();
 						if (w) {
-							w.webContents.setZoomFactor(1.0);
-							w.webContents.send("shadowquill:zoom:changed", 1.0);
+							w.webContents.setZoomFactor(1.15);
+							w.webContents.send("shadowquill:zoom:changed", 1.15);
 						}
 					},
 				},

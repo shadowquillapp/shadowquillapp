@@ -24,13 +24,13 @@ export function ModelSelector({
 
 	return (
 		<div
-			className="absolute z-10"
+			className="model-selector absolute z-10"
 			style={{
 				left: "var(--space-4)",
 				bottom: "var(--space-4)",
-				// Disable during generation
+				// Disable during generation - handled by parent CSS
 				pointerEvents: isGenerating ? "none" : "auto",
-				opacity: isGenerating ? 0.5 : 1,
+				transition: "opacity 0.2s ease",
 			}}
 		>
 			{/* Vertical Slider Model Selector */}

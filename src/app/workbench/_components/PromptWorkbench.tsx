@@ -248,27 +248,9 @@ export default function PromptWorkbench() {
 					}
 				}
 			`}</style>
-			<div className="simple-workbench" style={{ position: "relative" }}>
-				{/* Generation Overlay - blocks all interactions except stop button in left panel */}
-				{isGenerating && (
-					<div
-						className="generation-overlay"
-						style={{
-							position: "absolute",
-							inset: 0,
-							backgroundColor: "rgba(255, 255, 255, 0.08)",
-							zIndex: 100,
-							pointerEvents: "auto",
-							cursor: "not-allowed",
-							transition: "opacity 0.2s ease",
-							backdropFilter: "blur(1px) brightness(0.85)",
-						}}
-						onClick={(e) => e.stopPropagation()}
-						onKeyDown={(e) => e.stopPropagation()}
-						role="presentation"
-						aria-hidden="true"
-					/>
-				)}
+			<div
+				className={`simple-workbench ${isGenerating ? "workbench--generating" : ""}`}
+			>
 				<header
 					className="simple-workbench__header"
 					style={{
@@ -432,7 +414,6 @@ export default function PromptWorkbench() {
 					<OutputPanel
 						tabManager={tabManager}
 						isResizing={isResizing}
-						isGenerating={isGenerating}
 						versionDropdownRef={versionDropdownRef}
 						showVersionDropdown={showVersionDropdown}
 						setShowVersionDropdown={setShowVersionDropdown}

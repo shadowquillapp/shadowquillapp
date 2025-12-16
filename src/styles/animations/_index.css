@@ -109,19 +109,108 @@
 	animation: version-switch 200ms ease-out;
 }
 
-@keyframes generating-pulse {
+/* ========================================
+ * GENERATION STATE ANIMATIONS
+ * ======================================== */
+
+@keyframes generating-border-shimmer {
 	0%,
 	100% {
 		border-color: var(--color-outline);
 	}
 	50% {
-		border-color: var(--color-primary);
+		border-color: color-mix(
+			in srgb,
+			var(--color-primary) 50%,
+			var(--color-outline)
+		);
 	}
 }
 
+@keyframes generating-soft-glow {
+	0%,
+	100% {
+		box-shadow:
+			0 6px 12px rgba(0, 0, 0, 0.18),
+			0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
+	}
+	50% {
+		box-shadow:
+			0 6px 12px rgba(0, 0, 0, 0.18),
+			0 0 16px 1px color-mix(in srgb, var(--color-primary) 20%, transparent);
+	}
+}
+
+/* ----------------------------------------
+ * Workbench Generating State
+ * Elegant dimming with smooth transitions
+ * ---------------------------------------- */
+
+/* Header dims during generation */
+.workbench--generating .simple-workbench__header {
+	opacity: 0.35;
+	pointer-events: none;
+	filter: saturate(0.7);
+	transition:
+		opacity 0.4s ease,
+		filter 0.4s ease;
+}
+
+/* Input pane dims but remains visible */
+.workbench--generating .prompt-input-pane {
+	opacity: 0.45;
+	filter: saturate(0.8);
+	transition:
+		opacity 0.4s ease,
+		filter 0.4s ease;
+}
+
+/* Disable interactions on input pane content during generation */
+.workbench--generating .prompt-input-pane textarea,
+.workbench--generating .prompt-input-pane .model-selector {
+	pointer-events: none;
+}
+
+/* Keep the stop button fully visible and interactive */
+.workbench--generating .prompt-input-pane .run-button-container {
+	opacity: 1;
+	pointer-events: auto;
+	filter: none;
+	/* Subtle pulse to draw attention */
+	animation: generating-stop-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes generating-stop-pulse {
+	0%,
+	100% {
+		transform: scale(1);
+	}
+	50% {
+		transform: scale(1.05);
+	}
+}
+
+/* Output panel stays fully visible with subtle activity indicator */
 .output-generating {
-	/* No glowing/pulsing effects */
-	animation: none;
+	animation:
+		generating-border-shimmer 2.5s ease-in-out infinite,
+		generating-soft-glow 2.5s ease-in-out infinite;
+}
+
+/* Resize handle dims during generation */
+.workbench--generating .panel-resize-container {
+	opacity: 0.3;
+	pointer-events: none;
+	transition: opacity 0.3s ease;
+}
+
+/* Restore normal state when not generating */
+.simple-workbench__header,
+.prompt-input-pane,
+.panel-resize-container {
+	transition:
+		opacity 0.3s ease,
+		filter 0.3s ease;
 }
 
 /* ========================================
