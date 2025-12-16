@@ -163,29 +163,12 @@ export function getDefaultPresets(): Preset[] {
 				includeVerification: true,
 				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Act as a proactive executive assistant. Ask clarifying questions when requirements are ambiguous, suggest next steps, and present answers with concise bullet points plus a short recommendation.",
+					"Act as a helpful assistant for everyday tasks. Provide clear, actionable answers with bullet points when appropriate.",
 			},
 		},
 		{
-			id: "brainstormer",
-			name: "Brainstormer",
-			taskType: "general",
-			options: {
-				tone: "friendly",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				temperature: 0.85,
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "tree_of_thought",
-				additionalContext:
-					"Generate diverse idea sets. Label quick wins vs bold bets, highlight required resources, and combine compatible ideas into themed clusters.",
-			},
-		},
-		{
-			id: "smart-summarizer",
-			name: "Summary Ultra",
+			id: "quick-summarizer",
+			name: "Quick Summary",
 			taskType: "general",
 			options: {
 				tone: "neutral",
@@ -194,34 +177,34 @@ export function getDefaultPresets(): Preset[] {
 				language: "English",
 				temperature: 0.35,
 				useDelimiters: true,
-				includeVerification: true,
+				includeVerification: false,
 				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Turn long-form content into layered summaries. Always include sections for Key Takeaways, Action Items with owners, and Open Questions.",
+					"Create concise summaries of content. Extract key points and main ideas in a clean, scannable format.",
 			},
 		},
 		// Coding
 		{
-			id: "code-architect",
-			name: "Code Architect",
+			id: "code-helper",
+			name: "Code Helper",
 			taskType: "coding",
 			options: {
 				tone: "technical",
-				detail: "detailed",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
 				temperature: 0.3,
-				includeTests: true,
+				includeTests: false,
 				useDelimiters: true,
 				includeVerification: true,
 				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Design scalable, maintainable solutions. Outline architecture, data contracts, failure modes, and provide pseudocode before final implementation.",
+					"Assist with coding tasks. Provide clean, working code with brief explanations. Focus on practical solutions.",
 			},
 		},
 		{
-			id: "bug-fixer",
-			name: "Bug Fixer",
+			id: "bug-hunter",
+			name: "Bug Hunter",
 			taskType: "coding",
 			options: {
 				tone: "technical",
@@ -234,50 +217,51 @@ export function getDefaultPresets(): Preset[] {
 				includeVerification: true,
 				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Diagnose and resolve defects. Summarize reproduction steps, root cause analysis, patch strategy, and regression tests to run.",
+					"Diagnose and fix bugs systematically. Include reproduction steps, root cause analysis, solution implementation, and test cases to prevent regression.",
 			},
 		},
+		// Writing
 		{
-			id: "code-explainer",
-			name: "Code Explainer",
-			taskType: "coding",
-			options: {
-				tone: "friendly",
-				detail: "detailed",
-				format: "markdown",
-				language: "English",
-				temperature: 0.35,
-				includeTests: false,
-				useDelimiters: false,
-				includeVerification: true,
-				reasoningStyle: "plan_then_solve",
-				additionalContext:
-					"Explain codebases to cross-functional teammates. Break down what the code does, why it was implemented that way, and opportunities for improvement.",
-			},
-		},
-		{
-			id: "inbox-zero",
-			name: "Email Pro",
+			id: "email-drafter",
+			name: "Email Draft",
 			taskType: "writing",
 			options: {
 				tone: "friendly",
-				detail: "normal",
+				detail: "brief",
 				format: "plain",
 				language: "English",
 				temperature: 0.45,
 				writingStyle: "expository",
 				pointOfView: "second",
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "plan_then_solve",
+				useDelimiters: false,
+				includeVerification: false,
+				reasoningStyle: "none",
 				additionalContext:
-					"Draft concise professional emails. Include a subject line, greeting, body (with bullets when helpful), and a clear call to action or next step.",
+					"Draft professional emails quickly. Keep them concise and clear with a subject line and appropriate greeting.",
 			},
 		},
 		// Research
 		{
-			id: "deep-research",
-			name: "Deep Research",
+			id: "research-assistant",
+			name: "Research Assistant",
+			taskType: "research",
+			options: {
+				tone: "neutral",
+				detail: "normal",
+				format: "markdown",
+				language: "English",
+				temperature: 0.4,
+				requireCitations: true,
+				useDelimiters: true,
+				includeVerification: true,
+				reasoningStyle: "cot",
+				additionalContext:
+					"Help with research tasks. Present findings clearly with proper citations and balanced perspectives on the topic.",
+			},
+		},
+		{
+			id: "deep-analyst",
+			name: "Deep Analyst",
 			taskType: "research",
 			options: {
 				tone: "formal",
@@ -290,13 +274,13 @@ export function getDefaultPresets(): Preset[] {
 				includeVerification: true,
 				reasoningStyle: "cot",
 				additionalContext:
-					"Conduct thorough, academic-quality research. Provide sections for Executive Summary, Evidence, Counterpoints, Risks, and Recommendations, citing reputable sources.",
+					"Conduct comprehensive analysis with academic rigor. Provide executive summary, detailed evidence, counterarguments, risk assessment, and well-supported recommendations with citations.",
 			},
 		},
 		// Marketing
 		{
-			id: "social-media",
-			name: "Social Media",
+			id: "social-post",
+			name: "Social Post",
 			taskType: "marketing",
 			options: {
 				tone: "friendly",
@@ -310,7 +294,54 @@ export function getDefaultPresets(): Preset[] {
 				includeVerification: false,
 				reasoningStyle: "none",
 				additionalContext:
-					"Create platform-ready social posts. Provide hook, caption, CTA, hashtags, and a suggested visual concept tailored for the intended platform.",
+					"Create engaging social media posts. Include hook, main content, relevant hashtags, and optional call-to-action.",
+			},
+		},
+		// Image Generation
+		{
+			id: "image-creator",
+			name: "Image Creator",
+			taskType: "image",
+			options: {
+				tone: "neutral",
+				detail: "normal",
+				format: "markdown",
+				language: "English",
+				temperature: 0.7,
+				stylePreset: "photorealistic",
+				aspectRatio: "16:9",
+				targetResolution: "1080p",
+				useDelimiters: false,
+				includeVerification: false,
+				reasoningStyle: "none",
+				additionalContext:
+					"Generate detailed image prompts for AI image generation. Describe subjects, composition, lighting, mood, and style clearly.",
+			},
+		},
+		// Video Generation
+		{
+			id: "video-creator",
+			name: "Video Creator",
+			taskType: "video",
+			options: {
+				tone: "neutral",
+				detail: "normal",
+				format: "markdown",
+				language: "English",
+				temperature: 0.7,
+				stylePreset: "cinematic",
+				aspectRatio: "16:9",
+				targetResolution: "1080p",
+				cameraMovement: "dolly",
+				shotType: "medium",
+				durationSeconds: 10,
+				frameRate: 30,
+				includeStoryboard: false,
+				useDelimiters: false,
+				includeVerification: false,
+				reasoningStyle: "plan_then_solve",
+				additionalContext:
+					"Generate video prompts for AI video generation. Describe scene, action, camera work, and visual flow clearly.",
 			},
 		},
 	];
