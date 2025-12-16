@@ -477,34 +477,6 @@ export default function OllamaSetupContent() {
 					</button>
 				</footer>
 			</section>
-
-			<aside className="ollama-guide">
-				<div className="ollama-guide-card">
-					<p className="ollama-panel__eyebrow">Checklist</p>
-					<h4>Ready your workstation</h4>
-					<ol>
-						<li>Install Ollama and launch the desktop app</li>
-						<li>Pull a Gemma 3 build (4B fits most machines)</li>
-						<li>Keep Ollama running in the background</li>
-					</ol>
-				</div>
-				<div className="ollama-guide-card">
-					<p className="ollama-panel__eyebrow">Tips</p>
-					<ul>
-						<li>
-							Ollama defaults to <code>http://localhost:11434</code>
-						</li>
-						<li>
-							Need to reset/remove models quickly? Run{" "}
-							<code>ollama rm gemma3:*</code> to clear old downloads
-						</li>
-						<li>
-							If you prefer CPU-only inference, pick the smallest Gemma variant
-							for smoother runs (e.g. gemma3:4b)
-						</li>
-					</ul>
-				</div>
-			</aside>
 		</form>
 	);
 }

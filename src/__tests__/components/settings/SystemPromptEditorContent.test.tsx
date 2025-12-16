@@ -80,19 +80,6 @@ describe("SystemPromptEditorContent", () => {
 	});
 
 	describe("read-only behavior", () => {
-		it("should display read-only information", async () => {
-			render(<SystemPromptEditorContent />);
-
-			await waitFor(() => {
-				expect(screen.getByText("Read-only view")).toBeInTheDocument();
-				expect(
-					screen.getByText(
-						"The system prompt is displayed here for reference. It cannot be modified through this interface.",
-					),
-				).toBeInTheDocument();
-			});
-		});
-
 		it("should have correct subtitle indicating view-only", async () => {
 			render(<SystemPromptEditorContent />);
 
@@ -102,16 +89,6 @@ describe("SystemPromptEditorContent", () => {
 						"View the AI's core instructions and behavior patterns.",
 					),
 				).toBeInTheDocument();
-			});
-		});
-	});
-
-	describe("guide section", () => {
-		it("should display read-only information guide", async () => {
-			render(<SystemPromptEditorContent />);
-
-			await waitFor(() => {
-				expect(screen.getByText("Read-only view")).toBeInTheDocument();
 			});
 		});
 	});
