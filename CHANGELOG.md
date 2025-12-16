@@ -1,3 +1,20 @@
+# [0.9.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.8.0...v0.9.0) (2025-12-16)
+
+
+### Bug Fixes
+
+* daily helper as default tab ([27d0518](https://github.com/shadowquillapp/shadowquillapp/commit/27d05184850cc5fc9bf7ea1efff3662d47958008))
+* remove tips from settings, un-necessary clutter. ([a11fd8e](https://github.com/shadowquillapp/shadowquillapp/commit/a11fd8ed1bb62ba43f22ca7237103a82171d9790))
+* simplify display settings for ease of use. ([bf65e6e](https://github.com/shadowquillapp/shadowquillapp/commit/bf65e6e2bf531dd446cb658d0e877d1c7ea3238d))
+* zoom in shortcut simplified to control+ insteading of control-shift + ([47bb7c2](https://github.com/shadowquillapp/shadowquillapp/commit/47bb7c2742d74879ff96c00141c6443e0ba80a3d))
+* zoom shortcut fix - allow control/cmd scroll wheel shortcut ([39bf757](https://github.com/shadowquillapp/shadowquillapp/commit/39bf757bd2879495d351e6a9d5f99d77fda9a890))
+
+
+### Features
+
+* check for updates ([b62c044](https://github.com/shadowquillapp/shadowquillapp/commit/b62c044c8b20ce252fc142ab8691b3034c10e956))
+* new default presets ([64b116b](https://github.com/shadowquillapp/shadowquillapp/commit/64b116b926e5a37905b30f62c59c2fc150bbfe3b))
+
 # [0.8.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.7.2...v0.8.0) (2025-12-12)
 
 
