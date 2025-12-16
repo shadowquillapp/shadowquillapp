@@ -159,9 +159,12 @@
 			"allowToChangeInstallationDirectory": true
 		}
 	},
-	"overrides": {
-		"glob": "^11.0.4",
-		"baseline-browser-mapping": "*"
+	"pnpm": {
+		"overrides": {
+			"glob": "^11.0.4",
+			"baseline-browser-mapping": "*",
+			"tmp": ">=0.2.4"
+		}
 	},
 	"postcss": {
 		"plugins": {
