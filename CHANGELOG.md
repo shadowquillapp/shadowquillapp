@@ -1,3 +1,10 @@
+## [0.9.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.0...v0.9.1) (2025-12-16)
+
+
+### Bug Fixes
+
+* preset defaults ([8c6d634](https://github.com/shadowquillapp/shadowquillapp/commit/8c6d634a80e605e1b65b440e0db5f2b09ab684d4))
+
 # [0.9.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.8.0...v0.9.0) (2025-12-16)
 
 
