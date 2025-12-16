@@ -92,7 +92,7 @@ function createApplicationMenu() {
 				},
 				{
 					label: "Zoom In",
-					accelerator: "CmdOrCtrl+Plus",
+					accelerator: "CmdOrCtrl+=",
 					click: () => {
 						const w = BrowserWindow.getFocusedWindow();
 						if (w) {
