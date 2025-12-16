@@ -20,8 +20,8 @@ export default function StudioHeader({
 	const router = useRouter();
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [settingsInitialTab, setSettingsInitialTab] = useState<
-		"system" | "ollama" | "data" | "display"
-	>("ollama");
+		"system" | "ollama" | "data" | "display" | "version"
+	>("version");
 
 	// Global event to open Settings dialog with initial tab
 	useEffect(() => {

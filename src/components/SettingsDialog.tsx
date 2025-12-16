@@ -13,11 +13,11 @@ export type SettingsTab = "system" | "ollama" | "data" | "display" | "version";
 
 // Tab order for determining animation direction
 const TAB_ORDER: SettingsTab[] = [
+	"version",
+	"display",
+	"data",
 	"ollama",
 	"system",
-	"data",
-	"display",
-	"version",
 ];
 
 interface Props {
@@ -29,7 +29,7 @@ interface Props {
 export default function SettingsDialog({
 	open,
 	onClose,
-	initialTab = "ollama",
+	initialTab = "version",
 }: Props) {
 	const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
 	const [displayedTab, setDisplayedTab] = useState<SettingsTab | string>(
@@ -339,11 +339,11 @@ export default function SettingsDialog({
 								overflow: "hidden",
 							}}
 						>
+							<TabItem tab="version" label="App Version" />
+							<TabItem tab="display" label="Display" />
+							<TabItem tab="data" label="Data Management" />
 							<TabItem tab="ollama" label="Ollama Setup" />
 							<TabItem tab="system" label="System Prompt" />
-							<TabItem tab="data" label="Data Management" />
-							<TabItem tab="display" label="Display" />
-							<TabItem tab="version" label="App Version" />
 						</nav>
 						{/* Right content */}
 						<div
