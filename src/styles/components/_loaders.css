@@ -35,17 +35,9 @@
 	font-weight: 700;
 	font-size: 16px;
 	letter-spacing: 0.5px;
-	background: linear-gradient(
-		90deg,
-		var(--color-on-surface-variant) 0%,
-		var(--color-primary) 50%,
-		var(--color-on-surface-variant) 100%
-	);
-	background-size: 200% 100%;
-	-webkit-background-clip: text;
-	background-clip: text;
-	-webkit-text-fill-color: transparent;
-	animation: luxury-shimmer 3s linear infinite;
+	/* No gradients — flat text color */
+	color: var(--color-on-surface-variant);
+	animation: none;
 }
 
 /* ========================================

@@ -29,134 +29,133 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 		}
 	};
 
+	const formatLabel = preset.options?.format
+		? preset.options.format === "plain"
+			? "Plain"
+			: preset.options.format === "markdown"
+				? "MD"
+				: preset.options.format.toUpperCase()
+		: null;
+
+	const meta: Array<string> = [];
+	if (preset.options?.tone) meta.push(preset.options.tone);
+	if (formatLabel) meta.push(formatLabel);
+	if (preset.options?.detail) meta.push(preset.options.detail);
+	if (typeof preset.options?.temperature === "number") {
+		meta.push(preset.options.temperature.toFixed(1));
+	}
+
+	// Keep the row compact: show only a few meta chips and summarize the rest.
+	const MAX_META = 3;
+	const visibleMeta = meta.slice(0, MAX_META);
+	const hiddenMetaCount = Math.max(0, meta.length - visibleMeta.length);
+
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: Cannot use <button> because it contains a nested <button> for editing
-		<div
-			role="button"
-			tabIndex={0}
-			className="flex cursor-pointer items-center rounded-xl text-left transition-all hover:opacity-90"
+		<button
+			type="button"
+			className="group flex w-full cursor-pointer items-center rounded-lg text-left transition-all hover:opacity-95 focus-visible:outline focus-visible:outline-1 focus-visible:outline-[var(--color-outline)]"
 			style={{
-				gap: "var(--space-3)",
-				padding: "var(--space-3)",
+				gap: 6,
+				padding: "6px 8px",
 				background:
-					"linear-gradient(135deg, color-mix(in srgb, var(--color-primary), var(--color-surface-variant) 85%) 0%, var(--color-surface-variant) 100%)",
+					"color-mix(in srgb, var(--color-primary), var(--color-surface-variant) 92%)",
 				border:
-					"1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
-				boxShadow:
-					"0 2px 8px color-mix(in srgb, var(--color-primary), transparent 85%)",
+					"1px solid color-mix(in srgb, var(--color-outline), var(--color-primary) 30%)",
+				boxShadow: "none",
 			}}
 			onClick={onClick}
-			onKeyDown={(e) => {
-				if (e.key === "Enter" || e.key === " ") {
-					e.preventDefault();
-					onClick();
-				}
-			}}
 			title="Click for full preset details"
 		>
 			{/* Icon */}
 			<div
 				className="flex shrink-0 items-center justify-center"
-				style={{
-					color: "var(--color-primary)",
-				}}
+				style={{ color: "var(--color-primary)" }}
 			>
 				<Icon
 					name={getIconName(preset.taskType)}
-					style={{ width: 16, height: 16 }}
+					style={{ width: 12, height: 12 }}
 				/>
 			</div>
 
-			{/* Title & Type */}
+			{/* Content - single line */}
 			<div
-				className="flex min-w-0 flex-1 items-center"
-				style={{ gap: "var(--space-3)" }}
+				className="flex min-w-0 flex-1 items-center overflow-hidden"
+				style={{ gap: 6 }}
 			>
-				<span className="min-w-0 flex-1 truncate font-bold text-[13px] text-on-surface leading-tight">
+				<span className="shrink-0 font-bold text-[11px] text-on-surface leading-none">
 					{preset.name}
 				</span>
-
-				{/* Tags Row */}
-				<div
-					className="flex shrink-0 flex-wrap items-center"
-					style={{ gap: "var(--space-2)" }}
+				<span
+					className="shrink-0"
+					style={{
+						fontSize: 7,
+						fontWeight: 800,
+						textTransform: "uppercase",
+						letterSpacing: "0.04em",
+						color: "var(--color-primary)",
+						background:
+							"color-mix(in srgb, var(--color-primary), var(--color-surface) 92%)",
+						border:
+							"1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
+						padding: "1px 4px",
+						borderRadius: 999,
+						lineHeight: "9px",
+					}}
 				>
-					{/* Task Type Badge */}
+					{preset.taskType}
+				</span>
+				{/* Meta chips - inline */}
+				{visibleMeta.map((item) => (
 					<span
+						key={item}
+						className="shrink-0"
 						style={{
-							fontSize: 9,
-							fontWeight: 700,
-							textTransform: "uppercase",
-							letterSpacing: "0.05em",
-							color: "var(--color-primary)",
-							opacity: 0.9,
+							fontSize: 7,
+							color: "var(--color-on-surface-variant)",
+							opacity: 0.7,
+							background:
+								"color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 80%)",
+							border:
+								"1px solid color-mix(in srgb, var(--color-outline), transparent 35%)",
+							padding: "1px 4px",
+							borderRadius: 999,
+							lineHeight: "9px",
+							textTransform:
+								item === item.toUpperCase() ? "none" : "capitalize",
+							fontVariantNumeric: "tabular-nums",
+						}}
+						title={item}
+					>
+						{item}
+					</span>
+				))}
+				{hiddenMetaCount > 0 && (
+					<span
+						className="shrink-0"
+						style={{
+							fontSize: 7,
+							color: "var(--color-on-surface-variant)",
+							opacity: 0.6,
+							fontWeight: 600,
 						}}
 					>
-						{preset.taskType}
+						+{hiddenMetaCount}
 					</span>
-
-					{/* Separator */}
-					{(preset.options?.tone ||
-						preset.options?.format ||
-						preset.options?.detail ||
-						typeof preset.options?.temperature === "number") && (
-						<span style={{ opacity: 0.3, fontSize: 9 }}>•</span>
-					)}
-
-					{/* Metadata Tags - Inline */}
-					{preset.options?.tone && (
-						<span
-							style={{
-								fontSize: 9,
-								color: "var(--color-on-surface-variant)",
-								opacity: 0.7,
-								textTransform: "capitalize",
-							}}
-						>
-							{preset.options.tone}
-						</span>
-					)}
-					{preset.options?.format && (
-						<span
-							style={{
-								fontSize: 9,
-								color: "var(--color-on-surface-variant)",
-								opacity: 0.7,
-							}}
-						>
-							{preset.options.format === "plain"
-								? "Plain"
-								: preset.options.format === "markdown"
-									? "MD"
-									: preset.options.format.toUpperCase()}
-						</span>
-					)}
-					{preset.options?.detail && (
-						<span
-							style={{
-								fontSize: 9,
-								color: "var(--color-on-surface-variant)",
-								opacity: 0.7,
-								textTransform: "capitalize",
-							}}
-						>
-							{preset.options.detail}
-						</span>
-					)}
-					{typeof preset.options?.temperature === "number" && (
-						<span
-							style={{
-								fontSize: 9,
-								color: "var(--color-on-surface-variant)",
-								opacity: 0.7,
-								fontVariantNumeric: "tabular-nums",
-							}}
-						>
-							{preset.options.temperature.toFixed(1)}
-						</span>
-					)}
-				</div>
+				)}
 			</div>
-		</div>
+
+			{/* Chevron */}
+			<div
+				className="flex shrink-0 items-center justify-center"
+				style={{
+					color:
+						"color-mix(in srgb, var(--color-on-surface-variant), transparent 25%)",
+					transition: "transform 120ms ease",
+					opacity: 0.75,
+				}}
+			>
+				<Icon name="chevron-right" style={{ width: 12, height: 12 }} />
+			</div>
+		</button>
 	);
 }

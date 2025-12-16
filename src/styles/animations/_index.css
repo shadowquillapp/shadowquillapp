@@ -32,18 +32,11 @@
  * ======================================== */
 
 @keyframes version-pulse {
-	0% {
-		transform: scale(1);
-		box-shadow: 0 0 0 0 var(--color-primary);
-	}
-	50% {
-		transform: scale(1.02);
-		box-shadow: 0 0 0 4px
-			color-mix(in srgb, var(--color-primary) 30%, transparent);
-	}
+	0%,
+	50%,
 	100% {
 		transform: scale(1);
-		box-shadow: 0 0 0 0 transparent;
+		box-shadow: none;
 	}
 }
 
@@ -51,12 +44,11 @@
 	0%,
 	100% {
 		transform: scale(1);
-		box-shadow: 0 0 0 0 var(--color-primary);
+		box-shadow: none;
 	}
 	50% {
-		transform: scale(1.05);
-		box-shadow: 0 0 0 3px
-			color-mix(in srgb, var(--color-primary) 25%, transparent);
+		transform: scale(1);
+		box-shadow: none;
 	}
 }
 
@@ -128,7 +120,8 @@
 }
 
 .output-generating {
-	animation: generating-pulse 1.5s ease-in-out infinite;
+	/* No glowing/pulsing effects */
+	animation: none;
 }
 
 /* ========================================

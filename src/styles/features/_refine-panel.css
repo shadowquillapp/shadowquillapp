@@ -301,12 +301,11 @@
 }
 
 .refine-timeline__item--current .refine-timeline__node {
-	box-shadow: 0 0 0 1px
-		color-mix(in srgb, var(--color-primary), transparent 70%);
+	box-shadow: none;
 }
 
 .refine-timeline__item--current .refine-timeline__node--base {
-	box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-save), transparent 70%);
+	box-shadow: none;
 }
 
 /* ========================================
@@ -340,8 +339,7 @@
 		var(--color-surface) 60%
 	);
 	border-color: color-mix(in srgb, var(--color-outline), transparent 0%);
-	box-shadow: 0 0 0 1px
-		color-mix(in srgb, var(--color-primary), transparent 85%);
+	box-shadow: none;
 }
 
 .refine-timeline__item--current:hover .refine-timeline__content {
