@@ -6,7 +6,7 @@ import type { useTabManager } from "../useTabManager";
 import { mapPresetList, mapPresetToSummary } from "../utils/presetUtils";
 
 /**
- * Hook for managing presets: loading, applying, and syncing with tabs.
+ * Hook for managing presets.
  */
 export function usePresetManager(
 	tabManager: ReturnType<typeof useTabManager>,
@@ -87,7 +87,6 @@ export function usePresetManager(
 		[applyPreset, presetToSummary, tabManager],
 	);
 
-	// Load presets on mount
 	useEffect(() => {
 		const load = async () => {
 			setLoadingPresets(true);
@@ -123,7 +122,6 @@ export function usePresetManager(
 		void load();
 	}, [applyPreset, selectedPresetKey]);
 
-	// Apply preset from session storage
 	useEffect(() => {
 		const applyPresetFromStorage = () => {
 			try {
@@ -140,7 +138,6 @@ export function usePresetManager(
 		applyPresetFromStorage();
 	}, [loadPreset]);
 
-	// Sync component state when active tab changes - CRITICAL for tab isolation
 	useEffect(() => {
 		const activeTab = tabManager.activeTab;
 		if (activeTab?.preset) {
@@ -148,10 +145,8 @@ export function usePresetManager(
 		}
 	}, [tabManager.activeTab?.preset, applyPreset, tabManager.activeTab]);
 
-	// Reload presets when window gains focus (e.g., after editing in Preset Studio)
 	useEffect(() => {
 		const handleFocus = () => {
-			// Reload presets when window gains focus
 			const data = getPresets();
 			const list = mapPresetList(data ?? []);
 			setPresets(list);
@@ -161,11 +156,9 @@ export function usePresetManager(
 		return () => window.removeEventListener("focus", handleFocus);
 	}, []);
 
-	// Listen for preset changes from other tabs/windows via localStorage events
 	useEffect(() => {
 		const handleStorageChange = (e: StorageEvent) => {
 			if (e.key === "PC_PRESETS" && e.newValue) {
-				// Presets were updated, reload them
 				try {
 					const data = JSON.parse(e.newValue) as Preset[];
 					const list = mapPresetList(data ?? []);
@@ -180,7 +173,6 @@ export function usePresetManager(
 		return () => window.removeEventListener("storage", handleStorageChange);
 	}, []);
 
-	// Update tabs whose presets have been modified
 	useEffect(() => {
 		if (presets.length === 0) return;
 		if (!tabManager.setPresetForTab) return;
@@ -197,8 +189,6 @@ export function usePresetManager(
 			}
 		});
 	}, [presets, presetToSummary, tabManager]);
-
-	// Auto-show preset picker when no tabs exist
 	useEffect(() => {
 		if (loadingPresets || presets.length === 0) return;
 
@@ -207,16 +197,21 @@ export function usePresetManager(
 			return;
 		}
 
-		if (!hasAutoShownPresetPicker.current && !showPresetPicker) {
+		if (!hasAutoShownPresetPicker.current) {
 			hasAutoShownPresetPicker.current = true;
-			setShowPresetPicker(true);
-			setPresetPickerForNewTab(true);
+			const dailyHelperPreset = presets.find((p) => p.id === "daily-assistant");
+			if (dailyHelperPreset) {
+				loadPreset(dailyHelperPreset, { trackRecent: false });
+			} else {
+				setShowPresetPicker(true);
+				setPresetPickerForNewTab(true);
+			}
 		}
 	}, [
 		loadingPresets,
-		presets.length,
+		presets,
 		tabManager.tabs.length,
-		showPresetPicker,
+		loadPreset,
 		setShowPresetPicker,
 		setPresetPickerForNewTab,
 	]);

@@ -80,7 +80,7 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 			{/* Content - single line */}
 			<div
 				className="flex min-w-0 flex-1 items-center overflow-hidden"
-				style={{ gap: 6 }}
+				style={{ gap: 8 }}
 			>
 				<span className="shrink-0 font-bold text-[13px] text-on-surface leading-none">
 					{preset.name}
@@ -97,9 +97,9 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 							"color-mix(in srgb, var(--color-primary), var(--color-surface) 92%)",
 						border:
 							"1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
-						padding: "1px 4px",
+						padding: "2px 6px",
 						borderRadius: 999,
-						lineHeight: "11px",
+						lineHeight: "12px",
 					}}
 				>
 					{preset.taskType}
@@ -117,9 +117,9 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 								"color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 80%)",
 							border:
 								"1px solid color-mix(in srgb, var(--color-outline), transparent 35%)",
-							padding: "1px 4px",
+							padding: "2px 6px",
 							borderRadius: 999,
-							lineHeight: "11px",
+							lineHeight: "12px",
 							textTransform:
 								item === item.toUpperCase() ? "none" : "capitalize",
 							fontVariantNumeric: "tabular-nums",
