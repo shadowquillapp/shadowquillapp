@@ -198,23 +198,17 @@ describe("DisplayContent", () => {
 	});
 
 	describe("display stats", () => {
-		it("should toggle display stats visibility", async () => {
-			const user = userEvent.setup();
+		it("should display stats section", () => {
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 			render(<DisplayContent />);
 
-			// Stats should be hidden initially
-			expect(screen.queryByText("Content Area")).not.toBeInTheDocument();
-
-			// Click to show stats
-			await user.click(screen.getByText("Display Stats"));
-
-			expect(screen.getByText("Content Area")).toBeInTheDocument();
-			expect(screen.getByText("OS Window")).toBeInTheDocument();
+			// Stats should always be visible
+			expect(screen.getByText("Display Stats")).toBeInTheDocument();
+			expect(screen.getByText("Window Size")).toBeInTheDocument();
+			expect(screen.getByText("State")).toBeInTheDocument();
 		});
 
 		it("should display window size information", async () => {
-			const user = userEvent.setup();
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 			mockWindowApi.getSize.mockResolvedValue({
 				ok: true,
@@ -225,17 +219,13 @@ describe("DisplayContent", () => {
 			});
 			render(<DisplayContent />);
 
-			await user.click(screen.getByText("Display Stats"));
-
 			await waitFor(() => {
 				expect(screen.getByText("1920 × 1080 px")).toBeInTheDocument();
-				expect(screen.getByText("1904 × 1040 px")).toBeInTheDocument();
 				expect(screen.getByText("Windowed")).toBeInTheDocument();
 			});
 		});
 
 		it("should show Maximized state", async () => {
-			const user = userEvent.setup();
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 			mockWindowApi.getSize.mockResolvedValue({
 				ok: true,
@@ -246,15 +236,12 @@ describe("DisplayContent", () => {
 			});
 			render(<DisplayContent />);
 
-			await user.click(screen.getByText("Display Stats"));
-
 			await waitFor(() => {
 				expect(screen.getByText("Maximized")).toBeInTheDocument();
 			});
 		});
 
 		it("should show Fullscreen state", async () => {
-			const user = userEvent.setup();
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 			mockWindowApi.getSize.mockResolvedValue({
 				ok: true,
@@ -265,22 +252,17 @@ describe("DisplayContent", () => {
 			});
 			render(<DisplayContent />);
 
-			await user.click(screen.getByText("Display Stats"));
-
 			await waitFor(() => {
 				expect(screen.getByText("Fullscreen")).toBeInTheDocument();
 			});
 		});
 
 		it("should show dash for missing window size", async () => {
-			const user = userEvent.setup();
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 			mockWindowApi.getSize.mockResolvedValue({
 				ok: true,
 			});
 			render(<DisplayContent />);
-
-			await user.click(screen.getByText("Display Stats"));
 
 			await waitFor(() => {
 				// Should show dash for unknown values
