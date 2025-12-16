@@ -31,7 +31,7 @@ export default function DisplayContent() {
 	const [available, setAvailable] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
 	const [zoomFactor, setZoomFactor] = React.useState(1);
-	const [contentSize, setContentSize] = React.useState<{
+	const [_contentSize, setContentSize] = React.useState<{
 		w: number;
 		h: number;
 	}>({
@@ -173,13 +173,17 @@ export default function DisplayContent() {
 		{ value: "light" as const, label: "Light", icon: "sun" },
 	];
 
-
 	return (
 		<div className="ollama-setup">
 			<section className="ollama-panel">
 				<header className="ollama-panel__head">
 					<div>
-						<p className="ollama-panel__eyebrow" style={{ fontSize: "9px", marginBottom: "2px" }}>Display & Theme</p>
+						<p
+							className="ollama-panel__eyebrow"
+							style={{ fontSize: "9px", marginBottom: "2px" }}
+						>
+							Display & Theme
+						</p>
 						<h3 style={{ fontSize: "18px", marginBottom: "0" }}>Display</h3>
 					</div>
 				</header>
@@ -206,7 +210,14 @@ export default function DisplayContent() {
 
 					{/* Theme Selection - More Compact */}
 					<div className="ollama-field" style={{ marginBottom: "24px" }}>
-						<div className="ollama-label" style={{ marginBottom: "10px", fontSize: "13px", fontWeight: 600 }}>
+						<div
+							className="ollama-label"
+							style={{
+								marginBottom: "10px",
+								fontSize: "13px",
+								fontWeight: 600,
+							}}
+						>
 							Theme
 						</div>
 						<div className="grid grid-cols-4 gap-2">
@@ -256,21 +267,34 @@ export default function DisplayContent() {
 
 					{/* Zoom Controls - More Compact */}
 					<div className="ollama-field" style={{ marginBottom: "24px" }}>
-						<div className="ollama-label" style={{ marginBottom: "10px", fontSize: "13px", fontWeight: 600 }}>
+						<div
+							className="ollama-label"
+							style={{
+								marginBottom: "10px",
+								fontSize: "13px",
+								fontWeight: 600,
+							}}
+						>
 							Zoom
 						</div>
 						<div className="flex items-center gap-2">
-						<button
-							type="button"
-							className="md-btn"
-							onClick={() => changeBy(-10)}
-							disabled={!available}
-							aria-label="Zoom out"
-							title="Zoom out"
-							style={{ width: "36px", height: "36px", padding: "0", fontSize: "18px", borderRadius: "8px" }}
-						>
-							−
-						</button>
+							<button
+								type="button"
+								className="md-btn"
+								onClick={() => changeBy(-10)}
+								disabled={!available}
+								aria-label="Zoom out"
+								title="Zoom out"
+								style={{
+									width: "36px",
+									height: "36px",
+									padding: "0",
+									fontSize: "18px",
+									borderRadius: "8px",
+								}}
+							>
+								−
+							</button>
 							<input
 								type="range"
 								min={80}
@@ -286,43 +310,56 @@ export default function DisplayContent() {
 								aria-label="Zoom level"
 								title="Zoom level"
 							/>
-						<button
-							type="button"
-							className="md-btn"
-							onClick={() => changeBy(10)}
-							disabled={!available}
-							aria-label="Zoom in"
-							title="Zoom in"
-							style={{ width: "36px", height: "36px", padding: "0", fontSize: "18px", borderRadius: "8px" }}
-						>
-							+
-						</button>
-						<button
-							type="button"
-							className="md-input"
-							onClick={resetZoom}
-							disabled={!available}
-							aria-label="Reset zoom"
-							title="Click to reset to 100%"
-							style={{
-								minWidth: "60px",
-								textAlign: "center",
-								fontFamily: "var(--font-mono, monospace)",
-								padding: "6px 10px",
-								fontSize: "13px",
-								cursor: available ? "pointer" : "default",
-								border: "1px solid var(--color-outline)",
-							}}
-							aria-live="polite"
-						>
-							{percent}%
-						</button>
+							<button
+								type="button"
+								className="md-btn"
+								onClick={() => changeBy(10)}
+								disabled={!available}
+								aria-label="Zoom in"
+								title="Zoom in"
+								style={{
+									width: "36px",
+									height: "36px",
+									padding: "0",
+									fontSize: "18px",
+									borderRadius: "8px",
+								}}
+							>
+								+
+							</button>
+							<button
+								type="button"
+								className="md-input"
+								onClick={resetZoom}
+								disabled={!available}
+								aria-label="Reset zoom"
+								title="Click to reset to 100%"
+								style={{
+									minWidth: "60px",
+									textAlign: "center",
+									fontFamily: "var(--font-mono, monospace)",
+									padding: "6px 10px",
+									fontSize: "13px",
+									cursor: available ? "pointer" : "default",
+									border: "1px solid var(--color-outline)",
+								}}
+								aria-live="polite"
+							>
+								{percent}%
+							</button>
 						</div>
 					</div>
 
 					{/* Display Stats */}
 					<div className="ollama-field" style={{ marginBottom: "0" }}>
-						<div className="ollama-label" style={{ marginBottom: "10px", fontSize: "13px", fontWeight: 600 }}>
+						<div
+							className="ollama-label"
+							style={{
+								marginBottom: "10px",
+								fontSize: "13px",
+								fontWeight: 600,
+							}}
+						>
 							Display Stats
 						</div>
 						<div className="grid grid-cols-2 gap-2">
