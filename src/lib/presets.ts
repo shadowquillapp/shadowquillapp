@@ -155,7 +155,7 @@ export function getDefaultPresets(): Preset[] {
 			taskType: "general",
 			options: {
 				tone: "friendly",
-				detail: "normal",
+				detail: "brief",
 				format: "markdown",
 				language: "English",
 				temperature: 0.65,
@@ -190,7 +190,7 @@ export function getDefaultPresets(): Preset[] {
 			taskType: "coding",
 			options: {
 				tone: "technical",
-				detail: "normal",
+				detail: "brief",
 				format: "markdown",
 				language: "English",
 				temperature: 0.3,
@@ -208,7 +208,7 @@ export function getDefaultPresets(): Preset[] {
 			taskType: "coding",
 			options: {
 				tone: "technical",
-				detail: "detailed",
+				detail: "brief",
 				format: "markdown",
 				language: "English",
 				temperature: 0.25,
