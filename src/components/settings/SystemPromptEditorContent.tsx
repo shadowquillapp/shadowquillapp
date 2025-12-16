@@ -26,19 +26,19 @@ export default function SystemPromptEditorContent() {
 	}
 
 	return (
-		<div className="ollama-setup">
-			<section className="ollama-panel">
-				<header className="ollama-panel__head">
+		<div className="shadowquill-setup">
+			<section className="shadowquill-panel">
+				<header className="shadowquill-panel__head">
 					<div>
-						<p className="ollama-panel__eyebrow">Prompt Engineering</p>
+						<p className="shadowquill-panel__eyebrow">Prompt Engineering</p>
 						<h3>System Prompt</h3>
-						<p className="ollama-panel__subtitle">
+						<p className="shadowquill-panel__subtitle">
 							View the AI's core instructions and behavior patterns.
 						</p>
 					</div>
 				</header>
 
-				<div className="ollama-panel__body">
+				<div className="shadowquill-panel__body">
 					<div
 						id="system-prompt-display"
 						data-testid="system-prompt-display"
