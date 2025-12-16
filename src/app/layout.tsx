@@ -5,6 +5,7 @@ import { Geist } from "next/font/google";
 
 import { DialogProvider } from "@/components/DialogProvider";
 import FindBar from "@/components/FindBar";
+import GlobalZoomControl from "@/components/GlobalZoomControl";
 import OllamaConnectionMonitor from "@/components/OllamaConnectionMonitor";
 import Titlebar from "@/components/Titlebar";
 
@@ -33,6 +34,7 @@ export default function RootLayout({
 					<div className="flex flex-1 flex-col overflow-hidden">{children}</div>
 					<OllamaConnectionMonitor />
 					<FindBar />
+					<GlobalZoomControl />
 				</DialogProvider>
 			</body>
 		</html>
