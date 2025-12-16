@@ -45,8 +45,8 @@ ipcMain.handle("shadowquill:view:resetZoom", (e) => {
 	try {
 		const w = BrowserWindow.fromWebContents(e.sender);
 		if (!w) return { ok: false, error: "No window" };
-		w.webContents.setZoomFactor(1.0);
-		return { ok: true, zoomFactor: 1.0 };
+		w.webContents.setZoomFactor(1.15);
+		return { ok: true, zoomFactor: 1.15 };
 	} catch (err) {
 		return { ok: false, error: err?.message || "Failed to reset zoom" };
 	}

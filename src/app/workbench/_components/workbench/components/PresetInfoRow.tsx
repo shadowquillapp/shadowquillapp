@@ -82,13 +82,13 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 				className="flex min-w-0 flex-1 items-center overflow-hidden"
 				style={{ gap: 6 }}
 			>
-				<span className="shrink-0 font-bold text-[11px] text-on-surface leading-none">
+				<span className="shrink-0 font-bold text-[13px] text-on-surface leading-none">
 					{preset.name}
 				</span>
 				<span
 					className="shrink-0"
 					style={{
-						fontSize: 7,
+						fontSize: 9,
 						fontWeight: 800,
 						textTransform: "uppercase",
 						letterSpacing: "0.04em",
@@ -99,7 +99,7 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 							"1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
 						padding: "1px 4px",
 						borderRadius: 999,
-						lineHeight: "9px",
+						lineHeight: "11px",
 					}}
 				>
 					{preset.taskType}
@@ -110,7 +110,7 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 						key={item}
 						className="shrink-0"
 						style={{
-							fontSize: 7,
+							fontSize: 9,
 							color: "var(--color-on-surface-variant)",
 							opacity: 0.7,
 							background:
@@ -119,7 +119,7 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 								"1px solid color-mix(in srgb, var(--color-outline), transparent 35%)",
 							padding: "1px 4px",
 							borderRadius: 999,
-							lineHeight: "9px",
+							lineHeight: "11px",
 							textTransform:
 								item === item.toUpperCase() ? "none" : "capitalize",
 							fontVariantNumeric: "tabular-nums",
@@ -133,7 +133,7 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 					<span
 						className="shrink-0"
 						style={{
-							fontSize: 7,
+							fontSize: 9,
 							color: "var(--color-on-surface-variant)",
 							opacity: 0.6,
 							fontWeight: 600,

@@ -276,7 +276,7 @@ describe("OllamaConnectionMonitor", () => {
 
 			expect(mockConfirm).toHaveBeenCalledWith(
 				expect.objectContaining({
-					title: "Ollama Connection Lost",
+					title: "AI Model Connection Lost",
 				}),
 			);
 		});

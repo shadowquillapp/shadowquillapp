@@ -224,10 +224,6 @@ export function InputPanel({
 				<div
 					ref={textareaContainerRef}
 					className="relative min-h-0 w-full flex-1"
-					style={{
-						// When generating, elevate this container above the overlay so the stop button is clickable
-						zIndex: isGenerating ? 150 : "auto",
-					}}
 				>
 					<textarea
 						className="absolute inset-0 h-full w-full resize-none rounded-b-2xl p-3 pt-3 pb-24 font-mono text-[10px] text-on-surface leading-[20px] shadow-none transition-all duration-200 ease-out placeholder:text-on-surface-variant/50 focus:border-[var(--color-outline)] focus:outline-none focus:ring-2 focus:ring-[var(--color-outline)] md:p-6 md:pt-4 md:pb-24 md:text-[11px] md:leading-[24px]"
@@ -270,7 +266,7 @@ export function InputPanel({
 						disabled={
 							!activeTab || (!activeTab.sending && !activeTab.draft.trim())
 						}
-						className={`absolute flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${
+						className={`run-button-container absolute flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${
 							activeTab?.sending
 								? "bg-transparent hover:opacity-80"
 								: "rounded-full bg-[var(--color-primary)] text-on-primary hover:bg-[var(--color-primary-variant)]"
@@ -288,8 +284,10 @@ export function InputPanel({
 							boxShadow: activeTab?.sending ? "none" : "var(--shadow-1)",
 							transition:
 								"background 120ms ease, border-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease",
-							// High z-index to stay above the generation overlay
-							zIndex: activeTab?.sending ? 150 : 10,
+							zIndex: 10,
+							// Keep interactive during generation
+							pointerEvents: "auto",
+							opacity: 1,
 						}}
 						onMouseEnter={(e) => {
 							if (!activeTab?.sending) {

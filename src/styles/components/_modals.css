@@ -73,7 +73,7 @@
 
 /* Size variants */
 .modal-content--large {
-	width: min(1200px, 95vw);
+	width: min(800px, 95vw);
 	max-height: 90vh;
 }
 
