@@ -198,26 +198,6 @@ export default function LocalDataManagementContent() {
 					</div>
 				</div>
 			</section>
-
-			<aside className="ollama-guide">
-				<div className="ollama-guide-card">
-					<p className="ollama-panel__eyebrow">About Storage</p>
-					<ul>
-						<li>All workbench tabs and their history</li>
-						<li>Custom presets and configurations</li>
-						<li>Application settings and preferences</li>
-						<li>System prompt modifications</li>
-					</ul>
-				</div>
-				<div className="ollama-guide-card">
-					<p className="ollama-panel__eyebrow">Privacy Note</p>
-					<ul>
-						<li>All data is stored locally on your device</li>
-						<li>No cloud sync or external backups</li>
-						<li>Complete control over your information</li>
-					</ul>
-				</div>
-			</aside>
 		</div>
 	);
 }

@@ -148,14 +148,14 @@ export default function TemperatureControl({
 			<div className="relative pt-1">
 				{/* Background track */}
 				<div
-					className="-translate-y-1/2 absolute inset-x-0 top-1/2 h-2 rounded-full opacity-30"
+					className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full opacity-30"
 					style={{ background: heatGradient }}
 				/>
 
 				{/* Filled track - using overflow hidden container to clip gradient */}
 				{value > 0 && (
 					<div
-						className="-translate-y-1/2 absolute top-1/2 left-0 h-2 overflow-hidden rounded-full transition-all duration-75"
+						className="absolute top-1/2 left-0 h-2 -translate-y-1/2 overflow-hidden rounded-full transition-all duration-75"
 						style={{
 							width: `${value * 100}%`,
 						}}
@@ -192,7 +192,7 @@ export default function TemperatureControl({
 
 				{/* Custom thumb indicator */}
 				<div
-					className="-translate-y-1/2 -translate-x-1/2 pointer-events-none absolute top-1/2 transition-all duration-75"
+					className="pointer-events-none absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-all duration-75"
 					style={{
 						left: `${value * 100}%`,
 					}}

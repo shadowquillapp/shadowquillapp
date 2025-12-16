@@ -228,23 +228,6 @@ describe("LocalDataManagementContent", () => {
 		});
 	});
 
-	describe("guide section", () => {
-		it("should display storage information", async () => {
-			mockApi.getDataPaths.mockResolvedValue({
-				ok: true,
-				userData: "/path/to/data",
-			});
-
-			render(<LocalDataManagementContent />);
-
-			expect(screen.getByText("About Storage")).toBeInTheDocument();
-			expect(screen.getByText("Privacy Note")).toBeInTheDocument();
-			expect(
-				screen.getByText("All data is stored locally on your device"),
-			).toBeInTheDocument();
-		});
-	});
-
 	describe("error handling edge cases", () => {
 		it("should handle No handler registered error", async () => {
 			mockApi.getDataPaths.mockRejectedValue(

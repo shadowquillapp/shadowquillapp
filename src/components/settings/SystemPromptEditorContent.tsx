@@ -61,16 +61,6 @@ export default function SystemPromptEditorContent() {
 					</div>
 				</div>
 			</section>
-			<aside className="ollama-guide">
-				<div className="ollama-guide-card">
-					<p className="ollama-panel__eyebrow">ShadowQuill System Prompt</p>
-					<h4>Read-only view</h4>
-					<ol>
-						The system prompt is displayed here for reference. It cannot be
-						modified through this interface.
-					</ol>
-				</div>
-			</aside>
 		</div>
 	);
 }
