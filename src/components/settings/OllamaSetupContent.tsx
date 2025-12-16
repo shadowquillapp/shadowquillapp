@@ -275,31 +275,33 @@ export default function OllamaSetupContent() {
 					setSaving(false);
 				}
 			}}
-			className="ollama-setup"
+			className="shadowquill-setup"
 		>
-			<section className="ollama-panel">
-				<header className="ollama-panel__head">
+			<section className="shadowquill-panel">
+				<header className="shadowquill-panel__head">
 					<div>
-						<p className="ollama-panel__eyebrow">Local inference (Gemma 3)</p>
+						<p className="shadowquill-panel__eyebrow">
+							Local inference (Gemma 3)
+						</p>
 						<h3>Secure Ollama bridge</h3>
-						<p className="ollama-panel__subtitle">
+						<p className="shadowquill-panel__subtitle">
 							Run ShadowQuill fully offline by pointing to your local Ollama
 							instance.
 						</p>
 					</div>
 					<span
-						className={`ollama-status-chip ollama-status-chip--${statusTone}`}
+						className={`shadowquill-status-chip shadowquill-status-chip--${statusTone}`}
 					>
 						{statusLabelMap[statusTone]}
 					</span>
 				</header>
 
-				<div className="ollama-panel__body">
-					<div className="ollama-field">
-						<label className="ollama-label" htmlFor="port">
+				<div className="shadowquill-panel__body">
+					<div className="shadowquill-field">
+						<label className="shadowquill-label" htmlFor="port">
 							Ollama localhost Port
 						</label>
-						<div className="ollama-input-row">
+						<div className="shadowquill-input-row">
 							<input
 								id="port"
 								type="text"
@@ -326,7 +328,7 @@ export default function OllamaSetupContent() {
 								className={[
 									"md-btn",
 									"md-btn--primary",
-									"ollama-field__action",
+									"shadowquill-field__action",
 									statusTone !== "success" && "pulse-glow",
 								]
 									.filter(Boolean)
@@ -336,11 +338,13 @@ export default function OllamaSetupContent() {
 							>
 								<Icon
 									name="refresh"
-									{...(testingLocal && { className: "ollama-refresh-spin" })}
+									{...(testingLocal && {
+										className: "shadowquill-refresh-spin",
+									})}
 								/>
 							</button>
 						</div>
-						<p className="ollama-field-hint" aria-live="polite">
+						<p className="shadowquill-field-hint" aria-live="polite">
 							{portInvalid
 								? "Enter a valid port (2-5 digits)."
 								: normalizedBaseUrl || "Waiting for a port value."}
@@ -348,10 +352,10 @@ export default function OllamaSetupContent() {
 					</div>
 
 					<div
-						className={`ollama-status-card ollama-status-card--${statusTone}`}
+						className={`shadowquill-status-card shadowquill-status-card--${statusTone}`}
 						aria-live="polite"
 					>
-						<div className="ollama-status-card__icon">
+						<div className="shadowquill-status-card__icon">
 							{statusTone === "success" ? (
 								<svg
 									viewBox="0 0 24 24"
@@ -371,17 +375,19 @@ export default function OllamaSetupContent() {
 								/>
 							)}
 						</div>
-						<div className="ollama-status-card__content">
+						<div className="shadowquill-status-card__content">
 							<div>
-								<p className="ollama-status-card__title">
+								<p className="shadowquill-status-card__title">
 									{statusDetails.title}
 								</p>
-								<p className="ollama-status-card__body">{statusDetails.body}</p>
+								<p className="shadowquill-status-card__body">
+									{statusDetails.body}
+								</p>
 							</div>
 							{statusTone === "success" &&
 								localTestResult?.models &&
 								localTestResult.models.length > 0 && (
-									<div className="ollama-models-list">
+									<div className="shadowquill-models-list">
 										{localTestResult.models.map((m) => {
 											const size = (m.name.split(":")[1] || "").toUpperCase();
 											const readable = size ? `Gemma 3 ${size}` : m.name;
@@ -389,10 +395,12 @@ export default function OllamaSetupContent() {
 												1,
 											);
 											return (
-												<div key={m.name} className="ollama-model-item">
+												<div key={m.name} className="shadowquill-model-item">
 													<Icon name="check" />
-													<span className="ollama-model-name">{readable}</span>
-													<span className="ollama-model-size">
+													<span className="shadowquill-model-name">
+														{readable}
+													</span>
+													<span className="shadowquill-model-size">
 														{sizeInGB}GB
 													</span>
 												</div>
@@ -403,12 +411,12 @@ export default function OllamaSetupContent() {
 							{statusTone === "success" &&
 								localTestResult?.models &&
 								localTestResult.models.length === 0 && (
-									<p className="ollama-empty-note">
+									<p className="shadowquill-empty-note">
 										Connected, but Gemma 3 models have not been pulled yet.
 									</p>
 								)}
 							{statusTone === "error" && (
-								<div className="ollama-status-card__actions">
+								<div className="shadowquill-status-card__actions">
 									<button
 										type="button"
 										onClick={handleOpenOrInstallOllama}
@@ -437,13 +445,13 @@ export default function OllamaSetupContent() {
 								</div>
 							)}
 							{openOllamaError && (
-								<p className="ollama-error-inline">{openOllamaError}</p>
+								<p className="shadowquill-error-inline">{openOllamaError}</p>
 							)}
 						</div>
 					</div>
 
 					{!hasModels && statusTone === "success" && (
-						<div className="ollama-availability" aria-live="polite">
+						<div className="shadowquill-availability" aria-live="polite">
 							No Gemma 3 models detected yet. After installing Ollama, run{" "}
 							<code>ollama pull gemma3:4b</code> (or your preferred size) and
 							retest.
@@ -451,18 +459,18 @@ export default function OllamaSetupContent() {
 					)}
 
 					{error && (
-						<div className="ollama-error-banner" role="alert">
+						<div className="shadowquill-error-banner" role="alert">
 							{error}
 						</div>
 					)}
 					{connectionError && (
-						<div className="ollama-error-banner" role="alert">
+						<div className="shadowquill-error-banner" role="alert">
 							{connectionError}
 						</div>
 					)}
 				</div>
 
-				<footer className="ollama-panel__footer">
+				<footer className="shadowquill-panel__footer">
 					<span>
 						{saving || validating
 							? "Validating secure connection…"

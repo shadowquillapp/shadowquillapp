@@ -4,18 +4,20 @@ import { APP_VERSION } from "@/lib/version";
 
 export default function AppVersionContent() {
 	return (
-		<div className="ollama-setup">
-			<section className="ollama-panel">
-				<header className="ollama-panel__head">
+		<div className="shadowquill-setup">
+			<section className="shadowquill-panel">
+				<header className="shadowquill-panel__head">
 					<div>
-						<p className="ollama-panel__eyebrow">Application Information</p>
+						<p className="shadowquill-panel__eyebrow">
+							Application Information
+						</p>
 						<h3>ShadowQuill Version</h3>
 					</div>
 				</header>
 
-				<div className="ollama-panel__body">
-					<div className="ollama-field">
-						<div className="ollama-label">Version</div>
+				<div className="shadowquill-panel__body">
+					<div className="shadowquill-field">
+						<div className="shadowquill-label">Version</div>
 						<div
 							className="md-input"
 							style={{
