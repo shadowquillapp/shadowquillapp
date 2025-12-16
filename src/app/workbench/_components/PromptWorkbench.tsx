@@ -44,8 +44,8 @@ export default function PromptWorkbench() {
 	const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [settingsInitialTab, setSettingsInitialTab] = useState<
-		"system" | "ollama" | "data" | "display"
-	>("ollama");
+		"system" | "ollama" | "data" | "display" | "version"
+	>("version");
 	const textareaContainerRef = useRef<HTMLDivElement | null>(null);
 	const tabManager = useTabManager();
 	const [showPresetPicker, setShowPresetPicker] = useState(false);
