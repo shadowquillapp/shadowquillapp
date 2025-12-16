@@ -401,7 +401,7 @@ export default function ModelConfigGate({ children }: Props) {
 								</div>
 								<div className="modal-body" style={{ overflow: "hidden" }}>
 									<form
-										className="ollama-setup"
+										className="shadowquill-setup"
 										onSubmit={async (e) => {
 											e.preventDefault();
 											setSaving(true);
@@ -448,20 +448,20 @@ export default function ModelConfigGate({ children }: Props) {
 											}
 										}}
 									>
-										<section className="ollama-panel">
-											<header className="ollama-panel__head">
+										<section className="shadowquill-panel">
+											<header className="shadowquill-panel__head">
 												<div>
-													<p className="ollama-panel__eyebrow">
+													<p className="shadowquill-panel__eyebrow">
 														First-Time Setup
 													</p>
 													<h3>Connect to Ollama</h3>
-													<p className="ollama-panel__subtitle">
+													<p className="shadowquill-panel__subtitle">
 														Configure your local Ollama connection to start
 														using ShadowQuill.
 													</p>
 												</div>
 												<span
-													className={`ollama-status-chip ollama-status-chip--${
+													className={`shadowquill-status-chip shadowquill-status-chip--${
 														testingLocal
 															? "loading"
 															: localTestResult
@@ -487,10 +487,10 @@ export default function ModelConfigGate({ children }: Props) {
 												</span>
 											</header>
 
-											<div className="ollama-panel__body">
+											<div className="shadowquill-panel__body">
 												{previouslyConfigured && connectionError && (
 													<div
-														className="ollama-error-banner"
+														className="shadowquill-error-banner"
 														role="alert"
 														hidden
 													>
@@ -499,11 +499,11 @@ export default function ModelConfigGate({ children }: Props) {
 													</div>
 												)}
 
-												<div className="ollama-field">
-													<label className="ollama-label" htmlFor="port">
+												<div className="shadowquill-field">
+													<label className="shadowquill-label" htmlFor="port">
 														Ollama localhost Port
 													</label>
-													<div className="ollama-input-row">
+													<div className="shadowquill-input-row">
 														<input
 															id="port"
 															type="text"
@@ -530,7 +530,7 @@ export default function ModelConfigGate({ children }: Props) {
 															className={[
 																"md-btn",
 																"md-btn--primary",
-																"ollama-field__action",
+																"shadowquill-field__action",
 																!localTestResult?.success && "pulse-glow",
 															]
 																.filter(Boolean)
@@ -541,12 +541,12 @@ export default function ModelConfigGate({ children }: Props) {
 															<Icon
 																name="refresh"
 																{...(testingLocal && {
-																	className: "ollama-refresh-spin",
+																	className: "shadowquill-refresh-spin",
 																})}
 															/>
 														</button>
 													</div>
-													<p className="ollama-field-hint">
+													<p className="shadowquill-field-hint">
 														{normalizeToBaseUrl(localPort) ||
 															"Waiting for port value."}
 													</p>
@@ -554,9 +554,9 @@ export default function ModelConfigGate({ children }: Props) {
 
 												{localTestResult && (
 													<div
-														className={`ollama-status-card ollama-status-card--${localTestResult.success ? "success" : "error"}`}
+														className={`shadowquill-status-card shadowquill-status-card--${localTestResult.success ? "success" : "error"}`}
 													>
-														<div className="ollama-status-card__icon">
+														<div className="shadowquill-status-card__icon">
 															{localTestResult.success ? (
 																<svg
 																	viewBox="0 0 24 24"
@@ -573,21 +573,21 @@ export default function ModelConfigGate({ children }: Props) {
 																<Icon name="warning" />
 															)}
 														</div>
-														<div className="ollama-status-card__content">
+														<div className="shadowquill-status-card__content">
 															<div>
-																<p className="ollama-status-card__title">
+																<p className="shadowquill-status-card__title">
 																	{localTestResult.success
 																		? "Gemma 3 connection successful"
 																		: "Connection failed"}
 																</p>
-																<p className="ollama-status-card__body">
+																<p className="shadowquill-status-card__body">
 																	{localTestResult.success
 																		? "Found compatible Gemma 3 models ready for use."
 																		: "Could not reach Ollama. Make sure it's running locally."}
 																</p>
 															</div>
 															{!localTestResult.success && (
-																<div className="ollama-status-card__actions">
+																<div className="shadowquill-status-card__actions">
 																	<button
 																		type="button"
 																		onClick={handleOpenOrInstallOllama}
@@ -616,14 +616,14 @@ export default function ModelConfigGate({ children }: Props) {
 																</div>
 															)}
 															{openOllamaError && (
-																<p className="ollama-error-inline">
+																<p className="shadowquill-error-inline">
 																	{openOllamaError}
 																</p>
 															)}
 															{localTestResult.success &&
 																localTestResult.models &&
 																localTestResult.models.length > 0 && (
-																	<div className="ollama-models-list">
+																	<div className="shadowquill-models-list">
 																		{localTestResult.models.map((m) => {
 																			const size = (
 																				m.name.split(":")[1] || ""
@@ -638,13 +638,13 @@ export default function ModelConfigGate({ children }: Props) {
 																			return (
 																				<div
 																					key={m.name}
-																					className="ollama-model-item"
+																					className="shadowquill-model-item"
 																				>
 																					<Icon name="check" />
-																					<span className="ollama-model-name">
+																					<span className="shadowquill-model-name">
 																						{readable}
 																					</span>
-																					<span className="ollama-model-size">
+																					<span className="shadowquill-model-size">
 																						{sizeInGB}GB
 																					</span>
 																				</div>
@@ -655,7 +655,7 @@ export default function ModelConfigGate({ children }: Props) {
 															{localTestResult.success &&
 																localTestResult.models &&
 																localTestResult.models.length === 0 && (
-																	<p className="ollama-empty-note">
+																	<p className="shadowquill-empty-note">
 																		Connected, but Gemma 3 models have not been
 																		pulled yet.
 																	</p>
@@ -665,7 +665,7 @@ export default function ModelConfigGate({ children }: Props) {
 												)}
 
 												{!localTestResult && availableModels.length === 0 && (
-													<div className="ollama-availability">
+													<div className="shadowquill-availability">
 														No Gemma 3 models detected yet. After installing
 														Ollama, run <code>ollama pull gemma3:4b</code> (or
 														your preferred size) and retest.
@@ -673,7 +673,7 @@ export default function ModelConfigGate({ children }: Props) {
 												)}
 
 												{availableModels.length > 0 && (
-													<div className="ollama-availability">
+													<div className="shadowquill-availability">
 														Found <strong>{availableModels.length}</strong>{" "}
 														usable model
 														{availableModels.length > 1 ? "s" : ""}.
@@ -682,7 +682,7 @@ export default function ModelConfigGate({ children }: Props) {
 												)}
 											</div>
 
-											<footer className="ollama-panel__footer">
+											<footer className="shadowquill-panel__footer">
 												<span>
 													{saving || validating
 														? "Validating connection…"
@@ -713,7 +713,7 @@ export default function ModelConfigGate({ children }: Props) {
 														"Validating…"
 													) : (
 														<>
-															<Logo className="ollama-cta-logo" />
+															<Logo className="shadowquill-cta-logo" />
 															Get Started
 														</>
 													)}
@@ -721,9 +721,11 @@ export default function ModelConfigGate({ children }: Props) {
 											</footer>
 										</section>
 
-										<aside className="ollama-guide">
-											<div className="ollama-guide-card">
-												<p className="ollama-panel__eyebrow">Quick Start</p>
+										<aside className="shadowquill-guide">
+											<div className="shadowquill-guide-card">
+												<p className="shadowquill-panel__eyebrow">
+													Quick Start
+												</p>
 												<h4>Get up and running</h4>
 												<ol>
 													<li>Install Ollama and launch the desktop app</li>
@@ -732,8 +734,10 @@ export default function ModelConfigGate({ children }: Props) {
 													<li>Click "Start ShadowQuill" once connected</li>
 												</ol>
 											</div>
-											<div className="ollama-guide-card">
-												<p className="ollama-panel__eyebrow">Privacy First</p>
+											<div className="shadowquill-guide-card">
+												<p className="shadowquill-panel__eyebrow">
+													Privacy First
+												</p>
 												<ul>
 													<li>All processing happens locally on your device</li>
 													<li>No data sent to external servers</li>
@@ -782,7 +786,7 @@ export default function ModelConfigGate({ children }: Props) {
 									<div className="flex flex-wrap gap-3">
 										<button
 											type="button"
-											data-testid="ollama-missing-close-button"
+											data-testid="shadowquill-missing-close-button"
 											onClick={() => setShowOllamaMissingModal(false)}
 											className="interactive-glow flex-1 rounded-md bg-surface-200 py-2 font-medium text-sm hover:bg-surface-300"
 										>
@@ -790,7 +794,7 @@ export default function ModelConfigGate({ children }: Props) {
 										</button>
 										<button
 											type="button"
-											data-testid="ollama-retry-detection-button"
+											data-testid="shadowquill-retry-detection-button"
 											onClick={retryOllamaDetection}
 											className="interactive-glow flex-1 rounded-md bg-primary py-2 font-medium text-light text-sm hover:bg-primary-200"
 										>

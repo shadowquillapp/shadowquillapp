@@ -174,12 +174,12 @@ export default function DisplayContent() {
 	];
 
 	return (
-		<div className="ollama-setup">
-			<section className="ollama-panel">
-				<header className="ollama-panel__head">
+		<div className="shadowquill-setup">
+			<section className="shadowquill-panel">
+				<header className="shadowquill-panel__head">
 					<div>
 						<p
-							className="ollama-panel__eyebrow"
+							className="shadowquill-panel__eyebrow"
 							style={{ fontSize: "9px", marginBottom: "2px" }}
 						>
 							Display & Theme
@@ -188,10 +188,10 @@ export default function DisplayContent() {
 					</div>
 				</header>
 
-				<div className="ollama-panel__body" style={{ paddingTop: "20px" }}>
+				<div className="shadowquill-panel__body" style={{ paddingTop: "20px" }}>
 					{!available && (
 						<div
-							className="ollama-error-banner"
+							className="shadowquill-error-banner"
 							role="alert"
 							style={{ marginBottom: "16px" }}
 						>
@@ -200,7 +200,7 @@ export default function DisplayContent() {
 					)}
 					{error && (
 						<div
-							className="ollama-error-banner"
+							className="shadowquill-error-banner"
 							role="alert"
 							style={{ marginBottom: "16px" }}
 						>
@@ -209,9 +209,9 @@ export default function DisplayContent() {
 					)}
 
 					{/* Theme Selection - More Compact */}
-					<div className="ollama-field" style={{ marginBottom: "24px" }}>
+					<div className="shadowquill-field" style={{ marginBottom: "24px" }}>
 						<div
-							className="ollama-label"
+							className="shadowquill-label"
 							style={{
 								marginBottom: "10px",
 								fontSize: "13px",
@@ -266,9 +266,9 @@ export default function DisplayContent() {
 					</div>
 
 					{/* Zoom Controls - More Compact */}
-					<div className="ollama-field" style={{ marginBottom: "24px" }}>
+					<div className="shadowquill-field" style={{ marginBottom: "24px" }}>
 						<div
-							className="ollama-label"
+							className="shadowquill-label"
 							style={{
 								marginBottom: "10px",
 								fontSize: "13px",
@@ -351,9 +351,9 @@ export default function DisplayContent() {
 					</div>
 
 					{/* Display Stats */}
-					<div className="ollama-field" style={{ marginBottom: "0" }}>
+					<div className="shadowquill-field" style={{ marginBottom: "0" }}>
 						<div
-							className="ollama-label"
+							className="shadowquill-label"
 							style={{
 								marginBottom: "10px",
 								fontSize: "13px",

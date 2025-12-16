@@ -80,30 +80,30 @@ export default function LocalDataManagementContent() {
 	}, []);
 
 	return (
-		<div className="ollama-setup">
-			<section className="ollama-panel">
-				<header className="ollama-panel__head">
+		<div className="shadowquill-setup">
+			<section className="shadowquill-panel">
+				<header className="shadowquill-panel__head">
 					<div>
-						<p className="ollama-panel__eyebrow">Application Storage</p>
+						<p className="shadowquill-panel__eyebrow">Application Storage</p>
 						<h3>Data Management</h3>
-						<p className="ollama-panel__subtitle">
+						<p className="shadowquill-panel__subtitle">
 							View storage locations and manage your local application data.
 						</p>
 					</div>
-					<span className="ollama-status-chip ollama-status-chip--idle">
+					<span className="shadowquill-status-chip shadowquill-status-chip--idle">
 						{loading ? "Loading…" : "Local"}
 					</span>
 				</header>
 
-				<div className="ollama-panel__body">
+				<div className="shadowquill-panel__body">
 					{error && (
-						<div className="ollama-error-banner" role="alert">
+						<div className="shadowquill-error-banner" role="alert">
 							{error}
 						</div>
 					)}
 
-					<div className="ollama-field">
-						<div className="ollama-label">
+					<div className="shadowquill-field">
+						<div className="shadowquill-label">
 							Application Data Directory
 							<span>Main storage location for settings and configurations</span>
 						</div>
@@ -121,8 +121,8 @@ export default function LocalDataManagementContent() {
 						</div>
 					</div>
 
-					<div className="ollama-field">
-						<div className="ollama-label">
+					<div className="shadowquill-field">
+						<div className="shadowquill-label">
 							Local Storage Database
 							<span>LevelDB storage for conversations and workspace data</span>
 						</div>
@@ -143,17 +143,17 @@ export default function LocalDataManagementContent() {
 					</div>
 
 					<div
-						className="ollama-status-card ollama-status-card--error"
+						className="shadowquill-status-card shadowquill-status-card--error"
 						style={{ marginTop: "8px" }}
 					>
-						<div className="ollama-status-card__content">
-							<p className="ollama-status-card__title">Danger Zone</p>
-							<p className="ollama-status-card__body">
+						<div className="shadowquill-status-card__content">
+							<p className="shadowquill-status-card__title">Danger Zone</p>
+							<p className="shadowquill-status-card__body">
 								Factory reset will permanently delete all local data including
 								settings, saved prompts, and presets. This action cannot be
 								undone. The app will restart automatically with a fresh state.
 							</p>
-							<div className="ollama-status-card__actions">
+							<div className="shadowquill-status-card__actions">
 								<button
 									type="button"
 									className="md-btn"

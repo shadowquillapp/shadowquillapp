@@ -1131,7 +1131,7 @@ describe("ModelConfigGate", () => {
 			).catch(() => {});
 
 			// Find the close button by data-testid
-			const closeBtn = screen.queryByTestId("ollama-missing-close-button");
+			const closeBtn = screen.queryByTestId("shadowquill-missing-close-button");
 			if (closeBtn) {
 				await user.click(closeBtn);
 
@@ -1382,7 +1382,9 @@ describe("ModelConfigGate", () => {
 			).catch(() => {});
 
 			// Click retry button - this calls retryOllamaDetection
-			const retryBtn = screen.queryByTestId("ollama-retry-detection-button");
+			const retryBtn = screen.queryByTestId(
+				"shadowquill-retry-detection-button",
+			);
 			if (retryBtn) {
 				await user.click(retryBtn);
 
