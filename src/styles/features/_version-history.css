@@ -97,12 +97,8 @@
 	bottom: 0;
 	left: 50%;
 	width: 3px;
-	background: linear-gradient(
-		to bottom,
-		var(--color-outline),
-		color-mix(in srgb, var(--color-primary) 40%, var(--color-outline)),
-		var(--color-outline)
-	);
+	/* No gradients — flat connector */
+	background: var(--color-outline);
 	transform: translateX(-50%);
 	border-radius: 2px;
 }
@@ -167,37 +163,29 @@
 }
 
 .version-connector__line--input {
-	background: linear-gradient(
-		to right,
-		color-mix(in srgb, var(--color-primary) 60%, transparent),
+	/* No gradients — flat connector */
+	background: color-mix(
+		in srgb,
+		var(--color-primary) 35%,
 		var(--color-outline)
 	);
 	margin-right: -20px;
 }
 
 .version-connector__line--output {
-	background: linear-gradient(
-		to left,
-		color-mix(in srgb, var(--color-save) 60%, transparent),
-		var(--color-outline)
-	);
+	/* No gradients — flat connector */
+	background: color-mix(in srgb, var(--color-save) 35%, var(--color-outline));
 	margin-left: -20px;
 }
 
 .version-row--active .version-connector__line--input {
-	background: linear-gradient(
-		to right,
-		var(--color-primary),
-		color-mix(in srgb, var(--color-primary) 60%, transparent)
-	);
+	/* No gradients — flat connector */
+	background: var(--color-primary);
 }
 
 .version-row--active .version-connector__line--output {
-	background: linear-gradient(
-		to left,
-		var(--color-save),
-		color-mix(in srgb, var(--color-save) 60%, transparent)
-	);
+	/* No gradients — flat connector */
+	background: var(--color-save);
 }
 
 /* ========================================

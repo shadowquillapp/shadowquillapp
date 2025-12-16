@@ -102,8 +102,8 @@ export function InputPanel({
 				<div
 					className="flex shrink-0 items-center justify-between rounded-t-2xl"
 					style={{
-						background:
-							"linear-gradient(180deg, color-mix(in srgb, var(--color-surface) 50%, var(--color-input-card) 50%) 0%, var(--color-input-card) 100%)",
+						// No gradients — keep header flat
+						background: "var(--color-input-card, var(--color-surface-variant))",
 						borderBottom:
 							"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
 						gap: "var(--space-3)",
@@ -125,7 +125,7 @@ export function InputPanel({
 								padding: "var(--space-1) var(--space-3)",
 								borderRadius: "20px",
 								background: isRefinementMode
-									? "linear-gradient(135deg, var(--color-tertiary), color-mix(in srgb, var(--color-tertiary), var(--color-surface) 30%))"
+									? "var(--color-tertiary)"
 									: "var(--color-surface)",
 								border: isRefinementMode
 									? "none"
@@ -235,11 +235,6 @@ export function InputPanel({
 							// Lighter background that respects theme - lighter in light mode, slightly lighter in dark mode
 							backgroundColor:
 								"color-mix(in srgb, var(--color-surface-variant), var(--color-surface) 55%)",
-							// Ruled-paper lines using primary color for all themes
-							backgroundImage:
-								"repeating-linear-gradient(0deg, transparent, transparent 22px, color-mix(in srgb, var(--color-primary), transparent 90%) 22px, color-mix(in srgb, var(--color-primary), transparent 90%) 24px)",
-							backgroundSize: "100% 24px",
-							backgroundPosition: "0 40px", // align after header (pt-4 ≈ 16px + header height)
 							caretColor: "var(--color-primary)",
 							boxShadow:
 								"inset 0 0 0 1px color-mix(in srgb, var(--color-outline), white 18%)",

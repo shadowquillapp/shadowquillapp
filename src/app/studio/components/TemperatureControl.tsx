@@ -66,17 +66,6 @@ export default function TemperatureControl({
 		};
 	}, [value]);
 
-	// Heat gradient colors for the slider track
-	const heatGradient = useMemo(() => {
-		return `linear-gradient(to right, 
-			#3b82f6 0%, 
-			#06b6d4 20%, 
-			#22c55e 40%, 
-			#eab308 60%, 
-			#f97316 80%, 
-			#ef4444 100%)`;
-	}, []);
-
 	// Band color mapping
 	const defaultColors = {
 		text: "#22c55e",
@@ -149,25 +138,20 @@ export default function TemperatureControl({
 				{/* Background track */}
 				<div
 					className="absolute inset-x-0 top-1/2 h-2 -translate-y-1/2 rounded-full opacity-30"
-					style={{ background: heatGradient }}
+					style={{ background: "var(--color-outline)" }}
 				/>
 
-				{/* Filled track - using overflow hidden container to clip gradient */}
+				{/* Filled track */}
 				{value > 0 && (
 					<div
 						className="absolute top-1/2 left-0 h-2 -translate-y-1/2 overflow-hidden rounded-full transition-all duration-75"
 						style={{
 							width: `${value * 100}%`,
+							background: currentColors.text,
+							opacity: 0.8,
 						}}
 					>
-						{/* Inner gradient div spans full slider width so colors align */}
-						<div
-							className="h-full rounded-full"
-							style={{
-								width: `${(1 / value) * 100}%`,
-								background: heatGradient,
-							}}
-						/>
+						{/* No inner gradient */}
 					</div>
 				)}
 
