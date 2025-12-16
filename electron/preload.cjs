@@ -10,6 +10,9 @@ contextBridge.exposeInMainWorld("shadowquill", {
 	openOllama: () => ipcRenderer.invoke("shadowquill:openOllama"),
 	getPlatform: () => ipcRenderer.invoke("shadowquill:getPlatform"),
 	getSystemSpecs: () => ipcRenderer.invoke("shadowquill:getSystemSpecs"),
+	checkForUpdates: () => ipcRenderer.invoke("shadowquill:checkForUpdates"),
+	openExternalUrl: (url) =>
+		ipcRenderer.invoke("shadowquill:openExternalUrl", url),
 	storage: {
 		getItem: (key) => ipcRenderer.invoke("shadowquill:storage:getItem", key),
 		setItem: (key, value) =>

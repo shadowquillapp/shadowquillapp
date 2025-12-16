@@ -32,77 +32,75 @@ export default function SettingsDialog({
 	initialTab = "version",
 }: Props) {
 	const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
-	const [displayedTab, setDisplayedTab] = useState<SettingsTab | string>(
-		initialTab,
-	);
-	const [isTransitioning, setIsTransitioning] = useState(false);
 	const [transitionDirection, setTransitionDirection] = useState<"up" | "down">(
 		"down",
 	);
-	const [contentHeight, setContentHeight] = useState<number | "auto">("auto");
-	const transitionTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-	const contentWrapperRef = useRef<HTMLDivElement | null>(null);
+	const contentHeightRef = useRef<Map<SettingsTab, number>>(new Map());
+	const containerRef = useRef<HTMLDivElement | null>(null);
+	const [containerHeight, setContainerHeight] = useState<number>(0);
 
 	// Handle tab switching with animation
 	const handleTabChange = useCallback(
 		(newTab: SettingsTab) => {
-			if (newTab === activeTab || isTransitioning) return;
-
-			// Capture current height before animating
-			const currentHeight = contentWrapperRef.current?.offsetHeight || 0;
-			setContentHeight(currentHeight || "auto");
+			if (newTab === activeTab) return;
 
 			// Determine direction based on tab order
 			const currentIndex = TAB_ORDER.indexOf(activeTab);
 			const newIndex = TAB_ORDER.indexOf(newTab);
 			setTransitionDirection(newIndex > currentIndex ? "down" : "up");
 
-			// Start transition
-			setIsTransitioning(true);
+			// Update to new tab
 			setActiveTab(newTab);
 
-			// Clear any existing timeout
-			if (transitionTimeoutRef.current) {
-				clearTimeout(transitionTimeoutRef.current);
-				transitionTimeoutRef.current = null;
+			// Update container height based on cached or estimated height
+			const cachedHeight = contentHeightRef.current.get(newTab);
+			if (cachedHeight) {
+				setContainerHeight(cachedHeight);
 			}
-
-			// After exit animation, switch displayed content and start enter animation
-			transitionTimeoutRef.current = setTimeout(() => {
-				setDisplayedTab(newTab);
-				// Measure new content height after DOM update
-				requestAnimationFrame(() => {
-					const newHeight = contentWrapperRef.current?.scrollHeight || 0;
-					setContentHeight(newHeight || "auto");
-					transitionTimeoutRef.current = setTimeout(() => {
-						setIsTransitioning(false);
-						// After animation completes, reset to auto for dynamic content
-						setTimeout(() => {
-							setContentHeight("auto");
-						}, 200);
-					}, 450); // Duration of enter animation
-				});
-			}, 300); // Duration of exit animation
 		},
-		[activeTab, isTransitioning],
+		[activeTab],
 	);
+
+	// Update container height whenever content changes
+	useEffect(() => {
+		if (!containerRef.current) return;
+
+		const updateHeight = () => {
+			const activeContent = containerRef.current?.querySelector(
+				`[data-tab="${activeTab}"]`,
+			) as HTMLElement;
+
+			if (activeContent) {
+				const height = activeContent.offsetHeight;
+				contentHeightRef.current.set(activeTab, height);
+				setContainerHeight(height);
+			}
+		};
+
+		// Initial measurement
+		updateHeight();
+
+		// Use ResizeObserver to track content size changes
+		const resizeObserver = new ResizeObserver(() => {
+			updateHeight();
+		});
+
+		const activeContent = containerRef.current?.querySelector(
+			`[data-tab="${activeTab}"]`,
+		) as HTMLElement;
+		if (activeContent) {
+			resizeObserver.observe(activeContent);
+		}
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, [activeTab]);
 
 	useEffect(() => {
 		if (!open) return;
 		setActiveTab(initialTab);
-		setDisplayedTab(initialTab);
-		setIsTransitioning(false);
-		setContentHeight("auto");
 	}, [open, initialTab]);
-
-	// Cleanup timeout on unmount
-	useEffect(() => {
-		return () => {
-			if (transitionTimeoutRef.current) {
-				clearTimeout(transitionTimeoutRef.current);
-			}
-		};
-	}, []);
 
 	useEffect(() => {
 		if (!open) return;
@@ -126,15 +124,23 @@ export default function SettingsDialog({
 				style={{
 					width: "100%",
 					textAlign: "left",
-					padding: "10px 12px",
-					borderRadius: 8,
-					background: isActive ? "rgba(108,140,255,0.12)" : "transparent",
-					color: "var(--color-on-surface)",
-					border: "1px solid transparent",
-					outline: isActive ? "2px solid var(--color-primary)" : "none",
-					outlineOffset: -2,
+					padding: "12px 14px",
+					borderRadius: 10,
+					background: isActive
+						? "color-mix(in srgb, var(--color-primary) 15%, transparent)"
+						: "transparent",
+					color: isActive ? "var(--color-primary)" : "var(--color-on-surface)",
+					border: isActive
+						? "1.5px solid color-mix(in srgb, var(--color-primary) 25%, transparent)"
+						: "1.5px solid transparent",
+					outline: "none",
 					fontWeight: isActive ? 600 : 500,
+					fontSize: "14px",
 					cursor: "pointer",
+					letterSpacing: "-0.01em",
+					boxShadow: isActive
+						? "0 1px 3px color-mix(in srgb, var(--color-primary) 10%, transparent)"
+						: "none",
 				}}
 			>
 				{label}
@@ -168,7 +174,11 @@ export default function SettingsDialog({
 				className="modal-content modal-content--large settings-dialog settings-dialog--entering"
 				onClick={(e) => e.stopPropagation()}
 				onKeyDown={(e) => e.stopPropagation()}
-				style={{ overflow: "hidden", width: "min(900px, 95vw)" }}
+				style={{
+					overflow: "hidden",
+					width: "min(920px, 95vw)",
+					boxShadow: "0 10px 40px rgba(0,0,0,0.2), 0 5px 15px rgba(0,0,0,0.15)",
+				}}
 				role="dialog"
 			>
 				<style>{`
@@ -182,121 +192,120 @@ export default function SettingsDialog({
             display: none !important;
           }
           
-          /* Modal opening animation */
+          /* Modal opening animation with elegant spring */
           .settings-dialog--entering {
-            animation: modalEnter 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            animation: modalEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
           }
           
           @keyframes modalEnter {
-            from {
+            0% {
               opacity: 0;
-              transform: scale(0.96) translateY(8px);
+              transform: scale(0.92) translateY(20px);
             }
-            to {
+            60% {
+              opacity: 1;
+            }
+            100% {
               opacity: 1;
               transform: scale(1) translateY(0);
             }
           }
           
-          /* Backdrop fade in */
+          /* Backdrop fade in with blur */
           .settings-backdrop-animated {
-            animation: backdropFadeIn 0.35s ease-out forwards;
+            animation: backdropFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
           
           @keyframes backdropFadeIn {
             from {
               opacity: 0;
+              backdrop-filter: blur(0px);
             }
             to {
               opacity: 1;
+              backdrop-filter: blur(3px);
             }
           }
           
-          /* Sidebar tab button transitions */
+          /* Sidebar tab button transitions with micro-interactions */
           .settings-tab-btn {
-            transition: all 0.2s ease;
-          }
-          
-          .settings-tab-btn:hover {
-            background: rgba(108, 140, 255, 0.08);
-          }
-          
-          .settings-tab-btn--active {
-            background: rgba(108, 140, 255, 0.12);
-          }
-          
-          /* Tab content container */
-          .settings-tab-content {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
           }
           
-          /* Tab panel base styles */
+          .settings-tab-btn:hover {
+            background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+            transform: translateX(3px);
+          }
+          
+          .settings-tab-btn--active {
+            background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+            transform: translateX(4px);
+          }
+          
+          .settings-tab-btn:active {
+            transform: translateX(2px) scale(0.98);
+          }
+          
+          /* Tab content container - smooth height with spring easing */
+          .settings-tab-content {
+            position: relative;
+            overflow: visible;
+            transition: height 0.5s cubic-bezier(0.34, 1.35, 0.64, 1);
+          }
+          
+          /* Tab panel - absolutely positioned for silky crossfade */
           .settings-tab-panel {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            transition: 
+              opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.5s cubic-bezier(0.34, 1.35, 0.64, 1),
+              filter 0.4s cubic-bezier(0.4, 0, 0.2, 1);
             will-change: opacity, transform;
           }
           
-          /* Idle state - visible and static */
-          .settings-tab-panel--idle {
+          /* Active tab - visible with subtle scale for depth */
+          .settings-tab-panel--active {
             opacity: 1;
-            transform: translateY(0);
+            transform: translateY(0) scale(1);
+            filter: blur(0px);
+            pointer-events: auto;
+            position: relative;
+            z-index: 2;
           }
           
-          /* Exit animations */
-          .settings-tab-panel--exiting-down {
-            animation: tabExitDown 0.3s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+          /* Inactive tabs - elegantly hidden */
+          .settings-tab-panel--inactive {
+            opacity: 0;
+            pointer-events: none;
+            filter: blur(0px);
+            z-index: 1;
           }
           
-          .settings-tab-panel--exiting-up {
-            animation: tabExitUp 0.3s cubic-bezier(0.4, 0, 0.6, 1) forwards;
+          /* Entering from below - elegant upward motion */
+          .settings-tab-panel--inactive.settings-tab-panel--from-down {
+            transform: translateY(28px) scale(0.96);
           }
           
-          /* Enter animations */
-          .settings-tab-panel--entering-down {
-            animation: tabEnterDown 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          /* Entering from above - elegant downward motion */
+          .settings-tab-panel--inactive.settings-tab-panel--from-up {
+            transform: translateY(-28px) scale(0.96);
           }
           
-          .settings-tab-panel--entering-up {
-            animation: tabEnterUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+          /* Add subtle animation to active content */
+          .settings-tab-panel--active > * {
+            animation: contentEnter 0.45s cubic-bezier(0.34, 1.35, 0.64, 1) forwards;
           }
           
-          @keyframes tabExitDown {
-            from {
-              opacity: 1;
-              transform: translateY(0);
-            }
-            to {
-              opacity: 0;
-              transform: translateY(-12px);
-            }
-          }
-          
-          @keyframes tabExitUp {
-            from {
-              opacity: 1;
-              transform: translateY(0);
-            }
-            to {
-              opacity: 0;
-              transform: translateY(12px);
-            }
-          }
-          
-          @keyframes tabEnterDown {
+          @keyframes contentEnter {
             from {
               opacity: 0;
-              transform: translateY(16px);
-            }
-            to {
-              opacity: 1;
-              transform: translateY(0);
-            }
-          }
-          
-          @keyframes tabEnterUp {
-            from {
-              opacity: 0;
-              transform: translateY(-16px);
+              transform: translateY(6px);
             }
             to {
               opacity: 1;
@@ -304,10 +313,22 @@ export default function SettingsDialog({
             }
           }
         `}</style>
-				<div className="modal-header">
+				<div
+					className="modal-header"
+					style={{
+						borderBottom: "1px solid var(--color-outline)",
+					}}
+				>
 					<div
 						className="modal-title"
-						style={{ display: "flex", alignItems: "center", gap: 10 }}
+						style={{
+							display: "flex",
+							alignItems: "center",
+							gap: 12,
+							fontSize: "18px",
+							fontWeight: 600,
+							letterSpacing: "-0.02em",
+						}}
 					>
 						<Icon name="gear" />
 						<span>Settings</span>
@@ -316,13 +337,23 @@ export default function SettingsDialog({
 						type="button"
 						onClick={onClose}
 						className="md-btn"
-						style={{ padding: "6px 10px" }}
+						style={{
+							padding: "8px 12px",
+							borderRadius: "8px",
+							transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
+						}}
+						onMouseEnter={(e) => {
+							e.currentTarget.style.transform = "scale(1.05)";
+						}}
+						onMouseLeave={(e) => {
+							e.currentTarget.style.transform = "scale(1)";
+						}}
 					>
 						<XMarkIcon className="h-4 w-4" />
 					</button>
 				</div>
 				<div className="modal-body" style={{ overflow: "hidden" }}>
-					<div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
+					<div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
 						{/* Left sidebar tabs */}
 						<nav
 							aria-label="Settings sections"
@@ -331,8 +362,8 @@ export default function SettingsDialog({
 								flex: "0 0 220px",
 								display: "flex",
 								flexDirection: "column",
-								gap: 6,
-								padding: 8,
+								gap: 8,
+								padding: 12,
 								border: "1px solid var(--color-outline)",
 								borderRadius: 12,
 								background: "var(--color-surface-variant)",
@@ -353,60 +384,43 @@ export default function SettingsDialog({
 							}}
 						>
 							<div
+								ref={containerRef}
 								className="settings-tab-content"
 								style={{
-									position: "relative",
-									height: contentHeight === "auto" ? "auto" : contentHeight,
-									transition: "height 0.25s ease-out",
-									overflow: "hidden",
+									height: containerHeight > 0 ? `${containerHeight}px` : "auto",
 								}}
 							>
-								<div ref={contentWrapperRef}>
-									{/* Render only the displayed tab with animations */}
-									{(
-										[
-											"system",
-											"ollama",
-											"data",
-											"display",
-											"version",
-										] as SettingsTab[]
-									).map((tab) => {
-										const isDisplayed = displayedTab === tab;
-										const isTargetTab = activeTab === tab;
+								{/* Render all tabs, but only show the active one */}
+								{(
+									[
+										"version",
+										"display",
+										"data",
+										"ollama",
+										"system",
+									] as SettingsTab[]
+								).map((tab) => {
+									const isActive = activeTab === tab;
+									const directionClass =
+										transitionDirection === "down"
+											? "settings-tab-panel--from-down"
+											: "settings-tab-panel--from-up";
 
-										// Determine animation class
-										let animationClass = "settings-tab-panel--idle";
-										if (isTransitioning) {
-											if (isDisplayed && !isTargetTab) {
-												// Current tab exiting
-												animationClass =
-													transitionDirection === "down"
-														? "settings-tab-panel--exiting-down"
-														: "settings-tab-panel--exiting-up";
-											} else if (isDisplayed && isTargetTab) {
-												// New tab entering
-												animationClass =
-													transitionDirection === "down"
-														? "settings-tab-panel--entering-down"
-														: "settings-tab-panel--entering-up";
-											}
-										}
-
-										return (
-											<div
-												key={tab}
-												className={`settings-tab-panel ${animationClass}`}
-												style={{
-													display: isDisplayed ? "block" : "none",
-												}}
-												aria-hidden={!isDisplayed}
-											>
-												{renderContentFor(tab)}
-											</div>
-										);
-									})}
-								</div>
+									return (
+										<div
+											key={tab}
+											data-tab={tab}
+											className={`settings-tab-panel ${
+												isActive
+													? "settings-tab-panel--active"
+													: `settings-tab-panel--inactive ${directionClass}`
+											}`}
+											aria-hidden={!isActive}
+										>
+											{renderContentFor(tab)}
+										</div>
+									);
+								})}
 							</div>
 						</div>
 					</div>
