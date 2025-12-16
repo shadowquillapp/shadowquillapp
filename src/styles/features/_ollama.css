@@ -87,11 +87,8 @@
 	letter-spacing: 0.3px;
 	border-radius: 10px;
 	gap: 10px;
-	background: linear-gradient(
-		135deg,
-		var(--color-primary) 0%,
-		color-mix(in srgb, var(--color-primary) 85%, #000) 100%
-	);
+	/* No gradients — flat primary */
+	background: var(--color-primary);
 	box-shadow:
 		0 2px 8px color-mix(in srgb, var(--color-primary) 30%, transparent),
 		inset 0 1px 0 color-mix(in srgb, #fff 15%, transparent);

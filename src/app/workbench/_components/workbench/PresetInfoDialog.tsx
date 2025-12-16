@@ -157,8 +157,8 @@ export function PresetInfoDialog({
 						<div
 							className="flex items-start justify-between gap-4 rounded-xl border border-[var(--color-outline)] p-5"
 							style={{
-								background:
-									"linear-gradient(135deg, var(--color-surface-variant) 0%, color-mix(in srgb, var(--color-surface-variant), transparent 50%) 100%)",
+								// No gradients — keep header card flat
+								background: "var(--color-surface-variant)",
 							}}
 						>
 							<div className="flex flex-col gap-2">

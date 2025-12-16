@@ -296,8 +296,8 @@ export default function FindBar() {
 			className="fixed top-12 right-4 z-[9999] flex items-center gap-2 rounded-2xl border border-white/20 px-3 py-2 backdrop-blur-2xl"
 			style={{
 				minWidth: 280,
-				background:
-					"linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.08) 100%)",
+				// No gradients — flat frosted surface
+				background: "color-mix(in srgb, var(--color-surface) 65%, transparent)",
 				boxShadow:
 					"0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 1px 0 rgba(255,255,255,0.15) inset, 0 -1px 0 rgba(0,0,0,0.1) inset",
 			}}

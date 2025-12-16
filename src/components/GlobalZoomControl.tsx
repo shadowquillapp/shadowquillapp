@@ -28,7 +28,10 @@ export default function GlobalZoomControl() {
 
 				try {
 					const currentZoom = await api.view?.getZoomFactor?.();
-					if (typeof currentZoom !== "number" || !Number.isFinite(currentZoom)) {
+					if (
+						typeof currentZoom !== "number" ||
+						!Number.isFinite(currentZoom)
+					) {
 						return;
 					}
 					const delta = -Math.sign(e.deltaY) * 0.05;
