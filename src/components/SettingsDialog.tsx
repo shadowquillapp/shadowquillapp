@@ -165,10 +165,10 @@ export default function SettingsDialog({
 		<div className="modal-container">
 			<div className="modal-backdrop-blur settings-backdrop-animated" />
 			<div
-				className="modal-content settings-dialog settings-dialog--entering"
+				className="modal-content modal-content--large settings-dialog settings-dialog--entering"
 				onClick={(e) => e.stopPropagation()}
 				onKeyDown={(e) => e.stopPropagation()}
-				style={{ overflow: "hidden" }}
+				style={{ overflow: "hidden", width: "min(900px, 95vw)" }}
 				role="dialog"
 			>
 				<style>{`
@@ -223,11 +223,6 @@ export default function SettingsDialog({
           
           .settings-tab-btn--active {
             background: rgba(108, 140, 255, 0.12);
-          }
-
-          /* Settings tabs reuse ollama layout; collapse to single column */
-          .settings-dialog .ollama-setup {
-            grid-template-columns: minmax(0, 1fr);
           }
           
           /* Tab content container */
@@ -332,8 +327,8 @@ export default function SettingsDialog({
 						<nav
 							aria-label="Settings sections"
 							style={{
-								width: 200,
-								flex: "0 0 200px",
+								width: 220,
+								flex: "0 0 220px",
 								display: "flex",
 								flexDirection: "column",
 								gap: 6,

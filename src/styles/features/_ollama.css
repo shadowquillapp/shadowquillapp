@@ -4,7 +4,7 @@
 
 .ollama-setup {
 	display: grid;
-	grid-template-columns: minmax(0, 1.6fr) minmax(220px, 0.9fr);
+	grid-template-columns: minmax(0, 1fr);
 	gap: 16px;
 	align-items: flex-start;
 	max-height: calc(90vh - 180px);
