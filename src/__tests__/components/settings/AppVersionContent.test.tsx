@@ -28,7 +28,7 @@ describe("AppVersionContent", () => {
 			expect(screen.getByText("ShadowQuill Version")).toBeInTheDocument();
 			expect(screen.getByText("Application Information")).toBeInTheDocument();
 			expect(screen.getByText("Current Version")).toBeInTheDocument();
-			expect(screen.getByText("0.8.0")).toBeInTheDocument();
+			expect(screen.getByText("0.9.0")).toBeInTheDocument();
 		});
 
 		it("should render the check for updates section", () => {
@@ -50,8 +50,8 @@ describe("AppVersionContent", () => {
 						setTimeout(() => {
 							resolve({
 								success: true,
-								currentVersion: "0.8.0",
-								latestVersion: "0.8.0",
+								currentVersion: "0.9.0",
+								latestVersion: "0.9.0",
 								updateAvailable: false,
 							});
 						}, 100);
@@ -74,8 +74,8 @@ describe("AppVersionContent", () => {
 			const user = userEvent.setup();
 			mockCheckForUpdates.mockResolvedValue({
 				success: true,
-				currentVersion: "0.8.0",
-				latestVersion: "0.8.0",
+				currentVersion: "0.9.0",
+				latestVersion: "0.9.0",
 				updateAvailable: false,
 			});
 
@@ -87,7 +87,7 @@ describe("AppVersionContent", () => {
 			await waitFor(() => {
 				expect(screen.getByText("You're up to date!")).toBeInTheDocument();
 				expect(
-					screen.getByText("You are running the latest version (0.8.0).", {
+					screen.getByText("You are running the latest version (0.9.0).", {
 						exact: false,
 					}),
 				).toBeInTheDocument();
@@ -98,11 +98,11 @@ describe("AppVersionContent", () => {
 			const user = userEvent.setup();
 			mockCheckForUpdates.mockResolvedValue({
 				success: true,
-				currentVersion: "0.8.0",
-				latestVersion: "0.9.0",
+				currentVersion: "0.9.0",
+				latestVersion: "0.10.0",
 				updateAvailable: true,
 				releaseUrl:
-					"https://github.com/shadowquillapp/shadowquillapp/releases/tag/v0.9.0",
+					"https://github.com/shadowquillapp/shadowquillapp/releases/tag/v0.10.0",
 				publishedAt: "2025-12-16T12:00:00Z",
 			});
 
@@ -115,7 +115,7 @@ describe("AppVersionContent", () => {
 				expect(screen.getByText("Update Available!")).toBeInTheDocument();
 				expect(
 					screen.getByText(
-						"Version 0.9.0 is now available. You are currently running version 0.8.0.",
+						"Version 0.10.0 is now available. You are currently running version 0.9.0.",
 						{ exact: false },
 					),
 				).toBeInTheDocument();
@@ -129,11 +129,11 @@ describe("AppVersionContent", () => {
 			const user = userEvent.setup();
 			mockCheckForUpdates.mockResolvedValue({
 				success: true,
-				currentVersion: "0.8.0",
-				latestVersion: "0.9.0",
+				currentVersion: "0.9.0",
+				latestVersion: "0.10.0",
 				updateAvailable: true,
 				releaseUrl:
-					"https://github.com/shadowquillapp/shadowquillapp/releases/tag/v0.9.0",
+					"https://github.com/shadowquillapp/shadowquillapp/releases/tag/v0.10.0",
 				publishedAt: "2025-12-16T12:00:00Z",
 			});
 
@@ -190,12 +190,12 @@ describe("AppVersionContent", () => {
 		it("should open external URL when download button is clicked", async () => {
 			const user = userEvent.setup();
 			const releaseUrl =
-				"https://github.com/shadowquillapp/shadowquillapp/releases/tag/v0.9.0";
+				"https://github.com/shadowquillapp/shadowquillapp/releases/tag/v0.10.0";
 
 			mockCheckForUpdates.mockResolvedValue({
 				success: true,
-				currentVersion: "0.8.0",
-				latestVersion: "0.9.0",
+				currentVersion: "0.9.0",
+				latestVersion: "0.10.0",
 				updateAvailable: true,
 				releaseUrl,
 			});
@@ -231,11 +231,11 @@ describe("AppVersionContent", () => {
 
 			mockCheckForUpdates.mockResolvedValue({
 				success: true,
-				currentVersion: "0.8.0",
-				latestVersion: "0.9.0",
+				currentVersion: "0.9.0",
+				latestVersion: "0.10.0",
 				updateAvailable: true,
 				releaseUrl:
-					"https://github.com/shadowquillapp/shadowquillapp/releases/tag/v0.9.0",
+					"https://github.com/shadowquillapp/shadowquillapp/releases/tag/v0.10.0",
 			});
 
 			mockOpenExternalUrl.mockRejectedValue(new Error("Failed to open URL"));
@@ -278,8 +278,8 @@ describe("AppVersionContent", () => {
 						setTimeout(() => {
 							resolve({
 								success: true,
-								currentVersion: "0.8.0",
-								latestVersion: "0.8.0",
+								currentVersion: "0.9.0",
+								latestVersion: "0.9.0",
 								updateAvailable: false,
 							});
 						}, 100);
@@ -303,8 +303,8 @@ describe("AppVersionContent", () => {
 			const user = userEvent.setup();
 			mockCheckForUpdates.mockResolvedValue({
 				success: true,
-				currentVersion: "0.8.0",
-				latestVersion: "0.8.0",
+				currentVersion: "0.9.0",
+				latestVersion: "0.9.0",
 				updateAvailable: false,
 			});
 
@@ -324,8 +324,8 @@ describe("AppVersionContent", () => {
 			const user = userEvent.setup();
 			mockCheckForUpdates.mockResolvedValue({
 				success: true,
-				currentVersion: "0.8.0",
-				latestVersion: "0.8.0",
+				currentVersion: "0.9.0",
+				latestVersion: "0.9.0",
 				updateAvailable: false,
 			});
 
@@ -349,11 +349,11 @@ describe("AppVersionContent", () => {
 			const user = userEvent.setup();
 			mockCheckForUpdates.mockResolvedValue({
 				success: true,
-				currentVersion: "0.8.0",
-				latestVersion: "0.9.0",
+				currentVersion: "0.9.0",
+				latestVersion: "0.10.0",
 				updateAvailable: true,
 				releaseUrl:
-					"https://github.com/shadowquillapp/shadowquillapp/releases/tag/v0.9.0",
+					"https://github.com/shadowquillapp/shadowquillapp/releases/tag/v0.10.0",
 			});
 
 			render(<AppVersionContent />);
