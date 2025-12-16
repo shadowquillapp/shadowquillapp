@@ -31,17 +31,6 @@ export default function AppVersionContent() {
 					</div>
 				</div>
 			</section>
-
-			<aside className="ollama-guide">
-				<div className="ollama-guide-card">
-					<p className="ollama-panel__eyebrow">About</p>
-					<ul>
-						<li>ShadowQuill version information</li>
-						<li>Check for updates regularly</li>
-						<li>Report issues on the homepage</li>
-					</ul>
-				</div>
-			</aside>
 		</div>
 	);
 }

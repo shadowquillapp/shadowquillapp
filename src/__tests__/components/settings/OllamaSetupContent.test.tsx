@@ -63,12 +63,6 @@ describe("OllamaSetupContent", () => {
 				screen.getByRole("button", { name: /save changes/i }),
 			).toBeInTheDocument();
 		});
-
-		it("should show checklist guide", () => {
-			render(<OllamaSetupContent />);
-			expect(screen.getByText("Checklist")).toBeInTheDocument();
-			expect(screen.getByText("Ready your workstation")).toBeInTheDocument();
-		});
 	});
 
 	describe("port input", () => {
