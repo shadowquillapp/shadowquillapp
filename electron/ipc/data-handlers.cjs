@@ -141,7 +141,12 @@ function registerDataIPCHandlers() {
 			console.log("[Factory Reset] Deleting user data directory...");
 			try {
 				if (fs.existsSync(userData)) {
-					fs.rmSync(userData, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
+					fs.rmSync(userData, {
+						recursive: true,
+						force: true,
+						maxRetries: 3,
+						retryDelay: 200,
+					});
 					console.log("[Factory Reset] User data deleted successfully.");
 				}
 			} catch (e) {
@@ -149,7 +154,9 @@ function registerDataIPCHandlers() {
 					"[Factory Reset] Could not fully delete user data:",
 					e.message,
 				);
-				console.log("[Factory Reset] App will relaunch and recreate fresh data.");
+				console.log(
+					"[Factory Reset] App will relaunch and recreate fresh data.",
+				);
 			}
 
 			// Step 6: Relaunch the app with fresh state

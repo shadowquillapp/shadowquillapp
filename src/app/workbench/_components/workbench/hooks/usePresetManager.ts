@@ -10,7 +10,7 @@ import { mapPresetList, mapPresetToSummary } from "../utils/presetUtils";
  */
 export function usePresetManager(
 	tabManager: ReturnType<typeof useTabManager>,
-	showPresetPicker: boolean,
+	_showPresetPicker: boolean,
 	setShowPresetPicker: (show: boolean) => void,
 	setPresetPickerForNewTab: (forNewTab: boolean) => void,
 ) {
