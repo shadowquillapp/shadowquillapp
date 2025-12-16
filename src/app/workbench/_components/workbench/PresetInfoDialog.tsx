@@ -274,16 +274,6 @@ export function PresetInfoDialog({
 							)}
 						</div>
 					</div>
-
-					<div className="mt-6 flex justify-end border-[var(--color-outline)] border-t pt-4">
-						<button
-							type="button"
-							className="md-btn md-btn--primary px-6"
-							onClick={onClose}
-						>
-							Close
-						</button>
-					</div>
 				</div>
 			</dialog>
 		</div>
