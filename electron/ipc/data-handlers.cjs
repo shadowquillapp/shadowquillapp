@@ -100,13 +100,7 @@ function registerDataIPCHandlers() {
 
 			const userData = app.getPath("userData");
 
-			try {
-				await session.defaultSession.clearStorageData();
-				await session.defaultSession.clearCache();
-			} catch (e) {
-				console.warn("[Factory Reset] Session clear warning:", e);
-			}
-
+			// Step 1: Close HTTP server first
 			if (httpServer) {
 				console.log("[Factory Reset] Closing production server...");
 				try {
@@ -115,10 +109,39 @@ function registerDataIPCHandlers() {
 				} catch (_) {}
 			}
 
+			// Step 2: Close all windows to release file handles
+			const { BrowserWindow } = require("electron");
+			const windows = BrowserWindow.getAllWindows();
+			console.log(`[Factory Reset] Closing ${windows.length} window(s)...`);
+			for (const win of windows) {
+				try {
+					if (win.webContents.isDevToolsOpened()) {
+						win.webContents.closeDevTools();
+					}
+					win.webContents.stop();
+					win.destroy();
+				} catch (e) {
+					console.warn("[Factory Reset] Error closing window:", e);
+				}
+			}
+
+			// Step 3: Clear session storage and cache
+			try {
+				await session.defaultSession.clearStorageData();
+				await session.defaultSession.clearCache();
+			} catch (e) {
+				console.warn("[Factory Reset] Session clear warning:", e);
+			}
+
+			// Step 4: Wait for Windows to release file locks (critical on Windows)
+			console.log("[Factory Reset] Waiting for file locks to release...");
+			await new Promise((resolve) => setTimeout(resolve, 1000));
+
+			// Step 5: Try to delete user data directory
 			console.log("[Factory Reset] Deleting user data directory...");
 			try {
 				if (fs.existsSync(userData)) {
-					fs.rmSync(userData, { recursive: true, force: true });
+					fs.rmSync(userData, { recursive: true, force: true, maxRetries: 3, retryDelay: 200 });
 					console.log("[Factory Reset] User data deleted successfully.");
 				}
 			} catch (e) {
@@ -126,10 +149,13 @@ function registerDataIPCHandlers() {
 					"[Factory Reset] Could not fully delete user data:",
 					e.message,
 				);
+				console.log("[Factory Reset] App will relaunch and recreate fresh data.");
 			}
 
-			console.log("[Factory Reset] Closing application...");
-			app.quit();
+			// Step 6: Relaunch the app with fresh state
+			console.log("[Factory Reset] Relaunching application...");
+			app.relaunch();
+			app.exit(0);
 
 			return { ok: true };
 		} catch (e) {
