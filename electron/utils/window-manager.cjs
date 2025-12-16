@@ -69,7 +69,7 @@ function createWindow(isDev) {
 	});
 
 	win.webContents.once("did-finish-load", () => {
-		win.webContents.setZoomFactor(1.0);
+		win.webContents.setZoomFactor(1.15);
 
 		win.webContents.executeJavaScript(`
       (function() {
@@ -135,8 +135,8 @@ function createWindow(isDev) {
 
 		if (input.key === "0") {
 			event.preventDefault();
-			win.webContents.setZoomFactor(1.0);
-			win.webContents.send("shadowquill:zoom:changed", 1.0);
+			win.webContents.setZoomFactor(1.15);
+			win.webContents.send("shadowquill:zoom:changed", 1.15);
 			return;
 		}
 	});

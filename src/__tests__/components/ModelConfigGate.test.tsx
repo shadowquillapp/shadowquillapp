@@ -858,7 +858,7 @@ describe("ModelConfigGate", () => {
 
 			// Wait for provider selection to appear
 			await waitFor(() => {
-				return screen.queryByText("Ollama Connection Setup") !== null;
+				return screen.queryByText("AI Model Connection Setup") !== null;
 			}).catch(() => {});
 
 			// Enter port and test connection
@@ -922,7 +922,7 @@ describe("ModelConfigGate", () => {
 			);
 
 			await waitFor(() => {
-				return screen.queryByText("Ollama Connection Setup") !== null;
+				return screen.queryByText("AI Model Connection Setup") !== null;
 			}).catch(() => {});
 
 			const portInput = screen.getByPlaceholderText("11434");
@@ -981,7 +981,7 @@ describe("ModelConfigGate", () => {
 			);
 
 			await waitFor(() => {
-				return screen.queryByText("Ollama Connection Setup") !== null;
+				return screen.queryByText("AI Model Connection Setup") !== null;
 			}).catch(() => {});
 
 			const portInput = screen.getByPlaceholderText("11434");
@@ -1640,7 +1640,7 @@ describe("ModelConfigGate", () => {
 
 			// Wait for provider selection to appear
 			await waitFor(() => {
-				return screen.queryByText("Ollama Connection Setup") !== null;
+				return screen.queryByText("AI Model Connection Setup") !== null;
 			}).catch(() => {});
 
 			// Enter port and test connection first
@@ -3286,7 +3286,7 @@ describe("ModelConfigGate", () => {
 			// Should show provider selection since validation failed
 			await waitFor(
 				() => {
-					const setup = screen.queryByText("Ollama Connection Setup");
+					const setup = screen.queryByText("AI Model Connection Setup");
 					return setup !== null;
 				},
 				{ timeout: 3000 },
@@ -3583,7 +3583,7 @@ describe("ModelConfigGate", () => {
 
 			// Wait for provider selection form to appear
 			await waitFor(() => {
-				const setupText = screen.queryByText("Ollama Connection Setup");
+				const setupText = screen.queryByText("AI Model Connection Setup");
 				return setupText !== null;
 			});
 

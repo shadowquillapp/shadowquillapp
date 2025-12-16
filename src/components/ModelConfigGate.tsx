@@ -396,7 +396,7 @@ export default function ModelConfigGate({ children }: Props) {
 										style={{ display: "flex", alignItems: "center", gap: 10 }}
 									>
 										<Icon name="gear" />
-										<span>Ollama Connection Setup</span>
+										<span>AI Model Setup</span>
 									</div>
 								</div>
 								<div className="modal-body" style={{ overflow: "hidden" }}>
@@ -682,12 +682,10 @@ export default function ModelConfigGate({ children }: Props) {
 												)}
 											</div>
 
-											<footer className="shadowquill-panel__footer">
-												<span>
-													{saving || validating
-														? "Validating connection…"
-														: "Click below to finish setup and start using ShadowQuill."}
-												</span>
+											<footer
+												className="shadowquill-panel__footer"
+												style={{ justifyContent: "flex-start" }}
+											>
 												<button
 													type="submit"
 													disabled={
@@ -720,31 +718,6 @@ export default function ModelConfigGate({ children }: Props) {
 												</button>
 											</footer>
 										</section>
-
-										<aside className="shadowquill-guide">
-											<div className="shadowquill-guide-card">
-												<p className="shadowquill-panel__eyebrow">
-													Quick Start
-												</p>
-												<h4>Get up and running</h4>
-												<ol>
-													<li>Install Ollama and launch the desktop app</li>
-													<li>Pull a Gemma 3 build (4B fits most laptops)</li>
-													<li>Keep Ollama running, then press "Check" above</li>
-													<li>Click "Start ShadowQuill" once connected</li>
-												</ol>
-											</div>
-											<div className="shadowquill-guide-card">
-												<p className="shadowquill-panel__eyebrow">
-													Privacy First
-												</p>
-												<ul>
-													<li>All processing happens locally on your device</li>
-													<li>No data sent to external servers</li>
-													<li>Complete control over your AI interactions</li>
-												</ul>
-											</div>
-										</aside>
 									</form>
 								</div>
 							</div>

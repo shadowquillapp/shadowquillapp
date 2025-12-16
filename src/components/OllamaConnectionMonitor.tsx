@@ -98,7 +98,7 @@ export default function OllamaConnectionMonitor() {
 			const buttonText =
 				isInstalled === false ? "Install Ollama" : "Open Ollama";
 			const shouldOpen = await confirm({
-				title: "Ollama Connection Lost",
+				title: "AI Model Connection Lost",
 				message:
 					"Ollama has stopped or become unreachable. ShadowQuill needs Ollama to be running to generate AI responses.",
 				confirmText: buttonText,

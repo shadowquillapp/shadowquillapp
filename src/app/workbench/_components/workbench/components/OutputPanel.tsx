@@ -11,7 +11,6 @@ import { VersionDropdown } from "./VersionDropdown";
 interface OutputPanelProps {
 	tabManager: ReturnType<typeof useTabManager>;
 	isResizing: boolean;
-	isGenerating: boolean;
 	versionDropdownRef: React.RefObject<HTMLButtonElement | null>;
 	showVersionDropdown: boolean;
 	setShowVersionDropdown: (show: boolean) => void;
@@ -40,7 +39,6 @@ interface OutputPanelProps {
 export function OutputPanel({
 	tabManager,
 	isResizing,
-	isGenerating,
 	versionDropdownRef,
 	showVersionDropdown,
 	setShowVersionDropdown,
@@ -65,39 +63,26 @@ export function OutputPanel({
 				flex: 1,
 				minWidth: 480,
 				opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
-				pointerEvents:
-					tabManager.tabs.length === 0
-						? "none"
-						: isGenerating
-							? "none"
-							: "auto",
+				pointerEvents: tabManager.tabs.length === 0 ? "none" : "auto",
 				transition: isResizing ? "none" : "opacity 0.3s ease",
 				filter: tabManager.tabs.length === 0 ? "grayscale(0.3)" : "none",
-				// Elevate above overlay when generating so the animation is visible
-				zIndex: isGenerating ? 150 : "auto",
 				gap: "var(--space-4)",
 				padding: "var(--space-6)",
 			}}
 		>
-			{/* Content Body with Integrated Toolbar Style */}
 			<div
-				className={`group relative flex min-h-0 flex-1 flex-col rounded-2xl ${activeTab?.sending ? "output-generating" : ""}`}
+				className={`group relative flex flex-col rounded-2xl ${activeTab?.sending ? "output-generating" : ""}`}
 				style={{
-					// Clean solid background
 					background: "var(--color-output-panel, var(--color-surface-variant))",
-					// Subtle border with highlight for depth
 					border: "1px solid var(--color-outline)",
 					borderTop:
 						"1px solid color-mix(in srgb, var(--color-outline), rgba(255,255,255,0.1))",
-					// Clean elevation shadow - single, well-defined
 					boxShadow: "0 6px 12px rgba(0,0,0,0.18)",
 				}}
 			>
-				{/* Toolbar Header inside container */}
 				<div
 					className="flex shrink-0 items-center justify-between rounded-t-2xl"
 					style={{
-						// No gradients — keep header flat
 						background:
 							"var(--color-output-panel, var(--color-surface-variant))",
 						borderBottom:
@@ -107,7 +92,6 @@ export function OutputPanel({
 							"var(--space-3) var(--space-3) var(--space-3) var(--space-3)",
 					}}
 				>
-					{/* Left: Title & Stats */}
 					<div
 						className="flex min-w-0 items-center"
 						style={{ gap: "var(--space-3)" }}
@@ -121,8 +105,6 @@ export function OutputPanel({
 							activeTab={activeTab}
 							jumpToVersion={jumpToVersion}
 						/>
-
-						{/* Stats - Hidden on very small screens */}
 						<TextStats
 							wordCount={outputWordCount}
 							charCount={outputCharCount}
@@ -179,15 +161,16 @@ export function OutputPanel({
 				{/* Scrollable Content Area */}
 				<div
 					ref={scrollContainerRef}
-					className="custom-scrollbar relative min-h-0 flex-1 overflow-y-auto"
+					className="custom-scrollbar relative overflow-y-auto"
 					style={{
 						paddingLeft: "var(--space-6)",
 						paddingRight: "var(--space-6)",
+						maxHeight: "100%",
 					}}
 				>
 					{!hasMessages ? (
 						<div
-							className="flex h-full flex-col items-center justify-center text-center opacity-60"
+							className="flex h-full flex-col items-center justify-center pt-15 pb-15 text-center opacity-60"
 							style={{ gap: "var(--space-4)" }}
 						>
 							<div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--color-outline)] bg-surface">
@@ -230,7 +213,6 @@ export function OutputPanel({
 										<div
 											className="flex h-full min-h-[200px] flex-col items-center justify-center gap-3 text-on-surface-variant"
 											style={{
-												// Ensure the crafting animation is fully visible and not grayed out
 												filter: "none",
 												opacity: 1,
 											}}
