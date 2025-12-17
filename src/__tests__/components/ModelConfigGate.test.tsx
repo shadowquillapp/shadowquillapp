@@ -1076,7 +1076,7 @@ describe("ModelConfigGate", () => {
 			}).catch(() => {});
 
 			// Find and click close button
-			const closeBtn = screen.queryByRole("button", { name: /close/i });
+			const closeBtn = screen.queryByRole("button", { name: "Close" });
 			if (closeBtn) {
 				await user.click(closeBtn);
 			}

@@ -340,9 +340,9 @@ export function PresetPickerModal({
 					<button
 						type="button"
 						aria-label="Close"
-						className="md-btn"
+						className="md-close-btn"
 						onClick={onClose}
-						style={{ width: 32, height: 32, padding: 0 }}
+						title="Close"
 					>
 						<XMarkIcon className="h-4 w-4" />
 					</button>
