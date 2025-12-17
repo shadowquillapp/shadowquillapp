@@ -364,7 +364,7 @@ export default function SettingsDialog({
 								flexDirection: "column",
 								gap: 8,
 								padding: 12,
-								border: "1px solid var(--color-outline)",
+								border: "0px solid var(--color-outline)",
 								borderRadius: 12,
 								background: "var(--color-surface-variant)",
 								overflow: "hidden",
