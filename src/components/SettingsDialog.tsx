@@ -143,7 +143,18 @@ export default function SettingsDialog({
 						: "none",
 				}}
 			>
-				{label}
+				<span
+					style={{
+						textDecorationLine: "underline",
+						textUnderlineOffset: "3px",
+						textDecorationThickness: "1px",
+						textDecorationColor: isActive
+							? "var(--color-primary)"
+							: "var(--color-outline)",
+					}}
+				>
+					{label}
+				</span>
 			</button>
 		);
 	};
@@ -336,18 +347,9 @@ export default function SettingsDialog({
 					<button
 						type="button"
 						onClick={onClose}
-						className="md-btn"
-						style={{
-							padding: "8px 12px",
-							borderRadius: "8px",
-							transition: "all 0.2s cubic-bezier(0.4, 0, 0.2, 1)",
-						}}
-						onMouseEnter={(e) => {
-							e.currentTarget.style.transform = "scale(1.05)";
-						}}
-						onMouseLeave={(e) => {
-							e.currentTarget.style.transform = "scale(1)";
-						}}
+						className="md-close-btn"
+						aria-label="Close"
+						title="Close"
 					>
 						<XMarkIcon className="h-4 w-4" />
 					</button>

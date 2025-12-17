@@ -85,8 +85,9 @@ export default function SaveAsDialog({
 					<button
 						type="button"
 						onClick={onCancel}
-						className="md-icon-btn"
+						className="md-close-btn"
 						aria-label="Close"
+						title="Close"
 					>
 						<XMarkIcon className="h-4 w-4" />
 					</button>

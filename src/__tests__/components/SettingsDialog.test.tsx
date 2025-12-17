@@ -164,16 +164,9 @@ describe("SettingsDialog", () => {
 			const user = userEvent.setup();
 			render(<SettingsDialog open={true} onClose={mockOnClose} />);
 
-			// Find the close button in the header
-			const headerButtons = screen.getAllByRole("button");
-			const closeButton = headerButtons.find((btn) =>
-				btn.classList.contains("md-btn"),
-			);
-
-			if (closeButton) {
-				await user.click(closeButton);
-				expect(mockOnClose).toHaveBeenCalledTimes(1);
-			}
+			const closeButton = screen.getByRole("button", { name: "Close" });
+			await user.click(closeButton);
+			expect(mockOnClose).toHaveBeenCalledTimes(1);
 		});
 
 		it("should call onClose when Escape key is pressed", () => {

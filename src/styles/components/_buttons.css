@@ -144,6 +144,46 @@
 }
 
 /* ========================================
+ * CLOSE BUTTON (.md-close-btn)
+ * Minimal icon-only close button (used for modal/dialog dismiss)
+ * ======================================== */
+
+.md-close-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border-radius: 6px;
+	border: 1px solid transparent;
+	background: transparent;
+	color: var(--color-on-surface-variant);
+	box-shadow: none;
+	cursor: pointer;
+	transition:
+		background 120ms ease,
+		color 120ms ease,
+		border-color 120ms ease,
+		transform 80ms ease;
+}
+
+.md-close-btn:hover {
+	background: color-mix(in srgb, var(--color-on-surface) 10%, transparent);
+	border-color: color-mix(in srgb, var(--color-on-surface) 14%, transparent);
+	color: var(--color-on-surface);
+}
+
+.md-close-btn:active {
+	transform: scale(0.98);
+}
+
+.md-close-btn:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
+
+/* ========================================
  * PRESET STUDIO BUTTON
  * Special styled button for preset actions
  * ======================================== */
