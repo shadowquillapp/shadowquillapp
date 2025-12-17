@@ -26,6 +26,7 @@
 		"build": "pnpm run build:electron",
 		"build:electron": "cross-env BROWSERSLIST_IGNORE_OLD_DATA=1 SUPPRESS_SUPPORT_NOTES=1 node electron/build-electron.cjs",
 		"build:dmg": "pnpm run build:electron && electron-builder --mac --arm64 --publish never",
+		"build:dmg:signed": "sh -c 'set -a; source .env.local 2>/dev/null; set +a; pnpm run build:electron && electron-builder --mac --arm64 --publish never'",
 		"build:win": "pnpm run build:electron && electron-builder --win --x64 --publish never",
 		"check": "biome check .",
 		"check:unsafe": "biome check --write --unsafe .",
@@ -70,7 +71,7 @@
 		"@vitest/coverage-v8": "^4.0.16",
 		"conventional-changelog-conventionalcommits": "^9.1.0",
 		"electron": "^39.2.7",
-		"electron-builder": "^26.0.12",
+		"electron-builder": "^26.3.6",
 		"jsdom": "^27.3.0",
 		"semantic-release": "^25.0.2",
 		"tsx": "^4.21.0",
@@ -120,9 +121,7 @@
 			"gatekeeperAssess": false,
 			"entitlements": "build/entitlements.mac.plist",
 			"entitlementsInherit": "build/entitlements.mac.plist",
-			"notarize": {
-				"teamId": "U9S53877L9"
-			}
+			"notarize": false
 		},
 		"dmg": {
 			"title": "${productName} ${version}",
