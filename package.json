@@ -116,11 +116,13 @@
 			],
 			"icon": "build/shadowquill-icon.icns",
 			"category": "public.app-category.productivity",
-			"identity": "Developer ID Application",
 			"hardenedRuntime": true,
 			"gatekeeperAssess": false,
 			"entitlements": "build/entitlements.mac.plist",
-			"entitlementsInherit": "build/entitlements.mac.plist"
+			"entitlementsInherit": "build/entitlements.mac.plist",
+			"notarize": {
+				"teamId": "U9S53877L9"
+			}
 		},
 		"dmg": {
 			"title": "${productName} ${version}",
