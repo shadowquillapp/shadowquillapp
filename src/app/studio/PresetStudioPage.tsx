@@ -366,7 +366,7 @@ export default function PresetStudioPage() {
 				<aside
 					className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
 						isSmallScreen
-							? `fixed top-12 left-0 z-30 h-[calc(100vh-3rem)] w-[min(90vw,420px)] border-r ${
+							? `fixed top-8 left-0 z-30 h-[calc(100vh-2rem)] w-[min(90vw,420px)] border-r ${
 									sidebarOpen ? "translate-x-0" : "-translate-x-full"
 								}`
 							: "w-[420px] flex-shrink-0 border-r"
