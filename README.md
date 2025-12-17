@@ -16,7 +16,7 @@ ShadowQuill transforms natural language ideas into structured, high-quality prom
 
 ## ShadowQuill Installation
 
-[![Download for macOS (DMG)](https://img.shields.io/badge/Download-.dmg-000000?logo=apple&logoColor=white)](https://github.com/shadowquillapp/shadowquillapp/releases/latest/download/ShadowQuill.dmg)
+[![Download for macOS (DMG)](https://img.shields.io/badge/Download-.dmg-000000?logo=apple&logoColor=white)]([https://github.com/shadowquillapp/shadowquillapp/releases/latest/download/ShadowQuill.dmg](https://github.com/shadowquillapp/shadowquillapp/releases/download/v0.9.2/ShadowQuill-0.9.2-arm64.dmg))
 <br/>
 Alternate: visit the [Latest Release page](https://github.com/shadowquillapp/shadowquillapp/releases/latest).
 
