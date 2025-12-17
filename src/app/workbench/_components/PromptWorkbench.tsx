@@ -145,6 +145,7 @@ export default function PromptWorkbench() {
 	const versions = activeTab
 		? versionList(activeTab.versionGraph).filter((v) => v.label !== "Start")
 		: [];
+	const isVersionNavigatorEmpty = Boolean(activeTab) && versions.length === 0;
 
 	// Close version dropdown when clicking outside
 	useEffect(() => {
@@ -377,7 +378,7 @@ export default function PromptWorkbench() {
 					{/* CENTER: Resize Handle + Version Navigator */}
 					{/* biome-ignore lint/a11y/useSemanticElements: Interactive resize handle requires div, not hr */}
 					<div
-						className={`panel-resize-container relative hidden flex-col items-center justify-center md:flex ${isResizing ? "panel-resize-container--active" : ""}`}
+						className={`panel-resize-container relative hidden flex-col items-center justify-center md:flex ${isResizing ? "panel-resize-container--active" : ""} ${isVersionNavigatorEmpty ? "panel-resize-container--solid" : ""}`}
 						onMouseDown={handleResizeStart}
 						role="separator"
 						aria-orientation="vertical"

@@ -589,6 +589,14 @@
 	bottom: 8px;
 }
 
+.panel-resize-container--solid .panel-resize-line--top {
+	bottom: 8px;
+}
+
+.panel-resize-container--solid .panel-resize-line--bottom {
+	display: none;
+}
+
 .panel-resize-container:hover .panel-resize-line,
 .panel-resize-container--active .panel-resize-line {
 	background: var(--color-primary);

@@ -759,19 +759,21 @@ export default function ModelConfigGate({ children }: Props) {
 									<div className="flex flex-wrap gap-3">
 										<button
 											type="button"
-											data-testid="shadowquill-missing-close-button"
-											onClick={() => setShowOllamaMissingModal(false)}
-											className="interactive-glow flex-1 rounded-md bg-surface-200 py-2 font-medium text-sm hover:bg-surface-300"
-										>
-											<XMarkIcon className="h-4 w-4" />
-										</button>
-										<button
-											type="button"
 											data-testid="shadowquill-retry-detection-button"
 											onClick={retryOllamaDetection}
 											className="interactive-glow flex-1 rounded-md bg-primary py-2 font-medium text-light text-sm hover:bg-primary-200"
 										>
 											Retry Detection
+										</button>
+										<button
+											type="button"
+											data-testid="shadowquill-missing-close-button"
+											onClick={() => setShowOllamaMissingModal(false)}
+											className="md-close-btn"
+											aria-label="Close"
+											title="Close"
+										>
+											<XMarkIcon className="h-4 w-4" />
 										</button>
 									</div>
 								</div>
@@ -858,8 +860,9 @@ function SystemPromptEditorWrapper({
 							<button
 								type="button"
 								onClick={() => setOpen(false)}
-								className="md-btn"
-								style={{ padding: "6px 10px" }}
+								className="md-close-btn"
+								aria-label="Close"
+								title="Close"
 							>
 								<XMarkIcon className="h-4 w-4" />
 							</button>
@@ -1076,8 +1079,9 @@ function DataLocationModalWrapper() {
 							<button
 								type="button"
 								onClick={() => setOpen(false)}
-								className="md-btn"
-								style={{ padding: "6px 10px" }}
+								className="md-close-btn"
+								aria-label="Close"
+								title="Close"
 							>
 								<XMarkIcon className="h-4 w-4" />
 							</button>

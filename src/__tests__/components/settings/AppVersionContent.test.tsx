@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import AppVersionContent from "@/components/settings/AppVersionContent";
+import { APP_VERSION } from "@/lib/version";
 
 describe("AppVersionContent", () => {
 	const mockCheckForUpdates = vi.fn();
@@ -28,7 +29,7 @@ describe("AppVersionContent", () => {
 			expect(screen.getByText("ShadowQuill Version")).toBeInTheDocument();
 			expect(screen.getByText("Application Information")).toBeInTheDocument();
 			expect(screen.getByText("Current Version")).toBeInTheDocument();
-			expect(screen.getByText("0.9.0")).toBeInTheDocument();
+			expect(screen.getByText(APP_VERSION)).toBeInTheDocument();
 		});
 
 		it("should render the check for updates section", () => {
