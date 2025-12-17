@@ -1,3 +1,11 @@
+## [0.9.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.1...v0.9.2) (2025-12-17)
+
+
+### Bug Fixes
+
+* sidebar sits flush with titlebar ([2fe5d06](https://github.com/shadowquillapp/shadowquillapp/commit/2fe5d06a0b8efcc5c39e0f8367da14add394a025))
+* UI upgrade ([143d96e](https://github.com/shadowquillapp/shadowquillapp/commit/143d96e89944cdcba4203868b85ebe7c34c1c356))
+
 ## [0.9.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.0...v0.9.1) (2025-12-16)
 
 
