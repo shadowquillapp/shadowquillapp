@@ -78,6 +78,8 @@ export function OutputPanel({
 					borderTop:
 						"1px solid color-mix(in srgb, var(--color-outline), rgba(255,255,255,0.1))",
 					boxShadow: "0 6px 12px rgba(0,0,0,0.18)",
+					flex: 1,
+					minHeight: 0,
 				}}
 			>
 				<div
@@ -165,7 +167,10 @@ export function OutputPanel({
 					style={{
 						paddingLeft: "var(--space-6)",
 						paddingRight: "var(--space-6)",
-						maxHeight: "100%",
+						paddingTop: "var(--space-4)",
+						paddingBottom: "var(--space-4)",
+						flex: 1,
+						minHeight: 0,
 					}}
 				>
 					{!hasMessages ? (
