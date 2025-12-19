@@ -1,3 +1,10 @@
+## [0.9.3](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.2...v0.9.3) (2025-12-19)
+
+
+### Bug Fixes
+
+* scroll lock bug in workbench right panel ([08c45f7](https://github.com/shadowquillapp/shadowquillapp/commit/08c45f78f12c2801220f194882538e5d9fe32d82))
+
 ## [0.9.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.1...v0.9.2) (2025-12-17)
 
 
