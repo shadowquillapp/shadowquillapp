@@ -71,8 +71,10 @@ pnpm start
 ## Development
 
 ```bash
+pnpm install              # Install packages
 pnpm run dev              # Development mode
 pnpm run build            # Production build
+pnpm start                # Production mode
 pnpm run test             # Run tests
 pnpm run typecheck        # Type checking
 pnpm run check            # Lint with Biome
