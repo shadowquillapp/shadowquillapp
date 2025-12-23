@@ -100,7 +100,3 @@ Next.js • Electron • Ollama • React • TypeScript • Tailwind CSS • Vi
     <img src="https://contrib.rocks/image?repo=shadowquillapp/shadowquillapp" alt="Contributors" />
   </a>
 </p>
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=shadowquillapp/shadowquillapp&type=Date)](https://star-history.com/#shadowquillapp/shadowquillapp&Date)
