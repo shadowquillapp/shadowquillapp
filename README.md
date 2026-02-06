@@ -12,7 +12,7 @@
 
 ## Overview
 
-ShadowQuill transforms natural language ideas into structured, high-quality prompts. Powered by Ollama and Gemma 3, it runs 100% offline—completely local and free.
+ShadowQuill transforms natural language ideas into structured, high-quality prompts. Powered by Ollama and Gemma 3, it runs 100% offline, completely local and free.
 
 ## ShadowQuill Installation
 
