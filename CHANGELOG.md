@@ -1,3 +1,10 @@
+## [0.9.4](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.3...v0.9.4) (2026-02-07)
+
+
+### Bug Fixes
+
+* security updates ([6218db8](https://github.com/shadowquillapp/shadowquillapp/commit/6218db8f62f95d21fc2c21ba464b7d808aa2a0bb))
+
 # ShadowQuill - Complete Changelog
 
 > **Initial Release v0.9.3** - December 20, 2025
