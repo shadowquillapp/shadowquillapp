@@ -14,18 +14,6 @@
 
 ShadowQuill transforms natural language ideas into structured, high-quality prompts. Powered by Ollama and Gemma 3, it runs 100% offline, completely local and free.
 
-## ShadowQuill Installation
-
-### macOS
-[![Download for macOS (DMG)](https://img.shields.io/badge/Download-.dmg-b3b3b3?logo=apple&logoColor=white)](https://github.com/shadowquillapp/shadowquillapp/releases/download/v0.9.3/ShadowQuill-0.9.3-arm64.dmg)
-
-### Windows
-[![Download for Windows (EXE)](https://img.shields.io/badge/Download-.exe-0078D4?logo=windows&logoColor=white)](https://github.com/shadowquillapp/shadowquillapp/releases/download/v0.9.3/ShadowQuill.Setup.0.9.3.exe)
-
-<br/>
-
-**Alternate:** Visit the [Latest Release page](https://github.com/shadowquillapp/shadowquillapp/releases/latest).
-
 ## Quick Start
 
 **Prerequisites:** [Ollama](https://ollama.com) with a Gemma 3 model
