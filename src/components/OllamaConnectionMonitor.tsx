@@ -17,10 +17,8 @@ interface WindowWithShadowQuill extends Window {
 export default function OllamaConnectionMonitor() {
 	const { confirm } = useDialog();
 	const [isMonitoring, setIsMonitoring] = useState(false);
-	// Use ref for lastKnownStatus to avoid stale closures in callbacks
 	const lastKnownStatusRef = useRef<boolean | null>(null);
 	const [_isOpeningOllama, setIsOpeningOllama] = useState(false);
-	// Use ref for ollamaInstalled to avoid stale closures
 	const ollamaInstalledRef = useRef<boolean | null>(null);
 
 	const checkOllamaInstalled = useCallback(async (): Promise<
@@ -48,7 +46,6 @@ export default function OllamaConnectionMonitor() {
 				const win = window as WindowWithShadowQuill;
 
 				if (isInstalled === false) {
-					// Open download page
 					window.open("https://ollama.com/download", "_blank");
 					setIsOpeningOllama(false);
 					return;
@@ -62,7 +59,6 @@ export default function OllamaConnectionMonitor() {
 				const result = await win.shadowquill.openOllama();
 
 				if (result.ok) {
-					// Wait 3 seconds then recheck - schedule via returned promise
 					return new Promise<void>((resolve) => {
 						setTimeout(resolve, 3000);
 					});
@@ -79,7 +75,6 @@ export default function OllamaConnectionMonitor() {
 	const checkConnection = useCallback(async () => {
 		const config = readLocalModelConfig();
 		if (!config) {
-			// No config yet, nothing to monitor
 			setIsMonitoring(false);
 			return;
 		}
@@ -87,9 +82,7 @@ export default function OllamaConnectionMonitor() {
 		setIsMonitoring(true);
 		const result = await validateLocalModelConnection(config);
 
-		// If we had a connection and now we don't, alert the user
 		if (lastKnownStatusRef.current === true && !result.ok) {
-			// Check if Ollama is installed - use returned value since state is async
 			let isInstalled = ollamaInstalledRef.current;
 			if (isInstalled === null) {
 				isInstalled = await checkOllamaInstalled();
@@ -107,9 +100,7 @@ export default function OllamaConnectionMonitor() {
 			});
 
 			if (shouldOpen) {
-				// handleOpenOrInstallOllama may return a promise that resolves after 3 seconds
 				await handleOpenOrInstallOllama(isInstalled);
-				// After opening Ollama and waiting, recheck connection once
 				const recheckConfig = readLocalModelConfig();
 				if (recheckConfig) {
 					const recheckResult =
@@ -119,12 +110,9 @@ export default function OllamaConnectionMonitor() {
 				return;
 			}
 		}
-
 		lastKnownStatusRef.current = result.ok;
 	}, [confirm, checkOllamaInstalled, handleOpenOrInstallOllama]);
 
-	// Initial check after a short delay (intentionally run once on mount)
-	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional run-once on mount
 	useEffect(() => {
 		const initialTimeout = setTimeout(() => {
 			void checkConnection();
@@ -136,15 +124,13 @@ export default function OllamaConnectionMonitor() {
 	// Periodic monitoring every 10 seconds
 	useEffect(() => {
 		if (!isMonitoring) return;
-
 		const interval = setInterval(() => {
 			void checkConnection();
 		}, 10000);
-
+		
 		return () => clearInterval(interval);
 	}, [isMonitoring, checkConnection]);
 
-	// Listen for MODEL_CHANGED events to recheck connection
 	useEffect(() => {
 		const handler = () => {
 			void checkConnection();
@@ -154,5 +140,5 @@ export default function OllamaConnectionMonitor() {
 		return () => window.removeEventListener("MODEL_CHANGED", handler);
 	}, [checkConnection]);
 
-	return null; // This component doesn't render anything
+	return null;
 }
