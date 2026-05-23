@@ -1,11 +1,10 @@
 <div align="center">
-  <img src="https://shadowquill.org/images/logo-circle.png" alt="ShadowQuill Logo" width="120" height="120">
-
-# ShadowQuill v0.9.4
+  
+# ShadowQuill
+v0.9.4
 
 **Privacy-First AI Prompt Studio**
 
-  [![Website](https://img.shields.io/badge/Website-shadowquill.org-8b7cf6)](https://shadowquill.org)
   [![Stars](https://img.shields.io/github/stars/shadowquillapp/shadowquillapp)](https://github.com/shadowquillapp/shadowquillapp/stargazers)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 </div>
