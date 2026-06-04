@@ -19,9 +19,10 @@ function isElectronStorageAvailable(): boolean {
 }
 
 class ElectronStorage {
-	cache: Map<string, string> = new Map();
+	private cache: Map<string, string> = new Map();
 	private initialized = false;
 	private initPromise: Promise<void> | null = null;
+	private writeQueue = Promise.resolve();
 
 	async init() {
 		if (this.initialized) return;
@@ -43,6 +44,27 @@ class ElectronStorage {
 		})();
 
 		return this.initPromise;
+	}
+
+	getCached(key: string): string | null {
+		return this.cache.get(key) ?? null;
+	}
+
+	setCached(key: string, value: string): void {
+		this.cache.set(key, value);
+	}
+
+	deleteCached(key: string): void {
+		this.cache.delete(key);
+	}
+
+	clearCached(): void {
+		this.cache.clear();
+	}
+
+	private enqueueWrite(write: () => Promise<void>): Promise<void> {
+		this.writeQueue = this.writeQueue.then(write, write);
+		return this.writeQueue;
 	}
 
 	async getItem(key: string): Promise<string | null> {
@@ -74,72 +96,65 @@ class ElectronStorage {
 
 	async setItem(key: string, value: string): Promise<void> {
 		await this.init();
-
 		this.cache.set(key, value);
-
-		if (isElectronStorageAvailable()) {
-			try {
-				const win = window as WindowWithShadowQuill;
-				await win.shadowquill?.storage?.setItem(key, value);
-				return;
-			} catch (e) {
-				console.error("[ElectronStorage] setItem failed:", e);
+		await this.enqueueWrite(async () => {
+			if (isElectronStorageAvailable()) {
+				try {
+					const win = window as WindowWithShadowQuill;
+					await win.shadowquill?.storage?.setItem(key, value);
+					return;
+				} catch (e) {
+					console.error("[ElectronStorage] setItem failed:", e);
+				}
 			}
-		}
-
-		try {
-			localStorage.setItem(key, value);
-		} catch (e) {
-			console.error("[ElectronStorage] localStorage fallback failed:", e);
-		}
+			try {
+				localStorage.setItem(key, value);
+			} catch (e) {
+				console.error("[ElectronStorage] localStorage fallback failed:", e);
+			}
+		});
 	}
 
 	async removeItem(key: string): Promise<void> {
 		await this.init();
-
 		this.cache.delete(key);
-
-		if (isElectronStorageAvailable()) {
-			try {
-				const win = window as WindowWithShadowQuill;
-				await win.shadowquill?.storage?.removeItem(key);
-				return;
-			} catch (e) {
-				console.error("[ElectronStorage] removeItem failed:", e);
+		await this.enqueueWrite(async () => {
+			if (isElectronStorageAvailable()) {
+				try {
+					const win = window as WindowWithShadowQuill;
+					await win.shadowquill?.storage?.removeItem(key);
+					return;
+				} catch (e) {
+					console.error("[ElectronStorage] removeItem failed:", e);
+				}
 			}
-		}
-
-		try {
-			localStorage.removeItem(key);
-		} catch (e) {
-			console.error("[ElectronStorage] localStorage fallback failed:", e);
-		}
+			try {
+				localStorage.removeItem(key);
+			} catch (e) {
+				console.error("[ElectronStorage] localStorage fallback failed:", e);
+			}
+		});
 	}
 
 	async clear(): Promise<void> {
 		await this.init();
-
 		this.cache.clear();
-
-		if (isElectronStorageAvailable()) {
-			try {
-				const win = window as WindowWithShadowQuill;
-				await win.shadowquill?.storage?.clear();
-				return;
-			} catch (e) {
-				console.error("[ElectronStorage] clear failed:", e);
+		await this.enqueueWrite(async () => {
+			if (isElectronStorageAvailable()) {
+				try {
+					const win = window as WindowWithShadowQuill;
+					await win.shadowquill?.storage?.clear();
+					return;
+				} catch (e) {
+					console.error("[ElectronStorage] clear failed:", e);
+				}
 			}
-		}
-
-		try {
-			localStorage.clear();
-		} catch (e) {
-			console.error("[ElectronStorage] localStorage fallback failed:", e);
-		}
-	}
-
-	getItemSync(key: string): string | null {
-		return this.cache.get(key) ?? null;
+			try {
+				localStorage.clear();
+			} catch (e) {
+				console.error("[ElectronStorage] localStorage fallback failed:", e);
+			}
+		});
 	}
 }
 
@@ -155,13 +170,13 @@ export const storage = {
 			}
 		}
 
-		const cached = electronStorage.getItemSync(key);
+		const cached = electronStorage.getCached(key);
 		if (cached !== null) return cached;
 
 		try {
 			const localValue = localStorage.getItem(key);
 			if (localValue !== null) {
-				electronStorage.cache.set(key, localValue);
+				electronStorage.setCached(key, localValue);
 				return localValue;
 			}
 		} catch {
@@ -182,7 +197,7 @@ export const storage = {
 			}
 		}
 
-		electronStorage.cache.set(key, value);
+		electronStorage.setCached(key, value);
 
 		try {
 			localStorage.setItem(key, value);
@@ -203,7 +218,7 @@ export const storage = {
 			}
 		}
 
-		electronStorage.cache.delete(key);
+		electronStorage.deleteCached(key);
 
 		try {
 			localStorage.removeItem(key);
@@ -224,7 +239,7 @@ export const storage = {
 			}
 		}
 
-		electronStorage.cache.clear();
+		electronStorage.clearCached();
 
 		try {
 			localStorage.clear();

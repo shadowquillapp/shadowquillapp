@@ -1,15 +1,10 @@
-import { useCallback, useEffect, useReducer, useRef } from "react";
-import {
-	getJSON,
-	isFactoryResetInProgress,
-	remove,
-	setJSON,
-} from "@/lib/local-storage";
+import { useCallback, useEffect, useReducer, useRef, useState } from "react";
+import { clearTabState, readTabState, writeTabState } from "@/lib/domain/tabs";
+import { isFactoryResetInProgress } from "@/lib/local-storage";
 import type { MessageItem, PromptPresetSummary, VersionGraph } from "./types";
 import { createVersionGraph } from "./version-graph";
 
 const MAX_TABS = 8;
-const STORAGE_KEY = "workbench-tabs-v1";
 
 export interface Tab {
 	id: string;
@@ -117,6 +112,17 @@ function createNewTab(
 	};
 }
 
+function patchTab(
+	state: TabManagerState,
+	tabId: string,
+	update: (tab: Tab) => Tab,
+): TabManagerState {
+	return {
+		...state,
+		tabs: state.tabs.map((tab) => (tab.id === tabId ? update(tab) : tab)),
+	};
+}
+
 const reducer = (
 	state: TabManagerState,
 	action: TabAction,
@@ -167,107 +173,73 @@ const reducer = (
 
 		case "UPDATE_TAB_LABEL": {
 			const { tabId, label } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, label } : t)),
-			};
+			return patchTab(state, tabId, (tab) => ({ ...tab, label }));
 		}
 
 		case "UPDATE_TAB_DRAFT": {
 			const { tabId, draft } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) =>
-					t.id === tabId ? { ...t, draft, isDirty: true } : t,
-				),
-			};
+			return patchTab(state, tabId, (tab) => ({
+				...tab,
+				draft,
+				isDirty: true,
+			}));
 		}
 
 		case "SET_TAB_MESSAGES": {
 			const { tabId, messages } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, messages } : t)),
-			};
+			return patchTab(state, tabId, (tab) => ({ ...tab, messages }));
 		}
 
 		case "PUSH_TAB_MESSAGE": {
 			const { tabId, message } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) =>
-					t.id === tabId ? { ...t, messages: [...t.messages, message] } : t,
-				),
-			};
+			return patchTab(state, tabId, (tab) => ({
+				...tab,
+				messages: [...tab.messages, message],
+			}));
 		}
 
 		case "UPDATE_TAB_MESSAGE": {
 			const { tabId, messageId, patch } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) =>
-					t.id === tabId
-						? {
-								...t,
-								messages: t.messages.map((m) =>
-									m.id === messageId ? { ...m, ...patch } : m,
-								),
-							}
-						: t,
+			return patchTab(state, tabId, (tab) => ({
+				...tab,
+				messages: tab.messages.map((m) =>
+					m.id === messageId ? { ...m, ...patch } : m,
 				),
-			};
+			}));
 		}
 
 		case "SET_TAB_SENDING": {
 			const { tabId, sending } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, sending } : t)),
-			};
+			return patchTab(state, tabId, (tab) => ({ ...tab, sending }));
 		}
 
 		case "SET_TAB_ERROR": {
 			const { tabId, error } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, error } : t)),
-			};
+			return patchTab(state, tabId, (tab) => ({ ...tab, error }));
 		}
 
 		case "ATTACH_TAB_PROJECT": {
 			const { tabId, projectId } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) =>
-					t.id === tabId ? { ...t, projectId, isDirty: false } : t,
-				),
-			};
+			return patchTab(state, tabId, (tab) => ({
+				...tab,
+				projectId,
+				isDirty: false,
+			}));
 		}
 
 		case "SET_TAB_VERSION_GRAPH": {
 			const { tabId, versionGraph } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) =>
-					t.id === tabId ? { ...t, versionGraph } : t,
-				),
-			};
+			return patchTab(state, tabId, (tab) => ({ ...tab, versionGraph }));
 		}
 
 		case "SET_TAB_PRESET": {
 			const { tabId, preset } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, preset } : t)),
-			};
+			return patchTab(state, tabId, (tab) => ({ ...tab, preset }));
 		}
 
 		case "MARK_TAB_DIRTY": {
 			const { tabId, isDirty } = action.payload;
-			return {
-				...state,
-				tabs: state.tabs.map((t) => (t.id === tabId ? { ...t, isDirty } : t)),
-			};
+			return patchTab(state, tabId, (tab) => ({ ...tab, isDirty }));
 		}
 
 		case "RESTORE_TABS": {
@@ -305,56 +277,52 @@ const reducer = (
 	}
 };
 
+function persistTabs(state: TabManagerState): void {
+	writeTabState({
+		tabs: state.tabs.map((tab) => ({
+			id: tab.id,
+			label: tab.label,
+			preset: tab.preset,
+			projectId: tab.projectId,
+			draft: tab.draft,
+			messages: tab.messages,
+			versionGraph: tab.versionGraph,
+		})),
+		activeTabId: state.activeTabId,
+	});
+}
+
 export function useTabManager() {
 	const [state, dispatch] = useReducer(reducer, initialState);
-	const isInitialized = useRef(false);
+	const [isInitialized, setIsInitialized] = useState(false);
+	const stateRef = useRef(state);
 
 	const activeTab = state.tabs.find((t) => t.id === state.activeTabId) ?? null;
+	const activeTabId = activeTab?.id ?? null;
 
 	useEffect(() => {
-		if (!isInitialized.current) return; // Don't save during initial load
+		stateRef.current = state;
+	}, [state]);
+
+	useEffect(() => {
+		if (!isInitialized) return; // Don't save during initial load
 		if (isFactoryResetInProgress()) return; // Don't save during factory reset
-
-		const persistData = {
-			tabs: state.tabs.map((tab) => ({
-				id: tab.id,
-				label: tab.label,
-				preset: tab.preset,
-				projectId: tab.projectId,
-				draft: tab.draft,
-				messages: tab.messages,
-				versionGraph: tab.versionGraph,
-			})),
-			activeTabId: state.activeTabId,
-		};
-
-		try {
-			setJSON(STORAGE_KEY, persistData);
-		} catch (error) {
-			console.error("Failed to persist tabs:", error);
-		}
-	}, [state.tabs, state.activeTabId]);
+		const timer = window.setTimeout(() => {
+			try {
+				persistTabs(state);
+			} catch (error) {
+				console.error("Failed to persist tabs:", error);
+			}
+		}, 250);
+		return () => window.clearTimeout(timer);
+	}, [state, isInitialized]);
 
 	useEffect(() => {
 		const handleBeforeUnload = () => {
-			if (!isInitialized.current) return;
+			if (!isInitialized) return;
 			if (isFactoryResetInProgress()) return; // Don't save during factory reset
-
-			const persistData = {
-				tabs: state.tabs.map((tab) => ({
-					id: tab.id,
-					label: tab.label,
-					preset: tab.preset,
-					projectId: tab.projectId,
-					draft: tab.draft,
-					messages: tab.messages,
-					versionGraph: tab.versionGraph,
-				})),
-				activeTabId: state.activeTabId,
-			};
-
 			try {
-				setJSON(STORAGE_KEY, persistData);
+				persistTabs(stateRef.current);
 			} catch (error) {
 				console.error("Failed to persist tabs on unload:", error);
 			}
@@ -364,69 +332,48 @@ export function useTabManager() {
 		return () => {
 			window.removeEventListener("beforeunload", handleBeforeUnload);
 		};
-	}, [state.tabs, state.activeTabId]);
+	}, [isInitialized]);
 
 	useEffect(() => {
 		try {
-			const parsed = getJSON<{
-				tabs: unknown[];
-				activeTabId: string | null;
-			}>(STORAGE_KEY, null);
-			if (parsed) {
-				if (
-					parsed.tabs &&
-					Array.isArray(parsed.tabs) &&
-					parsed.tabs.length > 0
-				) {
-					const restoredTabs: Tab[] = parsed.tabs
-						.filter((t: unknown) => {
-							const tab = t as Record<string, unknown>;
-							return tab?.id && tab.preset && tab.label;
-						})
-						.map((t: unknown) => {
-							const tab = t as Record<string, unknown>;
-							return {
-								id: tab.id as string,
-								label: tab.label as string,
-								preset: tab.preset as Tab["preset"],
-								projectId: (tab.projectId as string | null) || null,
-								draft: (tab.draft as string) || "",
-								messages: Array.isArray(tab.messages)
-									? (tab.messages as Tab["messages"])
-									: [],
-								versionGraph:
-									(tab.versionGraph as Tab["versionGraph"]) ||
-									createVersionGraph("", "Start"),
-								sending: false,
-								error: null,
-								isDirty: false, // Reset dirty state on restore
-							};
-						});
+			const parsed = readTabState();
+			if (parsed.tabs.length > 0) {
+				const restoredTabs: Tab[] = parsed.tabs.map((tab) => ({
+					id: tab.id,
+					label: tab.label,
+					preset: tab.preset,
+					projectId: tab.projectId ?? null,
+					draft: tab.draft ?? "",
+					messages: tab.messages ?? [],
+					versionGraph: tab.versionGraph ?? createVersionGraph("", "Start"),
+					sending: false,
+					error: null,
+					isDirty: false,
+				}));
 
-					if (restoredTabs.length > 0) {
-						const validActiveTabId =
-							parsed.activeTabId &&
-							restoredTabs.some((t) => t.id === parsed.activeTabId)
-								? parsed.activeTabId
-								: restoredTabs[0]?.id || null;
+				if (restoredTabs.length > 0) {
+					const validActiveTabId =
+						parsed.activeTabId &&
+						restoredTabs.some((t) => t.id === parsed.activeTabId)
+							? parsed.activeTabId
+							: restoredTabs[0]?.id || null;
 
-						dispatch({
-							type: "RESTORE_TABS",
-							payload: {
-								tabs: restoredTabs,
-								activeTabId: validActiveTabId,
-							},
-						});
-					}
+					dispatch({
+						type: "RESTORE_TABS",
+						payload: {
+							tabs: restoredTabs,
+							activeTabId: validActiveTabId,
+						},
+					});
 				}
 			}
 		} catch (error) {
 			console.error("Failed to restore tabs:", error);
 			try {
-				remove(STORAGE_KEY);
+				clearTabState();
 			} catch {}
 		} finally {
-			isInitialized.current = true;
+			setIsInitialized(true);
 		}
 	}, []);
 
@@ -454,112 +401,112 @@ export function useTabManager() {
 
 	const updateDraft = useCallback(
 		(draft: string) => {
-			if (!activeTab) return;
+			if (!activeTabId) return;
 			dispatch({
 				type: "UPDATE_TAB_DRAFT",
-				payload: { tabId: activeTab.id, draft },
+				payload: { tabId: activeTabId, draft },
 			});
 		},
-		[activeTab],
+		[activeTabId],
 	);
 
 	const setMessages = useCallback(
 		(messages: MessageItem[]) => {
-			if (!activeTab) return;
+			if (!activeTabId) return;
 			dispatch({
 				type: "SET_TAB_MESSAGES",
-				payload: { tabId: activeTab.id, messages },
+				payload: { tabId: activeTabId, messages },
 			});
 		},
-		[activeTab],
+		[activeTabId],
 	);
 
 	const pushMessage = useCallback(
 		(message: MessageItem) => {
-			if (!activeTab) return;
+			if (!activeTabId) return;
 			dispatch({
 				type: "PUSH_TAB_MESSAGE",
-				payload: { tabId: activeTab.id, message },
+				payload: { tabId: activeTabId, message },
 			});
 		},
-		[activeTab],
+		[activeTabId],
 	);
 
 	const updateMessage = useCallback(
 		(messageId: string, patch: Partial<MessageItem>) => {
-			if (!activeTab) return;
+			if (!activeTabId) return;
 			dispatch({
 				type: "UPDATE_TAB_MESSAGE",
-				payload: { tabId: activeTab.id, messageId, patch },
+				payload: { tabId: activeTabId, messageId, patch },
 			});
 		},
-		[activeTab],
+		[activeTabId],
 	);
 
 	const setSending = useCallback(
 		(sending: boolean) => {
-			if (!activeTab) return;
+			if (!activeTabId) return;
 			dispatch({
 				type: "SET_TAB_SENDING",
-				payload: { tabId: activeTab.id, sending },
+				payload: { tabId: activeTabId, sending },
 			});
 		},
-		[activeTab],
+		[activeTabId],
 	);
 
 	const setError = useCallback(
 		(error: string | null) => {
-			if (!activeTab) return;
+			if (!activeTabId) return;
 			dispatch({
 				type: "SET_TAB_ERROR",
-				payload: { tabId: activeTab.id, error },
+				payload: { tabId: activeTabId, error },
 			});
 		},
-		[activeTab],
+		[activeTabId],
 	);
 
 	const attachProject = useCallback(
 		(projectId: string | null) => {
-			if (!activeTab) return;
+			if (!activeTabId) return;
 			dispatch({
 				type: "ATTACH_TAB_PROJECT",
-				payload: { tabId: activeTab.id, projectId },
+				payload: { tabId: activeTabId, projectId },
 			});
 		},
-		[activeTab],
+		[activeTabId],
 	);
 
 	const setVersionGraph = useCallback(
 		(versionGraph: VersionGraph) => {
-			if (!activeTab) return;
+			if (!activeTabId) return;
 			dispatch({
 				type: "SET_TAB_VERSION_GRAPH",
-				payload: { tabId: activeTab.id, versionGraph },
+				payload: { tabId: activeTabId, versionGraph },
 			});
 		},
-		[activeTab],
+		[activeTabId],
 	);
 
 	const setPreset = useCallback(
 		(preset: PromptPresetSummary) => {
-			if (!activeTab) return;
+			if (!activeTabId) return;
 			dispatch({
 				type: "SET_TAB_PRESET",
-				payload: { tabId: activeTab.id, preset },
+				payload: { tabId: activeTabId, preset },
 			});
 		},
-		[activeTab],
+		[activeTabId],
 	);
 
 	const markDirty = useCallback(
 		(isDirty: boolean) => {
-			if (!activeTab) return;
+			if (!activeTabId) return;
 			dispatch({
 				type: "MARK_TAB_DIRTY",
-				payload: { tabId: activeTab.id, isDirty },
+				payload: { tabId: activeTabId, isDirty },
 			});
 		},
-		[activeTab],
+		[activeTabId],
 	);
 
 	const findTabByProjectId = useCallback(
@@ -579,6 +526,27 @@ export function useTabManager() {
 		},
 		[],
 	);
+
+	const pushMessageForTab = useCallback(
+		(tabId: string, message: MessageItem) => {
+			dispatch({ type: "PUSH_TAB_MESSAGE", payload: { tabId, message } });
+		},
+		[],
+	);
+
+	const updateMessageForTab = useCallback(
+		(tabId: string, messageId: string, patch: Partial<MessageItem>) => {
+			dispatch({
+				type: "UPDATE_TAB_MESSAGE",
+				payload: { tabId, messageId, patch },
+			});
+		},
+		[],
+	);
+
+	const setSendingForTab = useCallback((tabId: string, sending: boolean) => {
+		dispatch({ type: "SET_TAB_SENDING", payload: { tabId, sending } });
+	}, []);
 
 	const setVersionGraphForTab = useCallback(
 		(tabId: string, versionGraph: VersionGraph) => {
@@ -611,6 +579,12 @@ export function useTabManager() {
 		[],
 	);
 
+	const markDirtyForTab = useCallback((tabId: string, isDirty: boolean) => {
+		dispatch({ type: "MARK_TAB_DIRTY", payload: { tabId, isDirty } });
+	}, []);
+
+	const getTabs = useCallback(() => stateRef.current.tabs, []);
+
 	return {
 		tabs: state.tabs,
 		activeTabId: state.activeTabId,
@@ -639,9 +613,14 @@ export function useTabManager() {
 
 		updateDraftForTab,
 		setMessagesForTab,
+		pushMessageForTab,
+		updateMessageForTab,
+		setSendingForTab,
 		setVersionGraphForTab,
 		attachProjectForTab,
 		setErrorForTab,
 		setPresetForTab,
+		markDirtyForTab,
+		getTabs,
 	};
 }
