@@ -1,3 +1,10 @@
+## [0.9.7](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.6...v0.9.7) (2026-06-04)
+
+
+### Bug Fixes
+
+* correct git action tags & trigger release ([ac1f64e](https://github.com/shadowquillapp/shadowquillapp/commit/ac1f64eeb9035097b5470828d69d034a206dac54))
+
 ## [0.9.6](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.5...v0.9.6) (2026-06-04)
 
 
