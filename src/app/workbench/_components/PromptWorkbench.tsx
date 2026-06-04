@@ -6,6 +6,8 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
 import SettingsDialog from "@/components/SettingsDialog";
 import { getJSON, setJSON } from "@/lib/local-storage";
+import { setLastSelectedPresetKey } from "@/lib/preset-store";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { InputPanel } from "./workbench/components/InputPanel";
 import { OutputPanel } from "./workbench/components/OutputPanel";
 import { useCopyMessage } from "./workbench/hooks/useCopyMessage";
@@ -36,7 +38,7 @@ export default function PromptWorkbench() {
 	const versionDropdownRef = useRef<HTMLButtonElement | null>(null);
 	const [outputAnimateKey, setOutputAnimateKey] = useState(0);
 	const [leftPanelWidth, setLeftPanelWidth] = useState(() =>
-		getJSON<number>("shadowquill:panelWidth", 50),
+		getJSON<number>(STORAGE_KEYS.PANEL_WIDTH.key, 50),
 	);
 	const [isResizing, setIsResizing] = useState(false);
 	const panelsRef = useRef<HTMLDivElement | null>(null);
@@ -69,10 +71,10 @@ export default function PromptWorkbench() {
 	useEffect(() => {
 		let savedTheme = getJSON<
 			"earth" | "purpledark" | "dark" | "light" | "default" | null
-		>("theme-preference", null);
+		>(STORAGE_KEYS.THEME_PREFERENCE.key, null);
 		if (savedTheme === "default") {
 			savedTheme = "purpledark";
-			setJSON("theme-preference", "purpledark");
+			setJSON(STORAGE_KEYS.THEME_PREFERENCE.key, "purpledark");
 		}
 		if (
 			savedTheme &&
@@ -310,7 +312,7 @@ export default function PromptWorkbench() {
 									const presetKey =
 										activeTab.preset.id ?? activeTab.preset.name;
 									if (presetKey) {
-										setJSON("last-selected-preset", presetKey);
+										setLastSelectedPresetKey(presetKey);
 									}
 								}
 								router.push("/studio");

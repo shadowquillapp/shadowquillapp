@@ -1,33 +1,15 @@
-import { getJSON, setJSON } from "./local-storage";
+import {
+	type LocalModelConfig,
+	readLocalModelConfig,
+	validateOllamaBaseUrl,
+	writeLocalModelConfig,
+} from "./domain/model-config";
 
-export interface LocalModelConfig {
-	provider: "ollama";
-	baseUrl: string;
-	model: string;
-}
+export type { LocalModelConfig } from "./domain/model-config";
+export { readLocalModelConfig, validateOllamaBaseUrl, writeLocalModelConfig };
 
 interface OllamaTagsResponse {
 	models?: Array<{ name?: string; id?: string; size?: number }>;
-}
-
-const PROVIDER_KEY = "MODEL_PROVIDER";
-const BASE_URL_KEY = "MODEL_BASE_URL";
-const MODEL_NAME_KEY = "MODEL_NAME";
-
-export function readLocalModelConfig(): LocalModelConfig | null {
-	const provider = getJSON<string | null>(PROVIDER_KEY, null);
-	const baseUrl = getJSON<string | null>(BASE_URL_KEY, null);
-	const model = getJSON<string | null>(MODEL_NAME_KEY, null);
-	if (!provider || !baseUrl || !model) return null;
-	return { provider: "ollama", baseUrl, model };
-}
-
-export function writeLocalModelConfig(cfg: LocalModelConfig): void {
-	if (!cfg.provider || !cfg.baseUrl || !cfg.model)
-		throw new Error("Invalid model configuration");
-	setJSON(PROVIDER_KEY, cfg.provider);
-	setJSON(BASE_URL_KEY, cfg.baseUrl);
-	setJSON(MODEL_NAME_KEY, cfg.model);
 }
 
 export async function validateLocalModelConnection(
@@ -37,10 +19,12 @@ export async function validateLocalModelConnection(
 	if (!config) return { ok: false, error: "not-configured" };
 	if (config.provider !== "ollama")
 		return { ok: false, error: "unsupported-provider" };
+	const baseUrl = validateOllamaBaseUrl(config.baseUrl);
+	if (!baseUrl) return { ok: false, error: "invalid-base-url" };
 	const controller = new AbortController();
 	const to = setTimeout(() => controller.abort(), 15000);
 	try {
-		const res = await fetch(`${config.baseUrl.replace(/\/$/, "")}/api/tags`, {
+		const res = await fetch(`${baseUrl}/api/tags`, {
 			signal: controller.signal,
 		});
 		clearTimeout(to);
@@ -64,13 +48,17 @@ export async function validateLocalModelConnection(
 			ok: false,
 			error: err?.name === "AbortError" ? "timeout" : "unreachable",
 		};
+	} finally {
+		clearTimeout(to);
 	}
 }
 
 export async function listAvailableModels(
 	baseUrl: string,
 ): Promise<Array<{ name: string; size: number }>> {
-	const res = await fetch(`${baseUrl.replace(/\/$/, "")}/api/tags`);
+	const validBaseUrl = validateOllamaBaseUrl(baseUrl);
+	if (!validBaseUrl) return [];
+	const res = await fetch(`${validBaseUrl}/api/tags`);
 	if (!res.ok) return [];
 	const json = (await res.json().catch(() => ({}))) as OllamaTagsResponse;
 	const models = Array.isArray(json?.models) ? json.models : [];

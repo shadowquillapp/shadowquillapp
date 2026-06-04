@@ -2,6 +2,7 @@
 "use client";
 import React from "react";
 import { getJSON, setJSON } from "@/lib/local-storage";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { Icon, type IconName } from "../Icon";
 
 interface ShadowQuillViewApi {
@@ -52,10 +53,10 @@ export default function DisplayContent() {
 		// Load saved theme synchronously during initialization
 		let savedTheme = getJSON<
 			"earth" | "purpledark" | "dark" | "light" | "default" | null
-		>("theme-preference", null);
+		>(STORAGE_KEYS.THEME_PREFERENCE.key, null);
 		if (savedTheme === "default") {
 			savedTheme = "purpledark";
-			setJSON("theme-preference", "purpledark");
+			setJSON(STORAGE_KEYS.THEME_PREFERENCE.key, "purpledark");
 		}
 		if (
 			savedTheme &&
@@ -161,7 +162,7 @@ export default function DisplayContent() {
 			"data-theme",
 			theme === "earth" ? "" : theme,
 		);
-		setJSON("theme-preference", theme);
+		setJSON(STORAGE_KEYS.THEME_PREFERENCE.key, theme);
 	};
 
 	const percent = Math.round(zoomFactor * 100);

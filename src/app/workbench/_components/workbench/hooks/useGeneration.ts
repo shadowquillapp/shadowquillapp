@@ -31,17 +31,21 @@ import { appendVersion, versionList } from "../version-graph";
  */
 export function useGeneration(
 	tabManager: ReturnType<typeof useTabManager>,
-	ensureProject: (firstLine: string) => Promise<string | null>,
+	ensureProject: (firstLine: string, tabId?: string) => Promise<string | null>,
 	refreshProjectList: () => Promise<void>,
 	confirm: ReturnType<typeof useDialog>["confirm"],
 	setJustCreatedVersion: (value: boolean) => void,
 	setOutputAnimateKey: React.Dispatch<React.SetStateAction<number>>,
 ) {
-	const abortRef = useRef<AbortController | null>(null);
+	const abortRef = useRef<{
+		controller: AbortController;
+		tabId: string;
+	} | null>(null);
 
 	const send = useCallback(async () => {
 		const activeTab = tabManager.activeTab;
 		if (!activeTab) return;
+		const tabId = activeTab.id;
 
 		const text = activeTab.draft.trim();
 		if (!text || activeTab.sending) return;
@@ -50,7 +54,9 @@ export function useGeneration(
 		if (graph.activeId !== graph.tailId) {
 			let versionsToRemove = 0;
 			let cursor = graph.nodes[graph.activeId]?.nextId;
-			while (cursor) {
+			const seen = new Set<string>();
+			while (cursor && !seen.has(cursor)) {
+				seen.add(cursor);
 				versionsToRemove++;
 				cursor = graph.nodes[cursor]?.nextId ?? null;
 			}
@@ -68,22 +74,20 @@ export function useGeneration(
 
 		const originalInput = text;
 
-		tabManager.setSending(true);
-		tabManager.setError(null);
+		tabManager.setSendingForTab(tabId, true);
+		tabManager.setErrorForTab(tabId, null);
 		const controller = new AbortController();
-		abortRef.current = controller;
-		const projectId = await ensureProject(text);
-		if (!projectId) {
-			tabManager.setSending(false);
-			return;
-		}
-		const user: MessageItem = {
-			id: crypto.randomUUID(),
-			role: "user",
-			content: text,
-		};
-		tabManager.pushMessage(user);
+		abortRef.current = { controller, tabId };
 		try {
+			const projectId = await ensureProject(text, tabId);
+			if (!projectId) return;
+			const user: MessageItem = {
+				id: crypto.randomUUID(),
+				role: "user",
+				content: text,
+			};
+			tabManager.pushMessageForTab(tabId, user);
+
 			try {
 				const result = await localAppendMessages(
 					projectId,
@@ -92,7 +96,7 @@ export function useGeneration(
 				);
 				const createdUserId = result?.created?.[0]?.id;
 				if (createdUserId)
-					tabManager.updateMessage(user.id, { id: createdUserId });
+					tabManager.updateMessageForTab(tabId, user.id, { id: createdUserId });
 			} catch {}
 
 			// Use the active tab's preset directly to ensure tab isolation
@@ -265,13 +269,14 @@ export function useGeneration(
 			const output = await callLocalModelClient(built, {
 				taskType: tabTaskType,
 				options,
+				signal: controller.signal,
 			});
 			const assistant: MessageItem = {
 				id: crypto.randomUUID(),
 				role: "assistant",
 				content: output,
 			};
-			tabManager.pushMessage(assistant);
+			tabManager.pushMessageForTab(tabId, assistant);
 
 			let finalAssistantId = assistant.id;
 
@@ -283,7 +288,9 @@ export function useGeneration(
 				);
 				const createdAssistantId = result?.created?.[0]?.id;
 				if (createdAssistantId) {
-					tabManager.updateMessage(assistant.id, { id: createdAssistantId });
+					tabManager.updateMessageForTab(tabId, assistant.id, {
+						id: createdAssistantId,
+					});
 					finalAssistantId = createdAssistantId;
 				}
 				await refreshProjectList();
@@ -310,17 +317,17 @@ export function useGeneration(
 					...(refinedVersionId && { refinedVersionId }),
 				},
 			);
-			tabManager.setVersionGraph(updatedGraph);
-			tabManager.markDirty(false);
+			tabManager.setVersionGraphForTab(tabId, updatedGraph);
+			tabManager.markDirtyForTab(tabId, false);
 
-			tabManager.updateDraft("");
+			tabManager.updateDraftForTab(tabId, "");
 
 			if (!isRefinementMode) {
 				const truncatedLabel =
 					originalInput.length > 40
 						? `${originalInput.slice(0, 40).trim()}…`
 						: originalInput;
-				tabManager.updateTabLabel(activeTab.id, truncatedLabel);
+				tabManager.updateTabLabel(tabId, truncatedLabel);
 			}
 
 			setJustCreatedVersion(true);
@@ -330,11 +337,14 @@ export function useGeneration(
 			const error = e as Error & { name?: string };
 			if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
 			} else {
-				tabManager.setError(error?.message || "Something went wrong");
+				tabManager.setErrorForTab(
+					tabId,
+					error?.message || "Something went wrong",
+				);
 			}
 		} finally {
-			tabManager.setSending(false);
-			abortRef.current = null;
+			tabManager.setSendingForTab(tabId, false);
+			if (abortRef.current?.controller === controller) abortRef.current = null;
 		}
 	}, [
 		tabManager,
@@ -347,15 +357,17 @@ export function useGeneration(
 
 	const stopGenerating = useCallback(() => {
 		try {
-			abortRef.current?.abort();
+			const activeRequest = abortRef.current;
+			activeRequest?.controller.abort();
+			if (!activeRequest) return;
 			const abortedMsg: MessageItem = {
 				id: crypto.randomUUID(),
 				role: "assistant",
 				content: "Response aborted",
 			};
-			tabManager.pushMessage(abortedMsg);
+			tabManager.pushMessageForTab(activeRequest.tabId, abortedMsg);
+			tabManager.setSendingForTab(activeRequest.tabId, false);
 		} catch {}
-		tabManager.setSending(false);
 	}, [tabManager]);
 
 	return { send, stopGenerating };

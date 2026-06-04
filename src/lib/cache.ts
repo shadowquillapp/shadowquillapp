@@ -2,6 +2,7 @@
  * Multi-level caching system for prompt generation
  * Provides LRU (Least Recently Used) caching with configurable TTL
  */
+import { STORAGE_KEYS } from "./storage-keys";
 
 // ============================================
 // Types
@@ -252,7 +253,7 @@ export function clearAllCaches(): void {
 // Session Storage Cache (for persistence across page reloads)
 // ============================================
 
-const SESSION_CACHE_KEY = "SQ_PROMPT_CACHE";
+const SESSION_CACHE_KEY = STORAGE_KEYS.PROMPT_CACHE.key;
 const SESSION_CACHE_MAX_SIZE = 20;
 
 interface SessionCacheData {
