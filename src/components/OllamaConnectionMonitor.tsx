@@ -119,7 +119,7 @@ export default function OllamaConnectionMonitor() {
 		}, 3000);
 
 		return () => clearTimeout(initialTimeout);
-	}, []);
+	}, [checkConnection]);
 
 	// Periodic monitoring every 10 seconds
 	useEffect(() => {
@@ -127,7 +127,7 @@ export default function OllamaConnectionMonitor() {
 		const interval = setInterval(() => {
 			void checkConnection();
 		}, 10000);
-		
+
 		return () => clearInterval(interval);
 	}, [isMonitoring, checkConnection]);
 
