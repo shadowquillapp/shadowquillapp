@@ -146,4 +146,4 @@ afterEach(() => {
 // Test Utilities Export
 // ============================================
 
-export { localStorageMock, sessionStorageMock, fetchMock };
+export { fetchMock, localStorageMock, sessionStorageMock };

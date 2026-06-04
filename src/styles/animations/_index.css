@@ -146,6 +146,15 @@
  * Elegant dimming with smooth transitions
  * ---------------------------------------- */
 
+/* Restore normal state when not generating */
+.simple-workbench__header,
+.prompt-input-pane,
+.panel-resize-container {
+	transition:
+		opacity 0.3s ease,
+		filter 0.3s ease;
+}
+
 /* Header dims during generation */
 .workbench--generating .simple-workbench__header {
 	opacity: 0.35;
@@ -202,15 +211,6 @@
 	opacity: 0.3;
 	pointer-events: none;
 	transition: opacity 0.3s ease;
-}
-
-/* Restore normal state when not generating */
-.simple-workbench__header,
-.prompt-input-pane,
-.panel-resize-container {
-	transition:
-		opacity 0.3s ease,
-		filter 0.3s ease;
 }
 
 /* ========================================
