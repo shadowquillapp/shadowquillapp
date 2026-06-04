@@ -1,9 +1,18 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { getJSON, setJSON } from "@/lib/local-storage";
+import {
+	consumeApplyPreset,
+	getLastSelectedPresetKey,
+	mapPresetList,
+	mapPresetToSummary,
+	presetKey,
+	pruneRecentPresets,
+	setLastSelectedPresetKey,
+	trackRecentPreset,
+} from "@/lib/preset-store";
 import { getPresets, type Preset } from "@/lib/presets";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type { GenerationOptions, TaskType } from "@/types";
 import type { useTabManager } from "../useTabManager";
-import { mapPresetList, mapPresetToSummary } from "../utils/presetUtils";
 
 /**
  * Hook for managing presets.
@@ -38,11 +47,8 @@ export function usePresetManager(
 		) => {
 			const trackRecent = opts?.trackRecent ?? true;
 			if (trackRecent) {
-				const key = p.id ?? p.name;
 				try {
-					const prev = getJSON<string[]>("recent-presets", []);
-					const next = [key, ...prev.filter((k) => k !== key)].slice(0, 3);
-					setJSON("recent-presets", next);
+					trackRecentPreset(p);
 				} catch {}
 			}
 		},
@@ -75,10 +81,10 @@ export function usePresetManager(
 					? undefined
 					: { trackRecent: opts.trackRecent };
 			applyPreset(preset, applyOpts);
-			const newKey = summary.id ?? summary.name;
+			const newKey = presetKey(summary);
 			setSelectedPresetKey(newKey);
 			try {
-				setJSON("last-selected-preset", newKey);
+				setLastSelectedPresetKey(newKey);
 			} catch {}
 			if (tabManager.canCreateTab) {
 				tabManager.createTab(summary);
@@ -91,26 +97,22 @@ export function usePresetManager(
 		const load = async () => {
 			setLoadingPresets(true);
 			try {
-				const data = getPresets();
-				const list = mapPresetList(data ?? []);
+				const list = mapPresetList(getPresets());
 				setPresets(list);
 				try {
-					const prev = getJSON<string[]>("recent-presets", []);
-					const set = new Set(list.map((p) => p.id ?? p.name));
-					const cleaned = prev.filter((k) => set.has(k)).slice(0, 3);
-					setJSON("recent-presets", cleaned);
+					pruneRecentPresets(list);
 				} catch {}
 				if (!selectedPresetKey) {
-					const lastKey = getJSON<string>("last-selected-preset", "") || "";
+					const lastKey = getLastSelectedPresetKey();
 					const pick =
-						(lastKey && list.find((p) => (p.id ?? p.name) === lastKey)) ||
+						(lastKey && list.find((p) => presetKey(p) === lastKey)) ||
 						list[0] ||
 						null;
 					if (pick) {
-						const key = pick.id ?? pick.name;
+						const key = presetKey(pick);
 						setSelectedPresetKey(key);
 						try {
-							setJSON("last-selected-preset", key);
+							setLastSelectedPresetKey(key);
 						} catch {}
 						applyPreset(pick);
 					}
@@ -125,12 +127,8 @@ export function usePresetManager(
 	useEffect(() => {
 		const applyPresetFromStorage = () => {
 			try {
-				const stored = sessionStorage.getItem("PC_APPLY_PRESET");
-				if (stored) {
-					const preset = JSON.parse(stored);
-					loadPreset(preset);
-					sessionStorage.removeItem("PC_APPLY_PRESET");
-				}
+				const preset = consumeApplyPreset();
+				if (preset) loadPreset(preset);
 			} catch (error) {
 				console.error("Failed to apply preset from storage:", error);
 			}
@@ -158,7 +156,7 @@ export function usePresetManager(
 
 	useEffect(() => {
 		const handleStorageChange = (e: StorageEvent) => {
-			if (e.key === "PC_PRESETS" && e.newValue) {
+			if (e.key === STORAGE_KEYS.PRESETS.key && e.newValue) {
 				try {
 					const data = JSON.parse(e.newValue) as Preset[];
 					const list = mapPresetList(data ?? []);

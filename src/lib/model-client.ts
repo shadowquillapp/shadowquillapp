@@ -15,25 +15,28 @@ interface OllamaGenerateResponse {
 	response?: string;
 }
 
+const stripMetaWordCount = (text: string): string => {
+	if (!text) return text;
+	const patterns: RegExp[] = [
+		/^\s*(?:\*\*|__)?\s*word\s*count\s*(?:\*\*|__)?\s*:\s*\d+(?:\s+words?)?\s*$/i,
+		/^\s*word\s*count\s*:\s*~?\s*\d+(?:\s+words?)?\s*$/i,
+		/^\s*total\s*words\s*:\s*\d+\s*$/i,
+		/^\s*length\s*:\s*\d+\s+words\s*$/i,
+	];
+	return text
+		.split(/\r?\n/)
+		.filter((line) => !patterns.some((re) => re.test(line)))
+		.join("\n");
+};
+
 export async function callLocalModelClient(
 	prompt: string,
-	opts?: { taskType?: TaskType; options?: GenerationOptions },
+	opts?: {
+		taskType?: TaskType;
+		options?: GenerationOptions;
+		signal?: AbortSignal;
+	},
 ): Promise<string> {
-	// Remove any meta "Word Count" lines that some models add to their output
-	const stripMetaWordCount = (text: string): string => {
-		if (!text) return text;
-		const patterns: RegExp[] = [
-			/^\s*(?:\*\*|__)?\s*word\s*count\s*(?:\*\*|__)?\s*:\s*\d+(?:\s+words?)?\s*$/i,
-			/^\s*word\s*count\s*:\s*~?\s*\d+(?:\s+words?)?\s*$/i,
-			/^\s*total\s*words\s*:\s*\d+\s*$/i,
-			/^\s*length\s*:\s*\d+\s+words\s*$/i,
-		];
-		return text
-			.split(/\r?\n/)
-			.filter((line) => !patterns.some((re) => re.test(line)))
-			.join("\n");
-	};
-
 	const cfg = readLocalModelConfig();
 	if (!cfg) {
 		throw new ModelError("Model not configured", {
@@ -46,7 +49,14 @@ export async function callLocalModelClient(
 		});
 	}
 	const controller = new AbortController();
-	const to = setTimeout(() => controller.abort(), 90000);
+	let timedOut = false;
+	const abortFromCaller = () => controller.abort();
+	if (opts?.signal?.aborted) controller.abort();
+	opts?.signal?.addEventListener("abort", abortFromCaller, { once: true });
+	const to = setTimeout(() => {
+		timedOut = true;
+		controller.abort();
+	}, 90000);
 	try {
 		const payload: OllamaGeneratePayload = {
 			model: cfg.model,
@@ -70,6 +80,7 @@ export async function callLocalModelClient(
 			});
 		} catch (fetchError) {
 			if (fetchError instanceof Error && fetchError.name === "AbortError") {
+				if (!timedOut && opts?.signal?.aborted) throw fetchError;
 				throw new ModelError("Request timed out", {
 					modelId: cfg.model,
 					isTimeout: true,
@@ -126,5 +137,6 @@ export async function callLocalModelClient(
 		return stripMetaWordCount(rawText);
 	} finally {
 		clearTimeout(to);
+		opts?.signal?.removeEventListener("abort", abortFromCaller);
 	}
 }
