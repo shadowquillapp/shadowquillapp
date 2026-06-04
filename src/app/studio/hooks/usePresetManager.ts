@@ -5,9 +5,10 @@ import {
 } from "@/lib/example-generator";
 import { getJSON, setJSON } from "@/lib/local-storage";
 import { getDefaultPresets } from "@/lib/presets";
+import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type { PresetLite } from "@/types";
 
-const STORAGE_KEY = "PC_PRESETS";
+const STORAGE_KEY = STORAGE_KEYS.PRESETS.key;
 
 export function usePresetManager() {
 	const [presets, setPresets] = useState<PresetLite[]>([]);

@@ -70,16 +70,18 @@ export function useProjectManager(
 	);
 
 	const ensureProject = useCallback(
-		async (firstLine: string) => {
-			const activeTab = tabManager.activeTab;
-			if (!activeTab) return null;
-			if (activeTab.projectId) return activeTab.projectId;
+		async (firstLine: string, tabId?: string) => {
+			const tab = tabId
+				? tabManager.getTabs().find((item) => item.id === tabId)
+				: tabManager.activeTab;
+			if (!tab) return null;
+			if (tab.projectId) return tab.projectId;
 			const title =
-				(firstLine || activeTab.preset?.name || "New project").slice(0, 40) ||
+				(firstLine || tab.preset?.name || "New project").slice(0, 40) ||
 				"New project";
-			const presetId = activeTab.preset?.id ?? undefined;
+			const presetId = tab.preset?.id ?? undefined;
 			const created = await localCreateProject(title, "local-user", presetId);
-			tabManager.attachProject(created.id);
+			tabManager.attachProjectForTab(tab.id, created.id);
 			await refreshProjectList();
 			return created.id;
 		},
@@ -178,6 +180,7 @@ export function useProjectManager(
 				if (graph.tailId && graph.nodes[graph.tailId]) {
 					graph = { ...graph, activeId: graph.tailId };
 				}
+				void updateProjectVersionGraph(id, graph);
 
 				tabManager.setMessagesForTab(newTabId, loaded);
 				tabManager.setVersionGraphForTab(newTabId, graph);
@@ -213,7 +216,7 @@ export function useProjectManager(
 				await refreshProjectList();
 			} catch {}
 
-			for (const tab of tabManager.tabs) {
+			for (const tab of tabManager.getTabs()) {
 				if (tab.projectId === id) {
 					tabManager.closeTab(tab.id);
 				}

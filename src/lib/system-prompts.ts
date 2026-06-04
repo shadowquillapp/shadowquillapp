@@ -1,6 +1,7 @@
 import { getJSON, setJSON } from "./local-storage";
+import { STORAGE_KEYS } from "./storage-keys";
 
-const SYSTEM_PROMPT_BUILD_KEY = "SYSTEM_PROMPT_BUILD";
+const SYSTEM_PROMPT_BUILD_KEY = STORAGE_KEYS.SYSTEM_PROMPT_BUILD.key;
 
 /**
  * Default system prompt for ShadowQuill

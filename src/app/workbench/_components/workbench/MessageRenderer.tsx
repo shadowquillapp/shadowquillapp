@@ -8,6 +8,9 @@ interface MessageRendererProps {
 	onCopy: (id: string, content: string) => void;
 }
 
+const escapeRegExp = (value: string) =>
+	value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
 export function MessageRenderer({
 	content,
 	messageId: _messageId,
@@ -626,11 +629,16 @@ export function MessageRenderer({
 			const languageLabel = (language || "").trim();
 			const lang = (languageLabel || "code").toLowerCase();
 			let cleanedCode = code || "";
-			const duplicateMarkerPattern = new RegExp(
-				`^\\s*\`\`\`${lang}\\s*\\n`,
-				"i",
-			);
-			cleanedCode = cleanedCode.replace(duplicateMarkerPattern, "");
+			const safeLang = lang.replace(/[^\w-]/g, "");
+			if (safeLang) {
+				try {
+					const duplicateMarkerPattern = new RegExp(
+						`^\\s*\`\`\`${escapeRegExp(safeLang)}\\s*\\n`,
+						"i",
+					);
+					cleanedCode = cleanedCode.replace(duplicateMarkerPattern, "");
+				} catch {}
+			}
 
 			let highlightedCode: string | ReactNode[];
 			if (lang === "json") {

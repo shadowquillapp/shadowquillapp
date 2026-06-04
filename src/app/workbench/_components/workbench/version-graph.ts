@@ -22,7 +22,9 @@ function pruneForward(graph: VersionGraph, anchorId: string): VersionGraph {
 	if (!anchor) return graph;
 	const result = cloneGraph(graph);
 	let cursor = anchor.nextId;
-	while (cursor) {
+	const seen = new Set<string>();
+	while (cursor && !seen.has(cursor)) {
+		seen.add(cursor);
 		const next = result.nodes[cursor];
 		delete result.nodes[cursor];
 		cursor = next?.nextId ?? null;
@@ -116,7 +118,9 @@ export function redoVersion(graph: VersionGraph): VersionGraph | null {
 export function versionList(graph: VersionGraph): VersionNode[] {
 	const list: VersionNode[] = [];
 	let cursor: string | null = graph.headId;
-	while (cursor) {
+	const seen = new Set<string>();
+	while (cursor && !seen.has(cursor)) {
+		seen.add(cursor);
 		const node: VersionNode | undefined = graph.nodes[cursor];
 		if (!node) break;
 		list.push(node);
