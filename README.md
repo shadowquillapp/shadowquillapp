@@ -1,7 +1,6 @@
 <div align="center">
   
 # ShadowQuill
-v0.9.5
 
 **Privacy-First AI Prompt Studio**
 
