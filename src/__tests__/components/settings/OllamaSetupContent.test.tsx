@@ -17,9 +17,7 @@ vi.mock("@/lib/local-config", () => ({
 		return name;
 	},
 	isSupportedOllamaModelName: (name: string) =>
-		/^(gemma4:(latest|e2b|e4b|12b|26b|31b)|gemma3:(4b|12b|27b))$/i.test(
-			name,
-		),
+		/^(gemma4:(latest|e2b|e4b|12b|26b|31b)|gemma3:(4b|12b|27b))$/i.test(name),
 	readLocalModelConfig: () => mockReadLocalModelConfig(),
 	writeLocalModelConfig: (config: unknown) => mockWriteLocalModelConfig(config),
 	validateLocalModelConnection: (config: unknown) =>

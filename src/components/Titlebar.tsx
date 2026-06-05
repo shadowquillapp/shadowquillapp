@@ -2,7 +2,10 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import { formatOllamaModelName, readLocalModelConfig } from "@/lib/local-config";
+import {
+	formatOllamaModelName,
+	readLocalModelConfig,
+} from "@/lib/local-config";
 import { Icon } from "./Icon";
 
 interface ShadowQuillWindowApi {

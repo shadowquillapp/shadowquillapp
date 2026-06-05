@@ -627,7 +627,9 @@ export default function ModelConfigGate({ children }: Props) {
 																localTestResult.models.length > 0 && (
 																	<div className="shadowquill-models-list">
 																		{localTestResult.models.map((m) => {
-																			const readable = formatOllamaModelName(m.name);
+																			const readable = formatOllamaModelName(
+																				m.name,
+																			);
 																			const sizeInGB = (
 																				m.size /
 																				(1024 * 1024 * 1024)
@@ -653,8 +655,8 @@ export default function ModelConfigGate({ children }: Props) {
 																localTestResult.models &&
 																localTestResult.models.length === 0 && (
 																	<p className="shadowquill-empty-note">
-																		Connected, but Gemma models have not been pulled
-																		yet.
+																		Connected, but Gemma models have not been
+																		pulled yet.
 																	</p>
 																)}
 														</div>
