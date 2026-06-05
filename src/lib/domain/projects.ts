@@ -1,6 +1,6 @@
 import type { PromptProject, TestMessage } from "@/types";
 import { getRaw, setJSON } from "../local-storage";
-import { isRecord, isString, isStringArray, safeParse } from "../schema";
+import { isRecord, isString, safeParse } from "../schema";
 import { STORAGE_KEYS } from "../storage-keys";
 
 const LOCAL_USER_ID = "local-user";
@@ -226,26 +226,4 @@ export async function deleteProject(projectId: string): Promise<void> {
 
 export async function deleteProjects(ids: string[]): Promise<void> {
 	for (const id of ids) await deleteProject(id);
-}
-
-export async function setLastSelectedPreset(key: string): Promise<void> {
-	setJSON(STORAGE_KEYS.LAST_SELECTED_PRESET.key, key);
-}
-
-export async function getLastSelectedPreset(): Promise<string | null> {
-	const key = safeParse(
-		getRaw(STORAGE_KEYS.LAST_SELECTED_PRESET.key),
-		isString,
-		"",
-	);
-	return key || null;
-}
-
-export async function setRecentPresets(keys: string[]): Promise<void> {
-	const cleaned = isStringArray(keys) ? keys.slice(0, 3) : [];
-	setJSON(STORAGE_KEYS.RECENT_PRESETS.key, cleaned);
-}
-
-export async function getRecentPresets(): Promise<string[]> {
-	return safeParse(getRaw(STORAGE_KEYS.RECENT_PRESETS.key), isStringArray, []);
 }

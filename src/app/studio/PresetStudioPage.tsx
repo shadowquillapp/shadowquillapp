@@ -13,17 +13,8 @@ import type { PresetLite } from "@/types";
 
 export default function PresetStudioPage() {
 	const { confirm } = useDialog();
-	const {
-		presets,
-		isGeneratingExamples,
-		regeneratingIndex,
-		loadPresets,
-		savePreset,
-		deletePreset,
-		duplicatePreset,
-		generateExamplesOnly,
-		regenerateExample,
-	} = usePresetManager();
+	const { presets, loadPresets, savePreset, deletePreset, duplicatePreset } =
+		usePresetManager();
 
 	// Selection states
 	const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
@@ -113,17 +104,12 @@ export default function PresetStudioPage() {
 		const newPreset: PresetLite = {
 			id: `preset_${Date.now()}`,
 			name: "Untitled Preset",
-			taskType: "general",
+			taskType: "intent",
 			options: {
 				tone: "neutral",
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.7,
-				useDelimiters: true,
-				includeVerification: false,
-				reasoningStyle: "none",
-				endOfPromptToken: "<|endofprompt|>",
 			},
 		};
 		setEditingPreset(newPreset);
@@ -172,61 +158,19 @@ export default function PresetStudioPage() {
 		}
 	}, [editingPreset, savePreset, loadPresets]);
 
-	// Handle generating examples only (without saving other changes)
-	const handleGenerateExamples = useCallback(async () => {
-		if (!editingPreset) return;
-
-		try {
-			const updatedPreset = await generateExamplesOnly(editingPreset);
-			if (updatedPreset) {
-				setEditingPreset(updatedPreset);
-			}
-		} catch (error) {
-			console.error("Failed to generate examples:", error);
-		}
-	}, [editingPreset, generateExamplesOnly]);
-
-	// Handle regenerating a single example
-	const handleRegenerateExample = useCallback(
-		async (index: 0 | 1) => {
-			if (!editingPreset) return;
-
-			try {
-				const updatedPreset = await regenerateExample(editingPreset, index);
-				if (updatedPreset) {
-					setEditingPreset(updatedPreset);
-				}
-			} catch (error) {
-				console.error("Failed to regenerate example:", error);
-			}
-		},
-		[editingPreset, regenerateExample],
-	);
-
-	// Handle save as new preset
-	const _handleSaveAs = useCallback(
-		async (newName: string) => {
-			if (!editingPreset) return;
-
-			try {
-				const newPreset = {
-					...editingPreset,
-					id: `preset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-					name: newName,
-				};
-				await savePreset(newPreset);
-				setSelectedPresetId(newPreset.id || null);
-				setEditingPreset(newPreset);
-				setIsDirty(false);
+	// Handle duplicate
+	const handleDuplicate = useCallback(
+		async (presetId: string) => {
+			const duplicated = await duplicatePreset(presetId);
+			if (duplicated) {
 				await loadPresets();
-			} catch (error) {
-				console.error("Failed to save preset:", error);
+				handleSelectPreset(duplicated.id || "");
 			}
 		},
-		[editingPreset, savePreset, loadPresets],
+		[duplicatePreset, loadPresets, handleSelectPreset],
 	);
 
-	// Handle delete
+	// Handle unsaved changes warning
 	const handleDelete = useCallback(
 		async (presetId: string) => {
 			const preset = presets.find((p: PresetLite) => p.id === presetId);
@@ -252,27 +196,7 @@ export default function PresetStudioPage() {
 		[presets, selectedPresetId, deletePreset, loadPresets, confirm],
 	);
 
-	// Handle duplicate
-	const handleDuplicate = useCallback(
-		async (presetId: string, newName?: string) => {
-			const duplicated = await duplicatePreset(presetId);
-			if (duplicated) {
-				// If a new name was provided, immediately rename the duplicated preset
-				if (newName?.trim() && newName !== duplicated.name) {
-					try {
-						await savePreset({ ...duplicated, name: newName.trim() });
-					} catch (e) {
-						console.error("Failed to rename duplicated preset:", e);
-					}
-				}
-				await loadPresets();
-				handleSelectPreset(duplicated.id || "");
-			}
-		},
-		[duplicatePreset, savePreset, loadPresets, handleSelectPreset],
-	);
-
-	// Handle unsaved changes warning
+	// Handle delete
 	useEffect(() => {
 		const handleBeforeUnload = (e: BeforeUnloadEvent) => {
 			if (isDirty) {
@@ -309,7 +233,6 @@ export default function PresetStudioPage() {
 	return (
 		<div className="page-animate flex h-full flex-col bg-surface-0 text-light">
 			<StudioHeader
-				isDirty={isDirty}
 				isSmallScreen={isSmallScreen}
 				onToggleSidebar={() => setSidebarOpen((v) => !v)}
 			/>
@@ -341,26 +264,6 @@ export default function PresetStudioPage() {
 				className="flex flex-1 flex-col overflow-hidden xl:flex-row"
 				style={{ position: "relative" }}
 			>
-				{/* Generation Overlay - blocks all interactions when generating examples */}
-				{(isGeneratingExamples || regeneratingIndex !== null) && (
-					<div
-						className="generation-overlay"
-						style={{
-							position: "absolute",
-							inset: 0,
-							backgroundColor: "rgba(255, 255, 255, 0.08)",
-							zIndex: 100,
-							pointerEvents: "auto",
-							cursor: "not-allowed",
-							transition: "opacity 0.2s ease",
-							backdropFilter: "blur(1px) brightness(0.85)",
-						}}
-						onClick={(e) => e.stopPropagation()}
-						onKeyDown={(e) => e.stopPropagation()}
-						role="presentation"
-						aria-hidden="true"
-					/>
-				)}
 				{/* Row 1 / Col 1: Preset Library */}
 				<aside
 					className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
@@ -388,13 +291,9 @@ export default function PresetStudioPage() {
 					<PresetEditor
 						preset={editingPreset}
 						isDirty={isDirty}
-						isGeneratingExamples={isGeneratingExamples}
-						regeneratingIndex={regeneratingIndex}
 						onFieldChange={handleFieldChange}
 						onSave={handleSave}
-						onGenerateExamples={handleGenerateExamples}
-						onRegenerateExample={handleRegenerateExample}
-						onDuplicate={(id, name) => handleDuplicate(id, name)}
+						onDuplicate={handleDuplicate}
 						onDelete={(id) => handleDelete(id)}
 						className="flex h-full flex-1 flex-col overflow-hidden"
 					/>

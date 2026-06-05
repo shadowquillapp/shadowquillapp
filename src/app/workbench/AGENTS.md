@@ -9,7 +9,7 @@
 workbench/
 ├── page.tsx                          # server; <ModelConfigGate><PromptWorkbench /></ModelConfigGate>
 └── _components/
-    ├── PromptWorkbench.tsx           # client; orchestrator (11 hooks + dialogs)
+    ├── PromptWorkbench.tsx           # client; orchestrator (10 hooks + dialogs)
     └── workbench/                    # <-- same name, deeper: feature internals
         ├── MessageRenderer.tsx
         ├── PresetInfoDialog.tsx
@@ -29,7 +29,7 @@ workbench/
 
 | Hook | Role |
 |---|---|
-| `useGeneration.ts` | Send prompts, stop generation; calls `localModelClient` + `prompt-builder-client` + `prompt-normalization`; appends versions. |
+| `useGeneration.ts` | Send prompts, stop generation; calls `callLocalModelClient` + `prompt-builder-client`; appends versions. |
 | `useCopyMessage.ts` | Clipboard copy + 2s `copied` state. |
 | `useKeyboardShortcuts.ts` | Cmd/Ctrl+T for new tab, etc. |
 | `useModelManager.ts` | List local models, current model id, menu state. |
@@ -42,7 +42,7 @@ workbench/
 ## Conventions (delta from root)
 
 - **`_components/` underscore prefix** is a "private folder" convention only — Next has no special meaning for it.
-- **`PromptWorkbench` is the only orchestrator** — it composes the 11 hooks and opens `SettingsDialog` / `PresetInfoDialog` / `PresetPickerModal`.
+- **`PromptWorkbench` is the only orchestrator** — it composes 10 hooks (9 in `hooks/` + `useTabManager`) and opens `SettingsDialog` / `PresetInfoDialog` / `PresetPickerModal`.
 - **Triple-nested co-location** (`_components` → `workbench` → `components|hooks|utils`) is intentional. Don't flatten it.
 - **`useTabManager.ts` lives next to `types.ts` and `version-graph.ts`**, not inside `hooks/`. Do not move it — that inconsistency is on purpose.
 
@@ -52,4 +52,4 @@ workbench/
 - ❌ **Do not import `useDialog` from a server component** — it only works in `PromptWorkbench` and below.
 - ❌ **Do not reach into another feature's hooks folder** — they are workbench-internal.
 - ❌ **Do not bypass `useGeneration`** for ad-hoc prompt sends — all output flows through the version graph.
-- ⚠️ `biome-ignore correctness/useExhaustiveDependencies` is used in `PromptWorkbench.tsx:131` and `ModelConfigGate.tsx:820` — keep the comment justifying the suppression if you touch those effects.
+- ⚠️ `biome-ignore correctness/useExhaustiveDependencies` is used in `PromptWorkbench.tsx:126` and `ModelConfigGate.tsx:820` — keep the comment justifying the suppression if you touch those effects.

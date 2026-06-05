@@ -102,82 +102,31 @@ function registerDataIPCHandlers() {
 
 	secureHandle("shadowquill:factoryReset", async () => {
 		try {
-			console.log(
-				"[Factory Reset] Triggered. Clearing all data and closing...",
-			);
+			console.log("[Factory Reset] Clearing all application data...");
 
 			const userData = app.getPath("userData");
 
-			// Step 1: Close HTTP server first
-			if (httpServer) {
-				console.log("[Factory Reset] Closing production server...");
-				try {
-					httpServer.close();
-					httpServer = null;
-				} catch (_) {}
+			saveStorageData({});
+
+			const sessions = [
+				session.defaultSession,
+				session.fromPartition("persist:main"),
+			];
+			for (const targetSession of sessions) {
+				await targetSession.clearStorageData();
+				await targetSession.clearCache();
 			}
 
-			// Step 2: Close all windows to release file handles
-			const { BrowserWindow } = require("electron");
-			const windows = BrowserWindow.getAllWindows();
-			console.log(`[Factory Reset] Closing ${windows.length} window(s)...`);
-			for (const win of windows) {
-				try {
-					if (win.webContents.isDevToolsOpened()) {
-						win.webContents.closeDevTools();
-					}
-					win.webContents.stop();
-					win.destroy();
-				} catch (e) {
-					console.warn("[Factory Reset] Error closing window:", e);
-				}
-			}
-
-			// Step 3: Clear session storage and cache
 			try {
-				const sessions = [
-					session.defaultSession,
-					session.fromPartition("persist:main"),
-				];
-				for (const targetSession of sessions) {
-					await targetSession.clearStorageData();
-					await targetSession.clearCache();
+				const statePath = path.join(userData, "window-state.json");
+				if (fs.existsSync(statePath)) {
+					fs.unlinkSync(statePath);
 				}
 			} catch (e) {
-				console.warn("[Factory Reset] Session clear warning:", e);
+				console.warn("[Factory Reset] Could not delete window state:", e);
 			}
 
-			// Step 4: Wait for Windows to release file locks (critical on Windows)
-			console.log("[Factory Reset] Waiting for file locks to release...");
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-
-			// Step 5: Try to delete user data directory
-			console.log("[Factory Reset] Deleting user data directory...");
-			try {
-				if (fs.existsSync(userData)) {
-					fs.rmSync(userData, {
-						recursive: true,
-						force: true,
-						maxRetries: 3,
-						retryDelay: 200,
-					});
-					console.log("[Factory Reset] User data deleted successfully.");
-				}
-			} catch (e) {
-				console.warn(
-					"[Factory Reset] Could not fully delete user data:",
-					e.message,
-				);
-				console.log(
-					"[Factory Reset] App will relaunch and recreate fresh data.",
-				);
-			}
-
-			// Step 6: Relaunch the app with fresh state
-			console.log("[Factory Reset] Relaunching application...");
-			app.relaunch();
-			app.exit(0);
-
+			console.log("[Factory Reset] All data cleared successfully.");
 			return { ok: true };
 		} catch (e) {
 			console.error("[Factory Reset] Failed:", e);

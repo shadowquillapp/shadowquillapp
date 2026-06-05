@@ -1,51 +1,133 @@
 import type {
+	Detail,
+	Format,
 	GenerationOptions,
 	PresetLite,
-	PresetVersion,
 	TaskType,
-	VersionedPreset,
+	Tone,
 } from "@/types";
 import { getRaw, setJSON } from "../local-storage";
 import { isOneOf, isRecord, isString, safeParse } from "../schema";
 import { STORAGE_KEYS } from "../storage-keys";
 
 export interface Preset extends PresetLite {
-	versions?: PresetVersion[];
-	currentVersion?: number;
 	createdAt?: number;
 	updatedAt?: number;
 }
 
-const MAX_VERSIONS = 10;
+const ALLOWED_OPTION_KEYS = [
+	"tone",
+	"detail",
+	"format",
+	"language",
+	"audience",
+	"outputXMLSchema",
+	"identity",
+	"additionalContext",
+	"styleGuidelines",
+] as const satisfies readonly (keyof GenerationOptions)[];
+
+const ALLOWED_PRESET_KEYS = [
+	"id",
+	"name",
+	"taskType",
+	"options",
+	"createdAt",
+	"updatedAt",
+] as const;
+
 const TASK_TYPES: readonly TaskType[] = [
-	"general",
-	"coding",
-	"image",
-	"research",
-	"writing",
-	"marketing",
-	"video",
+	"intent",
+	"engineering",
+	"visual",
+	"analysis",
+	"narrative",
+	"persuasion",
+	"motion",
 ];
 
-function isPreset(v: unknown): v is Preset {
-	return (
-		isRecord(v) &&
-		isString(v.name) &&
-		isOneOf(v.taskType, TASK_TYPES) &&
-		(v.options === undefined || isRecord(v.options))
-	);
+const DETAIL_LEVELS: readonly Detail[] = ["normal", "detailed"];
+const TONE_LEVELS: readonly Tone[] = [
+	"neutral",
+	"friendly",
+	"formal",
+	"technical",
+	"persuasive",
+];
+const FORMAT_LEVELS: readonly Format[] = ["plain", "markdown", "xml"];
+
+function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
+	const raw = options as Record<string, unknown>;
+	const sanitized: GenerationOptions = {};
+
+	for (const key of ALLOWED_OPTION_KEYS) {
+		const value = raw[key];
+		if (value === undefined) continue;
+
+		if (key === "tone" && isOneOf(value, TONE_LEVELS)) {
+			sanitized.tone = value;
+		} else if (key === "detail" && isOneOf(value, DETAIL_LEVELS)) {
+			sanitized.detail = value;
+		} else if (key === "format" && isOneOf(value, FORMAT_LEVELS)) {
+			sanitized.format = value;
+		} else if (isString(value)) {
+			if (key === "language") sanitized.language = value;
+			else if (key === "audience") sanitized.audience = value;
+			else if (key === "outputXMLSchema") sanitized.outputXMLSchema = value;
+			else if (key === "identity") sanitized.identity = value;
+			else if (key === "additionalContext") sanitized.additionalContext = value;
+			else if (key === "styleGuidelines") sanitized.styleGuidelines = value;
+		}
+	}
+
+	return sanitized;
 }
 
-function isPresetArray(v: unknown): v is Preset[] {
-	return Array.isArray(v) && v.every(isPreset);
+function sanitizePreset(preset: Preset): Preset {
+	const raw = preset as unknown as Record<string, unknown>;
+	const sanitized: Preset = {
+		name: preset.name,
+		taskType: preset.taskType,
+	};
+
+	for (const key of ALLOWED_PRESET_KEYS) {
+		if (key === "name" || key === "taskType") continue;
+		const value = raw[key];
+		if (value === undefined) continue;
+
+		if (key === "options" && isRecord(value)) {
+			sanitized.options = sanitizePresetOptions(value as GenerationOptions);
+		} else if (key === "id" && isString(value)) {
+			sanitized.id = value;
+		} else if (
+			(key === "createdAt" || key === "updatedAt") &&
+			typeof value === "number"
+		) {
+			sanitized[key] = value;
+		}
+	}
+
+	return sanitized;
+}
+
+function isPreset(v: unknown): v is Preset {
+	if (!isRecord(v) || !isString(v.name)) return false;
+	if (!isString(v.taskType) || !isOneOf(v.taskType, TASK_TYPES)) return false;
+	return v.options === undefined || isRecord(v.options);
+}
+
+function isPresetArray(v: unknown): v is unknown[] {
+	return Array.isArray(v);
 }
 
 export function parsePreset(raw: string | null): Preset | null {
-	return safeParse(raw, isPreset, null);
+	const parsed = safeParse(raw, isPreset, null);
+	return parsed ? sanitizePreset(parsed) : null;
 }
 
 export function getPresets(): Preset[] {
-	return safeParse(getRaw(STORAGE_KEYS.PRESETS.key), isPresetArray, []);
+	const list = safeParse(getRaw(STORAGE_KEYS.PRESETS.key), isPresetArray, []);
+	return list.filter(isPreset).map(sanitizePreset);
 }
 
 function writePresets(list: Preset[]): void {
@@ -61,190 +143,131 @@ export function getDefaultPresets(): Preset[] {
 		{
 			id: "daily-assistant",
 			name: "Daily Helper",
-			taskType: "general",
+			taskType: "intent",
 			options: {
 				tone: "friendly",
-				detail: "brief",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.65,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Act as a helpful assistant for everyday tasks. Provide clear, actionable answers with bullet points when appropriate.",
+					"Compile general everyday intent into brief, actionable execution framing. Preserve the user's goal and voice. Favor scannable structure without over-structuring.",
 			},
 		},
 		{
 			id: "quick-summarizer",
 			name: "Quick Summary",
-			taskType: "general",
+			taskType: "intent",
 			options: {
 				tone: "neutral",
-				detail: "brief",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.35,
-				useDelimiters: true,
-				includeVerification: false,
-				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Create concise summaries of content. Extract key points and main ideas in a clean, scannable format.",
+					"Compress source intent into concise summary framing. Extract key points and main ideas. Prioritize scannability and minimal unnecessary detail.",
 			},
 		},
 		{
 			id: "code-helper",
 			name: "Code Helper",
-			taskType: "coding",
+			taskType: "engineering",
 			options: {
 				tone: "technical",
-				detail: "brief",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.3,
-				includeTests: false,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Assist with coding tasks. Provide clean, working code with brief explanations. Focus on practical solutions.",
+					"Prioritize goal preservation and architectural consistency. Validate interaction contracts (inputs, outputs, side effects). Enforce design-system alignment with stated conventions. Surface gaps as actionable prompt clauses — do not invent technologies.",
 			},
 		},
 		{
 			id: "bug-hunter",
 			name: "Bug Hunter",
-			taskType: "coding",
+			taskType: "engineering",
 			options: {
 				tone: "technical",
-				detail: "brief",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.25,
-				includeTests: true,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Diagnose and fix bugs systematically. Include reproduction steps, root cause analysis, solution implementation, and test cases to prevent regression.",
+					"Compile diagnostic intent with root-cause focus. Require reproduction steps, failure boundaries, and regression prevention in the output framing. Do not assume stack or environment not stated by the user.",
 			},
 		},
 		{
 			id: "email-drafter",
 			name: "Email Draft",
-			taskType: "writing",
+			taskType: "narrative",
 			options: {
 				tone: "friendly",
-				detail: "brief",
+				detail: "normal",
 				format: "plain",
 				language: "English",
-				temperature: 0.45,
-				writingStyle: "expository",
-				pointOfView: "second",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
 				additionalContext:
-					"Draft professional emails quickly. Keep them concise and clear with a subject line and appropriate greeting.",
+					"Preserve the user's voice and second-person address. Compile email intent with subject line, greeting, and concise body framing. Do not rewrite personality or tone unless requested.",
 			},
 		},
 		{
 			id: "research-assistant",
 			name: "Research Assistant",
-			taskType: "research",
+			taskType: "analysis",
 			options: {
 				tone: "neutral",
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.4,
-				requireCitations: true,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "cot",
 				additionalContext:
-					"Help with research tasks. Present findings clearly with proper citations and balanced perspectives on the topic.",
+					"Define evidence boundaries and scope limits clearly. Require citation framing and balanced perspective. Extract implicit constraints and risk concerns from the user's request.",
 			},
 		},
 		{
 			id: "deep-analyst",
 			name: "Deep Analyst",
-			taskType: "research",
+			taskType: "analysis",
 			options: {
 				tone: "formal",
-				detail: "detailed",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.4,
-				requireCitations: true,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "cot",
 				additionalContext:
-					"Conduct comprehensive analysis with academic rigor. Provide executive summary, detailed evidence, counterarguments, risk assessment, and well-supported recommendations with citations.",
+					"Extract tradeoffs, counterarguments, and risk assessment requirements. Compile rigorous analysis framing with executive summary, evidence scope, and recommendation boundaries. Do not over-structure unless detail level requires it.",
 			},
 		},
 		{
 			id: "social-post",
 			name: "Social Post",
-			taskType: "marketing",
+			taskType: "persuasion",
 			options: {
 				tone: "friendly",
-				detail: "brief",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.85,
-				marketingChannel: "social",
-				ctaStyle: "soft",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
 				additionalContext:
-					"Create engaging social media posts. Include hook, main content, relevant hashtags, and optional call-to-action.",
+					"Preserve audience intent and message core. Compile hook, content, and CTA framing without drift. Align channel conventions to user-stated context.",
 			},
 		},
 		{
 			id: "image-creator",
 			name: "Image Creator",
-			taskType: "image",
+			taskType: "visual",
 			options: {
 				tone: "neutral",
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.7,
-				stylePreset: "photorealistic",
-				aspectRatio: "16:9",
-				targetResolution: "1080p",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
 				additionalContext:
-					"Generate detailed image prompts for AI image generation. Describe subjects, composition, lighting, mood, and style clearly.",
+					"Compress visual intent into model-parseable descriptors. Lock subject, mood, and composition. Surface spec gaps as concrete visual clauses — do not invent values not stated by the user.",
 			},
 		},
 		{
 			id: "video-creator",
 			name: "Video Creator",
-			taskType: "video",
+			taskType: "motion",
 			options: {
 				tone: "neutral",
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.7,
-				stylePreset: "cinematic",
-				aspectRatio: "16:9",
-				targetResolution: "1080p",
-				cameraMovement: "dolly",
-				shotType: "medium",
-				durationSeconds: 10,
-				frameRate: 30,
-				includeStoryboard: false,
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Generate video prompts for AI video generation. Describe scene, action, camera work, and visual flow clearly.",
+					"Compile temporal visual intent with scene, action, and camera semantics. Validate interaction flow across frames. Surface temporal spec gaps as concrete clauses — do not invent values not stated by the user.",
 			},
 		},
 	];
@@ -257,56 +280,25 @@ export function ensureDefaultPreset(): void {
 	writePresets(
 		getDefaultPresets().map((preset) => ({
 			...preset,
-			versions: [],
-			currentVersion: 0,
 			createdAt: now,
 			updatedAt: now,
 		})),
 	);
 }
 
-function makeVersionEntry(preset: Preset, changelog?: string): PresetVersion {
-	const currentVersion = (preset.currentVersion ?? 0) + 1;
-	return {
-		version: currentVersion,
-		timestamp: Date.now(),
-		taskType: preset.taskType,
-		options: { ...preset.options } as GenerationOptions,
-		...(changelog && { changelog }),
-	};
-}
-
-function optionsEqual(
-	a: GenerationOptions | undefined,
-	b: GenerationOptions | undefined,
-): boolean {
-	return JSON.stringify(a ?? {}) === JSON.stringify(b ?? {});
-}
-
-export function savePreset(preset: Preset, changelog?: string): Preset {
+export function savePreset(preset: Preset): Preset {
+	const normalizedPreset = sanitizePreset(preset);
 	const list = getPresets();
 	const now = Date.now();
 
-	if (preset.id) {
-		const idx = list.findIndex((p) => p.id === preset.id);
+	if (normalizedPreset.id) {
+		const idx = list.findIndex((p) => p.id === normalizedPreset.id);
 		if (idx !== -1) {
 			const existing = list[idx];
 			if (existing) {
-				const changed =
-					!optionsEqual(existing.options, preset.options) ||
-					existing.taskType !== preset.taskType;
-				let versions = existing.versions ?? [];
-				let currentVersion = existing.currentVersion ?? 0;
-				if (changed && existing.options) {
-					const entry = makeVersionEntry(existing, changelog);
-					versions = [entry, ...versions].slice(0, MAX_VERSIONS);
-					currentVersion = entry.version;
-				}
 				const updated: Preset = {
 					...existing,
-					...preset,
-					versions,
-					currentVersion,
+					...normalizedPreset,
 					createdAt: existing.createdAt ?? now,
 					updatedAt: now,
 				};
@@ -316,9 +308,7 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 			}
 		}
 		const newPreset: Preset = {
-			...preset,
-			versions: [],
-			currentVersion: 0,
+			...normalizedPreset,
 			createdAt: now,
 			updatedAt: now,
 		};
@@ -327,7 +317,7 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 		return newPreset;
 	}
 
-	const normalized = (preset.name || "").trim().toLowerCase();
+	const normalized = (normalizedPreset.name || "").trim().toLowerCase();
 	const byNameIdx = list.findIndex(
 		(p) => (p.name || "").trim().toLowerCase() === normalized,
 	);
@@ -337,22 +327,10 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 			const id =
 				existing.id ??
 				`preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-			const changed =
-				!optionsEqual(existing.options, preset.options) ||
-				existing.taskType !== preset.taskType;
-			let versions = existing.versions ?? [];
-			let currentVersion = existing.currentVersion ?? 0;
-			if (changed && existing.options) {
-				const entry = makeVersionEntry(existing, changelog);
-				versions = [entry, ...versions].slice(0, MAX_VERSIONS);
-				currentVersion = entry.version;
-			}
 			const updated: Preset = {
 				...existing,
-				...preset,
+				...normalizedPreset,
 				id,
-				versions,
-				currentVersion,
 				createdAt: existing.createdAt ?? now,
 				updatedAt: now,
 			};
@@ -364,10 +342,8 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 
 	const id = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 	const newPreset: Preset = {
-		...preset,
+		...normalizedPreset,
 		id,
-		versions: [],
-		currentVersion: 0,
 		createdAt: now,
 		updatedAt: now,
 	};
@@ -383,112 +359,4 @@ export function deletePresetByIdOrName(id?: string, name?: string): void {
 		return true;
 	});
 	writePresets(list);
-}
-
-export function getPresetHistory(presetId: string): PresetVersion[] {
-	return getPresetById(presetId)?.versions ?? [];
-}
-
-export function rollbackPreset(
-	presetId: string,
-	targetVersion: number,
-): Preset | null {
-	const list = getPresets();
-	const idx = list.findIndex((p) => p.id === presetId);
-	if (idx === -1) return null;
-	const preset = list[idx];
-	if (!preset) return null;
-	const version = preset.versions?.find((v) => v.version === targetVersion);
-	if (!version) return null;
-	const newVersion = makeVersionEntry(
-		preset,
-		`Rolled back to version ${targetVersion}`,
-	);
-	const updatedPreset: Preset = {
-		...preset,
-		taskType: version.taskType,
-		options: { ...version.options },
-		versions: [newVersion, ...(preset.versions ?? [])].slice(0, MAX_VERSIONS),
-		currentVersion: newVersion.version,
-		updatedAt: Date.now(),
-	};
-	list[idx] = updatedPreset;
-	writePresets(list);
-	return updatedPreset;
-}
-
-export function compareVersions(
-	presetId: string,
-	versionA: number,
-	versionB: number,
-): { changed: string[]; added: string[]; removed: string[] } | null {
-	const preset = getPresetById(presetId);
-	if (!preset?.versions) return null;
-	const a = preset.versions.find((v) => v.version === versionA);
-	const b = preset.versions.find((v) => v.version === versionB);
-	if (!a || !b) return null;
-	const keysA = new Set(Object.keys(a.options));
-	const keysB = new Set(Object.keys(b.options));
-	const changed: string[] = [];
-	const added: string[] = [];
-	const removed: string[] = [];
-	for (const key of keysA) {
-		if (!keysB.has(key)) removed.push(key);
-		else if (
-			JSON.stringify(a.options[key as keyof GenerationOptions]) !==
-			JSON.stringify(b.options[key as keyof GenerationOptions])
-		) {
-			changed.push(key);
-		}
-	}
-	for (const key of keysB) {
-		if (!keysA.has(key)) added.push(key);
-	}
-	return { changed, added, removed };
-}
-
-export function exportPresetWithHistory(
-	presetId: string,
-): VersionedPreset | null {
-	const preset = getPresetById(presetId);
-	if (!preset) return null;
-	return {
-		...(preset.id !== undefined && { id: preset.id }),
-		name: preset.name,
-		taskType: preset.taskType,
-		...(preset.options !== undefined && { options: preset.options }),
-		...(preset.versions && { versions: preset.versions }),
-		...(preset.currentVersion !== undefined && {
-			currentVersion: preset.currentVersion,
-		}),
-		...(preset.createdAt !== undefined && { createdAt: preset.createdAt }),
-		...(preset.updatedAt !== undefined && { updatedAt: preset.updatedAt }),
-	};
-}
-
-export function importPresetWithHistory(
-	presetData: VersionedPreset,
-	options?: { overwrite?: boolean },
-): Preset {
-	const list = getPresets();
-	const now = Date.now();
-	if (presetData.id && options?.overwrite !== false) {
-		const existingIdx = list.findIndex((p) => p.id === presetData.id);
-		if (existingIdx !== -1) {
-			const updated: Preset = { ...presetData, updatedAt: now };
-			list[existingIdx] = updated;
-			writePresets(list);
-			return updated;
-		}
-	}
-	const newId = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-	const newPreset: Preset = {
-		...presetData,
-		id: newId,
-		createdAt: now,
-		updatedAt: now,
-	};
-	list.push(newPreset);
-	writePresets(list);
-	return newPreset;
 }

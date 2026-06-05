@@ -9,7 +9,10 @@ import {
 	validateLocalModelConnection as validateLocalModelConnectionClient,
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
-import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
+import {
+	abortFactoryReset,
+	clearAllStorageForFactoryReset,
+} from "@/lib/local-storage";
 import { ensureDefaultPreset } from "@/lib/presets";
 import {
 	ensureSystemPromptBuild,
@@ -1135,8 +1138,8 @@ function DataLocationModalWrapper() {
 											style={{ marginBottom: 10 }}
 										>
 											This will delete all local data (settings, workbenchs,
-											presets) PERMANENTLY. The app will close. Reopen to start
-											fresh.
+											presets) permanently. The app will return to its initial
+											setup state.
 										</div>
 										<button
 											type="button"
@@ -1145,8 +1148,8 @@ function DataLocationModalWrapper() {
 												const ok = await confirm({
 													title: "Factory Reset",
 													message:
-														"Delete ALL local data and close? The app will close completely. Reopen to start fresh.",
-													confirmText: "Delete & Close",
+														"Delete ALL local data? Settings, prompts, and presets will be permanently removed. The app will return to its initial setup state.",
+													confirmText: "Factory Reset",
 													cancelText: "Cancel",
 													tone: "destructive",
 												});
@@ -1162,11 +1165,14 @@ function DataLocationModalWrapper() {
 														.shadowquill;
 													const res = await api?.factoryReset?.();
 													if (!res?.ok) {
+														abortFactoryReset();
 														setError(res?.error || "Reset failed");
 														setLoading(false);
+														return;
 													}
-													// App will close after factory reset
+													window.location.assign("/workbench");
 												} catch (e: unknown) {
+													abortFactoryReset();
 													const err = e as Error;
 													setError(err?.message || "Reset failed");
 													setLoading(false);
@@ -1179,7 +1185,7 @@ function DataLocationModalWrapper() {
 												borderColor: "#ef4444",
 											}}
 										>
-											<b>DELETE ALL LOCAL DATA</b>
+											Factory Reset
 										</button>
 									</div>
 								</div>

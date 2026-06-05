@@ -2,12 +2,15 @@ import type { GenerationOptions, TaskType } from "@/types";
 import { ModelError, NetworkError } from "./errors";
 import { readLocalModelConfig } from "./local-config";
 
+/** Fixed sampling temperature for all Ollama requests. Not user-configurable. */
+const MODEL_TEMPERATURE = 0.2;
+
 interface OllamaGeneratePayload {
 	model: string;
 	prompt: string;
 	stream: boolean;
 	options?: {
-		temperature?: number;
+		temperature: number;
 	};
 }
 
@@ -62,13 +65,8 @@ export async function callLocalModelClient(
 			model: cfg.model,
 			prompt,
 			stream: false,
+			options: { temperature: MODEL_TEMPERATURE },
 		};
-		if (opts?.options && typeof opts.options.temperature === "number") {
-			payload.options = {
-				...(payload.options ?? {}),
-				temperature: opts.options.temperature,
-			};
-		}
 		const endpoint = `${cfg.baseUrl.replace(/\/$/, "")}/api/generate`;
 		let res: Response;
 		try {

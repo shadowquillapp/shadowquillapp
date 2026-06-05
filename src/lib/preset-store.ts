@@ -1,7 +1,7 @@
 import type { GenerationOptions, TaskType } from "@/types";
 import { getRaw, setJSON } from "./local-storage";
 import { getPresets, type Preset } from "./presets";
-import { isArrayOf, isRecord, isString, safeParse } from "./schema";
+import { isArrayOf, isString, safeParse } from "./schema";
 import { STORAGE_KEYS } from "./storage-keys";
 
 export interface PresetSummary {
@@ -57,24 +57,4 @@ export function getLastSelectedPresetKey(): string {
 
 export function setLastSelectedPresetKey(key: string): void {
 	setJSON(STORAGE_KEYS.LAST_SELECTED_PRESET.key, key);
-}
-
-function isPresetSummary(v: unknown): v is PresetSummary {
-	return isRecord(v) && isString(v.name) && isString(v.taskType);
-}
-
-export function consumeApplyPreset(): PresetSummary | null {
-	if (typeof window === "undefined") return null;
-	try {
-		const key = STORAGE_KEYS.APPLY_PRESET.key;
-		const preset = safeParse(
-			sessionStorage.getItem(key),
-			isPresetSummary,
-			null,
-		);
-		sessionStorage.removeItem(key);
-		return preset;
-	} catch {
-		return null;
-	}
 }

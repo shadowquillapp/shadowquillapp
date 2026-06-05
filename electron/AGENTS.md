@@ -18,7 +18,7 @@
 
 | File | Role |
 |---|---|
-| `data-handlers.cjs` | JSON-file KV under `userData/storage/app-data.json`; `getDataPaths`, `factoryReset` (wipes userData + relaunch), `restartApp`, `getEnvSafety` (Windows `Zone.Identifier`). |
+| `data-handlers.cjs` | JSON-file KV under `userData/storage/app-data.json`; `getDataPaths`, `factoryReset`, `restartApp`, `getEnvSafety` (Windows `Zone.Identifier`). All handlers wrapped with `requireValidIpcSender` from `ipc-security.cjs`. |
 | `ollama-handlers.cjs` | Detects/launches Ollama per-OS (mdfind on mac, fs check on win, `which`/`command -v`/systemctl on linux). |
 | `window-handlers.cjs` | Minimize, maxToggle, close=app.quit; zoom factor get/set/reset; window size query. |
 | `find-handlers.cjs` | Wraps `webContents.findInPage` / `stopFindInPage` (matchCase, forward, findNext). |
@@ -31,9 +31,20 @@
 | `window-manager.cjs` | Creates `BrowserWindow` (frameless on mac/win, persistent partition, preload, contextIsolation); zoom, context menu, find dispatch, `setWindowOpenHandler` denies + `shell.openExternal`, did-fail-load fallback, periodic storage flush. |
 | `window-state.cjs` | Persists window bounds/maximized to `userData/window-state.json` (debounced 500ms). |
 | `security.cjs` | Sets CSP via `onHeadersReceived` (`default-src 'self'`, restricted script-src, Google Fonts allowlist, `object-src 'none'`, `frame-ancestors 'none'`) + `X-Content-Type-Options`, `X-Frame-Options`, `X-XSS-Protection`. |
+| `ipc-security.cjs` | `requireValidIpcSender` — validates IPC sender frame before handler runs; used by `data-handlers.cjs`. |
 | `next-server.cjs` | Loads Next from `app.asar.unpacked`/local `node_modules`, calls `next({dev:false, dir}).prepare()`, wraps `getRequestHandler()` in `http.createServer` on ephemeral port; falls back to static `.next/server/app/*.html` if Next fails. |
 | `menu.cjs` | App menu (mac app menu, File/Edit/View) wiring Find, Zoom In/Out/Reset, fullscreen; emits `shadowquill:find:*` and `shadowquill:zoom:changed` to focused window. |
-| `data-paths.cjs` | OS-correct `userData` (`%LOCALAPPDATA%/ShadowQuill`, `~/Library/Application Support/ShadowQuill`, `~/.local/share/ShadowQuill`); handles `--factory-reset` early wipe; clears Windows `Zone.Identifier` ADS. |
+| `data-paths.cjs` | OS-correct `userData` (`%LOCALAPPDATA%/ShadowQuill`, `~/Library/Application Support/ShadowQuill`, `~/.local/share/ShadowQuill`); handles `--factory-reset` CLI early wipe; clears Windows `Zone.Identifier` ADS. |
+
+## Factory reset (two paths)
+
+**UI factory reset** (`shadowquill:factoryReset` IPC, triggered from `LocalDataManagementContent`):
+1. Renderer: `clearAllStorageForFactoryReset()` (blocks writes, clears declared keys).
+2. Main: resets `app-data.json` to `{}`, clears both Electron sessions + cache, deletes `window-state.json`.
+3. Renderer: `window.location.assign("/workbench")` — **no `app.relaunch()`**.
+
+**CLI factory reset** (`--factory-reset` flag, `data-paths.cjs`):
+- Full `userData` wipe before app start; spawns a new process. More destructive than UI path.
 
 ## IPC contract
 

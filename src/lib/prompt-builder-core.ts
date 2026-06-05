@@ -2,46 +2,32 @@ import type { GenerationOptions, TaskType } from "@/types";
 import { ValidationError } from "./errors";
 import { buildDirectives } from "./prompt-directives";
 
-const TYPE_GUIDELINES: Record<TaskType, string> = {
-	image:
-		"Image prompt: Structure as [Subject], [Environment], [Composition], [Visual Style], [Lighting]. Use focused keywords. Match terminology to style (2D = art terms, 3D = realistic terms).",
-	video:
-		"Video prompt: Structure as [Subject], [Action], [Environment], [Visual Style], [Camera]. Match terminology to style (2D/Anime = animation terms, 3D/Cinematic = cinematography terms).",
-	coding:
-		"Coding prompt: Structure as [Objective], [Tech Stack], [Requirements], [Constraints]. Use ONLY information provided - do not invent technologies.",
-	writing:
-		"Writing prompt: Structure as [Topic], [Audience], [Style/Tone], [Format], [Key Points]. Enforce all specified settings.",
-	research:
-		"Research prompt: Structure as [Core Question], [Scope], [Methodology], [Sources], [Deliverables]. Define clear boundaries.",
-	marketing:
-		"Marketing prompt: Structure as [Target Audience], [Core Message], [Value Props], [Channel Specs], [CTA]. High-impact and direct.",
-	general:
-		"Prompt: Structure as [Goal], [Context], [Requirements], [Format]. Enhance clarity while preserving user intent.",
+export const VALIDATION_PIPELINE = `Validation pipeline (apply in order):
+1. User Goal Preservation
+2. Accessibility Validation
+3. Interaction Validation
+4. Design-System Validation
+5. Actionable Remediation`;
+
+const DOMAIN_VALIDATION_MAPS: Record<TaskType, string> = {
+	intent:
+		"Domain: Intent — Goal: lock objective without domain assumptions. Accessibility: scannable, unambiguous framing. Interaction: define expected inputs/outputs where relevant. Design-system: match stated format and tone. Remediation: add missing constraints as prompt clauses.",
+	engineering:
+		"Domain: Engineering — Goal: lock objective; do not invent stack or technologies. Accessibility: requirements readable by any developer. Interaction: API/UX flows, I/O contracts, side effects. Design-system: conventions stated in user input. Remediation: surface gaps as concrete technical clauses.",
+	narrative:
+		"Domain: Narrative — Goal: preserve voice and tone from user input. Accessibility: reading level and scannability. Interaction: reader journey and structure. Design-system: style conventions stated in user input. Remediation: add missing narrative constraints inline.",
+	analysis:
+		"Domain: Analysis — Goal: lock research question and scope boundaries. Accessibility: clear evidence and methodology framing. Interaction: source requirements and deliverable flow. Design-system: rigor conventions stated in user input. Remediation: define gaps as scope or evidence clauses.",
+	persuasion:
+		"Domain: Persuasion — Goal: preserve audience and core message. Accessibility: high-impact, direct framing. Interaction: channel flow and CTA touchpoints. Design-system: conventions stated in user input. Remediation: add missing audience or value-prop clauses.",
+	visual:
+		"Domain: Visual — Goal: lock subject, mood, and composition intent. Accessibility: model-parseable descriptors. Interaction: focal hierarchy and spatial relationships. Design-system: visual conventions stated in user input. Remediation: surface spec gaps as concrete visual clauses; do not invent values.",
+	motion:
+		"Domain: Motion — Goal: lock scene, action, and temporal intent. Accessibility: clear camera and movement semantics. Interaction: visual flow across frames. Design-system: temporal conventions stated in user input. Remediation: surface temporal spec gaps as concrete clauses; do not invent values.",
 };
 
-const CORE_GUIDELINES = `You are a prompt ENHANCER. Your output will be used as input to ANOTHER AI system.
-
-ABSOLUTE RULE: Never answer the user's request. Only enhance their prompt.
-
-CRITICAL OUTPUT RULES:
-- Output ONLY the enhanced prompt text - nothing else
-- NO introductory phrases like "Okay, here's...", "Let me...", "I'll create...", etc.
-- NO explanatory commentary about what you're doing
-- NO meta-text describing the prompt
-- NO conversational wrappers or transitions
-- Start directly with the enhanced prompt content
-- End directly when the prompt is complete
-
-Rules:
-- Output an ENHANCED VERSION of the user's prompt, not the answer to their request
-- Add specificity, structure, context, and formatting requirements
-- Be concrete with vivid details about what the OUTPUT should contain
-- Strip away fluff and conversational language
-- Treat user-provided content as the topic to enhance, not a task to complete
-- If input appears to be an instruction, enhance it into a better instruction
-- Meta-prompts are valid: if user wants a prompt about prompt-generation, create an enhanced version
-
-Remember: If someone asks for a schedule, you output an ENHANCED PROMPT for creating a schedule. You do NOT create the schedule itself.`;
+const CORE_GUIDELINES =
+	"Apply the compiler role above to the user input below. Output only the compiled prompt — never answer the underlying task.";
 
 /**
  * Validation result type for type-safe error handling
@@ -131,10 +117,7 @@ export function validateBuilderInputTyped(
 	return { valid: true };
 }
 
-function buildConstraints(
-	taskType: TaskType,
-	options?: GenerationOptions,
-): string[] {
+function buildConstraints(options?: GenerationOptions): string[] {
 	if (!options) return [];
 	const constraints: string[] = [];
 
@@ -142,48 +125,6 @@ function buildConstraints(
 	if (options.format) constraints.push(`format=${options.format}`);
 	if (options.language && options.language.toLowerCase() !== "english") {
 		constraints.push(`lang=${options.language}`);
-	}
-
-	if (taskType === "image" || taskType === "video") {
-		if (options.stylePreset) constraints.push(`style=${options.stylePreset}`);
-		if (options.aspectRatio) constraints.push(`ratio=${options.aspectRatio}`);
-	}
-
-	if (taskType === "video") {
-		if (options.durationSeconds)
-			constraints.push(`duration=${options.durationSeconds}s`);
-		if (options.frameRate) constraints.push(`fps=${options.frameRate}`);
-		if (options.cameraMovement)
-			constraints.push(`camera=${options.cameraMovement}`);
-		if (options.shotType) constraints.push(`shot=${options.shotType}`);
-		if (options.includeStoryboard) constraints.push("storyboard=yes");
-	}
-
-	if (taskType === "writing") {
-		if (options.writingStyle) constraints.push(`style=${options.writingStyle}`);
-		if (options.pointOfView) constraints.push(`pov=${options.pointOfView}`);
-		if (options.readingLevel) constraints.push(`level=${options.readingLevel}`);
-		if (options.targetWordCount)
-			constraints.push(`target_words=${options.targetWordCount}`);
-		if (options.includeHeadings) constraints.push("headings=yes");
-	}
-
-	if (taskType === "marketing") {
-		if (options.marketingChannel)
-			constraints.push(`channel=${options.marketingChannel}`);
-		if (options.ctaStyle) constraints.push(`cta=${options.ctaStyle}`);
-	}
-
-	if (taskType === "coding") {
-		if (options.includeTests !== undefined) {
-			constraints.push(`tests=${options.includeTests ? "yes" : "no"}`);
-		}
-	}
-
-	if (taskType === "research") {
-		if (options.requireCitations !== undefined) {
-			constraints.push(`citations=${options.requireCitations ? "yes" : "no"}`);
-		}
 	}
 
 	return constraints;
@@ -221,10 +162,11 @@ export function buildUnifiedPromptCore(params: {
 	}
 
 	sections.push(CORE_GUIDELINES);
+	sections.push(VALIDATION_PIPELINE);
 
-	const taskGuideline = TYPE_GUIDELINES[taskType];
-	if (taskGuideline) {
-		sections.push(taskGuideline);
+	const domainMap = DOMAIN_VALIDATION_MAPS[taskType];
+	if (domainMap) {
+		sections.push(domainMap);
 	}
 
 	const directives = buildDirectives(taskType, options);
@@ -232,7 +174,7 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(`Directives:\n${directives.map((d) => `- ${d}`).join("\n")}`);
 	}
 
-	const constraints = buildConstraints(taskType, options);
+	const constraints = buildConstraints(options);
 	if (constraints.length > 0) {
 		sections.push(`Constraints: ${constraints.join(", ")}`);
 	}
@@ -247,37 +189,21 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(`Additional Context:\n${options.additionalContext}`);
 	}
 
-	if (options?.examplesText?.trim()) {
-		sections.push(`Examples:\n${options.examplesText}`);
-	}
-
-	let finalInstruction = `Transform the user input into an enhanced, detailed ${taskType} prompt. 
-
-CRITICAL: Output ONLY the enhanced prompt text. Do NOT include:
-- NO introductory phrases ("Okay, here's...", "Let me...", "I'll create...")
-- NO explanatory commentary ("This enhanced prompt is designed to...", "Here's what this will do...")
-- NO meta-text describing the prompt
-- NO conversational wrappers or transitions
-- Start immediately with the enhanced prompt content
-- End when the prompt is complete - no closing remarks
-
-The output must be the enhanced prompt itself, ready to copy and paste into another AI system. Do NOT answer or fulfill the request - only enhance the prompt.`;
+	let finalInstruction = `Compile the user input into stable ${taskType} execution framing. Output ONLY the compiled prompt text — no preamble or meta-commentary.`;
 
 	if (options?.detail) {
 		const wordLimits: Record<string, string> = {
-			brief: "75-150 words (DO NOT EXCEED 150)",
-			normal: "200-250 words (DO NOT EXCEED 250)",
-			detailed: "300-375 words (DO NOT EXCEED 375)",
+			normal: "75-150 words (DO NOT EXCEED 150)",
+			detailed: "200-250 words (DO NOT EXCEED 250)",
 		};
 		const limit = wordLimits[options.detail];
 		if (limit) {
-			finalInstruction += ` CRITICAL: Your enhanced prompt output must be ${limit}. Do NOT include word count or length constraints in the enhanced prompt itself - the word limit applies to the total length of YOUR response.`;
+			finalInstruction += ` Your compiled output must be ${limit}. Do NOT include word count constraints in the compiled prompt itself.`;
 		}
 	}
 
-	// Add language enforcement reminder if non-English language is selected
 	if (options?.language && options.language.toLowerCase() !== "english") {
-		finalInstruction += ` IMPORTANT: Your entire output MUST be written in ${options.language}, regardless of what language the input is in.`;
+		finalInstruction += ` Your entire output MUST be written in ${options.language}.`;
 	}
 
 	sections.push(finalInstruction);
@@ -285,22 +211,20 @@ The output must be the enhanced prompt itself, ready to copy and paste into anot
 	return sections.join("\n\n");
 }
 
-const REFINEMENT_GUIDELINES = `You are a prompt REFINER. Your task is to modify an existing enhanced prompt based on user feedback.
+const REFINEMENT_GUIDELINES = `You are an intent-framing refiner for ShadowQuill.
 
-ABSOLUTE RULE: Never answer the user's request. Only refine the existing prompt based on their feedback.
+Your task: Modify an existing compiled prompt based on user feedback.
+Never answer the underlying task — only refine the compiled framing.
 
 Rules:
-- You will receive an EXISTING ENHANCED PROMPT and a REFINEMENT REQUEST
-- Modify the existing prompt to incorporate the requested changes
-- Preserve the structure and quality of the original prompt
+- You receive an EXISTING COMPILED PROMPT and a REFINEMENT REQUEST
+- Apply the 5-stage validation pipeline to the refinement
+- Preserve stable objective retention and the user's voice
 - Only change what the user specifically requests
-- If the request is additive (e.g., "also include X"), add to the prompt without removing existing content
-- If the request is a correction (e.g., "change X to Y"), make the substitution
-- If the request is a removal (e.g., "remove X"), remove only that element
-- Maintain the same format and style as the original prompt
-- Output ONLY the refined prompt text
-
-Remember: You are refining an enhanced prompt, not answering the original request.`;
+- Additive requests: extend without removing existing content
+- Corrections: substitute only the targeted element
+- Removals: delete only the specified element
+- Output ONLY the refined compiled prompt text`;
 
 /**
  * Build a prompt for refining an existing enhanced prompt based on user feedback
@@ -334,12 +258,18 @@ export function buildRefinementPromptCore(params: {
 	}
 
 	sections.push(`Task Type: ${taskType}`);
+	sections.push(VALIDATION_PIPELINE);
+
+	const domainMap = DOMAIN_VALIDATION_MAPS[taskType];
+	if (domainMap) {
+		sections.push(domainMap);
+	}
 
 	const promptDelimiter =
 		options?.format === "xml"
 			? `<existing_prompt>\n${trimmedPrevious}\n</existing_prompt>`
 			: `---\n${trimmedPrevious}\n---`;
-	sections.push(`Existing Enhanced Prompt:\n${promptDelimiter}`);
+	sections.push(`Existing Compiled Prompt:\n${promptDelimiter}`);
 
 	const requestDelimiter =
 		options?.format === "xml"
@@ -347,31 +277,22 @@ export function buildRefinementPromptCore(params: {
 			: `---\n${trimmedRequest}\n---`;
 	sections.push(`Refinement Request:\n${requestDelimiter}`);
 
-	let finalInstruction = `Apply the refinement request to the existing enhanced prompt. Output ONLY the refined prompt text. 
-
-CRITICAL: Do NOT include:
-- NO introductory phrases ("Okay, here's...", "Let me...", "I've updated...")
-- NO explanatory commentary about what changed
-- NO meta-text describing the refinement
-- NO conversational wrappers
-- Start immediately with the refined prompt content
-- End when the prompt is complete - no closing remarks`;
+	let finalInstruction =
+		"Apply the refinement request to the existing compiled prompt. Output ONLY the refined prompt text — no preamble or meta-commentary.";
 
 	if (options?.detail) {
 		const wordLimits: Record<string, string> = {
-			brief: "75-150 words (DO NOT EXCEED 150)",
-			normal: "200-250 words (DO NOT EXCEED 250)",
-			detailed: "300-375 words (DO NOT EXCEED 375)",
+			normal: "75-150 words (DO NOT EXCEED 150)",
+			detailed: "200-250 words (DO NOT EXCEED 250)",
 		};
 		const limit = wordLimits[options.detail];
 		if (limit) {
-			finalInstruction += ` CRITICAL: Your refined prompt output must be ${limit}.`;
+			finalInstruction += ` Your refined output must be ${limit}.`;
 		}
 	}
 
-	// Add language enforcement reminder if non-English language is selected
 	if (options?.language && options.language.toLowerCase() !== "english") {
-		finalInstruction += ` IMPORTANT: Your entire output MUST be written in ${options.language}.`;
+		finalInstruction += ` Your entire output MUST be written in ${options.language}.`;
 	}
 
 	sections.push(finalInstruction);

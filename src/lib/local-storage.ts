@@ -7,6 +7,10 @@ export function isFactoryResetInProgress(): boolean {
 	return _factoryResetInProgress;
 }
 
+export function abortFactoryReset(): void {
+	_factoryResetInProgress = false;
+}
+
 function canUseStorage(): boolean {
 	return typeof window !== "undefined";
 }

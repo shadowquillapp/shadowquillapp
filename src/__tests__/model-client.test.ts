@@ -80,7 +80,7 @@ describe("callLocalModelClient", () => {
 			expect(result).toBe("Generated text response");
 		});
 
-		it("should include temperature in request when provided", async () => {
+		it("should always use fixed temperature in request", async () => {
 			const mockFetch = vi.fn().mockResolvedValue({
 				ok: true,
 				json: () => Promise.resolve({ response: "response" }),
@@ -88,13 +88,13 @@ describe("callLocalModelClient", () => {
 			global.fetch = mockFetch;
 
 			await callLocalModelClient("prompt", {
-				taskType: "general",
-				options: { temperature: 0.7 },
+				taskType: "intent",
+				options: { format: "plain" },
 			});
 
 			const callArgs = mockFetch.mock.calls[0];
 			const body = JSON.parse(callArgs?.[1].body as string);
-			expect(body.options.temperature).toBe(0.7);
+			expect(body.options.temperature).toBe(0.2);
 		});
 
 		it("should handle trailing slash in baseUrl", async () => {

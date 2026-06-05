@@ -15,9 +15,13 @@ vi.mock("@/components/DialogProvider", () => ({
 // Mock local-storage
 vi.mock("@/lib/local-storage", () => ({
 	clearAllStorageForFactoryReset: vi.fn(),
+	abortFactoryReset: vi.fn(),
 }));
 
-import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
+import {
+	abortFactoryReset,
+	clearAllStorageForFactoryReset,
+} from "@/lib/local-storage";
 
 describe("LocalDataManagementContent", () => {
 	const mockApi = {
@@ -25,10 +29,17 @@ describe("LocalDataManagementContent", () => {
 		factoryReset: vi.fn(),
 	};
 
+	const assignSpy = vi.fn();
+
 	beforeEach(() => {
 		vi.clearAllMocks();
 		(window as unknown as { shadowquill?: unknown }).shadowquill = mockApi;
 		mockConfirm.mockResolvedValue(false);
+		assignSpy.mockReset();
+		Object.defineProperty(window, "location", {
+			value: { assign: assignSpy },
+			writable: true,
+		});
 	});
 
 	afterEach(() => {
@@ -148,6 +159,7 @@ describe("LocalDataManagementContent", () => {
 			expect(mockConfirm).toHaveBeenCalledWith(
 				expect.objectContaining({
 					title: "Factory Reset",
+					confirmText: "Factory Reset",
 					tone: "destructive",
 				}),
 			);
@@ -197,6 +209,7 @@ describe("LocalDataManagementContent", () => {
 			await waitFor(() => {
 				expect(clearAllStorageForFactoryReset).toHaveBeenCalled();
 				expect(mockApi.factoryReset).toHaveBeenCalled();
+				expect(assignSpy).toHaveBeenCalledWith("/workbench");
 			});
 		});
 
@@ -224,6 +237,8 @@ describe("LocalDataManagementContent", () => {
 
 			await waitFor(() => {
 				expect(screen.getByText("Reset failed")).toBeInTheDocument();
+				expect(abortFactoryReset).toHaveBeenCalled();
+				expect(assignSpy).not.toHaveBeenCalled();
 			});
 		});
 	});
@@ -307,6 +322,7 @@ describe("LocalDataManagementContent", () => {
 
 			await waitFor(() => {
 				expect(screen.getByText("Reset exception")).toBeInTheDocument();
+				expect(abortFactoryReset).toHaveBeenCalled();
 			});
 		});
 
@@ -331,6 +347,7 @@ describe("LocalDataManagementContent", () => {
 
 			await waitFor(() => {
 				expect(screen.getByText("Reset failed")).toBeInTheDocument();
+				expect(abortFactoryReset).toHaveBeenCalled();
 			});
 		});
 

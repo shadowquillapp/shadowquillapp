@@ -102,17 +102,17 @@ export function TabBar({
 
 	const getTaskTypeIcon = (taskType: string) => {
 		switch (taskType) {
-			case "coding":
+			case "engineering":
 				return "git-compare";
-			case "image":
+			case "visual":
 				return "palette";
-			case "video":
+			case "motion":
 				return "eye";
-			case "research":
+			case "analysis":
 				return "search";
-			case "writing":
+			case "narrative":
 				return "edit";
-			case "marketing":
+			case "persuasion":
 				return "thumbsUp";
 			default:
 				return "folder-open";
