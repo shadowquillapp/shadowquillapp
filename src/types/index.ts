@@ -18,98 +18,16 @@ export type Detail = "brief" | "normal" | "detailed";
 
 export type Format = "plain" | "markdown" | "xml";
 
-export type ImageStylePreset =
-	| "photorealistic"
-	| "illustration"
-	| "3d"
-	| "anime"
-	| "watercolor";
-
-export type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3";
-
-export type TargetResolution = "720p" | "1080p" | "2K" | "4K";
-
-export type VideoStylePreset =
-	| "cinematic"
-	| "documentary"
-	| "animation"
-	| "timelapse"
-	| "vlog"
-	| "commercial"
-	| "anime";
-
-export type CameraMovement =
-	| "static"
-	| "pan"
-	| "tilt"
-	| "dolly"
-	| "zoom"
-	| "handheld"
-	| "tracking";
-
-export type ShotType =
-	| "wide"
-	| "medium"
-	| "close_up"
-	| "over_the_shoulder"
-	| "first_person";
-
-export type FrameRate = 24 | 30 | 60;
-
-export type WritingStyle =
-	| "narrative"
-	| "expository"
-	| "technical"
-	| "descriptive";
-
-export type PointOfView = "first" | "second" | "third";
-
-export type ReadingLevel = "basic" | "intermediate" | "expert";
-
-export type MarketingChannel = "email" | "landing_page" | "social" | "ad";
-
-export type CTAStyle = "soft" | "standard" | "strong";
-
 export interface GenerationOptions {
 	tone?: Tone;
 	detail?: Detail;
 	format?: Format;
 	language?: string;
 	audience?: string;
-
-	endOfPromptToken?: string;
 	outputXMLSchema?: string;
 	identity?: string;
 	additionalContext?: string;
 	styleGuidelines?: string;
-
-	stylePreset?: ImageStylePreset | VideoStylePreset;
-	aspectRatio?: AspectRatio;
-	targetResolution?: TargetResolution;
-
-	cameraMovement?: CameraMovement;
-	shotType?: ShotType;
-	durationSeconds?: number;
-	frameRate?: FrameRate;
-	includeStoryboard?: boolean;
-
-	includeTests?: boolean;
-	techStack?: string;
-	projectContext?: string;
-	codingConstraints?: string;
-
-	requireCitations?: boolean;
-
-	writingStyle?: WritingStyle;
-	pointOfView?: PointOfView;
-	readingLevel?: ReadingLevel;
-	targetWordCount?: number;
-	includeHeadings?: boolean;
-
-	marketingChannel?: MarketingChannel;
-	ctaStyle?: CTAStyle;
-	valueProps?: string;
-	complianceNotes?: string;
 }
 
 export type PresetOptions = GenerationOptions;
@@ -167,13 +85,6 @@ export interface SystemSpecs {
 	ram: number;
 	gpu: string;
 }
-
-// ============================================
-// Backward Compatibility Aliases
-// ============================================
-
-// For studio/types.ts compatibility
-export type ImageAspectRatio = AspectRatio;
 
 // ============================================
 // Global Window Extensions

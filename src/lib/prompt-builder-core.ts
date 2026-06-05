@@ -13,17 +13,17 @@ const DOMAIN_VALIDATION_MAPS: Record<TaskType, string> = {
 	intent:
 		"Domain: Intent — Goal: lock objective without domain assumptions. Accessibility: scannable, unambiguous framing. Interaction: define expected inputs/outputs where relevant. Design-system: match stated format and tone. Remediation: add missing constraints as prompt clauses.",
 	engineering:
-		"Domain: Engineering — Goal: lock objective; do not invent stack or technologies. Accessibility: requirements readable by any developer. Interaction: API/UX flows, I/O contracts, side effects. Design-system: project conventions and patterns. Remediation: surface gaps as concrete technical clauses.",
+		"Domain: Engineering — Goal: lock objective; do not invent stack or technologies. Accessibility: requirements readable by any developer. Interaction: API/UX flows, I/O contracts, side effects. Design-system: conventions stated in user input. Remediation: surface gaps as concrete technical clauses.",
 	narrative:
-		"Domain: Narrative — Goal: preserve voice, POV, and tone. Accessibility: reading level and scannability. Interaction: reader journey and structure. Design-system: style guide and format rules. Remediation: add missing narrative constraints inline.",
+		"Domain: Narrative — Goal: preserve voice and tone from user input. Accessibility: reading level and scannability. Interaction: reader journey and structure. Design-system: style conventions stated in user input. Remediation: add missing narrative constraints inline.",
 	analysis:
-		"Domain: Analysis — Goal: lock research question and scope boundaries. Accessibility: clear evidence and methodology framing. Interaction: source requirements and deliverable flow. Design-system: citation and rigor conventions. Remediation: define gaps as scope or evidence clauses.",
+		"Domain: Analysis — Goal: lock research question and scope boundaries. Accessibility: clear evidence and methodology framing. Interaction: source requirements and deliverable flow. Design-system: rigor conventions stated in user input. Remediation: define gaps as scope or evidence clauses.",
 	persuasion:
-		"Domain: Persuasion — Goal: preserve audience and core message. Accessibility: high-impact, direct framing. Interaction: channel flow and CTA touchpoints. Design-system: channel specs and compliance notes. Remediation: add missing audience or value-prop clauses.",
+		"Domain: Persuasion — Goal: preserve audience and core message. Accessibility: high-impact, direct framing. Interaction: channel flow and CTA touchpoints. Design-system: conventions stated in user input. Remediation: add missing audience or value-prop clauses.",
 	visual:
-		"Domain: Visual — Goal: lock subject, mood, and composition intent. Accessibility: model-parseable descriptors. Interaction: focal hierarchy and spatial relationships. Design-system: style preset, aspect ratio, resolution. Remediation: correct spec gaps inline; do not invent values.",
+		"Domain: Visual — Goal: lock subject, mood, and composition intent. Accessibility: model-parseable descriptors. Interaction: focal hierarchy and spatial relationships. Design-system: visual conventions stated in user input. Remediation: surface spec gaps as concrete visual clauses; do not invent values.",
 	motion:
-		"Domain: Motion — Goal: lock scene, action, and temporal intent. Accessibility: clear camera and movement semantics. Interaction: visual flow across frames. Design-system: duration, fps, shot type, movement specs. Remediation: correct temporal spec gaps inline; do not invent values.",
+		"Domain: Motion — Goal: lock scene, action, and temporal intent. Accessibility: clear camera and movement semantics. Interaction: visual flow across frames. Design-system: temporal conventions stated in user input. Remediation: surface temporal spec gaps as concrete clauses; do not invent values.",
 };
 
 const CORE_GUIDELINES =
@@ -117,10 +117,7 @@ export function validateBuilderInputTyped(
 	return { valid: true };
 }
 
-function buildConstraints(
-	taskType: TaskType,
-	options?: GenerationOptions,
-): string[] {
+function buildConstraints(options?: GenerationOptions): string[] {
 	if (!options) return [];
 	const constraints: string[] = [];
 
@@ -128,48 +125,6 @@ function buildConstraints(
 	if (options.format) constraints.push(`format=${options.format}`);
 	if (options.language && options.language.toLowerCase() !== "english") {
 		constraints.push(`lang=${options.language}`);
-	}
-
-	if (taskType === "visual" || taskType === "motion") {
-		if (options.stylePreset) constraints.push(`style=${options.stylePreset}`);
-		if (options.aspectRatio) constraints.push(`ratio=${options.aspectRatio}`);
-	}
-
-	if (taskType === "motion") {
-		if (options.durationSeconds)
-			constraints.push(`duration=${options.durationSeconds}s`);
-		if (options.frameRate) constraints.push(`fps=${options.frameRate}`);
-		if (options.cameraMovement)
-			constraints.push(`camera=${options.cameraMovement}`);
-		if (options.shotType) constraints.push(`shot=${options.shotType}`);
-		if (options.includeStoryboard) constraints.push("storyboard=yes");
-	}
-
-	if (taskType === "narrative") {
-		if (options.writingStyle) constraints.push(`style=${options.writingStyle}`);
-		if (options.pointOfView) constraints.push(`pov=${options.pointOfView}`);
-		if (options.readingLevel) constraints.push(`level=${options.readingLevel}`);
-		if (options.targetWordCount)
-			constraints.push(`target_words=${options.targetWordCount}`);
-		if (options.includeHeadings) constraints.push("headings=yes");
-	}
-
-	if (taskType === "persuasion") {
-		if (options.marketingChannel)
-			constraints.push(`channel=${options.marketingChannel}`);
-		if (options.ctaStyle) constraints.push(`cta=${options.ctaStyle}`);
-	}
-
-	if (taskType === "engineering") {
-		if (options.includeTests !== undefined) {
-			constraints.push(`tests=${options.includeTests ? "yes" : "no"}`);
-		}
-	}
-
-	if (taskType === "analysis") {
-		if (options.requireCitations !== undefined) {
-			constraints.push(`citations=${options.requireCitations ? "yes" : "no"}`);
-		}
 	}
 
 	return constraints;
@@ -219,7 +174,7 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(`Directives:\n${directives.map((d) => `- ${d}`).join("\n")}`);
 	}
 
-	const constraints = buildConstraints(taskType, options);
+	const constraints = buildConstraints(options);
 	if (constraints.length > 0) {
 		sections.push(`Constraints: ${constraints.join(", ")}`);
 	}

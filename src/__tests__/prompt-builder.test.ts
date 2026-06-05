@@ -201,14 +201,6 @@ describe("buildUnifiedPromptCore", () => {
 		expect(result).toContain("Domain: Persuasion");
 	});
 
-	it("should include end of prompt token when specified", () => {
-		const result = buildUnifiedPromptCore({
-			...defaultParams,
-			options: { endOfPromptToken: "<|END|>" },
-		});
-		expect(result).toContain("<|END|>");
-	});
-
 	describe("language options", () => {
 		it("should add language instruction at top for non-English", () => {
 			const result = buildUnifiedPromptCore({
@@ -283,120 +275,18 @@ describe("buildUnifiedPromptCore", () => {
 	});
 
 	describe("constraints building", () => {
-		it("should include image constraints", () => {
+		it("should include base constraints", () => {
 			const result = buildUnifiedPromptCore({
 				input: "A sunset",
 				taskType: "visual",
 				systemPrompt: "You are a prompt enhancer.",
 				options: {
-					stylePreset: "photorealistic",
-					aspectRatio: "16:9",
+					tone: "neutral",
+					format: "markdown",
 				},
 			});
-			expect(result).toContain("style=photorealistic");
-			expect(result).toContain("ratio=16:9");
-		});
-
-		it("should include video constraints", () => {
-			const result = buildUnifiedPromptCore({
-				input: "A city scene",
-				taskType: "motion",
-				systemPrompt: "You are a prompt enhancer.",
-				options: {
-					durationSeconds: 10,
-					frameRate: 30,
-					cameraMovement: "pan",
-					shotType: "wide",
-					includeStoryboard: true,
-				},
-			});
-			expect(result).toContain("duration=10s");
-			expect(result).toContain("fps=30");
-			expect(result).toContain("camera=pan");
-			expect(result).toContain("shot=wide");
-			expect(result).toContain("storyboard=yes");
-		});
-
-		it("should include writing constraints", () => {
-			const result = buildUnifiedPromptCore({
-				input: "An article",
-				taskType: "narrative",
-				systemPrompt: "You are a prompt enhancer.",
-				options: {
-					writingStyle: "technical",
-					pointOfView: "third",
-					readingLevel: "expert",
-					targetWordCount: 2000,
-					includeHeadings: true,
-				},
-			});
-			expect(result).toContain("style=technical");
-			expect(result).toContain("pov=third");
-			expect(result).toContain("level=expert");
-			expect(result).toContain("target_words=2000");
-			expect(result).toContain("headings=yes");
-		});
-
-		it("should include marketing constraints", () => {
-			const result = buildUnifiedPromptCore({
-				input: "A campaign",
-				taskType: "persuasion",
-				systemPrompt: "You are a prompt enhancer.",
-				options: {
-					marketingChannel: "social",
-					ctaStyle: "strong",
-				},
-			});
-			expect(result).toContain("channel=social");
-			expect(result).toContain("cta=strong");
-		});
-
-		it("should include coding constraints", () => {
-			const result = buildUnifiedPromptCore({
-				input: "A function",
-				taskType: "engineering",
-				systemPrompt: "You are a prompt enhancer.",
-				options: {
-					includeTests: true,
-				},
-			});
-			expect(result).toContain("tests=yes");
-		});
-
-		it("should include coding constraints with tests disabled", () => {
-			const result = buildUnifiedPromptCore({
-				input: "A function",
-				taskType: "engineering",
-				systemPrompt: "You are a prompt enhancer.",
-				options: {
-					includeTests: false,
-				},
-			});
-			expect(result).toContain("tests=no");
-		});
-
-		it("should include research constraints", () => {
-			const result = buildUnifiedPromptCore({
-				input: "A study",
-				taskType: "analysis",
-				systemPrompt: "You are a prompt enhancer.",
-				options: {
-					requireCitations: true,
-				},
-			});
-			expect(result).toContain("citations=yes");
-		});
-
-		it("should include research constraints with citations disabled", () => {
-			const result = buildUnifiedPromptCore({
-				input: "A study",
-				taskType: "analysis",
-				systemPrompt: "You are a prompt enhancer.",
-				options: {
-					requireCitations: false,
-				},
-			});
-			expect(result).toContain("citations=no");
+			expect(result).toContain("tone=neutral");
+			expect(result).toContain("format=markdown");
 		});
 
 		it("should include language constraint for non-English", () => {

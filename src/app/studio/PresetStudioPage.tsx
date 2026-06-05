@@ -110,7 +110,6 @@ export default function PresetStudioPage() {
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				endOfPromptToken: "<|endofprompt|>",
 			},
 		};
 		setEditingPreset(newPreset);

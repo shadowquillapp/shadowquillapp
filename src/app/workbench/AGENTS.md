@@ -29,7 +29,7 @@ workbench/
 
 | Hook | Role |
 |---|---|
-| `useGeneration.ts` | Send prompts, stop generation; calls `localModelClient` + `prompt-builder-client` + `prompt-normalization`; appends versions. |
+| `useGeneration.ts` | Send prompts, stop generation; calls `localModelClient` + `prompt-builder-client`; appends versions. |
 | `useCopyMessage.ts` | Clipboard copy + 2s `copied` state. |
 | `useKeyboardShortcuts.ts` | Cmd/Ctrl+T for new tab, etc. |
 | `useModelManager.ts` | List local models, current model id, menu state. |

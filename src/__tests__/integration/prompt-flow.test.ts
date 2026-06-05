@@ -126,14 +126,12 @@ describe("Prompt Generation Flow", () => {
 					tone: "technical",
 					detail: "detailed",
 					format: "markdown",
-					includeTests: true,
-					techStack: "React, TypeScript",
+					additionalContext: "Stack: React, TypeScript",
 				},
 			});
 
-			// Should contain coding-specific elements
-			expect(prompt.toLowerCase()).toContain("test");
-			expect(prompt).toContain("React");
+			expect(prompt.toLowerCase()).toContain("technical");
+			expect(prompt).toContain("React, TypeScript");
 			expect(prompt.toLowerCase()).toContain("markdown");
 		});
 	});
@@ -214,20 +212,14 @@ describe("Prompt Generation Flow", () => {
 					tone: "persuasive",
 					detail: "detailed",
 					format: "xml",
-					stylePreset: "commercial",
-					cameraMovement: "dolly",
-					shotType: "medium",
-					durationSeconds: 30,
-					frameRate: 30,
-					includeStoryboard: true,
+					additionalContext:
+						"Commercial style, dolly camera, 30 second duration",
 				},
 			});
 
-			// Should include video-specific elements
 			expect(prompt.toLowerCase()).toContain("motion");
 			expect(prompt.toLowerCase()).toContain("dolly");
 			expect(prompt).toContain("30");
-			expect(prompt.toLowerCase()).toContain("storyboard");
 		});
 
 		it("should handle additional context", () => {
@@ -236,9 +228,8 @@ describe("Prompt Generation Flow", () => {
 				taskType: "persuasion",
 				systemPrompt: "You are a marketing copywriter.",
 				options: {
-					additionalContext: "Target audience is enterprise decision makers",
-					marketingChannel: "landing_page",
-					ctaStyle: "strong",
+					additionalContext:
+						"Target audience is enterprise decision makers. Landing page with strong CTA.",
 				},
 			});
 

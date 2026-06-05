@@ -18,11 +18,10 @@
 | `cache.ts` | `SQ_PROMPT_CACHE` — manual sessionStorage LRU-ish prompt cache, consulted before generation. |
 | `prompt-builder-core.ts` | Pure prompt-assembly logic (server/testable). |
 | `prompt-builder-client.ts` | Browser-side wrapper wiring `prompt-builder-core` to React/UI. |
-| `prompt-normalization.ts` | `normalizePrompt()` — trims/whitespace/quote handling for user input. |
 | `version.ts` | App version string constant. |
 | `local-db.ts` | 35-byte stub re-exporting `local-config` (placeholder; not a real DB). |
 | `prompt-directives/index.ts` | **Barrel** of per-task-type directive fragments. |
-| `prompt-directives/{base,coding,image,marketing,research,video,writing}.ts` | Per-task directive fragments; `base.ts` is the shared header. |
+| `prompt-directives/base.ts` | Shared directive fragments (tone, detail, format, language). |
 
 ## Conventions (delta from root)
 

@@ -14,34 +14,17 @@ interface PresetInfoDialogProps {
 }
 
 const CATEGORIES = {
-	general: ["tone", "detail", "format", "language"],
-	model: ["endOfPromptToken"],
-	content: ["requireCitations", "includeTests", "outputXMLSchema"],
-	media: [
-		"stylePreset",
-		"aspectRatio",
-		"videoStylePreset",
-		"cameraMovement",
-		"shotType",
-		"durationSeconds",
-		"frameRate",
-	],
-	context: ["identity", "additionalContext"],
+	general: ["tone", "detail", "format", "language", "outputXMLSchema"],
+	context: ["identity", "additionalContext", "audience", "styleGuidelines"],
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
 	general: "General Settings",
-	model: "Model Configuration",
-	content: "Content Structure",
-	media: "Media Settings",
-	context: "Context & Examples",
+	context: "Context",
 };
 
 const CATEGORY_ICONS: Record<string, IconName> = {
 	general: "sliders",
-	model: "cpu",
-	content: "layout",
-	media: "image",
 	context: "file-text",
 };
 
@@ -107,14 +90,7 @@ export function PresetInfoDialog({
 	}
 
 	// Order categories
-	const categoryOrder = [
-		"general",
-		"model",
-		"content",
-		"media",
-		"context",
-		"other",
-	];
+	const categoryOrder = ["general", "context", "other"];
 
 	return (
 		<div className="modal-container">

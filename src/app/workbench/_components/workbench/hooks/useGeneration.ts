@@ -6,21 +6,7 @@ import {
 	buildRefinementPrompt,
 	buildUnifiedPrompt,
 } from "@/lib/prompt-builder-client";
-import {
-	normalizeAspectRatio,
-	normalizeCameraMovement,
-	normalizeDurationSeconds,
-	normalizeFrameRate,
-	normalizeShotType,
-	normalizeStylePreset,
-	normalizeVideoStylePreset,
-} from "@/lib/prompt-normalization";
-import type {
-	FrameRate,
-	GenerationOptions,
-	ImageStylePreset,
-	VideoStylePreset,
-} from "@/types";
+import type { GenerationOptions } from "@/types";
 import type { MessageItem } from "../types";
 import type { useTabManager } from "../useTabManager";
 import { appendVersion, versionList } from "../version-graph";
@@ -103,30 +89,6 @@ export function useGeneration(
 			const tabTaskType = tabPreset.taskType;
 			const tabOptions = tabPreset.options ?? ({} as GenerationOptions);
 
-			const normalizedImageStyle = normalizeStylePreset(
-				(tabOptions.stylePreset as ImageStylePreset) ?? "photorealistic",
-			);
-			const normalizedVideoStyle = normalizeVideoStylePreset(
-				(tabOptions.stylePreset as VideoStylePreset) ?? "cinematic",
-			);
-			const normalizedAspect = normalizeAspectRatio(
-				tabOptions.aspectRatio ?? "1:1",
-			);
-			const normalizedCamera = normalizeCameraMovement(
-				tabOptions.cameraMovement ?? "static",
-			);
-			const normalizedShot = normalizeShotType(tabOptions.shotType ?? "medium");
-			const normalizedDuration = normalizeDurationSeconds(
-				typeof tabOptions.durationSeconds === "number"
-					? tabOptions.durationSeconds
-					: 5,
-			);
-			const normalizedFrame = normalizeFrameRate(
-				typeof tabOptions.frameRate === "number"
-					? (tabOptions.frameRate as FrameRate)
-					: 24,
-			);
-
 			const options: GenerationOptions = {
 				tone: tabOptions.tone ?? "neutral",
 				detail: tabOptions.detail ?? "normal",
@@ -134,64 +96,6 @@ export function useGeneration(
 				...(tabOptions.language && { language: tabOptions.language }),
 				...(tabOptions.audience?.trim() && {
 					audience: tabOptions.audience.trim(),
-				}),
-				...(tabTaskType === "visual" &&
-					normalizedImageStyle && { stylePreset: normalizedImageStyle }),
-				...(tabTaskType === "motion" &&
-					normalizedVideoStyle && { stylePreset: normalizedVideoStyle }),
-				...((tabTaskType === "visual" || tabTaskType === "motion") &&
-					normalizedAspect && { aspectRatio: normalizedAspect }),
-				...(tabTaskType === "engineering" && {
-					includeTests: !!tabOptions.includeTests,
-					...(tabOptions.techStack?.trim() && {
-						techStack: tabOptions.techStack.trim(),
-					}),
-					...(tabOptions.projectContext?.trim() && {
-						projectContext: tabOptions.projectContext.trim(),
-					}),
-					...(tabOptions.codingConstraints?.trim() && {
-						codingConstraints: tabOptions.codingConstraints.trim(),
-					}),
-				}),
-				...(tabTaskType === "analysis" && {
-					requireCitations: !!tabOptions.requireCitations,
-				}),
-				...(tabTaskType === "narrative" && {
-					...(tabOptions.writingStyle && {
-						writingStyle: tabOptions.writingStyle,
-					}),
-					...(tabOptions.pointOfView && {
-						pointOfView: tabOptions.pointOfView,
-					}),
-					...(tabOptions.readingLevel && {
-						readingLevel: tabOptions.readingLevel,
-					}),
-					...(typeof tabOptions.targetWordCount === "number" && {
-						targetWordCount: tabOptions.targetWordCount,
-					}),
-					includeHeadings: !!tabOptions.includeHeadings,
-				}),
-				...(tabTaskType === "persuasion" && {
-					...(tabOptions.marketingChannel && {
-						marketingChannel: tabOptions.marketingChannel,
-					}),
-					...(tabOptions.ctaStyle && { ctaStyle: tabOptions.ctaStyle }),
-					...(tabOptions.valueProps?.trim() && {
-						valueProps: tabOptions.valueProps.trim(),
-					}),
-					...(tabOptions.complianceNotes?.trim() && {
-						complianceNotes: tabOptions.complianceNotes.trim(),
-					}),
-				}),
-				...(tabTaskType === "motion" && {
-					...(normalizedCamera && { cameraMovement: normalizedCamera }),
-					...(normalizedShot && { shotType: normalizedShot }),
-					...(normalizedDuration && { durationSeconds: normalizedDuration }),
-					...(normalizedFrame && { frameRate: normalizedFrame }),
-					includeStoryboard: !!tabOptions.includeStoryboard,
-				}),
-				...(tabOptions.endOfPromptToken && {
-					endOfPromptToken: tabOptions.endOfPromptToken,
 				}),
 				...(tabOptions.format === "xml" &&
 					tabOptions.outputXMLSchema && {

@@ -131,6 +131,24 @@ describe("savePreset", () => {
 		expect(stored[0]?.name).toBe("Updated");
 	});
 
+	it("should strip legacy type-specific options on save", () => {
+		const saved = savePreset({
+			name: "Legacy Options",
+			taskType: "visual",
+			options: {
+				tone: "neutral",
+				stylePreset: "photorealistic",
+				aspectRatio: "16:9",
+				includeTests: true,
+			} as Preset["options"],
+		});
+
+		expect(saved.options?.tone).toBe("neutral");
+		expect(saved.options).not.toHaveProperty("stylePreset");
+		expect(saved.options).not.toHaveProperty("aspectRatio");
+		expect(saved.options).not.toHaveProperty("includeTests");
+	});
+
 	it("should update existing preset by name (case-insensitive)", () => {
 		const initial: Preset = {
 			id: "test-1",

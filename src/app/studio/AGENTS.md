@@ -21,9 +21,8 @@ studio/
 | `StudioHeader.tsx` | Page header (sidebar toggle). |
 | `PresetLibrary.tsx` | Searchable sidebar list. |
 | `PresetCard.tsx` | Preset card item. |
-| `PresetEditor.tsx` | Single-page scrollable editor (Basics + Task + Context). |
+| `PresetEditor.tsx` | Single-page scrollable editor (Basics + Context). |
 | `BasicSettings.tsx` | Core preset fields. |
-| `TypeSpecificFields.tsx` | Essential per-task-type fields (1–3 each). |
 
 ## Conventions (delta from root)
 

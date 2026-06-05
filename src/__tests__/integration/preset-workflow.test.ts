@@ -18,7 +18,7 @@ describe("Preset Workflow Integration", () => {
 			const created = savePreset({
 				name: "My Workflow Preset",
 				taskType: "engineering",
-				options: { tone: "technical", includeTests: true },
+				options: { tone: "technical" },
 			});
 
 			expect(created.id).toBeDefined();
@@ -32,7 +32,7 @@ describe("Preset Workflow Integration", () => {
 				id: createdId,
 				name: "My Workflow Preset",
 				taskType: "engineering",
-				options: { tone: "friendly", includeTests: true },
+				options: { tone: "friendly" },
 			});
 
 			expect(updated.id).toBe(createdId);

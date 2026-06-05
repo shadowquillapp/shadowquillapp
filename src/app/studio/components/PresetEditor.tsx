@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import BasicSettings from "@/app/studio/components/BasicSettings";
-import TypeSpecificFields from "@/app/studio/components/TypeSpecificFields";
 import { Icon } from "@/components/Icon";
 import type { PresetLite } from "@/types";
 
@@ -51,9 +50,6 @@ export default function PresetEditor({
 		);
 	}
 
-	const taskLabel =
-		preset.taskType.charAt(0).toUpperCase() + preset.taskType.slice(1);
-
 	return (
 		<section className={`${className} bg-surface`} aria-label="Preset Editor">
 			<div className="flex h-full flex-col">
@@ -63,17 +59,6 @@ export default function PresetEditor({
 							<SectionHeading>Basics</SectionHeading>
 							<BasicSettings preset={preset} onFieldChange={onFieldChange} />
 						</section>
-
-						{preset.taskType !== "intent" && (
-							<section className="space-y-4">
-								<SectionHeading>{taskLabel} options</SectionHeading>
-								<TypeSpecificFields
-									taskType={preset.taskType}
-									options={preset.options || {}}
-									onFieldChange={onFieldChange}
-								/>
-							</section>
-						)}
 
 						<section className="space-y-4">
 							<SectionHeading>Context</SectionHeading>

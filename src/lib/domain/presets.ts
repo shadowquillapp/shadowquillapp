@@ -8,19 +8,43 @@ export interface Preset extends PresetLite {
 	updatedAt?: number;
 }
 
+const LEGACY_OPTION_KEYS = [
+	"stylePreset",
+	"aspectRatio",
+	"targetResolution",
+	"cameraMovement",
+	"shotType",
+	"durationSeconds",
+	"frameRate",
+	"includeStoryboard",
+	"includeTests",
+	"techStack",
+	"projectContext",
+	"codingConstraints",
+	"requireCitations",
+	"writingStyle",
+	"pointOfView",
+	"readingLevel",
+	"targetWordCount",
+	"includeHeadings",
+	"marketingChannel",
+	"ctaStyle",
+	"valueProps",
+	"complianceNotes",
+	"temperature",
+	"examplesText",
+	"useDelimiters",
+	"includeVerification",
+	"reasoningStyle",
+	"endOfPromptToken",
+] as const;
+
 function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
-	const sanitized = { ...options } as GenerationOptions & {
-		temperature?: number;
-		examplesText?: string;
-		useDelimiters?: boolean;
-		includeVerification?: boolean;
-		reasoningStyle?: string;
-	};
-	delete sanitized.temperature;
-	delete sanitized.examplesText;
-	delete sanitized.useDelimiters;
-	delete sanitized.includeVerification;
-	delete sanitized.reasoningStyle;
+	const sanitized = { ...options } as GenerationOptions &
+		Record<string, unknown>;
+	for (const key of LEGACY_OPTION_KEYS) {
+		delete sanitized[key];
+	}
 	return sanitized;
 }
 
@@ -132,9 +156,8 @@ export function getDefaultPresets(): Preset[] {
 				detail: "brief",
 				format: "markdown",
 				language: "English",
-				includeTests: false,
 				additionalContext:
-					"Prioritize goal preservation and architectural consistency. Validate interaction contracts (inputs, outputs, side effects). Enforce design-system alignment with stated stack and project conventions. Surface gaps as actionable prompt clauses — do not invent technologies.",
+					"Prioritize goal preservation and architectural consistency. Validate interaction contracts (inputs, outputs, side effects). Enforce design-system alignment with stated conventions. Surface gaps as actionable prompt clauses — do not invent technologies.",
 			},
 		},
 		{
@@ -146,7 +169,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "brief",
 				format: "markdown",
 				language: "English",
-				includeTests: true,
 				additionalContext:
 					"Compile diagnostic intent with root-cause focus. Require reproduction steps, failure boundaries, and regression prevention in the output framing. Do not assume stack or environment not stated by the user.",
 			},
@@ -160,8 +182,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "brief",
 				format: "plain",
 				language: "English",
-				writingStyle: "expository",
-				pointOfView: "second",
 				additionalContext:
 					"Preserve the user's voice and second-person address. Compile email intent with subject line, greeting, and concise body framing. Do not rewrite personality or tone unless requested.",
 			},
@@ -175,7 +195,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				requireCitations: true,
 				additionalContext:
 					"Define evidence boundaries and scope limits clearly. Require citation framing and balanced perspective. Extract implicit constraints and risk concerns from the user's request.",
 			},
@@ -189,7 +208,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "detailed",
 				format: "markdown",
 				language: "English",
-				requireCitations: true,
 				additionalContext:
 					"Extract tradeoffs, counterarguments, and risk assessment requirements. Compile rigorous analysis framing with executive summary, evidence scope, and recommendation boundaries. Do not over-structure unless detail level requires it.",
 			},
@@ -203,10 +221,8 @@ export function getDefaultPresets(): Preset[] {
 				detail: "brief",
 				format: "markdown",
 				language: "English",
-				marketingChannel: "social",
-				ctaStyle: "soft",
 				additionalContext:
-					"Preserve audience intent and message core. Compile hook, content, and CTA framing without drift. Align channel conventions to stated marketing channel and CTA style.",
+					"Preserve audience intent and message core. Compile hook, content, and CTA framing without drift. Align channel conventions to user-stated context.",
 			},
 		},
 		{
@@ -218,11 +234,8 @@ export function getDefaultPresets(): Preset[] {
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				stylePreset: "photorealistic",
-				aspectRatio: "16:9",
-				targetResolution: "1080p",
 				additionalContext:
-					"Compress visual intent into model-parseable descriptors. Lock subject, mood, and composition. Enforce style preset and aspect ratio fidelity — do not invent specs not provided.",
+					"Compress visual intent into model-parseable descriptors. Lock subject, mood, and composition. Surface spec gaps as concrete visual clauses — do not invent values not stated by the user.",
 			},
 		},
 		{
@@ -234,16 +247,8 @@ export function getDefaultPresets(): Preset[] {
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				stylePreset: "cinematic",
-				aspectRatio: "16:9",
-				targetResolution: "1080p",
-				cameraMovement: "dolly",
-				shotType: "medium",
-				durationSeconds: 10,
-				frameRate: 30,
-				includeStoryboard: false,
 				additionalContext:
-					"Compile temporal visual intent with scene, action, and camera semantics. Validate interaction flow across frames. Enforce duration, fps, and movement specs from preset — do not invent values.",
+					"Compile temporal visual intent with scene, action, and camera semantics. Validate interaction flow across frames. Surface temporal spec gaps as concrete clauses — do not invent values not stated by the user.",
 			},
 		},
 	];

@@ -73,8 +73,7 @@ export function buildFormatDirectives(
 				`XML Schema: Follow this structure:\n${options.outputXMLSchema}`,
 			);
 		} else {
-			const schema = getDefaultXMLSchema(taskType, options);
-			directives.push(schema);
+			directives.push(getDefaultXMLSchema(taskType));
 		}
 	} else if (options.format === "plain") {
 		directives.push("Format: Plain text only, no markdown or special syntax.");
@@ -85,75 +84,23 @@ export function buildFormatDirectives(
 
 /**
  * Get the default XML schema for a task type (explicit opt-in via format: xml).
- * Schemas are not default compiler behavior — only applied when preset requests XML.
  */
-function getDefaultXMLSchema(
-	taskType: TaskType,
-	options: GenerationOptions,
-): string {
-	// For visual prompts, inject actual resolution and aspect ratio values
-	if (taskType === "visual") {
-		const resolution = options.targetResolution ?? "1080p";
-		const aspectRatio = options.aspectRatio ?? "16:9";
-		const style = options.stylePreset ?? "photorealistic";
-
-		return `XML FORMAT - Use this EXACT structure with the specified values:
-<image_prompt>
-  <subject>[Main subject - concise description]</subject>
-  <environment>[Setting/background - focused keywords]</environment>
-  <composition>[Framing, perspective - brief]</composition>
-  <visual_style style="${style}">[Style-appropriate keywords only]</visual_style>
-  <specs resolution="${resolution}" aspect="${aspectRatio}"/>
-</image_prompt>
-IMPORTANT: Use EXACTLY resolution="${resolution}" and aspect="${aspectRatio}" - do NOT change these values.`;
-	}
-
-	// For motion prompts, inject actual values
-	if (taskType === "motion") {
-		const resolution = options.targetResolution ?? "1080p";
-		const aspectRatio = options.aspectRatio ?? "16:9";
-		const fps = options.frameRate ?? 24;
-		const duration = options.durationSeconds ?? 5;
-
-		return `XML FORMAT - Use this EXACT structure with the specified values:
-<video_prompt>
-  <subject>[Main subject - concise]</subject>
-  <action>[Movement/action - brief]</action>
-  <environment>[Setting - focused keywords]</environment>
-  <visual_style>[Style keywords]</visual_style>
-  <camera_motion>[Camera movement type]</camera_motion>
-  <specs resolution="${resolution}" aspect="${aspectRatio}" fps="${fps}" duration="${duration}s"/>
-</video_prompt>
-IMPORTANT: Use these EXACT specs - do NOT change or invent values.`;
-	}
-
-	// Default schemas for other task types
+function getDefaultXMLSchema(taskType: TaskType): string {
 	const defaultSchemas: Record<TaskType, string> = {
-		visual: "", // Handled above
-		motion: "", // Handled above
+		visual:
+			"XML: <image_prompt> with <subject>, <environment>, <composition>, <visual_style>",
+		motion:
+			"XML: <video_prompt> with <subject>, <action>, <environment>, <visual_style>, <camera_motion>",
 		engineering:
-			"XML: <engineering_task> with <objective>, <tech_stack>, <requirements>, <constraints>",
+			"XML: <engineering_task> with <objective>, <requirements>, <constraints>",
 		narrative:
 			"XML: <narrative_prompt> with <topic>, <audience>, <style_guide>, <structure>, <key_points>",
 		analysis:
 			"XML: <analysis_task> with <core_question>, <scope>, <methodology>, <source_requirements>, <deliverables>",
 		persuasion:
-			"XML: <persuasion_content> with <target_audience>, <core_message>, <value_props>, <channel_specs>, <call_to_action>",
+			"XML: <persuasion_content> with <target_audience>, <core_message>, <value_props>, <call_to_action>",
 		intent: "XML: <prompt> with <goal>, <context>, <requirements>, <style>",
 	};
 
 	return defaultSchemas[taskType] ?? defaultSchemas.intent;
-}
-
-/**
- * Build advanced setting directives
- */
-export function buildAdvancedDirectives(options: GenerationOptions): string[] {
-	const directives: string[] = [];
-
-	if (options.endOfPromptToken) {
-		directives.push(`End with: ${options.endOfPromptToken}`);
-	}
-
-	return directives;
 }
