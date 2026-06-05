@@ -2,7 +2,7 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import { readLocalModelConfig } from "@/lib/local-config";
+import { formatOllamaModelName, readLocalModelConfig } from "@/lib/local-config";
 import { Icon } from "./Icon";
 
 interface ShadowQuillWindowApi {
@@ -210,9 +210,7 @@ export default function Titlebar() {
 					}
 				>
 					<span className="uppercase tracking-wide">
-						{currentModelId
-							? `Gemma 3 ${(currentModelId.split(":")[1] || "").toUpperCase()}`
-							: "Gemma 3 —"}
+						{currentModelId ? formatOllamaModelName(currentModelId) : "Gemma —"}
 					</span>
 				</div>
 				<div

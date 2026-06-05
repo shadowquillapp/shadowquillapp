@@ -12,7 +12,36 @@ interface OllamaTagsResponse {
 	models?: Array<{ name?: string; id?: string; size?: number }>;
 }
 
-const SUPPORTED_OLLAMA_MODELS = ["gemma3:4b", "gemma3:12b", "gemma3:27b"];
+export const SUPPORTED_OLLAMA_MODELS = [
+	"gemma4:latest",
+	"gemma4:e2b",
+	"gemma4:e4b",
+	"gemma4:12b",
+	"gemma4:26b",
+	"gemma4:31b",
+	"gemma3:4b",
+	"gemma3:12b",
+	"gemma3:27b",
+];
+
+const SUPPORTED_OLLAMA_MODEL_SET = new Set<string>(SUPPORTED_OLLAMA_MODELS);
+
+export function isSupportedOllamaModelName(name: string): boolean {
+	return SUPPORTED_OLLAMA_MODEL_SET.has(name.trim().toLowerCase());
+}
+
+export function formatOllamaModelName(name: string): string {
+	const normalized = name.trim().toLowerCase();
+	const [family, tag] = normalized.split(":");
+	const size = (tag || "").toUpperCase();
+	if (family === "gemma4") {
+		return size ? `Gemma 4 ${size}` : "Gemma 4";
+	}
+	if (family === "gemma3") {
+		return size ? `Gemma 3 ${size}` : "Gemma 3";
+	}
+	return name;
+}
 
 export async function validateLocalModelConnection(
 	cfg?: LocalModelConfig | null,
@@ -70,13 +99,12 @@ export async function listAvailableModels(
 		if (!res.ok) return [];
 		const json = (await res.json().catch(() => ({}))) as OllamaTagsResponse;
 		const models = Array.isArray(json?.models) ? json.models : [];
-		const allowedSet = new Set(SUPPORTED_OLLAMA_MODELS);
 		const uniq = new Map<string, { name: string; size: number }>();
 
 		for (const model of models) {
 			const name = String(model?.name || model?.id || "");
 			const key = name.toLowerCase();
-			if (allowedSet.has(key) && !uniq.has(key)) {
+			if (isSupportedOllamaModelName(key) && !uniq.has(key)) {
 				uniq.set(key, { name, size: Number(model?.size || 0) });
 			}
 		}

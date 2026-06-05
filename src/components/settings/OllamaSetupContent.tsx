@@ -1,6 +1,8 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 import {
+	formatOllamaModelName,
+	isSupportedOllamaModelName,
 	listAvailableModels,
 	readLocalModelConfig as readLocalModelConfigClient,
 	validateLocalModelConnection as validateLocalModelConnectionClient,
@@ -61,7 +63,7 @@ export default function OllamaSetupContent() {
 				const models = await listAvailableModels(url);
 				const duration = Date.now() - start;
 				const gemmaModels = models.filter(
-					(m) => m?.name && /^gemma3\b/i.test(m.name),
+					(m) => m?.name && isSupportedOllamaModelName(m.name),
 				);
 				const gemmaModelNames = gemmaModels.map((m) => m.name);
 				setLocalTestResult({
@@ -214,8 +216,8 @@ export default function OllamaSetupContent() {
 					}
 				: statusTone === "success"
 					? {
-							title: "Gemma 3 connection successful",
-							body: "Found compatible Gemma 3 models ready for use.",
+							title: "Gemma connection successful",
+							body: "Found compatible Gemma models ready for use.",
 						}
 					: {
 							title: "",
@@ -268,7 +270,7 @@ export default function OllamaSetupContent() {
 				<header className="shadowquill-panel__head">
 					<div>
 						<p className="shadowquill-panel__eyebrow">
-							Local inference (Gemma 3)
+							Local inference (Gemma 4 / 3)
 						</p>
 						<h3>Secure Ollama bridge</h3>
 						<p className="shadowquill-panel__subtitle">
@@ -376,8 +378,7 @@ export default function OllamaSetupContent() {
 								localTestResult.models.length > 0 && (
 									<div className="shadowquill-models-list">
 										{localTestResult.models.map((m) => {
-											const size = (m.name.split(":")[1] || "").toUpperCase();
-											const readable = size ? `Gemma 3 ${size}` : m.name;
+											const readable = formatOllamaModelName(m.name);
 											const sizeInGB = (m.size / (1024 * 1024 * 1024)).toFixed(
 												1,
 											);
@@ -399,7 +400,7 @@ export default function OllamaSetupContent() {
 								localTestResult?.models &&
 								localTestResult.models.length === 0 && (
 									<p className="shadowquill-empty-note">
-										Connected, but Gemma 3 models have not been pulled yet.
+										Connected, but Gemma models have not been pulled yet.
 									</p>
 								)}
 							{statusTone === "error" && (
@@ -439,8 +440,8 @@ export default function OllamaSetupContent() {
 
 					{!hasModels && statusTone === "success" && (
 						<div className="shadowquill-availability" aria-live="polite">
-							No Gemma 3 models detected yet. After installing Ollama, run{" "}
-							<code>ollama pull gemma3:4b</code> (or your preferred size) and
+							No compatible Gemma models detected yet. After installing Ollama,
+							run <code>ollama pull gemma4</code> (or your preferred tag) and
 							retest.
 						</div>
 					)}
