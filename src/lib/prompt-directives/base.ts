@@ -18,7 +18,7 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 		directives.push(toneMap[options.tone] ?? `Use a ${options.tone} tone.`);
 	}
 
-	// Detail level / word count - STRICT ENFORCEMENT (applies to YOUR output, not to be included in the enhanced prompt)
+	// Detail level / word count - STRICT ENFORCEMENT (applies to YOUR output, not to be included in the compiled prompt)
 	if (options.detail) {
 		const wordLimits: Record<
 			string,
@@ -31,7 +31,7 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 		const limit = wordLimits[options.detail];
 		if (limit) {
 			directives.push(
-				`OUTPUT LENGTH REQUIREMENT: Your enhanced prompt must be ${limit.description}. This is a constraint on YOUR output length - do NOT include word count constraints in the enhanced prompt itself. Exceeding ${limit.max} words is NOT acceptable.`,
+				`OUTPUT LENGTH REQUIREMENT: Your compiled prompt must be ${limit.description}. This is a constraint on YOUR output length - do NOT include word count constraints in the compiled prompt itself. Exceeding ${limit.max} words is NOT acceptable.`,
 			);
 		}
 	}
@@ -39,7 +39,7 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 	// Language - strong enforcement for non-English output
 	if (options.language && options.language.toLowerCase() !== "english") {
 		directives.push(
-			`LANGUAGE REQUIREMENT: The enhanced prompt output MUST be written entirely in ${options.language}. Even if the user's input is in English or another language, your output must be in ${options.language}. This is non-negotiable.`,
+			`LANGUAGE REQUIREMENT: The compiled prompt output MUST be written entirely in ${options.language}. Even if the user's input is in English or another language, your output must be in ${options.language}. This is non-negotiable.`,
 		);
 	}
 
@@ -84,14 +84,15 @@ export function buildFormatDirectives(
 }
 
 /**
- * Get the default XML schema for a task type, with dynamic value injection for image/video
+ * Get the default XML schema for a task type (explicit opt-in via format: xml).
+ * Schemas are not default compiler behavior — only applied when preset requests XML.
  */
 function getDefaultXMLSchema(
 	taskType: TaskType,
 	options: GenerationOptions,
 ): string {
-	// For image prompts, inject actual resolution and aspect ratio values
-	if (taskType === "image") {
+	// For visual prompts, inject actual resolution and aspect ratio values
+	if (taskType === "visual") {
 		const resolution = options.targetResolution ?? "1080p";
 		const aspectRatio = options.aspectRatio ?? "16:9";
 		const style = options.stylePreset ?? "photorealistic";
@@ -107,8 +108,8 @@ function getDefaultXMLSchema(
 IMPORTANT: Use EXACTLY resolution="${resolution}" and aspect="${aspectRatio}" - do NOT change these values.`;
 	}
 
-	// For video prompts, inject actual values
-	if (taskType === "video") {
+	// For motion prompts, inject actual values
+	if (taskType === "motion") {
 		const resolution = options.targetResolution ?? "1080p";
 		const aspectRatio = options.aspectRatio ?? "16:9";
 		const fps = options.frameRate ?? 24;
@@ -128,20 +129,20 @@ IMPORTANT: Use these EXACT specs - do NOT change or invent values.`;
 
 	// Default schemas for other task types
 	const defaultSchemas: Record<TaskType, string> = {
-		image: "", // Handled above
-		video: "", // Handled above
-		coding:
-			"XML: <coding_task> with <objective>, <tech_stack>, <requirements>, <constraints>",
-		writing:
-			"XML: <writing_prompt> with <topic>, <audience>, <style_guide>, <structure>, <key_points>",
-		research:
-			"XML: <research_task> with <core_question>, <scope>, <methodology>, <source_requirements>, <deliverables>",
-		marketing:
-			"XML: <marketing_content> with <target_audience>, <core_message>, <value_props>, <channel_specs>, <call_to_action>",
-		general: "XML: <prompt> with <goal>, <context>, <requirements>, <style>",
+		visual: "", // Handled above
+		motion: "", // Handled above
+		engineering:
+			"XML: <engineering_task> with <objective>, <tech_stack>, <requirements>, <constraints>",
+		narrative:
+			"XML: <narrative_prompt> with <topic>, <audience>, <style_guide>, <structure>, <key_points>",
+		analysis:
+			"XML: <analysis_task> with <core_question>, <scope>, <methodology>, <source_requirements>, <deliverables>",
+		persuasion:
+			"XML: <persuasion_content> with <target_audience>, <core_message>, <value_props>, <channel_specs>, <call_to_action>",
+		intent: "XML: <prompt> with <goal>, <context>, <requirements>, <style>",
 	};
 
-	return defaultSchemas[taskType] ?? defaultSchemas.general;
+	return defaultSchemas[taskType] ?? defaultSchemas.intent;
 }
 
 /**
@@ -149,19 +150,6 @@ IMPORTANT: Use these EXACT specs - do NOT change or invent values.`;
  */
 export function buildAdvancedDirectives(options: GenerationOptions): string[] {
 	const directives: string[] = [];
-
-	if (options.includeVerification) {
-		directives.push("Include validation points or quality criteria.");
-	}
-
-	if (options.reasoningStyle && options.reasoningStyle !== "none") {
-		const reasoningMap: Record<string, string> = {
-			cot: "Think through each aspect systematically.",
-			plan_then_solve: "Plan the approach first, then develop the solution.",
-			tree_of_thought: "Consider multiple approaches, select the best one.",
-		};
-		directives.push(reasoningMap[options.reasoningStyle] ?? "");
-	}
 
 	if (options.endOfPromptToken) {
 		directives.push(`End with: ${options.endOfPromptToken}`);

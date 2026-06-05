@@ -18,24 +18,24 @@ export default function PresetCard({
 		type: string,
 	): import("@/components/Icon").IconName => {
 		switch (type) {
-			case "coding":
+			case "engineering":
 				return "git-compare";
-			case "image":
+			case "visual":
 				return "palette";
-			case "video":
+			case "motion":
 				return "eye";
-			case "research":
+			case "analysis":
 				return "search";
-			case "writing":
+			case "narrative":
 				return "edit";
-			case "marketing":
+			case "persuasion":
 				return "thumbsUp";
 			default:
 				return "folder-open";
 		}
 	};
 
-	const taskType = preset.taskType || "general";
+	const taskType = preset.taskType || "intent";
 
 	return (
 		<button

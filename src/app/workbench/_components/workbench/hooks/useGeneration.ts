@@ -19,7 +19,6 @@ import type {
 	FrameRate,
 	GenerationOptions,
 	ImageStylePreset,
-	ReasoningStyle,
 	VideoStylePreset,
 } from "@/types";
 import type { MessageItem } from "../types";
@@ -136,13 +135,13 @@ export function useGeneration(
 				...(tabOptions.audience?.trim() && {
 					audience: tabOptions.audience.trim(),
 				}),
-				...(tabTaskType === "image" &&
+				...(tabTaskType === "visual" &&
 					normalizedImageStyle && { stylePreset: normalizedImageStyle }),
-				...(tabTaskType === "video" &&
+				...(tabTaskType === "motion" &&
 					normalizedVideoStyle && { stylePreset: normalizedVideoStyle }),
-				...((tabTaskType === "image" || tabTaskType === "video") &&
+				...((tabTaskType === "visual" || tabTaskType === "motion") &&
 					normalizedAspect && { aspectRatio: normalizedAspect }),
-				...(tabTaskType === "coding" && {
+				...(tabTaskType === "engineering" && {
 					includeTests: !!tabOptions.includeTests,
 					...(tabOptions.techStack?.trim() && {
 						techStack: tabOptions.techStack.trim(),
@@ -154,10 +153,10 @@ export function useGeneration(
 						codingConstraints: tabOptions.codingConstraints.trim(),
 					}),
 				}),
-				...(tabTaskType === "research" && {
+				...(tabTaskType === "analysis" && {
 					requireCitations: !!tabOptions.requireCitations,
 				}),
-				...(tabTaskType === "writing" && {
+				...(tabTaskType === "narrative" && {
 					...(tabOptions.writingStyle && {
 						writingStyle: tabOptions.writingStyle,
 					}),
@@ -172,7 +171,7 @@ export function useGeneration(
 					}),
 					includeHeadings: !!tabOptions.includeHeadings,
 				}),
-				...(tabTaskType === "marketing" && {
+				...(tabTaskType === "persuasion" && {
 					...(tabOptions.marketingChannel && {
 						marketingChannel: tabOptions.marketingChannel,
 					}),
@@ -184,19 +183,13 @@ export function useGeneration(
 						complianceNotes: tabOptions.complianceNotes.trim(),
 					}),
 				}),
-				...(tabTaskType === "video" && {
+				...(tabTaskType === "motion" && {
 					...(normalizedCamera && { cameraMovement: normalizedCamera }),
 					...(normalizedShot && { shotType: normalizedShot }),
 					...(normalizedDuration && { durationSeconds: normalizedDuration }),
 					...(normalizedFrame && { frameRate: normalizedFrame }),
 					includeStoryboard: !!tabOptions.includeStoryboard,
 				}),
-				useDelimiters:
-					typeof tabOptions.useDelimiters === "boolean"
-						? tabOptions.useDelimiters
-						: true,
-				includeVerification: !!tabOptions.includeVerification,
-				reasoningStyle: (tabOptions.reasoningStyle as ReasoningStyle) ?? "none",
 				...(tabOptions.endOfPromptToken && {
 					endOfPromptToken: tabOptions.endOfPromptToken,
 				}),

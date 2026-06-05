@@ -17,7 +17,7 @@ describe("Preset Workflow Integration", () => {
 		it("should handle create -> update -> delete flow", () => {
 			const created = savePreset({
 				name: "My Workflow Preset",
-				taskType: "coding",
+				taskType: "engineering",
 				options: { tone: "technical", includeTests: true },
 			});
 
@@ -31,7 +31,7 @@ describe("Preset Workflow Integration", () => {
 			const updated = savePreset({
 				id: createdId,
 				name: "My Workflow Preset",
-				taskType: "coding",
+				taskType: "engineering",
 				options: { tone: "friendly", includeTests: true },
 			});
 
@@ -62,7 +62,7 @@ describe("Preset Workflow Integration", () => {
 		it("should not overwrite existing presets on second call", () => {
 			const custom = savePreset({
 				name: "My Custom Preset",
-				taskType: "general",
+				taskType: "intent",
 				options: { tone: "friendly" },
 			});
 
@@ -78,11 +78,11 @@ describe("Preset Workflow Integration", () => {
 
 			const taskTypes = new Set(defaults.map((p) => p.taskType));
 
-			expect(taskTypes.has("general")).toBe(true);
-			expect(taskTypes.has("coding")).toBe(true);
-			expect(taskTypes.has("writing")).toBe(true);
-			expect(taskTypes.has("research")).toBe(true);
-			expect(taskTypes.has("marketing")).toBe(true);
+			expect(taskTypes.has("intent")).toBe(true);
+			expect(taskTypes.has("engineering")).toBe(true);
+			expect(taskTypes.has("narrative")).toBe(true);
+			expect(taskTypes.has("analysis")).toBe(true);
+			expect(taskTypes.has("persuasion")).toBe(true);
 		});
 	});
 
@@ -90,12 +90,12 @@ describe("Preset Workflow Integration", () => {
 		it("should find preset by ID after creation", () => {
 			const preset1 = savePreset({
 				name: "Preset One",
-				taskType: "coding",
+				taskType: "engineering",
 			});
 
 			const preset2 = savePreset({
 				name: "Preset Two",
-				taskType: "writing",
+				taskType: "narrative",
 			});
 
 			const id1 = preset1.id ?? "";
@@ -113,7 +113,7 @@ describe("Preset Workflow Integration", () => {
 		it("should return undefined for non-existent ID", () => {
 			savePreset({
 				name: "Existing",
-				taskType: "general",
+				taskType: "intent",
 			});
 
 			const found = getPresetById("non-existent-id");
@@ -125,7 +125,7 @@ describe("Preset Workflow Integration", () => {
 		it("should handle preset with no options", () => {
 			const preset = savePreset({
 				name: "Minimal Preset",
-				taskType: "general",
+				taskType: "intent",
 			});
 
 			expect(preset.id).toBeDefined();
@@ -141,7 +141,7 @@ describe("Preset Workflow Integration", () => {
 		it("should handle updating name only", () => {
 			const created = savePreset({
 				name: "Original Name",
-				taskType: "coding",
+				taskType: "engineering",
 				options: { tone: "technical" },
 			});
 
@@ -151,7 +151,7 @@ describe("Preset Workflow Integration", () => {
 			const updated = savePreset({
 				id: createdId,
 				name: "New Name",
-				taskType: "coding",
+				taskType: "engineering",
 				options: { tone: "technical" },
 			});
 
@@ -161,7 +161,7 @@ describe("Preset Workflow Integration", () => {
 		it("should handle rapid sequential updates", () => {
 			const created = savePreset({
 				name: "Rapid Update Test",
-				taskType: "general",
+				taskType: "intent",
 				options: { tone: "neutral" },
 			});
 
@@ -172,7 +172,7 @@ describe("Preset Workflow Integration", () => {
 				savePreset({
 					id: createdId,
 					name: "Rapid Update Test",
-					taskType: "general",
+					taskType: "intent",
 					options: { tone: i % 2 === 0 ? "formal" : "friendly" },
 				});
 			}

@@ -15,13 +15,8 @@ interface PresetInfoDialogProps {
 
 const CATEGORIES = {
 	general: ["tone", "detail", "format", "language"],
-	model: ["reasoningStyle", "includeVerification", "endOfPromptToken"],
-	content: [
-		"useDelimiters",
-		"requireCitations",
-		"includeTests",
-		"outputXMLSchema",
-	],
+	model: ["endOfPromptToken"],
+	content: ["requireCitations", "includeTests", "outputXMLSchema"],
 	media: [
 		"stylePreset",
 		"aspectRatio",
@@ -169,11 +164,11 @@ export function PresetInfoDialog({
 									<span className="inline-flex items-center gap-1.5 font-bold text-[10px] text-primary uppercase tracking-wider">
 										<Icon
 											name={
-												preset.taskType === "coding"
+												preset.taskType === "engineering"
 													? "git-compare"
-													: preset.taskType === "image"
+													: preset.taskType === "visual"
 														? "palette"
-														: preset.taskType === "video"
+														: preset.taskType === "motion"
 															? "eye"
 															: "sparkles"
 											}

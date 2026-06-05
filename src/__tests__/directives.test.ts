@@ -19,7 +19,6 @@ import type {
 	MarketingChannel,
 	PointOfView,
 	ReadingLevel,
-	ReasoningStyle,
 	TaskType,
 	Tone,
 	WritingStyle,
@@ -27,67 +26,69 @@ import type {
 
 describe("buildDirectives", () => {
 	it("should return empty array when no options provided", () => {
-		const result = buildDirectives("general", undefined);
+		const result = buildDirectives("intent", undefined);
 		expect(result).toEqual([]);
 	});
 
 	it("should return empty array for empty options", () => {
-		const result = buildDirectives("general", {});
+		const result = buildDirectives("intent", {});
 		expect(result).toEqual([]);
 	});
 
 	it("should include base directives", () => {
-		const result = buildDirectives("general", { tone: "friendly" });
+		const result = buildDirectives("intent", { tone: "friendly" });
 		expect(result.some((d) => d.toLowerCase().includes("friendly"))).toBe(true);
 	});
 
 	it("should include format directives for markdown", () => {
-		const result = buildDirectives("general", { format: "markdown" });
+		const result = buildDirectives("intent", { format: "markdown" });
 		expect(result.some((d) => d.toLowerCase().includes("markdown"))).toBe(true);
 	});
 
 	it("should include task-specific directives for coding", () => {
-		const result = buildDirectives("coding", { includeTests: true });
+		const result = buildDirectives("engineering", { includeTests: true });
 		expect(result.some((d) => d.toLowerCase().includes("test"))).toBe(true);
 	});
 
 	it("should filter out empty strings", () => {
-		const result = buildDirectives("general", { tone: "neutral" });
+		const result = buildDirectives("intent", { tone: "neutral" });
 		expect(result.every((d) => d.length > 0)).toBe(true);
 	});
 
 	describe("all task types", () => {
 		it("should include image directives for image task", () => {
-			const result = buildDirectives("image", { stylePreset: "anime" });
+			const result = buildDirectives("visual", { stylePreset: "anime" });
 			expect(result.some((d) => d.toLowerCase().includes("anime"))).toBe(true);
 		});
 
 		it("should include video directives for video task", () => {
-			const result = buildDirectives("video", { cameraMovement: "pan" });
+			const result = buildDirectives("motion", { cameraMovement: "pan" });
 			expect(result.some((d) => d.toLowerCase().includes("pan"))).toBe(true);
 		});
 
 		it("should include writing directives for writing task", () => {
-			const result = buildDirectives("writing", { writingStyle: "narrative" });
+			const result = buildDirectives("narrative", {
+				writingStyle: "narrative",
+			});
 			expect(result.some((d) => d.toLowerCase().includes("narrative"))).toBe(
 				true,
 			);
 		});
 
 		it("should include research directives for research task", () => {
-			const result = buildDirectives("research", { requireCitations: true });
+			const result = buildDirectives("analysis", { requireCitations: true });
 			expect(result.some((d) => d.toLowerCase().includes("citation"))).toBe(
 				true,
 			);
 		});
 
 		it("should include marketing directives for marketing task", () => {
-			const result = buildDirectives("marketing", { ctaStyle: "strong" });
+			const result = buildDirectives("persuasion", { ctaStyle: "strong" });
 			expect(result.some((d) => d.toLowerCase().includes("strong"))).toBe(true);
 		});
 
 		it("should handle general task with no additional directives", () => {
-			const result = buildDirectives("general", { tone: "formal" });
+			const result = buildDirectives("intent", { tone: "formal" });
 			// Should only have base directives
 			expect(result.some((d) => d.toLowerCase().includes("formal"))).toBe(true);
 		});
@@ -155,12 +156,12 @@ describe("buildBaseDirectives", () => {
 
 describe("buildFormatDirectives", () => {
 	it("should include markdown directive", () => {
-		const result = buildFormatDirectives("general", { format: "markdown" });
+		const result = buildFormatDirectives("intent", { format: "markdown" });
 		expect(result.some((d) => d.toLowerCase().includes("markdown"))).toBe(true);
 	});
 
 	it("should include XML schema when provided", () => {
-		const result = buildFormatDirectives("general", {
+		const result = buildFormatDirectives("intent", {
 			format: "xml",
 			outputXMLSchema: "<root><title/></root>",
 		});
@@ -168,8 +169,8 @@ describe("buildFormatDirectives", () => {
 	});
 
 	it("should include default XML schema for task type when not provided", () => {
-		const result = buildFormatDirectives("coding", { format: "xml" });
-		expect(result.some((d) => d.includes("<coding_task>"))).toBe(true);
+		const result = buildFormatDirectives("engineering", { format: "xml" });
+		expect(result.some((d) => d.includes("<engineering_task>"))).toBe(true);
 	});
 
 	it("should use general schema for unknown task type", () => {
@@ -183,14 +184,14 @@ describe("buildFormatDirectives", () => {
 	});
 
 	it("should include plain text directive", () => {
-		const result = buildFormatDirectives("general", { format: "plain" });
+		const result = buildFormatDirectives("intent", { format: "plain" });
 		expect(result.some((d) => d.toLowerCase().includes("plain text"))).toBe(
 			true,
 		);
 	});
 
 	it("should inject resolution and aspect ratio into image XML schema", () => {
-		const result = buildFormatDirectives("image", {
+		const result = buildFormatDirectives("visual", {
 			format: "xml",
 			targetResolution: "1080p",
 			aspectRatio: "16:9",
@@ -200,7 +201,7 @@ describe("buildFormatDirectives", () => {
 	});
 
 	it("should inject specs into video XML schema", () => {
-		const result = buildFormatDirectives("video", {
+		const result = buildFormatDirectives("motion", {
 			format: "xml",
 			targetResolution: "4K",
 			aspectRatio: "9:16",
@@ -214,46 +215,6 @@ describe("buildFormatDirectives", () => {
 });
 
 describe("buildAdvancedDirectives", () => {
-	it("should include verification directive when enabled", () => {
-		const result = buildAdvancedDirectives({ includeVerification: true });
-		expect(result.some((d) => d.toLowerCase().includes("validation"))).toBe(
-			true,
-		);
-	});
-
-	it("should skip verification directive when disabled", () => {
-		const result = buildAdvancedDirectives({ includeVerification: false });
-		expect(result.some((d) => d.toLowerCase().includes("validation"))).toBe(
-			false,
-		);
-	});
-
-	it("should include CoT reasoning style", () => {
-		const result = buildAdvancedDirectives({ reasoningStyle: "cot" });
-		expect(result.some((d) => d.toLowerCase().includes("systematically"))).toBe(
-			true,
-		);
-	});
-
-	it("should include plan_then_solve reasoning style", () => {
-		const result = buildAdvancedDirectives({
-			reasoningStyle: "plan_then_solve",
-		});
-		expect(result.some((d) => d.toLowerCase().includes("plan"))).toBe(true);
-	});
-
-	it("should include tree_of_thought reasoning style", () => {
-		const result = buildAdvancedDirectives({
-			reasoningStyle: "tree_of_thought",
-		});
-		expect(result.some((d) => d.toLowerCase().includes("multiple"))).toBe(true);
-	});
-
-	it("should skip reasoning directive for none", () => {
-		const result = buildAdvancedDirectives({ reasoningStyle: "none" });
-		expect(result.length).toBe(0);
-	});
-
 	it("should include end of prompt token", () => {
 		const result = buildAdvancedDirectives({
 			endOfPromptToken: "<|endofprompt|>",
@@ -261,11 +222,9 @@ describe("buildAdvancedDirectives", () => {
 		expect(result.some((d) => d.includes("<|endofprompt|>"))).toBe(true);
 	});
 
-	it("should skip unknown reasoning style", () => {
-		const result = buildAdvancedDirectives({
-			reasoningStyle: "unknown-style" as unknown as ReasoningStyle,
-		});
-		expect(result.some((d) => d.includes("unknown-style"))).toBe(false);
+	it("should return empty array when no advanced options are set", () => {
+		const result = buildAdvancedDirectives({});
+		expect(result).toEqual([]);
 	});
 });
 

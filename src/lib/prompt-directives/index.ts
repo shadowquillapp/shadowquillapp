@@ -31,26 +31,26 @@ export function buildDirectives(
 
 	// Task-specific directives
 	switch (taskType) {
-		case "image":
+		case "visual":
 			directives.push(...buildImageDirectives(options));
 			break;
-		case "video":
+		case "motion":
 			directives.push(...buildVideoDirectives(options));
 			break;
-		case "coding":
+		case "engineering":
 			directives.push(...buildCodingDirectives(options));
 			break;
-		case "writing":
+		case "narrative":
 			directives.push(...buildWritingDirectives(options));
 			break;
-		case "research":
+		case "analysis":
 			directives.push(...buildResearchDirectives(options));
 			break;
-		case "marketing":
+		case "persuasion":
 			directives.push(...buildMarketingDirectives(options));
 			break;
 		default:
-			// General has no additional task-specific directives
+			// Intent has no additional task-specific directives
 			break;
 	}
 

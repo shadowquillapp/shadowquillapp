@@ -104,15 +104,12 @@ export default function PresetStudioPage() {
 		const newPreset: PresetLite = {
 			id: `preset_${Date.now()}`,
 			name: "Untitled Preset",
-			taskType: "general",
+			taskType: "intent",
 			options: {
 				tone: "neutral",
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				useDelimiters: true,
-				includeVerification: false,
-				reasoningStyle: "none",
 				endOfPromptToken: "<|endofprompt|>",
 			},
 		};

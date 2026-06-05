@@ -1,11 +1,11 @@
 export type TaskType =
-	| "general"
-	| "coding"
-	| "image"
-	| "research"
-	| "writing"
-	| "marketing"
-	| "video";
+	| "intent"
+	| "engineering"
+	| "visual"
+	| "analysis"
+	| "narrative"
+	| "persuasion"
+	| "motion";
 
 export type Tone =
 	| "neutral"
@@ -17,12 +17,6 @@ export type Tone =
 export type Detail = "brief" | "normal" | "detailed";
 
 export type Format = "plain" | "markdown" | "xml";
-
-export type ReasoningStyle =
-	| "none"
-	| "cot"
-	| "plan_then_solve"
-	| "tree_of_thought";
 
 export type ImageStylePreset =
 	| "photorealistic"
@@ -83,9 +77,6 @@ export interface GenerationOptions {
 	language?: string;
 	audience?: string;
 
-	useDelimiters?: boolean;
-	includeVerification?: boolean;
-	reasoningStyle?: ReasoningStyle;
 	endOfPromptToken?: string;
 	outputXMLSchema?: string;
 	identity?: string;

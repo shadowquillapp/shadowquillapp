@@ -5,6 +5,7 @@ import {
 	getDefaultPresets,
 	getPresetById,
 	getPresets,
+	migrateTaskType,
 	type Preset,
 	savePreset,
 } from "@/lib/presets";
@@ -13,8 +14,41 @@ const clearStorage = () => {
 	localStorage.clear();
 };
 
+describe("migrateTaskType", () => {
+	it("should map legacy task types to new intent-domain names", () => {
+		expect(migrateTaskType("general")).toBe("intent");
+		expect(migrateTaskType("coding")).toBe("engineering");
+		expect(migrateTaskType("writing")).toBe("narrative");
+		expect(migrateTaskType("research")).toBe("analysis");
+		expect(migrateTaskType("marketing")).toBe("persuasion");
+		expect(migrateTaskType("image")).toBe("visual");
+		expect(migrateTaskType("video")).toBe("motion");
+	});
+
+	it("should accept new task types unchanged", () => {
+		expect(migrateTaskType("intent")).toBe("intent");
+		expect(migrateTaskType("engineering")).toBe("engineering");
+	});
+
+	it("should return null for unknown task types", () => {
+		expect(migrateTaskType("unknown")).toBeNull();
+	});
+});
+
 describe("getPresets", () => {
 	beforeEach(clearStorage);
+
+	it("should migrate legacy task types on read", () => {
+		localStorage.setItem(
+			"PC_PRESETS",
+			JSON.stringify([
+				{ id: "legacy-1", name: "Legacy Coding", taskType: "coding" },
+			]),
+		);
+
+		const presets = getPresets();
+		expect(presets[0]?.taskType).toBe("engineering");
+	});
 
 	it("should return empty array when no presets exist", () => {
 		const result = getPresets();
@@ -23,7 +57,7 @@ describe("getPresets", () => {
 
 	it("should return stored presets", () => {
 		const presets: Preset[] = [
-			{ id: "test-1", name: "Test Preset", taskType: "general" },
+			{ id: "test-1", name: "Test Preset", taskType: "intent" },
 		];
 		localStorage.setItem("PC_PRESETS", JSON.stringify(presets));
 
@@ -47,7 +81,11 @@ describe("getPresetById", () => {
 	});
 
 	it("should return preset when found", () => {
-		const preset: Preset = { id: "test-1", name: "Test", taskType: "coding" };
+		const preset: Preset = {
+			id: "test-1",
+			name: "Test",
+			taskType: "engineering",
+		};
 		localStorage.setItem("PC_PRESETS", JSON.stringify([preset]));
 
 		const result = getPresetById("test-1");
@@ -59,13 +97,13 @@ describe("savePreset", () => {
 	beforeEach(clearStorage);
 
 	it("should create new preset with generated id", () => {
-		const preset: Preset = { name: "New Preset", taskType: "writing" };
+		const preset: Preset = { name: "New Preset", taskType: "narrative" };
 		const saved = savePreset(preset);
 
 		expect(saved.id).toBeDefined();
 		expect(saved.id).toMatch(/^preset-\d+-/);
 		expect(saved.name).toBe("New Preset");
-		expect(saved.taskType).toBe("writing");
+		expect(saved.taskType).toBe("narrative");
 		expect(saved.createdAt).toBeDefined();
 		expect(saved.updatedAt).toBeDefined();
 	});
@@ -74,19 +112,19 @@ describe("savePreset", () => {
 		const initial: Preset = {
 			id: "test-1",
 			name: "Original",
-			taskType: "general",
+			taskType: "intent",
 		};
 		localStorage.setItem("PC_PRESETS", JSON.stringify([initial]));
 
 		const updated = savePreset({
 			id: "test-1",
 			name: "Updated",
-			taskType: "coding",
+			taskType: "engineering",
 		});
 
 		expect(updated.id).toBe("test-1");
 		expect(updated.name).toBe("Updated");
-		expect(updated.taskType).toBe("coding");
+		expect(updated.taskType).toBe("engineering");
 
 		const stored = getPresets();
 		expect(stored).toHaveLength(1);
@@ -97,7 +135,7 @@ describe("savePreset", () => {
 		const initial: Preset = {
 			id: "test-1",
 			name: "My Preset",
-			taskType: "general",
+			taskType: "intent",
 			options: { tone: "formal" },
 			createdAt: 1000,
 			updatedAt: 1000,
@@ -106,12 +144,12 @@ describe("savePreset", () => {
 
 		const updated = savePreset({
 			name: "my preset",
-			taskType: "coding",
+			taskType: "engineering",
 			options: { tone: "friendly" },
 		});
 
 		expect(updated.id).toBe("test-1");
-		expect(updated.taskType).toBe("coding");
+		expect(updated.taskType).toBe("engineering");
 		expect(updated.options?.tone).toBe("friendly");
 	});
 });
@@ -121,8 +159,8 @@ describe("deletePresetByIdOrName", () => {
 
 	it("should delete preset by id", () => {
 		const presets: Preset[] = [
-			{ id: "test-1", name: "First", taskType: "general" },
-			{ id: "test-2", name: "Second", taskType: "coding" },
+			{ id: "test-1", name: "First", taskType: "intent" },
+			{ id: "test-2", name: "Second", taskType: "engineering" },
 		];
 		localStorage.setItem("PC_PRESETS", JSON.stringify(presets));
 
@@ -135,8 +173,8 @@ describe("deletePresetByIdOrName", () => {
 
 	it("should delete preset by name", () => {
 		const presets: Preset[] = [
-			{ id: "test-1", name: "First", taskType: "general" },
-			{ id: "test-2", name: "Second", taskType: "coding" },
+			{ id: "test-1", name: "First", taskType: "intent" },
+			{ id: "test-2", name: "Second", taskType: "engineering" },
 		];
 		localStorage.setItem("PC_PRESETS", JSON.stringify(presets));
 
@@ -149,7 +187,7 @@ describe("deletePresetByIdOrName", () => {
 
 	it("should handle non-existent preset gracefully", () => {
 		const presets: Preset[] = [
-			{ id: "test-1", name: "First", taskType: "general" },
+			{ id: "test-1", name: "First", taskType: "intent" },
 		];
 		localStorage.setItem("PC_PRESETS", JSON.stringify(presets));
 
@@ -161,8 +199,8 @@ describe("deletePresetByIdOrName", () => {
 
 	it("should keep all presets when neither id nor name is provided", () => {
 		const presets: Preset[] = [
-			{ id: "test-1", name: "First", taskType: "general" },
-			{ id: "test-2", name: "Second", taskType: "coding" },
+			{ id: "test-1", name: "First", taskType: "intent" },
+			{ id: "test-2", name: "Second", taskType: "engineering" },
 		];
 		localStorage.setItem("PC_PRESETS", JSON.stringify(presets));
 
@@ -195,11 +233,11 @@ describe("getDefaultPresets", () => {
 		const defaults = getDefaultPresets();
 		const taskTypes = new Set(defaults.map((p) => p.taskType));
 
-		expect(taskTypes.has("general")).toBe(true);
-		expect(taskTypes.has("coding")).toBe(true);
-		expect(taskTypes.has("writing")).toBe(true);
-		expect(taskTypes.has("research")).toBe(true);
-		expect(taskTypes.has("marketing")).toBe(true);
+		expect(taskTypes.has("intent")).toBe(true);
+		expect(taskTypes.has("engineering")).toBe(true);
+		expect(taskTypes.has("narrative")).toBe(true);
+		expect(taskTypes.has("analysis")).toBe(true);
+		expect(taskTypes.has("persuasion")).toBe(true);
 	});
 });
 
@@ -217,7 +255,7 @@ describe("ensureDefaultPreset", () => {
 		const customPreset: Preset = {
 			id: "custom-1",
 			name: "My Custom",
-			taskType: "general",
+			taskType: "intent",
 		};
 		localStorage.setItem("PC_PRESETS", JSON.stringify([customPreset]));
 

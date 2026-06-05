@@ -12,9 +12,15 @@ function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
 	const sanitized = { ...options } as GenerationOptions & {
 		temperature?: number;
 		examplesText?: string;
+		useDelimiters?: boolean;
+		includeVerification?: boolean;
+		reasoningStyle?: string;
 	};
 	delete sanitized.temperature;
 	delete sanitized.examplesText;
+	delete sanitized.useDelimiters;
+	delete sanitized.includeVerification;
+	delete sanitized.reasoningStyle;
 	return sanitized;
 }
 
@@ -30,35 +36,55 @@ function sanitizePreset(preset: Preset): Preset {
 }
 
 const TASK_TYPES: readonly TaskType[] = [
-	"general",
-	"coding",
-	"image",
-	"research",
-	"writing",
-	"marketing",
-	"video",
+	"intent",
+	"engineering",
+	"visual",
+	"analysis",
+	"narrative",
+	"persuasion",
+	"motion",
 ];
 
+const LEGACY_TASK_TYPE_MAP: Record<string, TaskType> = {
+	general: "intent",
+	coding: "engineering",
+	writing: "narrative",
+	research: "analysis",
+	marketing: "persuasion",
+	image: "visual",
+	video: "motion",
+};
+
+export function migrateTaskType(raw: string): TaskType | null {
+	if (isOneOf(raw, TASK_TYPES)) return raw;
+	return LEGACY_TASK_TYPE_MAP[raw] ?? null;
+}
+
 function isPreset(v: unknown): v is Preset {
-	return (
-		isRecord(v) &&
-		isString(v.name) &&
-		isOneOf(v.taskType, TASK_TYPES) &&
-		(v.options === undefined || isRecord(v.options))
-	);
+	if (!isRecord(v) || !isString(v.name)) return false;
+	if (!isString(v.taskType) || migrateTaskType(v.taskType) === null)
+		return false;
+	return v.options === undefined || isRecord(v.options);
 }
 
 function isPresetArray(v: unknown): v is Preset[] {
 	return Array.isArray(v) && v.every(isPreset);
 }
 
+function migratePreset(preset: Preset): Preset {
+	const migratedType = migrateTaskType(preset.taskType);
+	if (!migratedType) return sanitizePreset(preset);
+	return sanitizePreset({ ...preset, taskType: migratedType });
+}
+
 export function parsePreset(raw: string | null): Preset | null {
-	return safeParse(raw, isPreset, null);
+	const parsed = safeParse(raw, isPreset, null);
+	return parsed ? migratePreset(parsed) : null;
 }
 
 export function getPresets(): Preset[] {
 	const list = safeParse(getRaw(STORAGE_KEYS.PRESETS.key), isPresetArray, []);
-	return list.map(sanitizePreset);
+	return list.map(migratePreset);
 }
 
 function writePresets(list: Preset[]): void {
@@ -74,73 +100,61 @@ export function getDefaultPresets(): Preset[] {
 		{
 			id: "daily-assistant",
 			name: "Daily Helper",
-			taskType: "general",
+			taskType: "intent",
 			options: {
 				tone: "friendly",
 				detail: "brief",
 				format: "markdown",
 				language: "English",
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Act as a helpful assistant for everyday tasks. Provide clear, actionable answers with bullet points when appropriate.",
+					"Compile general everyday intent into brief, actionable execution framing. Preserve the user's goal and voice. Favor scannable structure without over-structuring.",
 			},
 		},
 		{
 			id: "quick-summarizer",
 			name: "Quick Summary",
-			taskType: "general",
+			taskType: "intent",
 			options: {
 				tone: "neutral",
 				detail: "brief",
 				format: "markdown",
 				language: "English",
-				useDelimiters: true,
-				includeVerification: false,
-				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Create concise summaries of content. Extract key points and main ideas in a clean, scannable format.",
+					"Compress source intent into concise summary framing. Extract key points and main ideas. Prioritize scannability and minimal unnecessary detail.",
 			},
 		},
 		{
 			id: "code-helper",
 			name: "Code Helper",
-			taskType: "coding",
+			taskType: "engineering",
 			options: {
 				tone: "technical",
 				detail: "brief",
 				format: "markdown",
 				language: "English",
 				includeTests: false,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Assist with coding tasks. Provide clean, working code with brief explanations. Focus on practical solutions.",
+					"Prioritize goal preservation and architectural consistency. Validate interaction contracts (inputs, outputs, side effects). Enforce design-system alignment with stated stack and project conventions. Surface gaps as actionable prompt clauses — do not invent technologies.",
 			},
 		},
 		{
 			id: "bug-hunter",
 			name: "Bug Hunter",
-			taskType: "coding",
+			taskType: "engineering",
 			options: {
 				tone: "technical",
 				detail: "brief",
 				format: "markdown",
 				language: "English",
 				includeTests: true,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Diagnose and fix bugs systematically. Include reproduction steps, root cause analysis, solution implementation, and test cases to prevent regression.",
+					"Compile diagnostic intent with root-cause focus. Require reproduction steps, failure boundaries, and regression prevention in the output framing. Do not assume stack or environment not stated by the user.",
 			},
 		},
 		{
 			id: "email-drafter",
 			name: "Email Draft",
-			taskType: "writing",
+			taskType: "narrative",
 			options: {
 				tone: "friendly",
 				detail: "brief",
@@ -148,51 +162,42 @@ export function getDefaultPresets(): Preset[] {
 				language: "English",
 				writingStyle: "expository",
 				pointOfView: "second",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
 				additionalContext:
-					"Draft professional emails quickly. Keep them concise and clear with a subject line and appropriate greeting.",
+					"Preserve the user's voice and second-person address. Compile email intent with subject line, greeting, and concise body framing. Do not rewrite personality or tone unless requested.",
 			},
 		},
 		{
 			id: "research-assistant",
 			name: "Research Assistant",
-			taskType: "research",
+			taskType: "analysis",
 			options: {
 				tone: "neutral",
 				detail: "normal",
 				format: "markdown",
 				language: "English",
 				requireCitations: true,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "cot",
 				additionalContext:
-					"Help with research tasks. Present findings clearly with proper citations and balanced perspectives on the topic.",
+					"Define evidence boundaries and scope limits clearly. Require citation framing and balanced perspective. Extract implicit constraints and risk concerns from the user's request.",
 			},
 		},
 		{
 			id: "deep-analyst",
 			name: "Deep Analyst",
-			taskType: "research",
+			taskType: "analysis",
 			options: {
 				tone: "formal",
 				detail: "detailed",
 				format: "markdown",
 				language: "English",
 				requireCitations: true,
-				useDelimiters: true,
-				includeVerification: true,
-				reasoningStyle: "cot",
 				additionalContext:
-					"Conduct comprehensive analysis with academic rigor. Provide executive summary, detailed evidence, counterarguments, risk assessment, and well-supported recommendations with citations.",
+					"Extract tradeoffs, counterarguments, and risk assessment requirements. Compile rigorous analysis framing with executive summary, evidence scope, and recommendation boundaries. Do not over-structure unless detail level requires it.",
 			},
 		},
 		{
 			id: "social-post",
 			name: "Social Post",
-			taskType: "marketing",
+			taskType: "persuasion",
 			options: {
 				tone: "friendly",
 				detail: "brief",
@@ -200,17 +205,14 @@ export function getDefaultPresets(): Preset[] {
 				language: "English",
 				marketingChannel: "social",
 				ctaStyle: "soft",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
 				additionalContext:
-					"Create engaging social media posts. Include hook, main content, relevant hashtags, and optional call-to-action.",
+					"Preserve audience intent and message core. Compile hook, content, and CTA framing without drift. Align channel conventions to stated marketing channel and CTA style.",
 			},
 		},
 		{
 			id: "image-creator",
 			name: "Image Creator",
-			taskType: "image",
+			taskType: "visual",
 			options: {
 				tone: "neutral",
 				detail: "normal",
@@ -219,17 +221,14 @@ export function getDefaultPresets(): Preset[] {
 				stylePreset: "photorealistic",
 				aspectRatio: "16:9",
 				targetResolution: "1080p",
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "none",
 				additionalContext:
-					"Generate detailed image prompts for AI image generation. Describe subjects, composition, lighting, mood, and style clearly.",
+					"Compress visual intent into model-parseable descriptors. Lock subject, mood, and composition. Enforce style preset and aspect ratio fidelity — do not invent specs not provided.",
 			},
 		},
 		{
 			id: "video-creator",
 			name: "Video Creator",
-			taskType: "video",
+			taskType: "motion",
 			options: {
 				tone: "neutral",
 				detail: "normal",
@@ -243,11 +242,8 @@ export function getDefaultPresets(): Preset[] {
 				durationSeconds: 10,
 				frameRate: 30,
 				includeStoryboard: false,
-				useDelimiters: false,
-				includeVerification: false,
-				reasoningStyle: "plan_then_solve",
 				additionalContext:
-					"Generate video prompts for AI video generation. Describe scene, action, camera work, and visual flow clearly.",
+					"Compile temporal visual intent with scene, action, and camera semantics. Validate interaction flow across frames. Enforce duration, fps, and movement specs from preset — do not invent values.",
 			},
 		},
 	];
@@ -267,7 +263,11 @@ export function ensureDefaultPreset(): void {
 }
 
 export function savePreset(preset: Preset): Preset {
-	const normalizedPreset = sanitizePreset(preset);
+	const migratedType = migrateTaskType(preset.taskType);
+	const normalizedPreset = sanitizePreset({
+		...preset,
+		...(migratedType && { taskType: migratedType }),
+	});
 	const list = getPresets();
 	const now = Date.now();
 

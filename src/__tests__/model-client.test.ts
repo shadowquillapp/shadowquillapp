@@ -88,7 +88,7 @@ describe("callLocalModelClient", () => {
 			global.fetch = mockFetch;
 
 			await callLocalModelClient("prompt", {
-				taskType: "general",
+				taskType: "intent",
 				options: { format: "plain" },
 			});
 

@@ -23,12 +23,12 @@ describe("system-prompts", () => {
 
 		it("should contain key role information", () => {
 			expect(DEFAULT_BUILD_PROMPT).toContain("ShadowQuill");
-			expect(DEFAULT_BUILD_PROMPT).toContain("prompt enhancement specialist");
+			expect(DEFAULT_BUILD_PROMPT).toContain("intent-alignment compiler");
 		});
 
 		it("should contain critical rules about behavior", () => {
-			expect(DEFAULT_BUILD_PROMPT).toContain("PROMPT ENHANCER");
-			expect(DEFAULT_BUILD_PROMPT).toContain("NEVER");
+			expect(DEFAULT_BUILD_PROMPT).toContain("COMPILER");
+			expect(DEFAULT_BUILD_PROMPT).toContain("User Goal Preservation");
 		});
 	});
 

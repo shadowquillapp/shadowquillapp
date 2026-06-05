@@ -56,13 +56,13 @@ export default function BasicSettings({
 						value={preset.taskType}
 						onChange={(v) => onFieldChange("taskType", v)}
 						options={[
-							{ value: "general", label: "General", icon: "bullseye" },
-							{ value: "coding", label: "Coding", icon: "terminal" },
-							{ value: "image", label: "Image", icon: "image" },
-							{ value: "video", label: "Video", icon: "video" },
-							{ value: "research", label: "Research", icon: "flask" },
-							{ value: "writing", label: "Writing", icon: "edit" },
-							{ value: "marketing", label: "Marketing", icon: "bullhorn" },
+							{ value: "intent", label: "Intent", icon: "bullseye" },
+							{ value: "engineering", label: "Engineering", icon: "terminal" },
+							{ value: "visual", label: "Visual", icon: "image" },
+							{ value: "motion", label: "Motion", icon: "video" },
+							{ value: "analysis", label: "Analysis", icon: "flask" },
+							{ value: "narrative", label: "Narrative", icon: "edit" },
+							{ value: "persuasion", label: "Persuasion", icon: "bullhorn" },
 						]}
 					/>
 				</div>

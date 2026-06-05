@@ -6,8 +6,8 @@ import type { GenerationOptions } from "@/types";
 export function buildCodingDirectives(options: GenerationOptions): string[] {
 	const directives: string[] = [];
 
-	// Core principle
 	directives.push(
+		"Engineering domain: compile technical intent with minimal unnecessary change.",
 		"Use only information provided. Do not invent technologies or frameworks.",
 	);
 

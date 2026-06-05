@@ -242,40 +242,40 @@ describe("hashString", () => {
 
 describe("createPromptCacheKey", () => {
 	it("should create consistent keys for same input", () => {
-		const key1 = createPromptCacheKey("test", "general", { tone: "formal" });
-		const key2 = createPromptCacheKey("test", "general", { tone: "formal" });
+		const key1 = createPromptCacheKey("test", "intent", { tone: "formal" });
+		const key2 = createPromptCacheKey("test", "intent", { tone: "formal" });
 		expect(key1).toBe(key2);
 	});
 
 	it("should create different keys for different inputs", () => {
-		const key1 = createPromptCacheKey("test1", "general", {});
-		const key2 = createPromptCacheKey("test2", "general", {});
+		const key1 = createPromptCacheKey("test1", "intent", {});
+		const key2 = createPromptCacheKey("test2", "intent", {});
 		expect(key1).not.toBe(key2);
 	});
 
 	it("should create different keys for different task types", () => {
-		const key1 = createPromptCacheKey("test", "general", {});
-		const key2 = createPromptCacheKey("test", "coding", {});
+		const key1 = createPromptCacheKey("test", "intent", {});
+		const key2 = createPromptCacheKey("test", "engineering", {});
 		expect(key1).not.toBe(key2);
 	});
 
 	it("should create different keys for different options", () => {
-		const key1 = createPromptCacheKey("test", "general", { tone: "formal" });
-		const key2 = createPromptCacheKey("test", "general", { tone: "friendly" });
+		const key1 = createPromptCacheKey("test", "intent", { tone: "formal" });
+		const key2 = createPromptCacheKey("test", "intent", { tone: "friendly" });
 		expect(key1).not.toBe(key2);
 	});
 
 	it("should handle undefined options", () => {
-		const key = createPromptCacheKey("test", "general", undefined);
+		const key = createPromptCacheKey("test", "intent", undefined);
 		expect(typeof key).toBe("string");
 	});
 
 	it("should produce consistent keys regardless of object key order", () => {
-		const key1 = createPromptCacheKey("test", "general", {
+		const key1 = createPromptCacheKey("test", "intent", {
 			tone: "formal",
 			detail: "brief",
 		});
-		const key2 = createPromptCacheKey("test", "general", {
+		const key2 = createPromptCacheKey("test", "intent", {
 			detail: "brief",
 			tone: "formal",
 		});
@@ -509,27 +509,27 @@ describe("session storage cache", () => {
 
 describe("createPromptCacheKey edge cases", () => {
 	it("should handle nested objects in options", () => {
-		const key1 = createPromptCacheKey("test", "general", {
+		const key1 = createPromptCacheKey("test", "intent", {
 			nested: { a: 1, b: { c: 2 } },
 		});
-		const key2 = createPromptCacheKey("test", "general", {
+		const key2 = createPromptCacheKey("test", "intent", {
 			nested: { b: { c: 2 }, a: 1 },
 		});
 		expect(key1).toBe(key2);
 	});
 
 	it("should handle arrays in options", () => {
-		const key1 = createPromptCacheKey("test", "general", {
+		const key1 = createPromptCacheKey("test", "intent", {
 			items: [1, 2, 3],
 		});
-		const key2 = createPromptCacheKey("test", "general", {
+		const key2 = createPromptCacheKey("test", "intent", {
 			items: [1, 2, 3],
 		});
 		expect(key1).toBe(key2);
 	});
 
 	it("should handle null values in options", () => {
-		const key = createPromptCacheKey("test", "general", {
+		const key = createPromptCacheKey("test", "intent", {
 			nullValue: null,
 		});
 		expect(typeof key).toBe("string");

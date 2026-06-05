@@ -64,7 +64,7 @@ export default function PresetEditor({
 							<BasicSettings preset={preset} onFieldChange={onFieldChange} />
 						</section>
 
-						{preset.taskType !== "general" && (
+						{preset.taskType !== "intent" && (
 							<section className="space-y-4">
 								<SectionHeading>{taskLabel} options</SectionHeading>
 								<TypeSpecificFields

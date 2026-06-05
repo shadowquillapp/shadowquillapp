@@ -14,9 +14,9 @@ export default function TypeSpecificFields({
 	options,
 	onFieldChange,
 }: TypeSpecificFieldsProps) {
-	if (taskType === "general") return null;
+	if (taskType === "intent") return null;
 
-	if (taskType === "image") {
+	if (taskType === "visual") {
 		return (
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				<div>
@@ -62,7 +62,7 @@ export default function TypeSpecificFields({
 		);
 	}
 
-	if (taskType === "video") {
+	if (taskType === "motion") {
 		return (
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-3">
 				<div>
@@ -133,7 +133,7 @@ export default function TypeSpecificFields({
 		);
 	}
 
-	if (taskType === "coding") {
+	if (taskType === "engineering") {
 		return (
 			<div className="space-y-4">
 				<div>
@@ -165,7 +165,7 @@ export default function TypeSpecificFields({
 		);
 	}
 
-	if (taskType === "research") {
+	if (taskType === "analysis") {
 		return (
 			<label className="flex cursor-pointer items-center gap-2">
 				<input
@@ -179,7 +179,7 @@ export default function TypeSpecificFields({
 		);
 	}
 
-	if (taskType === "writing") {
+	if (taskType === "narrative") {
 		return (
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				<div>
@@ -223,7 +223,7 @@ export default function TypeSpecificFields({
 		);
 	}
 
-	if (taskType === "marketing") {
+	if (taskType === "persuasion") {
 		return (
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				<div>
