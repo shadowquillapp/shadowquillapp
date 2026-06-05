@@ -8,7 +8,7 @@
 | File | Role |
 |---|---|
 | `storage-keys.ts` | Sole registry of every localStorage/sessionStorage key + scope (`STORAGE_KEYS`, `ALL_LOCAL_KEYS`, `ALL_SESSION_KEYS`). Touching persistence = touching this. |
-| `local-storage.ts` | Safe wrapper over `electron-storage`; `window` guards; factory-reset suppression. Public: `getRaw`, `getJSON` (overloaded), `setJSON`, `remove`, `clearAllStorageForFactoryReset`, `isFactoryResetInProgress`. |
+| `local-storage.ts` | Safe wrapper over `electron-storage`; `window` guards; factory-reset suppression. Public: `getRaw`, `getJSON` (overloaded), `setJSON`, `remove`, `clearAllStorageForFactoryReset`, `abortFactoryReset`, `isFactoryResetInProgress`. |
 | `electron-storage.ts` | `class ElectronStorage` — in-memory cache backed by `window.shadowquill.storage` IPC bridge; serializes writes through a `writeQueue` promise. `isElectronStorageAvailable()`. |
 | `local-config.ts` | `validateLocalModelConnection`, `listAvailableModels` (hard-filtered to `gemma3:4b|12b|27b` — see TODO at `:73`). Barrel over `./domain/model-config`. |
 | `system-prompts.ts` | Customizable system-prompt template. `DEFAULT_BUILD_PROMPT`, `getSystemPromptBuild`, `ensureSystemPromptBuild`, `setSystemPromptBuild`, `resetSystemPromptBuild`. |

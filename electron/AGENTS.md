@@ -18,7 +18,7 @@
 
 | File | Role |
 |---|---|
-| `data-handlers.cjs` | JSON-file KV under `userData/storage/app-data.json`; `getDataPaths`, `factoryReset` (wipes userData + relaunch), `restartApp`, `getEnvSafety` (Windows `Zone.Identifier`). |
+| `data-handlers.cjs` | JSON-file KV under `userData/storage/app-data.json`; `getDataPaths`, `factoryReset` (clears storage in-place; renderer reloads to onboarding), `restartApp`, `getEnvSafety` (Windows `Zone.Identifier`). |
 | `ollama-handlers.cjs` | Detects/launches Ollama per-OS (mdfind on mac, fs check on win, `which`/`command -v`/systemctl on linux). |
 | `window-handlers.cjs` | Minimize, maxToggle, close=app.quit; zoom factor get/set/reset; window size query. |
 | `find-handlers.cjs` | Wraps `webContents.findInPage` / `stopFindInPage` (matchCase, forward, findNext). |
