@@ -33,7 +33,7 @@ pnpm start
 | Feature | Details |
 |---------|---------|
 | **8 Tabs** | Work on multiple prompts simultaneously |
-| **7 Task Types** | General, Coding, Writing, Marketing, Research, Image, Video |
+| **7 Task Types** | Intent, Engineering, Visual, Motion, Analysis, Narrative, Persuasion |
 | **10 Default Presets** | Ready-to-use configurations for common workflows |
 | **Preset Studio** | Create custom presets with live preview |
 | **Version History** | Track prompt iterations with a visual timeline |
