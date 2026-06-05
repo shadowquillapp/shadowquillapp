@@ -252,21 +252,19 @@ describe("Prompt Generation Flow", () => {
 			expect(prompt.toLowerCase()).toContain("storyboard");
 		});
 
-		it("should handle additional context and examples", () => {
+		it("should handle additional context", () => {
 			const prompt = buildUnifiedPromptCore({
 				input: "Write marketing copy for a SaaS product",
 				taskType: "marketing",
 				systemPrompt: "You are a marketing copywriter.",
 				options: {
 					additionalContext: "Target audience is enterprise decision makers",
-					examplesText: "Example: 'Boost your productivity by 50%'",
 					marketingChannel: "landing_page",
 					ctaStyle: "strong",
 				},
 			});
 
 			expect(prompt).toContain("enterprise decision makers");
-			expect(prompt).toContain("50%");
 			expect(prompt.toLowerCase()).toContain("landing");
 		});
 	});

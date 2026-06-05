@@ -31,7 +31,7 @@ const CATEGORIES = {
 		"durationSeconds",
 		"frameRate",
 	],
-	context: ["identity", "additionalContext", "examplesText"],
+	context: ["identity", "additionalContext"],
 };
 
 const CATEGORY_LABELS: Record<string, string> = {

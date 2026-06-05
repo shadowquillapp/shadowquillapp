@@ -1,9 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import AdvancedSettings from "@/app/studio/components/AdvancedSettings";
+import type { ReactNode } from "react";
 import BasicSettings from "@/app/studio/components/BasicSettings";
-import SaveAsDialog from "@/app/studio/components/SaveAsDialog";
 import TypeSpecificFields from "@/app/studio/components/TypeSpecificFields";
 import { Icon } from "@/components/Icon";
 import type { PresetLite } from "@/types";
@@ -13,9 +11,17 @@ interface PresetEditorProps {
 	isDirty: boolean;
 	onFieldChange: (field: string, value: unknown) => void;
 	onSave: () => void;
-	onDuplicate: (presetId: string, newName?: string) => void;
+	onDuplicate: (presetId: string) => void;
 	onDelete: (presetId: string) => void;
 	className?: string;
+}
+
+function SectionHeading({ children }: { children: ReactNode }) {
+	return (
+		<h3 className="border-[var(--color-outline)] border-b pb-2 font-semibold text-light text-sm">
+			{children}
+		</h3>
+	);
 }
 
 export default function PresetEditor({
@@ -27,18 +33,6 @@ export default function PresetEditor({
 	onDelete,
 	className = "",
 }: PresetEditorProps) {
-	const [activeTab, setActiveTab] = useState<
-		"basic" | "advanced" | "type" | "output"
-	>("basic");
-	const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
-
-	// Ensure we don't stay on "type" tab when no type-specific fields exist
-	useEffect(() => {
-		if (activeTab === "type" && preset?.taskType === "general") {
-			setActiveTab("basic");
-		}
-	}, [activeTab, preset?.taskType]);
-
 	if (!preset) {
 		return (
 			<section className={`${className} bg-surface`} aria-label="Preset Editor">
@@ -57,212 +51,106 @@ export default function PresetEditor({
 		);
 	}
 
+	const taskLabel =
+		preset.taskType.charAt(0).toUpperCase() + preset.taskType.slice(1);
+
 	return (
 		<section className={`${className} bg-surface`} aria-label="Preset Editor">
 			<div className="flex h-full flex-col">
-				{/* Editor content */}
 				<div className="flex-1 overflow-y-auto px-6 py-4">
-					<div className="mx-auto max-w-5xl">
-						{/* Tabs */}
-						<div
-							className="flex flex-wrap items-center border-[var(--color-outline)] border-b"
-							role="tablist"
-						>
-							<button
-								type="button"
-								role="tab"
-								aria-selected={activeTab === "basic"}
-								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
-									activeTab === "basic"
-										? "border-b-surface bg-surface text-light"
-										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
-								}`}
-								onClick={() => setActiveTab("basic")}
-							>
-								Basic Settings
-							</button>
-							<button
-								type="button"
-								role="tab"
-								aria-selected={activeTab === "advanced"}
-								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
-									activeTab === "advanced"
-										? "border-b-surface bg-surface text-light"
-										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
-								}`}
-								onClick={() => setActiveTab("advanced")}
-							>
-								Advanced Settings
-								<span className="ml-1 hidden text-xs opacity-60 sm:inline">
-									(Optional)
-								</span>
-							</button>
-							{preset.taskType !== "general" && (
-								<button
-									type="button"
-									role="tab"
-									aria-selected={activeTab === "type"}
-									className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
-										activeTab === "type"
-											? "border-b-surface bg-surface text-light"
-											: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
-									}`}
-									onClick={() => setActiveTab("type")}
-								>
-									{preset.taskType.charAt(0).toUpperCase() +
-										preset.taskType.slice(1)}{" "}
-									Settings
-								</button>
-							)}
-							<button
-								type="button"
-								role="tab"
-								aria-selected={activeTab === "output"}
-								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
-									activeTab === "output"
-										? "border-b-surface bg-surface text-light"
-										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
-								}`}
-								onClick={() => setActiveTab("output")}
-							>
-								Output Settings
-								<span className="ml-1 hidden text-xs opacity-60 sm:inline">
-									(Optional)
-								</span>
-							</button>
-						</div>
+					<div className="mx-auto max-w-5xl space-y-8">
+						<section className="space-y-4">
+							<SectionHeading>Basics</SectionHeading>
+							<BasicSettings preset={preset} onFieldChange={onFieldChange} />
+						</section>
 
-						{/* Tab Content */}
-						<div className="mt-6 space-y-4">
-							{activeTab === "basic" && (
-								<BasicSettings preset={preset} onFieldChange={onFieldChange} />
-							)}
-
-							{activeTab === "advanced" && (
-								<AdvancedSettings
-									preset={preset}
-									onFieldChange={onFieldChange}
-								/>
-							)}
-
-							{activeTab === "type" && preset.taskType !== "general" && (
+						{preset.taskType !== "general" && (
+							<section className="space-y-4">
+								<SectionHeading>{taskLabel} options</SectionHeading>
 								<TypeSpecificFields
 									taskType={preset.taskType}
 									options={preset.options || {}}
 									onFieldChange={onFieldChange}
 								/>
-							)}
+							</section>
+						)}
 
-							{activeTab === "output" && (
-								<div className="space-y-4">
-									{preset.options?.format === "xml" && (
-										<div>
-											<label
-												htmlFor="xml-schema"
-												className="mb-1 block font-medium text-secondary text-xs"
-											>
-												XML Output Schema / Tags
-											</label>
-											<textarea
-												id="xml-schema"
-												value={preset.options?.outputXMLSchema || ""}
-												onChange={(e) =>
-													onFieldChange("outputXMLSchema", e.target.value)
-												}
-												placeholder="<root><title/><summary/><tags><tag/></tags></root>"
-												className="md-input w-full resize-none px-3 py-2 text-sm"
-												rows={3}
-											/>
-										</div>
-									)}
-
-									<div>
-										<label
-											htmlFor="identity"
-											className="mb-1 block font-medium text-secondary text-xs"
-										>
-											Identity
-										</label>
-										<input
-											id="identity"
-											type="text"
-											value={preset.options?.identity || ""}
-											onChange={(e) =>
-												onFieldChange("identity", e.target.value)
-											}
-											placeholder="e.g., You are an expert programmer, You are a helpful writing assistant, You are a helpful customer support agent, etc..."
-											className="md-input w-full px-3 py-2 text-sm"
-										/>
-										<p className="mt-1 text-secondary text-xs opacity-80">
-											Optional. If provided, will be used as "Act as [identity]"
-											in prompt generation.
-										</p>
-									</div>
-
-									<div>
-										<label
-											htmlFor="additional-context"
-											className="mb-1 block font-medium text-secondary text-xs"
-										>
-											Additional Context
-										</label>
-										<textarea
-											id="additional-context"
-											value={preset.options?.additionalContext || ""}
-											onChange={(e) =>
-												onFieldChange("additionalContext", e.target.value)
-											}
-											placeholder="Background info, definitions, constraints to include in the prompt."
-											className="md-input w-full resize-none px-3 py-2 text-sm"
-											rows={3}
-										/>
-									</div>
-
-									<div>
-										<label
-											htmlFor="few-shot-examples"
-											className="mb-1 block font-medium text-secondary text-xs"
-										>
-											Few-shot Examples
-										</label>
-										<textarea
-											id="few-shot-examples"
-											value={preset.options?.examplesText || ""}
-											onChange={(e) =>
-												onFieldChange("examplesText", e.target.value)
-											}
-											placeholder={`Example:
-Q: [task]
-A: Let's think step by step... [reasoning]. Therefore, [answer].`}
-											className="md-input w-full resize-none font-mono text-sm"
-											style={{
-												fontFamily: "var(--font-mono, monospace)",
-											}}
-											rows={4}
-										/>
-									</div>
+						<section className="space-y-4">
+							<SectionHeading>Context</SectionHeading>
+							{preset.options?.format === "xml" && (
+								<div>
+									<label
+										htmlFor="xml-schema"
+										className="mb-1 block font-medium text-secondary text-xs"
+									>
+										XML Output Schema / Tags
+									</label>
+									<textarea
+										id="xml-schema"
+										value={preset.options?.outputXMLSchema || ""}
+										onChange={(e) =>
+											onFieldChange("outputXMLSchema", e.target.value)
+										}
+										placeholder="<root><title/><summary/><tags><tag/></tags></root>"
+										className="md-input w-full resize-none px-3 py-2 text-sm"
+										rows={3}
+									/>
 								</div>
 							)}
-						</div>
 
-						{/* Unsaved changes indicator below settings */}
+							<div>
+								<label
+									htmlFor="identity"
+									className="mb-1 block font-medium text-secondary text-xs"
+								>
+									Identity
+								</label>
+								<input
+									id="identity"
+									type="text"
+									value={preset.options?.identity || ""}
+									onChange={(e) => onFieldChange("identity", e.target.value)}
+									placeholder="e.g., You are an expert programmer..."
+									className="md-input w-full px-3 py-2 text-sm"
+								/>
+							</div>
+
+							<div>
+								<label
+									htmlFor="additional-context"
+									className="mb-1 block font-medium text-secondary text-xs"
+								>
+									Additional Context
+								</label>
+								<textarea
+									id="additional-context"
+									value={preset.options?.additionalContext || ""}
+									onChange={(e) =>
+										onFieldChange("additionalContext", e.target.value)
+									}
+									placeholder="Background info, definitions, constraints to include in the prompt."
+									className="md-input w-full resize-none px-3 py-2 text-sm"
+									rows={3}
+								/>
+							</div>
+						</section>
+
 						{isDirty && (
-							<div className="mt-4 flex items-center gap-2 font-semibold text-[var(--color-attention)] text-base">
+							<div className="flex items-center gap-2 font-semibold text-[var(--color-attention)] text-base">
 								<span className="h-2.5 w-2.5 rounded-full bg-[var(--color-attention)]" />
-								{`Unsaved Changes to (${preset.name})`}
+								{`Unsaved changes to ${preset.name}`}
 							</div>
 						)}
 					</div>
 				</div>
 
-				{/* Action bar */}
 				<div className="border-[var(--color-outline)] border-t bg-[var(--color-surface-variant)] px-6 py-4">
 					<div className="mx-auto flex max-w-5xl items-center justify-between">
 						<button
 							type="button"
-							onClick={() => preset?.id && onDelete(preset.id)}
+							onClick={() => preset.id && onDelete(preset.id)}
 							className="md-btn md-btn--destructive font-medium text-sm"
-							disabled={!preset?.id || preset?.name === "Default"}
+							disabled={!preset.id || preset.name === "Default"}
 							title="Delete preset"
 						>
 							Delete
@@ -271,9 +159,9 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 						<div className="flex gap-3">
 							<button
 								type="button"
-								onClick={() => preset?.id && setShowDuplicateDialog(true)}
+								onClick={() => preset.id && onDuplicate(preset.id)}
 								className="md-btn font-medium text-sm"
-								disabled={!preset?.id}
+								disabled={!preset.id}
 								title="Duplicate preset"
 							>
 								Duplicate
@@ -292,22 +180,6 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 					</div>
 				</div>
 			</div>
-
-			{/* Duplicate Confirm Dialog with name input */}
-			<SaveAsDialog
-				isOpen={showDuplicateDialog}
-				currentName={preset?.name || "Untitled"}
-				title="Duplicate Preset"
-				message={`Are you sure you want to duplicate "${preset?.name}"? You can change the name below.`}
-				confirmLabel="Duplicate"
-				onSave={(newName) => {
-					if (preset?.id) {
-						onDuplicate(preset.id, newName);
-					}
-					setShowDuplicateDialog(false);
-				}}
-				onCancel={() => setShowDuplicateDialog(false)}
-			/>
 		</section>
 	);
 }

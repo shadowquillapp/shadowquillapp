@@ -90,7 +90,6 @@ export interface GenerationOptions {
 	outputXMLSchema?: string;
 	identity?: string;
 	additionalContext?: string;
-	examplesText?: string;
 	styleGuidelines?: string;
 
 	stylePreset?: ImageStylePreset | VideoStylePreset;
@@ -129,21 +128,6 @@ export interface PresetLite {
 	name: string;
 	taskType: TaskType;
 	options?: GenerationOptions;
-}
-
-export interface PresetVersion {
-	version: number;
-	timestamp: number;
-	taskType: TaskType;
-	options: GenerationOptions;
-	changelog?: string;
-}
-
-export interface VersionedPreset extends PresetLite {
-	versions?: PresetVersion[];
-	currentVersion?: number;
-	createdAt?: number;
-	updatedAt?: number;
 }
 
 export interface ValidationError {

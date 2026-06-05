@@ -1,28 +1,20 @@
-import type {
-	GenerationOptions,
-	PresetLite,
-	PresetVersion,
-	TaskType,
-	VersionedPreset,
-} from "@/types";
+import type { GenerationOptions, PresetLite, TaskType } from "@/types";
 import { getRaw, setJSON } from "../local-storage";
 import { isOneOf, isRecord, isString, safeParse } from "../schema";
 import { STORAGE_KEYS } from "../storage-keys";
 
 export interface Preset extends PresetLite {
-	versions?: PresetVersion[];
-	currentVersion?: number;
 	createdAt?: number;
 	updatedAt?: number;
 }
 
-const MAX_VERSIONS = 10;
-
 function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
 	const sanitized = { ...options } as GenerationOptions & {
 		temperature?: number;
+		examplesText?: string;
 	};
 	delete sanitized.temperature;
+	delete sanitized.examplesText;
 	return sanitized;
 }
 
@@ -36,6 +28,7 @@ function sanitizePreset(preset: Preset): Preset {
 	if (!base.options) return base;
 	return { ...base, options: sanitizePresetOptions(base.options) };
 }
+
 const TASK_TYPES: readonly TaskType[] = [
 	"general",
 	"coding",
@@ -267,33 +260,13 @@ export function ensureDefaultPreset(): void {
 	writePresets(
 		getDefaultPresets().map((preset) => ({
 			...preset,
-			versions: [],
-			currentVersion: 0,
 			createdAt: now,
 			updatedAt: now,
 		})),
 	);
 }
 
-function makeVersionEntry(preset: Preset, changelog?: string): PresetVersion {
-	const currentVersion = (preset.currentVersion ?? 0) + 1;
-	return {
-		version: currentVersion,
-		timestamp: Date.now(),
-		taskType: preset.taskType,
-		options: { ...preset.options } as GenerationOptions,
-		...(changelog && { changelog }),
-	};
-}
-
-function optionsEqual(
-	a: GenerationOptions | undefined,
-	b: GenerationOptions | undefined,
-): boolean {
-	return JSON.stringify(a ?? {}) === JSON.stringify(b ?? {});
-}
-
-export function savePreset(preset: Preset, changelog?: string): Preset {
+export function savePreset(preset: Preset): Preset {
 	const normalizedPreset = sanitizePreset(preset);
 	const list = getPresets();
 	const now = Date.now();
@@ -303,21 +276,9 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 		if (idx !== -1) {
 			const existing = list[idx];
 			if (existing) {
-				const changed =
-					!optionsEqual(existing.options, normalizedPreset.options) ||
-					existing.taskType !== normalizedPreset.taskType;
-				let versions = existing.versions ?? [];
-				let currentVersion = existing.currentVersion ?? 0;
-				if (changed && existing.options) {
-					const entry = makeVersionEntry(existing, changelog);
-					versions = [entry, ...versions].slice(0, MAX_VERSIONS);
-					currentVersion = entry.version;
-				}
 				const updated: Preset = {
 					...existing,
 					...normalizedPreset,
-					versions,
-					currentVersion,
 					createdAt: existing.createdAt ?? now,
 					updatedAt: now,
 				};
@@ -328,8 +289,6 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 		}
 		const newPreset: Preset = {
 			...normalizedPreset,
-			versions: [],
-			currentVersion: 0,
 			createdAt: now,
 			updatedAt: now,
 		};
@@ -348,22 +307,10 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 			const id =
 				existing.id ??
 				`preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-			const changed =
-				!optionsEqual(existing.options, normalizedPreset.options) ||
-				existing.taskType !== normalizedPreset.taskType;
-			let versions = existing.versions ?? [];
-			let currentVersion = existing.currentVersion ?? 0;
-			if (changed && existing.options) {
-				const entry = makeVersionEntry(existing, changelog);
-				versions = [entry, ...versions].slice(0, MAX_VERSIONS);
-				currentVersion = entry.version;
-			}
 			const updated: Preset = {
 				...existing,
 				...normalizedPreset,
 				id,
-				versions,
-				currentVersion,
 				createdAt: existing.createdAt ?? now,
 				updatedAt: now,
 			};
@@ -377,8 +324,6 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 	const newPreset: Preset = {
 		...normalizedPreset,
 		id,
-		versions: [],
-		currentVersion: 0,
 		createdAt: now,
 		updatedAt: now,
 	};
@@ -394,112 +339,4 @@ export function deletePresetByIdOrName(id?: string, name?: string): void {
 		return true;
 	});
 	writePresets(list);
-}
-
-export function getPresetHistory(presetId: string): PresetVersion[] {
-	return getPresetById(presetId)?.versions ?? [];
-}
-
-export function rollbackPreset(
-	presetId: string,
-	targetVersion: number,
-): Preset | null {
-	const list = getPresets();
-	const idx = list.findIndex((p) => p.id === presetId);
-	if (idx === -1) return null;
-	const preset = list[idx];
-	if (!preset) return null;
-	const version = preset.versions?.find((v) => v.version === targetVersion);
-	if (!version) return null;
-	const newVersion = makeVersionEntry(
-		preset,
-		`Rolled back to version ${targetVersion}`,
-	);
-	const updatedPreset: Preset = {
-		...preset,
-		taskType: version.taskType,
-		options: { ...version.options },
-		versions: [newVersion, ...(preset.versions ?? [])].slice(0, MAX_VERSIONS),
-		currentVersion: newVersion.version,
-		updatedAt: Date.now(),
-	};
-	list[idx] = updatedPreset;
-	writePresets(list);
-	return updatedPreset;
-}
-
-export function compareVersions(
-	presetId: string,
-	versionA: number,
-	versionB: number,
-): { changed: string[]; added: string[]; removed: string[] } | null {
-	const preset = getPresetById(presetId);
-	if (!preset?.versions) return null;
-	const a = preset.versions.find((v) => v.version === versionA);
-	const b = preset.versions.find((v) => v.version === versionB);
-	if (!a || !b) return null;
-	const keysA = new Set(Object.keys(a.options));
-	const keysB = new Set(Object.keys(b.options));
-	const changed: string[] = [];
-	const added: string[] = [];
-	const removed: string[] = [];
-	for (const key of keysA) {
-		if (!keysB.has(key)) removed.push(key);
-		else if (
-			JSON.stringify(a.options[key as keyof GenerationOptions]) !==
-			JSON.stringify(b.options[key as keyof GenerationOptions])
-		) {
-			changed.push(key);
-		}
-	}
-	for (const key of keysB) {
-		if (!keysA.has(key)) added.push(key);
-	}
-	return { changed, added, removed };
-}
-
-export function exportPresetWithHistory(
-	presetId: string,
-): VersionedPreset | null {
-	const preset = getPresetById(presetId);
-	if (!preset) return null;
-	return {
-		...(preset.id !== undefined && { id: preset.id }),
-		name: preset.name,
-		taskType: preset.taskType,
-		...(preset.options !== undefined && { options: preset.options }),
-		...(preset.versions && { versions: preset.versions }),
-		...(preset.currentVersion !== undefined && {
-			currentVersion: preset.currentVersion,
-		}),
-		...(preset.createdAt !== undefined && { createdAt: preset.createdAt }),
-		...(preset.updatedAt !== undefined && { updatedAt: preset.updatedAt }),
-	};
-}
-
-export function importPresetWithHistory(
-	presetData: VersionedPreset,
-	options?: { overwrite?: boolean },
-): Preset {
-	const list = getPresets();
-	const now = Date.now();
-	if (presetData.id && options?.overwrite !== false) {
-		const existingIdx = list.findIndex((p) => p.id === presetData.id);
-		if (existingIdx !== -1) {
-			const updated: Preset = { ...presetData, updatedAt: now };
-			list[existingIdx] = updated;
-			writePresets(list);
-			return updated;
-		}
-	}
-	const newId = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-	const newPreset: Preset = {
-		...presetData,
-		id: newId,
-		createdAt: now,
-		updatedAt: now,
-	};
-	list.push(newPreset);
-	writePresets(list);
-	return newPreset;
 }

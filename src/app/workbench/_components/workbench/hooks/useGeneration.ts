@@ -213,9 +213,6 @@ export function useGeneration(
 				...(tabOptions.additionalContext && {
 					additionalContext: tabOptions.additionalContext,
 				}),
-				...(tabOptions.examplesText && {
-					examplesText: tabOptions.examplesText,
-				}),
 			};
 
 			// Check if we're in refinement mode (has at least one version with output)

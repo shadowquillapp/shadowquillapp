@@ -9,29 +9,11 @@ interface BasicSettingsProps {
 	onFieldChange: (field: string, value: unknown) => void;
 }
 
-/** Detail level metadata with word count ranges */
+/** Detail level labels for the picker */
 const DETAIL_LEVELS = {
-	brief: {
-		label: "Brief",
-		words: "75-150",
-		description: "Concise and to the point",
-		icon: "minus",
-		color: "#3b82f6",
-	},
-	normal: {
-		label: "Normal",
-		words: "200-250",
-		description: "Standard level of detail",
-		icon: "sliders",
-		color: "#22c55e",
-	},
-	detailed: {
-		label: "Detailed",
-		words: "300-375",
-		description: "Comprehensive coverage",
-		icon: "plus",
-		color: "#f59e0b",
-	},
+	brief: { label: "Brief", icon: "minus" as const },
+	normal: { label: "Normal", icon: "sliders" as const },
+	detailed: { label: "Detailed", icon: "plus" as const },
 } as const;
 
 export default function BasicSettings({
@@ -41,7 +23,7 @@ export default function BasicSettings({
 	const options = preset.options || {};
 
 	return (
-		<div className="mt-4 space-y-6">
+		<div className="space-y-6">
 			{/* Preset Name - full width */}
 			<div>
 				<label

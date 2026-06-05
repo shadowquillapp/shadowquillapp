@@ -14,7 +14,7 @@
 | `system-prompts.ts` | Customizable system-prompt template. `DEFAULT_BUILD_PROMPT`, `getSystemPromptBuild`, `ensureSystemPromptBuild`, `setSystemPromptBuild`, `resetSystemPromptBuild`. |
 | `schema.ts` | Hand-rolled type guards (`isRecord`, `isString`, …, `isArrayOf`, `isOneOf`, `safeParse`); `safeParse` never throws, returns default on failure. Zero-dep choice (intentional). |
 | `presets.ts` | **Barrel** (2 lines) re-exporting `TaskType` and `* from "./domain/presets"`. The real module is `./domain/presets.ts`. |
-| `preset-store.ts` | Cross-cutting "recents + last-selected" layer on top of presets. `getRecentPresetKeys`, `trackRecentPreset`, `getLastSelectedPresetKey`, `setLastSelectedPresetKey`, `consumeApplyPreset` (sessionStorage hand-off). |
+| `preset-store.ts` | Cross-cutting "recents + last-selected" layer on top of presets. `getRecentPresetKeys`, `trackRecentPreset`, `getLastSelectedPresetKey`, `setLastSelectedPresetKey`. |
 | `cache.ts` | `SQ_PROMPT_CACHE` — manual sessionStorage LRU-ish prompt cache, consulted before generation. |
 | `prompt-builder-core.ts` | Pure prompt-assembly logic (server/testable). |
 | `prompt-builder-client.ts` | Browser-side wrapper wiring `prompt-builder-core` to React/UI. |

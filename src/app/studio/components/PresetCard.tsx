@@ -14,21 +14,6 @@ export default function PresetCard({
 	isSelected,
 	onSelect,
 }: PresetCardProps) {
-	const capitalize = (s: string | undefined) =>
-		s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
-
-	const taskType = preset.taskType || "general";
-	const detailLabel = capitalize(preset.options?.detail || "normal");
-	const formatMap: Record<string, string> = {
-		markdown: "Markdown",
-		plain: "Plain",
-		xml: "XML",
-	};
-	const formatLabel =
-		formatMap[preset.options?.format || "plain"] ||
-		capitalize(preset.options?.format || "plain");
-
-	// Map task types to icons
 	const getIconForType = (
 		type: string,
 	): import("@/components/Icon").IconName => {
@@ -50,7 +35,7 @@ export default function PresetCard({
 		}
 	};
 
-	const iconName = getIconForType(taskType);
+	const taskType = preset.taskType || "general";
 
 	return (
 		<button
@@ -81,7 +66,6 @@ export default function PresetCard({
 			aria-label={`Select preset: ${preset.name}`}
 			aria-pressed={isSelected}
 		>
-			{/* Icon */}
 			<div
 				className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
 					isSelected ? "shadow-sm" : "text-secondary group-hover:text-light"
@@ -93,37 +77,22 @@ export default function PresetCard({
 					color: isSelected ? "var(--color-on-primary)" : undefined,
 				}}
 			>
-				<Icon name={iconName} className="h-4 w-4" />
+				<Icon name={getIconForType(taskType)} className="h-4 w-4" />
 			</div>
 
-			{/* Content */}
-			<div className="flex min-w-0 flex-1 flex-col">
-				<div className="flex items-center justify-between gap-2 pb-1">
-					<span
-						className={`truncate font-medium text-sm leading-tight ${
-							isSelected
-								? "text-light"
-								: "text-secondary group-hover:text-light"
-						}`}
-					>
-						{preset.name}
-					</span>
-				</div>
-
-				<div className="flex items-center gap-2 text-[10px] text-secondary leading-tight opacity-80">
-					<span className="capitalize">{taskType}</span>
-					<span className="text-[var(--color-outline)]">•</span>
-					<span title={`Detail: ${preset.options?.detail || "Normal"}`}>
-						{detailLabel}
-					</span>
-					<span className="text-[var(--color-outline)]">•</span>
-					<span title={`Format: ${preset.options?.format || "Plain"}`}>
-						{formatLabel}
-					</span>
-				</div>
+			<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
+				<span
+					className={`truncate font-medium text-sm leading-tight ${
+						isSelected ? "text-light" : "text-secondary group-hover:text-light"
+					}`}
+				>
+					{preset.name}
+				</span>
+				<span className="shrink-0 text-[10px] text-secondary capitalize opacity-80">
+					{taskType}
+				</span>
 			</div>
 
-			{/* Selected Indicator (Subtle Dot) */}
 			{isSelected && (
 				<div className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_4px_var(--color-primary)]" />
 			)}

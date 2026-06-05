@@ -162,30 +162,19 @@ export default function PresetStudioPage() {
 		}
 	}, [editingPreset, savePreset, loadPresets]);
 
-	// Handle save as new preset
-	const _handleSaveAs = useCallback(
-		async (newName: string) => {
-			if (!editingPreset) return;
-
-			try {
-				const newPreset = {
-					...editingPreset,
-					id: `preset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-					name: newName,
-				};
-				await savePreset(newPreset);
-				setSelectedPresetId(newPreset.id || null);
-				setEditingPreset(newPreset);
-				setIsDirty(false);
+	// Handle duplicate
+	const handleDuplicate = useCallback(
+		async (presetId: string) => {
+			const duplicated = await duplicatePreset(presetId);
+			if (duplicated) {
 				await loadPresets();
-			} catch (error) {
-				console.error("Failed to save preset:", error);
+				handleSelectPreset(duplicated.id || "");
 			}
 		},
-		[editingPreset, savePreset, loadPresets],
+		[duplicatePreset, loadPresets, handleSelectPreset],
 	);
 
-	// Handle delete
+	// Handle unsaved changes warning
 	const handleDelete = useCallback(
 		async (presetId: string) => {
 			const preset = presets.find((p: PresetLite) => p.id === presetId);
@@ -211,27 +200,7 @@ export default function PresetStudioPage() {
 		[presets, selectedPresetId, deletePreset, loadPresets, confirm],
 	);
 
-	// Handle duplicate
-	const handleDuplicate = useCallback(
-		async (presetId: string, newName?: string) => {
-			const duplicated = await duplicatePreset(presetId);
-			if (duplicated) {
-				// If a new name was provided, immediately rename the duplicated preset
-				if (newName?.trim() && newName !== duplicated.name) {
-					try {
-						await savePreset({ ...duplicated, name: newName.trim() });
-					} catch (e) {
-						console.error("Failed to rename duplicated preset:", e);
-					}
-				}
-				await loadPresets();
-				handleSelectPreset(duplicated.id || "");
-			}
-		},
-		[duplicatePreset, savePreset, loadPresets, handleSelectPreset],
-	);
-
-	// Handle unsaved changes warning
+	// Handle delete
 	useEffect(() => {
 		const handleBeforeUnload = (e: BeforeUnloadEvent) => {
 			if (isDirty) {
@@ -268,7 +237,6 @@ export default function PresetStudioPage() {
 	return (
 		<div className="page-animate flex h-full flex-col bg-surface-0 text-light">
 			<StudioHeader
-				isDirty={isDirty}
 				isSmallScreen={isSmallScreen}
 				onToggleSidebar={() => setSidebarOpen((v) => !v)}
 			/>
@@ -329,7 +297,7 @@ export default function PresetStudioPage() {
 						isDirty={isDirty}
 						onFieldChange={handleFieldChange}
 						onSave={handleSave}
-						onDuplicate={(id, name) => handleDuplicate(id, name)}
+						onDuplicate={handleDuplicate}
 						onDelete={(id) => handleDelete(id)}
 						className="flex h-full flex-1 flex-col overflow-hidden"
 					/>

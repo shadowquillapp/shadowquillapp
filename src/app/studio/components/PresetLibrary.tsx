@@ -3,7 +3,6 @@
 import type React from "react";
 import { useState } from "react";
 import PresetCard from "@/app/studio/components/PresetCard";
-import { CustomSelect } from "@/components/CustomSelect";
 import { Icon } from "@/components/Icon";
 import type { PresetLite } from "@/types";
 
@@ -25,22 +24,8 @@ export default function PresetLibrary({
 	style,
 }: PresetLibraryProps) {
 	const [searchQuery, setSearchQuery] = useState("");
-	const [showFilters, setShowFilters] = useState(false);
-	const [typeFilter, setTypeFilter] = useState<
-		| "all"
-		| "general"
-		| "coding"
-		| "image"
-		| "video"
-		| "research"
-		| "writing"
-		| "marketing"
-	>("all");
 
 	const filteredPresets = presets
-		.filter((preset) =>
-			typeFilter === "all" ? true : preset.taskType === typeFilter,
-		)
 		.filter((preset) => {
 			const query = searchQuery.toLowerCase();
 			return (
@@ -53,12 +38,10 @@ export default function PresetLibrary({
 	return (
 		<section className={className} style={style} aria-label="Preset Library">
 			<div className="flex h-full flex-col">
-				{/* Fixed Header - Material Design Top App Bar style */}
 				<div
 					className="z-10 flex flex-col gap-4 border-[var(--color-outline)] border-b px-6 py-5"
 					style={{ background: "var(--color-surface-variant)" }}
 				>
-					{/* Title & Action */}
 					<div className="flex items-center justify-between">
 						<div className="flex items-center gap-3">
 							<h2 className="font-semibold text-lg text-light tracking-tight">
@@ -84,70 +67,22 @@ export default function PresetLibrary({
 						)}
 					</div>
 
-					{/* Search Bar - Material Filled Input style */}
 					<div className="relative">
-						<div
-							className="relative flex items-center rounded-2xl border border-[var(--color-outline)] transition-colors hover:bg-[var(--color-surface)]"
-							style={{ background: "var(--color-surface)" }}
-						>
-							<Icon
-								name="search"
-								className="absolute left-4 h-4 w-4 text-secondary"
-							/>
-							<input
-								type="search"
-								placeholder="Search presets..."
-								value={searchQuery}
-								onChange={(e) => setSearchQuery(e.target.value)}
-								className="h-11 w-full bg-transparent py-2 pr-11 pl-11 text-light text-sm placeholder:text-secondary/60 focus:outline-none"
-								aria-label="Search presets"
-							/>
-							<button
-								type="button"
-								onClick={() => setShowFilters(!showFilters)}
-								className={`absolute right-2 flex h-8 w-8 cursor-pointer items-center justify-center rounded-xl transition-colors ${
-									showFilters
-										? "bg-primary text-on-primary"
-										: "text-secondary hover:bg-[var(--color-outline)] hover:text-light"
-								}`}
-								title="Filter"
-							>
-								<Icon name="sliders" className="h-4 w-4" />
-							</button>
-						</div>
+						<Icon
+							name="search"
+							className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-secondary"
+						/>
+						<input
+							type="search"
+							placeholder="Search presets..."
+							value={searchQuery}
+							onChange={(e) => setSearchQuery(e.target.value)}
+							className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[var(--color-surface)] py-2 pr-4 pl-11 text-light text-sm placeholder:text-secondary/60 focus:outline-none"
+							aria-label="Search presets"
+						/>
 					</div>
-
-					{/* Expandable Filters Area */}
-					{showFilters && (
-						<div className="slide-in-from-top-2 fade-in grid animate-in grid-cols-1 gap-3 duration-200">
-							<div className="space-y-1">
-								<label
-									htmlFor="type-filter"
-									className="ml-1 font-semibold text-[10px] text-secondary uppercase tracking-wider"
-								>
-									Type
-								</label>
-								<CustomSelect
-									id="type-filter"
-									value={typeFilter}
-									onChange={(v) => setTypeFilter(v as typeof typeFilter)}
-									options={[
-										{ value: "all", label: "All Types" },
-										{ value: "general", label: "General" },
-										{ value: "coding", label: "Coding" },
-										{ value: "image", label: "Image" },
-										{ value: "video", label: "Video" },
-										{ value: "research", label: "Research" },
-										{ value: "writing", label: "Writing" },
-										{ value: "marketing", label: "Marketing" },
-									]}
-								/>
-							</div>
-						</div>
-					)}
 				</div>
 
-				{/* List Container */}
 				<div className="flex-1 overflow-y-auto p-4">
 					{filteredPresets.length === 0 ? (
 						<div className="flex h-full flex-col items-center justify-center p-6 text-center opacity-60">

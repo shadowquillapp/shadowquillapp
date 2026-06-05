@@ -247,10 +247,6 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(`Additional Context:\n${options.additionalContext}`);
 	}
 
-	if (options?.examplesText?.trim()) {
-		sections.push(`Examples:\n${options.examplesText}`);
-	}
-
 	let finalInstruction = `Transform the user input into an enhanced, detailed ${taskType} prompt. 
 
 CRITICAL: Output ONLY the enhanced prompt text. Do NOT include:

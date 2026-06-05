@@ -156,14 +156,6 @@ describe("buildUnifiedPromptCore", () => {
 		expect(result).toContain("This is for a tech blog");
 	});
 
-	it("should include examples when provided", () => {
-		const result = buildUnifiedPromptCore({
-			...defaultParams,
-			options: { examplesText: "Example: Q: What is AI? A: ..." },
-		});
-		expect(result).toContain("Example: Q: What is AI?");
-	});
-
 	it("should handle image task type", () => {
 		const result = buildUnifiedPromptCore({
 			input: "A sunset over mountains",
