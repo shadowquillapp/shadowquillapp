@@ -10,17 +10,16 @@
 
 ## Overview
 
-ShadowQuill transforms natural language ideas into structured, high-quality prompts. Powered by Ollama and Gemma 3, it runs 100% offline, completely local and free.
+ShadowQuill transforms natural language ideas into structured, high-quality prompts. Powered by Ollama and Google Gemma, it runs 100% offline, completely local and free.
 
 ## Quick Start
 
-**Prerequisites:** [Ollama](https://ollama.com) with a Gemma 3 model
+**Prerequisites:** [Ollama](https://ollama.com) with a Google Gemma model
 
 ```bash
-# Download a model (choose based on your RAM)
-ollama pull gemma3:4b   # 8GB+ RAM
-ollama pull gemma3:12b  # 16GB+ RAM
-ollama pull gemma3:27b  # 32GB+ RAM + GPU
+# Download a Google Gemma model
+ollama pull gemma4:e4b  # Gemma 4
+ollama pull gemma3:4b   # Gemma 3
 
 # Clone, install, and run
 git clone https://github.com/shadowquillapp/shadowquillapp.git
@@ -39,7 +38,7 @@ pnpm start
 | **Preset Studio** | Create custom presets with live preview |
 | **Version History** | Track prompt iterations with a visual timeline |
 | **4 Themes** | Earth, Dark Purple, Dark, Light |
-| **Gemma 3 Support** | 4B, 12B, 27B with auto-detection |
+| **Google Gemma Support** | Auto-detection from Ollama |
 
 ### Default Presets
 
