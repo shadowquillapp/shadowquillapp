@@ -2,6 +2,8 @@
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
+	formatOllamaModelName,
+	isSupportedOllamaModelName,
 	listAvailableModels,
 	readLocalModelConfig as readLocalModelConfigClient,
 	validateLocalModelConnection as validateLocalModelConnectionClient,
@@ -159,7 +161,7 @@ export default function ModelConfigGate({ children }: Props) {
 				const duration = Date.now() - start;
 
 				const gemmaModels = models.filter(
-					(m) => m?.name && /^gemma3\b/i.test(m.name),
+					(m) => m?.name && isSupportedOllamaModelName(m.name),
 				);
 				const gemmaModelNames = gemmaModels.map((m) => m.name);
 				setLocalTestResult({
@@ -242,7 +244,7 @@ export default function ModelConfigGate({ children }: Props) {
 			} catch (err) {
 				console.error("Failed to load configuration:", err);
 				if (!cancelled) {
-					setError("Failed to load Gemma 3 configuration");
+					setError("Failed to load Gemma configuration");
 					setShowProviderSelection(true);
 				}
 			} finally {
@@ -370,8 +372,8 @@ export default function ModelConfigGate({ children }: Props) {
 								<div className="modal-header">
 									<div className="modal-title">
 										{validating
-											? "Validating Gemma 3 connection…"
-											: "Loading Gemma 3 configuration…"}
+											? "Validating Gemma connection…"
+											: "Loading Gemma configuration…"}
 									</div>
 								</div>
 								<div className="modal-body">
@@ -577,12 +579,12 @@ export default function ModelConfigGate({ children }: Props) {
 															<div>
 																<p className="shadowquill-status-card__title">
 																	{localTestResult.success
-																		? "Gemma 3 connection successful"
+																		? "Gemma connection successful"
 																		: "Connection failed"}
 																</p>
 																<p className="shadowquill-status-card__body">
 																	{localTestResult.success
-																		? "Found compatible Gemma 3 models ready for use."
+																		? "Found compatible Gemma models ready for use."
 																		: "Could not reach Ollama. Make sure it's running locally."}
 																</p>
 															</div>
@@ -625,12 +627,9 @@ export default function ModelConfigGate({ children }: Props) {
 																localTestResult.models.length > 0 && (
 																	<div className="shadowquill-models-list">
 																		{localTestResult.models.map((m) => {
-																			const size = (
-																				m.name.split(":")[1] || ""
-																			).toUpperCase();
-																			const readable = size
-																				? `Gemma 3 ${size}`
-																				: m.name;
+																			const readable = formatOllamaModelName(
+																				m.name,
+																			);
 																			const sizeInGB = (
 																				m.size /
 																				(1024 * 1024 * 1024)
@@ -656,7 +655,7 @@ export default function ModelConfigGate({ children }: Props) {
 																localTestResult.models &&
 																localTestResult.models.length === 0 && (
 																	<p className="shadowquill-empty-note">
-																		Connected, but Gemma 3 models have not been
+																		Connected, but Gemma models have not been
 																		pulled yet.
 																	</p>
 																)}
@@ -666,9 +665,10 @@ export default function ModelConfigGate({ children }: Props) {
 
 												{!localTestResult && availableModels.length === 0 && (
 													<div className="shadowquill-availability">
-														No Gemma 3 models detected yet. After installing
-														Ollama, run <code>ollama pull gemma3:4b</code> (or
-														your preferred size) and retest.
+														No compatible Gemma models detected yet. After
+														installing Ollama, run{" "}
+														<code>ollama pull gemma4</code> (or your preferred
+														tag) and retest.
 													</div>
 												)}
 
@@ -724,26 +724,23 @@ export default function ModelConfigGate({ children }: Props) {
 						) : null}
 						{showOllamaMissingModal && (
 							<div className="modal-backdrop-blur fixed inset-0 z-50 flex items-center justify-center">
-								<div
-									className="w-full max-w-lg rounded-xl border border-surface-a40 bg-surface-a10 p-6 text-light shadow-2xl"
-									style={{ backgroundColor: "#1e2028", borderColor: "#2d3039" }}
-								>
-									<h2 className="mb-3 font-semibold text-lg text-primary-300">
+								<div className="w-full max-w-lg rounded-xl border border-[var(--color-outline)] bg-[var(--color-surface-variant)] p-6 text-[var(--color-on-surface)] shadow-2xl">
+									<h2 className="mb-3 font-semibold text-[var(--color-primary)] text-lg">
 										Ollama Not Detected
 									</h2>
-									<div className="mb-4 space-y-3 text-sm text-surface-400">
+									<div className="mb-4 space-y-3 text-[var(--color-on-surface-variant)] text-sm">
 										<p>
 											Hmm you don't seem to have <strong>Ollama</strong> running
 											or installed.
 										</p>
 										<p>
 											Make sure it is open and running in the background with
-											your <code>gemma3</code> models pulled and downloaded.
+											your <code>gemma4</code> models pulled and downloaded.
 										</p>
 										<p>
 											If you don't have Ollama, download it here:{" "}
 											<a
-												className="text-primary-300 underline"
+												className="text-[var(--color-primary)] underline"
 												href="https://ollama.com/download"
 												target="_blank"
 												rel="noreferrer"
@@ -751,9 +748,9 @@ export default function ModelConfigGate({ children }: Props) {
 												https://ollama.com/download
 											</a>
 										</p>
-										<p className="text-[11px] text-surface-400">
+										<p className="text-[11px] text-[var(--color-on-surface-variant)]">
 											After installing & starting Ollama, pull a model e.g.:{" "}
-											<code>ollama pull gemma3:4b</code>
+											<code>ollama pull gemma4</code>
 										</p>
 									</div>
 									<div className="flex flex-wrap gap-3">
@@ -761,7 +758,7 @@ export default function ModelConfigGate({ children }: Props) {
 											type="button"
 											data-testid="shadowquill-retry-detection-button"
 											onClick={retryOllamaDetection}
-											className="interactive-glow flex-1 rounded-md bg-primary py-2 font-medium text-light text-sm hover:bg-primary-200"
+											className="interactive-glow flex-1 rounded-md bg-[var(--color-primary)] py-2 font-medium text-[var(--color-on-primary)] text-sm hover:bg-[var(--color-primary-variant)]"
 										>
 											Retry Detection
 										</button>

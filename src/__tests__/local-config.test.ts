@@ -59,6 +59,21 @@ describe("local-config", () => {
 			});
 		});
 
+		it("should normalize stored base URLs before returning config", () => {
+			localStorage.setItem("MODEL_PROVIDER", '"ollama"');
+			localStorage.setItem(
+				"MODEL_BASE_URL",
+				'"http://localhost:11434/custom/path/"',
+			);
+			localStorage.setItem("MODEL_NAME", '"gemma3:4b"');
+
+			expect(readLocalModelConfig()).toEqual({
+				provider: "ollama",
+				baseUrl: "http://localhost:11434",
+				model: "gemma3:4b",
+			});
+		});
+
 		it("should always return provider as 'ollama' regardless of stored value", () => {
 			localStorage.setItem("MODEL_PROVIDER", '"other-provider"');
 			localStorage.setItem("MODEL_BASE_URL", '"http://localhost:11434"');
@@ -214,6 +229,25 @@ describe("local-config", () => {
 			expect(result).toEqual({ ok: true });
 		});
 
+		it("should return ok for Gemma 4 models", async () => {
+			const config = {
+				provider: "ollama" as const,
+				baseUrl: "http://localhost:11434",
+				model: "gemma4:e4b",
+			};
+
+			global.fetch = vi.fn().mockResolvedValue({
+				ok: true,
+				json: () =>
+					Promise.resolve({
+						models: [{ name: "gemma4:e4b" }],
+					}),
+			});
+
+			const result = await validateLocalModelConnection(config);
+			expect(result).toEqual({ ok: true });
+		});
+
 		it("should match model by id if name is not available", async () => {
 			const config = {
 				provider: "ollama" as const,
@@ -356,12 +390,18 @@ describe("local-config", () => {
 			expect(result).toEqual([]);
 		});
 
-		it("should filter to only allowed Gemma 3 models", async () => {
+		it("should filter to only allowed Gemma models", async () => {
 			global.fetch = vi.fn().mockResolvedValue({
 				ok: true,
 				json: () =>
 					Promise.resolve({
 						models: [
+							{ name: "gemma4:latest", size: 900 },
+							{ name: "gemma4:e2b", size: 950 },
+							{ name: "gemma4:e4b", size: 1000 },
+							{ name: "gemma4:12b", size: 1500 },
+							{ name: "gemma4:26b", size: 2500 },
+							{ name: "gemma4:31b", size: 3100 },
 							{ name: "gemma3:4b", size: 1000 },
 							{ name: "gemma3:12b", size: 2000 },
 							{ name: "gemma3:27b", size: 3000 },
@@ -373,8 +413,14 @@ describe("local-config", () => {
 
 			const result = await listAvailableModels("http://localhost:11434");
 
-			expect(result).toHaveLength(3);
+			expect(result).toHaveLength(9);
 			expect(result.map((m) => m.name)).toEqual([
+				"gemma4:latest",
+				"gemma4:e2b",
+				"gemma4:e4b",
+				"gemma4:12b",
+				"gemma4:26b",
+				"gemma4:31b",
 				"gemma3:4b",
 				"gemma3:12b",
 				"gemma3:27b",
@@ -406,8 +452,11 @@ describe("local-config", () => {
 				json: () =>
 					Promise.resolve({
 						models: [
+							{ name: "gemma4:31b", size: 3100 },
 							{ name: "gemma3:27b", size: 3000 },
+							{ name: "gemma4:latest", size: 900 },
 							{ name: "gemma3:4b", size: 1000 },
+							{ name: "gemma4:e4b", size: 1000 },
 							{ name: "gemma3:12b", size: 2000 },
 						],
 					}),
@@ -416,6 +465,9 @@ describe("local-config", () => {
 			const result = await listAvailableModels("http://localhost:11434");
 
 			expect(result.map((m) => m.name)).toEqual([
+				"gemma4:latest",
+				"gemma4:e4b",
+				"gemma4:31b",
 				"gemma3:4b",
 				"gemma3:12b",
 				"gemma3:27b",
@@ -482,7 +534,16 @@ describe("local-config", () => {
 
 			expect(global.fetch).toHaveBeenCalledWith(
 				"http://localhost:11434/api/tags",
+				expect.any(Object),
 			);
+		});
+
+		it("should return empty array when fetch rejects", async () => {
+			global.fetch = vi.fn().mockRejectedValue(new Error("network down"));
+
+			const result = await listAvailableModels("http://localhost:11434");
+
+			expect(result).toEqual([]);
 		});
 
 		it("should handle missing models field in response", async () => {

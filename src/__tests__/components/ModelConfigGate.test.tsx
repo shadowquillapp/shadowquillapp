@@ -19,6 +19,14 @@ const mockValidateLocalModelConnection = vi.fn();
 const mockListAvailableModels = vi.fn();
 
 vi.mock("@/lib/local-config", () => ({
+	formatOllamaModelName: (name: string) => {
+		const [family, tag] = name.toLowerCase().split(":");
+		if (family === "gemma4") return `Gemma 4 ${(tag || "").toUpperCase()}`;
+		if (family === "gemma3") return `Gemma 3 ${(tag || "").toUpperCase()}`;
+		return name;
+	},
+	isSupportedOllamaModelName: (name: string) =>
+		/^(gemma4:(latest|e2b|e4b|12b|26b|31b)|gemma3:(4b|12b|27b))$/i.test(name),
 	readLocalModelConfig: () => mockReadLocalModelConfig(),
 	writeLocalModelConfig: (config: unknown) => mockWriteLocalModelConfig(config),
 	validateLocalModelConnection: (config: unknown) =>
@@ -3754,7 +3762,7 @@ describe("ModelConfigGate", () => {
 			await waitFor(
 				() => {
 					const validatingText = screen.queryByText(
-						/Validating Gemma 3 connection/i,
+						/Validating Gemma connection/i,
 					);
 					return validatingText !== null;
 				},
@@ -3800,7 +3808,7 @@ describe("ModelConfigGate", () => {
 			await waitFor(
 				() => {
 					const validatingText = screen.queryByText(
-						/Validating Gemma 3 connection/i,
+						/Validating Gemma connection/i,
 					);
 					return validatingText !== null;
 				},

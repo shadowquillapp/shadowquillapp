@@ -2,7 +2,10 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import { readLocalModelConfig } from "@/lib/local-config";
+import {
+	formatOllamaModelName,
+	readLocalModelConfig,
+} from "@/lib/local-config";
 import { Icon } from "./Icon";
 
 interface ShadowQuillWindowApi {
@@ -67,7 +70,6 @@ export default function Titlebar() {
 		ram: number;
 		gpu: string;
 	} | null>(null);
-	const [_recommendation, setRecommendation] = useState<string | null>(null);
 	const [currentModelId, setCurrentModelId] = useState<string | null>(null);
 
 	useEffect(() => {
@@ -81,16 +83,6 @@ export default function Titlebar() {
 				const specsValue = await win.shadowquill?.getSystemSpecs?.();
 				if (specsValue) {
 					setSpecs(specsValue);
-
-					// Recommendation Logic
-					const ramGB = specsValue.ram / (1024 * 1024 * 1024);
-					if (ramGB < 16) {
-						setRecommendation("gemma3:4b");
-					} else if (ramGB < 40) {
-						setRecommendation("gemma3:12b");
-					} else {
-						setRecommendation("gemma3:27b");
-					}
 				}
 			} catch {
 				// Fallback: not in Electron or API not available
@@ -139,7 +131,6 @@ export default function Titlebar() {
 	}, []);
 
 	const isMac = platform === "darwin";
-	const _isWindows = platform === "win32";
 
 	// Filter out unwanted terms from CPU string
 	const cleanCpuName = (cpuName: string) => {
@@ -206,7 +197,7 @@ export default function Titlebar() {
 		<div
 			className={`flex items-center gap-2 px-2 font-medium text-[10px] ${isMac ? "mr-2" : "ml-2"}`}
 		>
-			<div className="flex items-center gap-2 rounded-full border border-transparent bg-white/0 px-2 py-0.5 text-zinc-500 transition-all hover:border-white/10 hover:bg-white/5 hover:text-zinc-300">
+			<div className="flex items-center gap-2 rounded-full border border-transparent bg-transparent px-2 py-0.5 text-[var(--color-on-surface-variant)] transition-colors hover:border-[var(--color-outline)] hover:bg-[var(--color-surface-variant)] hover:text-[var(--color-on-surface)]">
 				<div
 					className={
 						"flex items-center rounded-md py-0.5 font-bold text-[10px]"
@@ -222,9 +213,7 @@ export default function Titlebar() {
 					}
 				>
 					<span className="uppercase tracking-wide">
-						{currentModelId
-							? `Gemma 3 ${(currentModelId.split(":")[1] || "").toUpperCase()}`
-							: "Gemma 3 —"}
+						{currentModelId ? formatOllamaModelName(currentModelId) : "Gemma —"}
 					</span>
 				</div>
 				<div

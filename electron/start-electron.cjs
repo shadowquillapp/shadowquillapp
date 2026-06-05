@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // @ts-nocheck
-const { spawn } = require("node:child_process");
+const { spawn, spawnSync } = require("node:child_process");
 const path = require("node:path");
 const { URL } = require("node:url");
 const isProd = process.argv.includes("--prod");
@@ -111,7 +111,7 @@ function startNext() {
 						prodServer.listen(31415, "127.0.0.1", (err) => {
 							if (err) return rej(err);
 							console.log(
-								"[start-electron] Production server listening on http://localhost:31415",
+								"[start-electron] Production server listening on http://127.0.0.1:31415",
 							);
 							r(undefined);
 						});
@@ -133,12 +133,24 @@ function cleanup() {
 	if (nextDevServer && !nextDevServer.killed) {
 		console.log("[start-electron] Killing Next.js dev server...");
 		try {
-			nextDevServer.kill("SIGTERM");
-			setTimeout(() => {
-				if (nextDevServer && !nextDevServer.killed) {
-					nextDevServer.kill("SIGKILL");
+			if (process.platform === "win32") {
+				if (nextDevServer.pid) {
+					spawnSync(
+						"taskkill",
+						["/PID", String(nextDevServer.pid), "/T", "/F"],
+						{
+							stdio: "ignore",
+						},
+					);
 				}
-			}, 2000);
+			} else {
+				nextDevServer.kill("SIGTERM");
+				setTimeout(() => {
+					if (nextDevServer && !nextDevServer.killed) {
+						nextDevServer.kill("SIGKILL");
+					}
+				}, 2000);
+			}
 		} catch (e) {
 			console.error("[start-electron] Error killing Next.js dev server:", e);
 		}

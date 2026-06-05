@@ -18,7 +18,6 @@ export default function OllamaConnectionMonitor() {
 	const { confirm } = useDialog();
 	const [isMonitoring, setIsMonitoring] = useState(false);
 	const lastKnownStatusRef = useRef<boolean | null>(null);
-	const [_isOpeningOllama, setIsOpeningOllama] = useState(false);
 	const ollamaInstalledRef = useRef<boolean | null>(null);
 
 	const checkOllamaInstalled = useCallback(async (): Promise<
@@ -40,19 +39,15 @@ export default function OllamaConnectionMonitor() {
 
 	const handleOpenOrInstallOllama = useCallback(
 		async (isInstalled: boolean | null) => {
-			setIsOpeningOllama(true);
-
 			try {
 				const win = window as WindowWithShadowQuill;
 
 				if (isInstalled === false) {
 					window.open("https://ollama.com/download", "_blank");
-					setIsOpeningOllama(false);
 					return;
 				}
 
 				if (!win.shadowquill?.openOllama) {
-					setIsOpeningOllama(false);
 					return;
 				}
 
@@ -65,8 +60,6 @@ export default function OllamaConnectionMonitor() {
 				}
 			} catch (e: unknown) {
 				console.error("Failed to open Ollama:", e);
-			} finally {
-				setIsOpeningOllama(false);
 			}
 		},
 		[],

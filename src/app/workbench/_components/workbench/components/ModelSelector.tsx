@@ -1,4 +1,9 @@
-import { writeLocalModelConfig as writeLocalModelConfigClient } from "@/lib/local-config";
+import {
+	formatOllamaModelName,
+	isSupportedOllamaModelName,
+	SUPPORTED_OLLAMA_MODELS,
+	writeLocalModelConfig as writeLocalModelConfigClient,
+} from "@/lib/local-config";
 
 interface ModelSelectorProps {
 	availableModels: Array<{ name: string; size: number }>;
@@ -8,7 +13,7 @@ interface ModelSelectorProps {
 }
 
 /**
- * Vertical slider model selector component for choosing between Gemma 3 model sizes.
+ * Vertical slider model selector component for choosing between installed Gemma models.
  */
 export function ModelSelector({
 	availableModels,
@@ -16,11 +21,30 @@ export function ModelSelector({
 	setCurrentModelId,
 	isGenerating,
 }: ModelSelectorProps) {
-	const models = [
-		{ label: "4B", id: "gemma3:4b" },
-		{ label: "12B", id: "gemma3:12b" },
-		{ label: "27B", id: "gemma3:27b" },
-	];
+	const modelIds = Array.from(
+		new Set(
+			(availableModels.length > 0
+				? availableModels.map((model) => model.name)
+				: SUPPORTED_OLLAMA_MODELS
+			)
+				.filter(isSupportedOllamaModelName)
+				.map((id) => id.toLowerCase()),
+		),
+	);
+	const models = modelIds.map((id) => {
+		const tag = id.split(":")[1] || id;
+		return {
+			id,
+			displayName: formatOllamaModelName(id),
+			label:
+				id.startsWith("gemma3:") && tag
+					? `3 ${tag.toUpperCase()}`
+					: tag === "latest"
+						? "Latest"
+						: tag.toUpperCase(),
+		};
+	});
+	const selectorHeight = `min(${Math.max(80, models.length * 26 + 28)}px, 56vh)`;
 
 	return (
 		<div
@@ -37,10 +61,10 @@ export function ModelSelector({
 			<div
 				className="relative"
 				style={{
-					width: "min(80px, 16vw)",
-					height: "min(80px, 16vw)",
-					minWidth: "54px",
-					minHeight: "54px",
+					width: "min(96px, 18vw)",
+					height: selectorHeight,
+					minWidth: "72px",
+					minHeight: "80px",
 				}}
 			>
 				{/* Slider container */}
@@ -66,7 +90,7 @@ export function ModelSelector({
 							marginBottom: "var(--space-1)",
 						}}
 					>
-						GEMMA 3
+						GEMMA
 					</div>
 					{/* Stops */}
 					<div
@@ -75,9 +99,9 @@ export function ModelSelector({
 					>
 						{models.map((model) => {
 							const isInstalled = availableModels.some(
-								(m) => m.name === model.id,
+								(m) => m.name.toLowerCase() === model.id,
 							);
-							const isActive = currentModelId === model.id;
+							const isActive = currentModelId?.toLowerCase() === model.id;
 							return (
 								<button
 									key={model.id}
@@ -104,8 +128,8 @@ export function ModelSelector({
 									}`}
 									title={
 										isInstalled
-											? `Switch to Gemma 3 ${model.label}`
-											: `Gemma 3 ${model.label} is not installed`
+											? `Switch to ${model.displayName}`
+											: `${model.displayName} is not installed`
 									}
 									aria-pressed={isActive}
 									style={{
