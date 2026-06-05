@@ -92,11 +92,6 @@ export default function PromptWorkbench() {
 		}
 	}, []);
 
-	const _modelIds = useMemo(
-		() => ["gemma3:4b", "gemma3:12b", "gemma3:27b"],
-		[],
-	);
-
 	useEffect(() => {
 		const handler = (e: Event) => {
 			try {
@@ -182,11 +177,6 @@ export default function PromptWorkbench() {
 
 	const activeVersionIsRefinement =
 		activeVersion?.metadata?.isRefinement === true;
-
-	const _contextVersion =
-		activeVersionIsRefinement && activeVersion?.metadata?.refinedVersionId
-			? activeTab?.versionGraph.nodes[activeVersion.metadata.refinedVersionId]
-			: activeVersion;
 
 	const outputToRefine = activeVersion?.outputMessageId
 		? activeMessages.find(

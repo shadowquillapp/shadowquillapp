@@ -1,6 +1,7 @@
 const path = require("node:path");
 const fs = require("node:fs");
 const { ipcMain, app, session } = require("electron");
+const { requireValidIpcSender } = require("../utils/ipc-security.cjs");
 
 let httpServer = null;
 
@@ -58,6 +59,13 @@ function saveStorageData(data) {
 }
 
 function registerDataIPCHandlers() {
+	const secureHandle = (channel, handler) => {
+		ipcMain.handle(channel, (event, ...args) => {
+			requireValidIpcSender(event);
+			return handler(event, ...args);
+		});
+	};
+
 	const handlerNames = [
 		"shadowquill:getDataPaths",
 		"shadowquill:factoryReset",
@@ -76,7 +84,7 @@ function registerDataIPCHandlers() {
 		} catch (_) {}
 	}
 
-	ipcMain.handle("shadowquill:getDataPaths", () => {
+	secureHandle("shadowquill:getDataPaths", () => {
 		try {
 			const userData = app.getPath("userData");
 			const localStorageDir = path.join(userData, "Local Storage");
@@ -92,7 +100,7 @@ function registerDataIPCHandlers() {
 		}
 	});
 
-	ipcMain.handle("shadowquill:factoryReset", async () => {
+	secureHandle("shadowquill:factoryReset", async () => {
 		try {
 			console.log(
 				"[Factory Reset] Triggered. Clearing all data and closing...",
@@ -127,8 +135,14 @@ function registerDataIPCHandlers() {
 
 			// Step 3: Clear session storage and cache
 			try {
-				await session.defaultSession.clearStorageData();
-				await session.defaultSession.clearCache();
+				const sessions = [
+					session.defaultSession,
+					session.fromPartition("persist:main"),
+				];
+				for (const targetSession of sessions) {
+					await targetSession.clearStorageData();
+					await targetSession.clearCache();
+				}
 			} catch (e) {
 				console.warn("[Factory Reset] Session clear warning:", e);
 			}
@@ -171,7 +185,7 @@ function registerDataIPCHandlers() {
 		}
 	});
 
-	ipcMain.handle("shadowquill:restartApp", async () => {
+	secureHandle("shadowquill:restartApp", async () => {
 		try {
 			console.log("[Restart] Initiating app restart...");
 
@@ -211,7 +225,7 @@ function registerDataIPCHandlers() {
 		}
 	});
 
-	ipcMain.handle("shadowquill:getEnvSafety", () => {
+	secureHandle("shadowquill:getEnvSafety", () => {
 		const {
 			checkAndOptionallyClearZoneIdentifier,
 		} = require("../utils/data-paths.cjs");
@@ -226,7 +240,7 @@ function registerDataIPCHandlers() {
 		};
 	});
 
-	ipcMain.handle("shadowquill:storage:getItem", (_, key) => {
+	secureHandle("shadowquill:storage:getItem", (_, key) => {
 		try {
 			const data = loadStorageData();
 			return data[key] ?? null;
@@ -236,7 +250,7 @@ function registerDataIPCHandlers() {
 		}
 	});
 
-	ipcMain.handle("shadowquill:storage:setItem", (_, key, value) => {
+	secureHandle("shadowquill:storage:setItem", (_, key, value) => {
 		try {
 			const data = loadStorageData();
 			data[key] = value;
@@ -247,7 +261,7 @@ function registerDataIPCHandlers() {
 		}
 	});
 
-	ipcMain.handle("shadowquill:storage:removeItem", (_, key) => {
+	secureHandle("shadowquill:storage:removeItem", (_, key) => {
 		try {
 			const data = loadStorageData();
 			delete data[key];
@@ -258,7 +272,7 @@ function registerDataIPCHandlers() {
 		}
 	});
 
-	ipcMain.handle("shadowquill:storage:clear", () => {
+	secureHandle("shadowquill:storage:clear", () => {
 		try {
 			return saveStorageData({});
 		} catch (e) {
@@ -267,7 +281,7 @@ function registerDataIPCHandlers() {
 		}
 	});
 
-	ipcMain.handle("shadowquill:storage:getAll", () => {
+	secureHandle("shadowquill:storage:getAll", () => {
 		try {
 			return loadStorageData();
 		} catch (e) {

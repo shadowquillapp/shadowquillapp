@@ -55,7 +55,10 @@ export function readLocalModelConfig(): LocalModelConfig | null {
 		return null;
 	}
 	const candidate = { provider: "ollama" as const, baseUrl, model };
-	return isLocalModelConfig(candidate) ? candidate : null;
+	const validBaseUrl = validateOllamaBaseUrl(candidate.baseUrl);
+	return isLocalModelConfig(candidate) && validBaseUrl
+		? { ...candidate, baseUrl: validBaseUrl }
+		: null;
 }
 
 export function writeLocalModelConfig(cfg: LocalModelConfig): void {

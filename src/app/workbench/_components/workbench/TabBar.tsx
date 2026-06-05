@@ -1,3 +1,5 @@
+"use client";
+
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import type { PromptPresetSummary } from "./types";

@@ -18,8 +18,23 @@
 		]
 	},
 	"formatter": { "enabled": true },
+	"assist": {
+		"enabled": true,
+		"actions": {
+			"source": {
+				"organizeImports": { "level": "on" }
+			}
+		}
+	},
 	"linter": {
 		"enabled": true,
+		"domains": {
+			"react": "recommended",
+			"next": "recommended",
+			"test": "recommended",
+			"types": "recommended",
+			"tailwind": "recommended"
+		},
 		"rules": {
 			"nursery": {
 				"useSortedClasses": {

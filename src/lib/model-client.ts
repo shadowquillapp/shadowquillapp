@@ -108,13 +108,12 @@ export async function callLocalModelClient(
 		// Helper: unwrap a single outer fenced block and return its inner content
 		const unwrapOuterFence = (
 			text: string,
-		): { inner: string; stripped: boolean; lang: string } => {
+		): { inner: string; stripped: boolean } => {
 			const fenceMatch = text.match(
 				/^\s*```([^\n]*)\n?([\s\S]*?)\n```[\s\r]*$/,
 			);
-			if (!fenceMatch) return { inner: text, stripped: false, lang: "" };
-			const lang = (fenceMatch[1] || "").trim().toLowerCase();
-			return { inner: fenceMatch[2] || "", stripped: true, lang };
+			if (!fenceMatch) return { inner: text, stripped: false };
+			return { inner: fenceMatch[2] || "", stripped: true };
 		};
 
 		if (requestedFormat === "markdown") {

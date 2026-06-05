@@ -42,7 +42,6 @@ app.commandLine.appendSwitch("--disable-http-cache");
 app.commandLine.appendSwitch("--disable-background-networking");
 app.commandLine.appendSwitch("--disable-disk-cache");
 app.commandLine.appendSwitch("--disable-back-forward-cache");
-app.commandLine.appendSwitch("--disable-hang-monitor");
 app.commandLine.appendSwitch("--disable-prompt-on-repost");
 app.commandLine.appendSwitch(
 	"--disable-component-extensions-with-background-pages",
@@ -54,10 +53,7 @@ app.commandLine.appendSwitch(
 app.commandLine.appendSwitch(
 	"--disable-features=VizDisplayCompositor,VizHitTestSurfaceLayer",
 );
-app.commandLine.appendSwitch("--disable-background-timer-throttling");
-app.commandLine.appendSwitch("--disable-renderer-backgrounding");
 app.commandLine.appendSwitch("--disable-features=TranslateUI");
-app.commandLine.appendSwitch("--disable-ipc-flooding-protection");
 
 const os = require("node:os");
 const tempCachePath = require("node:path").join(
@@ -83,6 +79,7 @@ const {
 const { createWindow } = require("./utils/window-manager.cjs");
 const { createApplicationMenu } = require("./utils/menu.cjs");
 const { setupSecurity } = require("./utils/security.cjs");
+const { addAllowedAppOrigin } = require("./utils/ipc-security.cjs");
 const { startNextServer, getServerPort } = require("./utils/next-server.cjs");
 
 app.whenReady().then(async () => {
@@ -106,8 +103,9 @@ app.whenReady().then(async () => {
 		const serverResult = await startNextServer();
 		if (serverResult?.port) {
 			setHttpServer(serverResult.server);
+			addAllowedAppOrigin(`http://127.0.0.1:${serverResult.port}`);
 			const win = createWindow(isDev);
-			win.loadURL(`http://localhost:${serverResult.port}`).catch((err) => {
+			win.loadURL(`http://127.0.0.1:${serverResult.port}`).catch((err) => {
 				console.error("Failed to load server URL", err);
 				const { dialog } = require("electron");
 				dialog.showErrorBox(
@@ -134,7 +132,8 @@ app.whenReady().then(async () => {
 			if (!isDev) {
 				const port = getServerPort();
 				if (port) {
-					win.loadURL(`http://localhost:${port}`).catch((err) => {
+					addAllowedAppOrigin(`http://127.0.0.1:${port}`);
+					win.loadURL(`http://127.0.0.1:${port}`).catch((err) => {
 						console.error("Failed to load server URL on activate", err);
 						const { dialog } = require("electron");
 						dialog.showErrorBox(

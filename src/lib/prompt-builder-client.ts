@@ -14,6 +14,7 @@ import {
 	getPromptCache,
 	saveToSessionCache,
 } from "./cache";
+import { ValidationError } from "./errors";
 import {
 	DEFAULT_BUILD_PROMPT,
 	ensureSystemPromptBuild,
@@ -48,14 +49,17 @@ export async function buildUnifiedPrompt({
 
 	// Validate input first (always runs, no caching for validation)
 	const validationError = validateBuilderInput(rawUserInput, taskType);
-	if (validationError) return validationError;
+	if (validationError) throw new ValidationError(validationError);
+
+	const storedPrompt = ensureSystemPromptBuild();
+	const systemPrompt = storedPrompt?.trim() || DEFAULT_BUILD_PROMPT;
+	const cacheOptions: Record<string, unknown> = {
+		...(options ?? {}),
+		systemPrompt,
+	};
 
 	// Generate cache key
-	const cacheKey = createPromptCacheKey(
-		rawUserInput,
-		taskType,
-		options as Record<string, unknown>,
-	);
+	const cacheKey = createPromptCacheKey(rawUserInput, taskType, cacheOptions);
 
 	// Check caches if not skipping
 	if (!skipCache) {
@@ -75,9 +79,6 @@ export async function buildUnifiedPrompt({
 	}
 
 	// Level 3: Generate fresh prompt
-	const storedPrompt = ensureSystemPromptBuild();
-	const systemPrompt = storedPrompt?.trim() || DEFAULT_BUILD_PROMPT;
-
 	const generatedPrompt = buildUnifiedPromptCore({
 		input: rawUserInput,
 		taskType,
@@ -133,7 +134,9 @@ export async function buildRefinementPrompt({
 
 	// Validate the refinement request (must have some content)
 	if (!trimmedRequest) {
-		return "Please provide a refinement request describing what to change.";
+		throw new ValidationError(
+			"Please provide a refinement request describing what to change.",
+		);
 	}
 
 	// Generate the refinement prompt (no caching for refinements as they depend on previous output)

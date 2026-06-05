@@ -18,7 +18,6 @@ export interface CacheOptions {
 interface CacheEntry<T> {
 	value: T;
 	timestamp: number;
-	accessCount: number;
 }
 
 // ============================================
@@ -54,8 +53,7 @@ export class LRUCache<K, V> {
 			return undefined;
 		}
 
-		// Update access count and move to end (most recently used)
-		entry.accessCount++;
+		// Move to end (most recently used)
 		this.cache.delete(key);
 		this.cache.set(key, entry);
 
@@ -86,7 +84,6 @@ export class LRUCache<K, V> {
 		this.cache.set(key, {
 			value,
 			timestamp: Date.now(),
-			accessCount: 1,
 		});
 	}
 

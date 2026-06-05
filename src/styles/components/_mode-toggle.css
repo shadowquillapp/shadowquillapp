@@ -42,7 +42,7 @@
 	font-weight: 500;
 	cursor: pointer;
 	border-radius: 18px;
-	transition: all 200ms ease;
+	transition: color 200ms ease;
 	z-index: 2;
 	position: relative;
 }

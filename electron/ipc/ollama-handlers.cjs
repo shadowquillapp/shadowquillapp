@@ -2,8 +2,20 @@
 const path = require("node:path");
 const fs = require("node:fs");
 const { ipcMain } = require("electron");
+const { requireValidIpcSender } = require("../utils/ipc-security.cjs");
 
-ipcMain.handle("shadowquill:checkOllamaInstalled", async () => {
+function spawnDetached(spawn, command, args = []) {
+	const child = spawn(command, args, {
+		detached: true,
+		stdio: "ignore",
+		windowsHide: true,
+	});
+	child.unref();
+	return child;
+}
+
+ipcMain.handle("shadowquill:checkOllamaInstalled", async (event) => {
+	requireValidIpcSender(event);
 	try {
 		if (process.platform === "darwin") {
 			const { execSync } = require("node:child_process");
@@ -52,7 +64,8 @@ ipcMain.handle("shadowquill:checkOllamaInstalled", async () => {
 	}
 });
 
-ipcMain.handle("shadowquill:openOllama", async () => {
+ipcMain.handle("shadowquill:openOllama", async (event) => {
+	requireValidIpcSender(event);
 	try {
 		const { spawn } = require("node:child_process");
 
@@ -76,7 +89,7 @@ ipcMain.handle("shadowquill:openOllama", async () => {
 			for (const ollamaPath of possiblePaths) {
 				try {
 					if (ollamaPath !== "ollama" && !fs.existsSync(ollamaPath)) continue;
-					spawn(ollamaPath, [], { detached: true, stdio: "ignore" });
+					spawnDetached(spawn, ollamaPath);
 					launched = true;
 					break;
 				} catch (_) {}
@@ -92,14 +105,11 @@ ipcMain.handle("shadowquill:openOllama", async () => {
 		}
 
 		try {
-			spawn("systemctl", ["--user", "start", "ollama"], {
-				detached: true,
-				stdio: "ignore",
-			});
+			spawnDetached(spawn, "systemctl", ["--user", "start", "ollama"]);
 			return { ok: true };
 		} catch (_) {
 			try {
-				spawn("ollama", ["serve"], { detached: true, stdio: "ignore" });
+				spawnDetached(spawn, "ollama", ["serve"]);
 				return { ok: true };
 			} catch (_) {
 				return {

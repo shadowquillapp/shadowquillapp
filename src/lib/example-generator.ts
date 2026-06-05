@@ -1,6 +1,6 @@
 /**
  * AI-powered example generator for presets
- * Uses Gemma 3 to generate contextually relevant example inputs,
+ * Uses Gemma to generate contextually relevant example inputs,
  * then generates outputs using the prompt builder
  */
 import type { PresetExample, PresetLite, TaskType } from "@/types";
@@ -257,7 +257,7 @@ function parseExampleInputs(response: string): [string, string] | null {
 }
 
 /**
- * Generate example inputs using Gemma 3
+ * Generate example inputs using Gemma
  */
 async function generateExampleInputs(
 	preset: PresetLite,

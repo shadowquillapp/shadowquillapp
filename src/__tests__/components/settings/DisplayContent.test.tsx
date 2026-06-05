@@ -7,10 +7,7 @@ describe("DisplayContent", () => {
 	const mockViewApi = {
 		getZoomFactor: vi.fn<() => Promise<number>>(),
 		setZoomFactor: vi.fn<(factor: number) => Promise<void>>(),
-		onZoomChanged:
-			vi.fn<
-				(callback: (event: unknown, factor: number) => void) => () => void
-			>(),
+		onZoomChanged: vi.fn<(callback: (factor: number) => void) => () => void>(),
 	};
 	const mockWindowApi = {
 		getSize: vi.fn(),
@@ -301,12 +298,10 @@ describe("DisplayContent", () => {
 
 	describe("zoom listener", () => {
 		it("should update zoom when onZoomChanged callback is triggered", async () => {
-			let zoomChangedCallback:
-				| ((event: unknown, factor: number) => void)
-				| null = null;
+			let zoomChangedCallback: ((factor: number) => void) | null = null;
 			mockViewApi.onZoomChanged.mockImplementation(
-				(cb: (event: unknown, factor: number) => void) => {
-					zoomChangedCallback = cb as (event: unknown, factor: number) => void;
+				(cb: (factor: number) => void) => {
+					zoomChangedCallback = cb;
 					return () => {}; // unsubscribe function
 				},
 			);
@@ -320,10 +315,7 @@ describe("DisplayContent", () => {
 
 			// Trigger zoom change via callback
 			if (zoomChangedCallback) {
-				(zoomChangedCallback as (event: unknown, factor: number) => void)(
-					{},
-					1.2,
-				);
+				zoomChangedCallback(1.2);
 			}
 
 			await waitFor(() => {
@@ -332,12 +324,10 @@ describe("DisplayContent", () => {
 		});
 
 		it("should ignore non-finite zoom values", async () => {
-			let zoomChangedCallback:
-				| ((event: unknown, factor: number) => void)
-				| null = null;
+			let zoomChangedCallback: ((factor: number) => void) | null = null;
 			mockViewApi.onZoomChanged.mockImplementation(
-				(cb: (event: unknown, factor: number) => void) => {
-					zoomChangedCallback = cb as (event: unknown, factor: number) => void;
+				(cb: (factor: number) => void) => {
+					zoomChangedCallback = cb;
 					return () => {};
 				},
 			);
@@ -351,14 +341,8 @@ describe("DisplayContent", () => {
 
 			// Trigger with invalid values
 			if (zoomChangedCallback) {
-				(zoomChangedCallback as (event: unknown, factor: number) => void)(
-					{},
-					Number.NaN,
-				);
-				(zoomChangedCallback as (event: unknown, factor: number) => void)(
-					{},
-					Number.POSITIVE_INFINITY,
-				);
+				zoomChangedCallback(Number.NaN);
+				zoomChangedCallback(Number.POSITIVE_INFINITY);
 			}
 
 			// Should still show 100%

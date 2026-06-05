@@ -247,7 +247,11 @@
 	font-size: 13px;
 	font-weight: 500;
 	color: var(--color-on-surface-variant);
-	transition: all 150ms ease;
+	transition:
+		background 150ms ease,
+		border-color 150ms ease,
+		box-shadow 150ms ease,
+		color 150ms ease;
 	margin-top: var(--space-2);
 }
 

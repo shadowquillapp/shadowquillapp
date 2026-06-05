@@ -10,6 +10,14 @@ const mockValidateLocalModelConnection = vi.fn();
 const mockListAvailableModels = vi.fn();
 
 vi.mock("@/lib/local-config", () => ({
+	formatOllamaModelName: (name: string) => {
+		const [family, tag] = name.toLowerCase().split(":");
+		if (family === "gemma4") return `Gemma 4 ${(tag || "").toUpperCase()}`;
+		if (family === "gemma3") return `Gemma 3 ${(tag || "").toUpperCase()}`;
+		return name;
+	},
+	isSupportedOllamaModelName: (name: string) =>
+		/^(gemma4:(latest|e2b|e4b|12b|26b|31b)|gemma3:(4b|12b|27b))$/i.test(name),
 	readLocalModelConfig: () => mockReadLocalModelConfig(),
 	writeLocalModelConfig: (config: unknown) => mockWriteLocalModelConfig(config),
 	validateLocalModelConnection: (config: unknown) =>
@@ -40,7 +48,9 @@ describe("OllamaSetupContent", () => {
 		it("should render the Ollama setup form", () => {
 			render(<OllamaSetupContent />);
 			expect(screen.getByText("Secure Ollama bridge")).toBeInTheDocument();
-			expect(screen.getByText("Local inference (Gemma 3)")).toBeInTheDocument();
+			expect(
+				screen.getByText("Local inference (Gemma 4 / 3)"),
+			).toBeInTheDocument();
 		});
 
 		it("should render port input field", () => {
@@ -150,7 +160,7 @@ describe("OllamaSetupContent", () => {
 			await waitFor(() => {
 				expect(screen.getByText("Connected")).toBeInTheDocument();
 				expect(
-					screen.getByText("Gemma 3 connection successful"),
+					screen.getByText("Gemma connection successful"),
 				).toBeInTheDocument();
 			});
 		});
@@ -175,7 +185,7 @@ describe("OllamaSetupContent", () => {
 		it("should display available Gemma models", async () => {
 			const user = userEvent.setup();
 			mockListAvailableModels.mockResolvedValue([
-				{ name: "gemma3:4b", size: 4 * 1024 * 1024 * 1024 },
+				{ name: "gemma4:e4b", size: 9.6 * 1024 * 1024 * 1024 },
 				{ name: "gemma3:12b", size: 12 * 1024 * 1024 * 1024 },
 			]);
 
@@ -184,7 +194,7 @@ describe("OllamaSetupContent", () => {
 			await user.click(screen.getByTitle("Check for available Ollama models"));
 
 			await waitFor(() => {
-				expect(screen.getByText("Gemma 3 4B")).toBeInTheDocument();
+				expect(screen.getByText("Gemma 4 E4B")).toBeInTheDocument();
 				expect(screen.getByText("Gemma 3 12B")).toBeInTheDocument();
 			});
 		});
@@ -201,7 +211,7 @@ describe("OllamaSetupContent", () => {
 
 			await waitFor(() => {
 				expect(
-					screen.getByText(/No Gemma 3 models detected/),
+					screen.getByText(/No compatible Gemma models detected/),
 				).toBeInTheDocument();
 			});
 		});
@@ -637,7 +647,7 @@ describe("OllamaSetupContent", () => {
 
 			await waitFor(() => {
 				expect(
-					screen.getByText(/Gemma 3 models have not been pulled yet/),
+					screen.getByText(/Gemma models have not been pulled yet/),
 				).toBeInTheDocument();
 			});
 		});

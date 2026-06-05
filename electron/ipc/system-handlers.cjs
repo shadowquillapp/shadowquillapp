@@ -4,6 +4,8 @@ const si = require("systeminformation");
 const https = require("node:https");
 const path = require("node:path");
 const fs = require("node:fs");
+const { openExternalUrl } = require("../utils/external-url.cjs");
+const { requireValidIpcSender } = require("../utils/ipc-security.cjs");
 
 // Get current version from package.json
 let CURRENT_VERSION = "0.8.0";
@@ -15,11 +17,13 @@ try {
 	console.warn("[Electron] Failed to read version from package.json:", e);
 }
 
-ipcMain.handle("shadowquill:getPlatform", () => {
+ipcMain.handle("shadowquill:getPlatform", (event) => {
+	requireValidIpcSender(event);
 	return process.platform;
 });
 
-ipcMain.handle("shadowquill:getSystemSpecs", async () => {
+ipcMain.handle("shadowquill:getSystemSpecs", async (event) => {
+	requireValidIpcSender(event);
 	try {
 		const [cpu, mem, graphics] = await Promise.all([
 			si.cpu(),
@@ -56,7 +60,8 @@ ipcMain.handle("shadowquill:getSystemSpecs", async () => {
 	}
 });
 
-ipcMain.handle("shadowquill:checkForUpdates", async () => {
+ipcMain.handle("shadowquill:checkForUpdates", async (event) => {
+	requireValidIpcSender(event);
 	return new Promise((resolve) => {
 		const options = {
 			hostname: "api.github.com",
@@ -125,9 +130,10 @@ ipcMain.handle("shadowquill:checkForUpdates", async () => {
 	});
 });
 
-ipcMain.handle("shadowquill:openExternalUrl", async (_event, url) => {
+ipcMain.handle("shadowquill:openExternalUrl", async (event, url) => {
+	requireValidIpcSender(event);
 	try {
-		await shell.openExternal(url);
+		await openExternalUrl(shell, url);
 		return { success: true };
 	} catch (err) {
 		return { success: false, error: err.message };

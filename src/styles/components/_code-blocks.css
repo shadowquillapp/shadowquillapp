@@ -79,7 +79,9 @@
 	cursor: pointer;
 	padding: 4px;
 	border-radius: 4px;
-	transition: all 120ms ease;
+	transition:
+		background 120ms ease,
+		color 120ms ease;
 }
 
 .bubble-code-copy:hover {
@@ -239,108 +241,134 @@
  * SYNTAX TOKENS - EARTH THEME
  * ======================================== */
 
-[data-theme="earth"] .token-key {
+:root[data-theme=""] .token-key,
+:root:not([data-theme]) .token-key {
 	color: #88c0d0;
 }
 
-[data-theme="earth"] .token-string {
+:root[data-theme=""] .token-string,
+:root:not([data-theme]) .token-string {
 	color: #87c095;
 }
 
-[data-theme="earth"] .token-number {
+:root[data-theme=""] .token-number,
+:root:not([data-theme]) .token-number {
 	color: #d4a574;
 }
 
-[data-theme="earth"] .token-boolean {
+:root[data-theme=""] .token-boolean,
+:root:not([data-theme]) .token-boolean {
 	color: #6eb5be;
 }
 
-[data-theme="earth"] .token-null {
+:root[data-theme=""] .token-null,
+:root:not([data-theme]) .token-null {
 	color: #b48ead;
 }
 
-[data-theme="earth"] .token-brace {
+:root[data-theme=""] .token-brace,
+:root:not([data-theme]) .token-brace {
 	color: #b48ead;
 }
 
-[data-theme="earth"] .token-bracket {
+:root[data-theme=""] .token-bracket,
+:root:not([data-theme]) .token-bracket {
 	color: #ebcb8b;
 }
 
-[data-theme="earth"] .token-colon {
+:root[data-theme=""] .token-colon,
+:root:not([data-theme]) .token-colon {
 	color: #b8a882;
 }
 
-[data-theme="earth"] .token-comma {
+:root[data-theme=""] .token-comma,
+:root:not([data-theme]) .token-comma {
 	color: #7c7060;
 }
 
-[data-theme="earth"] .token-punctuation {
+:root[data-theme=""] .token-punctuation,
+:root:not([data-theme]) .token-punctuation {
 	color: #b8a882;
 }
 
-[data-theme="earth"] .token-md-header {
+:root[data-theme=""] .token-md-header,
+:root:not([data-theme]) .token-md-header {
 	color: #88c0d0;
 }
 
-[data-theme="earth"] .token-md-header-text {
+:root[data-theme=""] .token-md-header-text,
+:root:not([data-theme]) .token-md-header-text {
 	color: #88c0d0;
 }
 
-[data-theme="earth"] .token-md-bold {
+:root[data-theme=""] .token-md-bold,
+:root:not([data-theme]) .token-md-bold {
 	color: #d08770;
 }
 
-[data-theme="earth"] .token-md-bold-text {
+:root[data-theme=""] .token-md-bold-text,
+:root:not([data-theme]) .token-md-bold-text {
 	color: #eee8d5;
 }
 
-[data-theme="earth"] .token-md-italic {
+:root[data-theme=""] .token-md-italic,
+:root:not([data-theme]) .token-md-italic {
 	color: #b48ead;
 }
 
-[data-theme="earth"] .token-md-italic-text {
+:root[data-theme=""] .token-md-italic-text,
+:root:not([data-theme]) .token-md-italic-text {
 	color: #eee8d5;
 }
 
-[data-theme="earth"] .token-md-code-tick {
+:root[data-theme=""] .token-md-code-tick,
+:root:not([data-theme]) .token-md-code-tick {
 	color: #6eb5be;
 }
 
-[data-theme="earth"] .token-md-code {
+:root[data-theme=""] .token-md-code,
+:root:not([data-theme]) .token-md-code {
 	color: #87c095;
 	background: #87c0951a;
 }
 
-[data-theme="earth"] .token-md-link-text {
+:root[data-theme=""] .token-md-link-text,
+:root:not([data-theme]) .token-md-link-text {
 	color: #88c0d0;
 }
 
-[data-theme="earth"] .token-md-url {
+:root[data-theme=""] .token-md-url,
+:root:not([data-theme]) .token-md-url {
 	color: #6eb5be;
 }
 
-[data-theme="earth"] .token-md-list-marker {
+:root[data-theme=""] .token-md-list-marker,
+:root:not([data-theme]) .token-md-list-marker {
 	color: #ebcb8b;
 }
 
-[data-theme="earth"] .token-md-quote-text {
+:root[data-theme=""] .token-md-quote-text,
+:root:not([data-theme]) .token-md-quote-text {
 	color: #b8a882;
 }
 
-[data-theme="earth"] .token-md-strike {
+:root[data-theme=""] .token-md-strike,
+:root:not([data-theme]) .token-md-strike {
 	color: #d08770;
 }
 
-[data-theme="earth"] .token-md-strike-text {
+:root[data-theme=""] .token-md-strike-text,
+:root:not([data-theme]) .token-md-strike-text {
 	color: #b8a882;
 }
 
-[data-theme="earth"] .token-attribute {
+:root[data-theme=""] .token-attribute,
+:root:not([data-theme]) .token-attribute {
 	color: #d4a574;
 }
 
-[data-theme="earth"] .token-comment {
+:root[data-theme=""] .token-comment,
+:root:not([data-theme]) .token-comment {
 	color: #65737e;
 }
 

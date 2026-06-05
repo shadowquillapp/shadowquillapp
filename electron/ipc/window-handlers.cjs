@@ -1,23 +1,28 @@
 // IPC handlers for window and view controls
 const { ipcMain, BrowserWindow, app } = require("electron");
+const { requireValidIpcSender } = require("../utils/ipc-security.cjs");
 
 ipcMain.handle("shadowquill:window:minimize", (e) => {
+	requireValidIpcSender(e);
 	const w = BrowserWindow.fromWebContents(e.sender);
 	if (w) w.minimize();
 });
 
 ipcMain.handle("shadowquill:window:maximizeToggle", (e) => {
+	requireValidIpcSender(e);
 	const w = BrowserWindow.fromWebContents(e.sender);
 	if (!w) return;
 	if (w.isMaximized()) w.unmaximize();
 	else w.maximize();
 });
 
-ipcMain.handle("shadowquill:window:close", () => {
+ipcMain.handle("shadowquill:window:close", (e) => {
+	requireValidIpcSender(e);
 	app.quit();
 });
 
 ipcMain.handle("shadowquill:view:getZoomFactor", (e) => {
+	requireValidIpcSender(e);
 	try {
 		const w = BrowserWindow.fromWebContents(e.sender);
 		if (!w) return 1;
@@ -28,6 +33,7 @@ ipcMain.handle("shadowquill:view:getZoomFactor", (e) => {
 });
 
 ipcMain.handle("shadowquill:view:setZoomFactor", (e, factor) => {
+	requireValidIpcSender(e);
 	try {
 		const w = BrowserWindow.fromWebContents(e.sender);
 		if (!w) return { ok: false, error: "No window" };
@@ -42,6 +48,7 @@ ipcMain.handle("shadowquill:view:setZoomFactor", (e, factor) => {
 });
 
 ipcMain.handle("shadowquill:view:resetZoom", (e) => {
+	requireValidIpcSender(e);
 	try {
 		const w = BrowserWindow.fromWebContents(e.sender);
 		if (!w) return { ok: false, error: "No window" };
@@ -53,6 +60,7 @@ ipcMain.handle("shadowquill:view:resetZoom", (e) => {
 });
 
 ipcMain.handle("shadowquill:window:getSize", (e) => {
+	requireValidIpcSender(e);
 	try {
 		const w = BrowserWindow.fromWebContents(e.sender);
 		if (!w) return { ok: false, error: "No window" };

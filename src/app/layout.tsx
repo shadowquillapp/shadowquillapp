@@ -1,7 +1,7 @@
 import "@/styles/index.css";
 
 import type { Metadata } from "next";
-import { Geist } from "next/font/google";
+import Script from "next/script";
 
 import { DialogProvider } from "@/components/DialogProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -15,19 +15,14 @@ export const metadata: Metadata = {
 	description: "ShadowQuill | AI assistant for building prompts",
 };
 
-const geist = Geist({
-	subsets: ["latin"],
-	variable: "--font-geist-sans",
-});
-
 export default function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	return (
-		<html lang="en" className={`${geist.variable}`} suppressHydrationWarning>
+		<html lang="en" suppressHydrationWarning>
 			<head>
 				{/* No external CDN links to allow full offline operation */}
-				<script src="/theme-init.js" />
+				<Script src="/theme-init.js" strategy="beforeInteractive" />
 			</head>
 			<body className="flex h-screen flex-col overflow-hidden">
 				<DialogProvider>

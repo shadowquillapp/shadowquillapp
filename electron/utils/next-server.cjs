@@ -129,7 +129,7 @@ async function startNextServer() {
 		const handle = nextApp.getRequestHandler();
 		httpServer = http.createServer((req, res) => handle(req, res));
 		await new Promise((resolve) =>
-			httpServer.listen(0, () => resolve(undefined)),
+			httpServer.listen(0, "127.0.0.1", () => resolve(undefined)),
 		);
 		const addr = httpServer.address();
 		console.log("[Electron] Server listening on", addr);
@@ -185,7 +185,9 @@ async function startNextServer() {
 				httpServer = http.createServer((_req, res) => {
 					fs.createReadStream(fallbackHtml).pipe(res);
 				});
-				await new Promise((r) => httpServer.listen(0, () => r(undefined)));
+				await new Promise((r) =>
+					httpServer.listen(0, "127.0.0.1", () => r(undefined)),
+				);
 				const addr = httpServer.address();
 				if (
 					addr &&
