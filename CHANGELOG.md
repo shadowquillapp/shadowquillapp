@@ -1,3 +1,10 @@
+# [0.10.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.9...v0.10.0) (2026-06-05)
+
+
+### Features
+
+* system prompt semantic intent ([#17](https://github.com/shadowquillapp/shadowquillapp/issues/17)) ([373a94e](https://github.com/shadowquillapp/shadowquillapp/commit/373a94e2f5d38229b3f887cb4b5be0774834f16e))
+
 ## [0.9.9](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.8...v0.9.9) (2026-06-05)
 
 
