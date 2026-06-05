@@ -19,7 +19,6 @@
 | `prompt-builder-core.ts` | Pure prompt-assembly logic (server/testable). |
 | `prompt-builder-client.ts` | Browser-side wrapper wiring `prompt-builder-core` to React/UI. |
 | `prompt-normalization.ts` | `normalizePrompt()` — trims/whitespace/quote handling for user input. |
-| `example-generator.ts` | Generates a few-shot example block from a preset. |
 | `version.ts` | App version string constant. |
 | `local-db.ts` | 35-byte stub re-exporting `local-config` (placeholder; not a real DB). |
 | `prompt-directives/index.ts` | **Barrel** of per-task-type directive fragments. |

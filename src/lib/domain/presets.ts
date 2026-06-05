@@ -27,8 +27,14 @@ function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
 }
 
 function sanitizePreset(preset: Preset): Preset {
-	if (!preset.options) return preset;
-	return { ...preset, options: sanitizePresetOptions(preset.options) };
+	const { generatedExamples: _removedExamples, ...withoutGeneratedExamples } =
+		preset as Preset & { generatedExamples?: unknown };
+	const base =
+		"generatedExamples" in preset
+			? (withoutGeneratedExamples as Preset)
+			: preset;
+	if (!base.options) return base;
+	return { ...base, options: sanitizePresetOptions(base.options) };
 }
 const TASK_TYPES: readonly TaskType[] = [
 	"general",
@@ -58,7 +64,8 @@ export function parsePreset(raw: string | null): Preset | null {
 }
 
 export function getPresets(): Preset[] {
-	return safeParse(getRaw(STORAGE_KEYS.PRESETS.key), isPresetArray, []);
+	const list = safeParse(getRaw(STORAGE_KEYS.PRESETS.key), isPresetArray, []);
+	return list.map(sanitizePreset);
 }
 
 function writePresets(list: Preset[]): void {

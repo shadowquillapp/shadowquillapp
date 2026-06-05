@@ -124,25 +124,11 @@ export interface GenerationOptions {
 
 export type PresetOptions = GenerationOptions;
 
-/**
- * A generated example for a preset, showing input and output
- */
-export interface PresetExample {
-	/** The example input/prompt */
-	input: string;
-	/** The generated output for this input */
-	output: string;
-	/** When this example was generated */
-	generatedAt: number;
-}
-
 export interface PresetLite {
 	id?: string;
 	name: string;
 	taskType: TaskType;
 	options?: GenerationOptions;
-	/** AI-generated example inputs and outputs */
-	generatedExamples?: [PresetExample, PresetExample];
 }
 
 export interface PresetVersion {

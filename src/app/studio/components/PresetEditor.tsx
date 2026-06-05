@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import AdvancedSettings from "@/app/studio/components/AdvancedSettings";
 import BasicSettings from "@/app/studio/components/BasicSettings";
-import LivePreview from "@/app/studio/components/LivePreview";
 import SaveAsDialog from "@/app/studio/components/SaveAsDialog";
 import TypeSpecificFields from "@/app/studio/components/TypeSpecificFields";
 import { Icon } from "@/components/Icon";
@@ -12,12 +11,8 @@ import type { PresetLite } from "@/types";
 interface PresetEditorProps {
 	preset: PresetLite | null;
 	isDirty: boolean;
-	isGeneratingExamples?: boolean;
-	regeneratingIndex?: 0 | 1 | null;
 	onFieldChange: (field: string, value: unknown) => void;
 	onSave: () => void;
-	onGenerateExamples?: () => void;
-	onRegenerateExample?: (index: 0 | 1) => void;
 	onDuplicate: (presetId: string, newName?: string) => void;
 	onDelete: (presetId: string) => void;
 	className?: string;
@@ -26,18 +21,14 @@ interface PresetEditorProps {
 export default function PresetEditor({
 	preset,
 	isDirty,
-	isGeneratingExamples = false,
-	regeneratingIndex = null,
 	onFieldChange,
 	onSave,
-	onGenerateExamples,
-	onRegenerateExample,
 	onDuplicate,
 	onDelete,
 	className = "",
 }: PresetEditorProps) {
 	const [activeTab, setActiveTab] = useState<
-		"basic" | "advanced" | "type" | "output" | "preview"
+		"basic" | "advanced" | "type" | "output"
 	>("basic");
 	const [showDuplicateDialog, setShowDuplicateDialog] = useState(false);
 
@@ -138,19 +129,6 @@ export default function PresetEditor({
 								<span className="ml-1 hidden text-xs opacity-60 sm:inline">
 									(Optional)
 								</span>
-							</button>
-							<button
-								type="button"
-								role="tab"
-								aria-selected={activeTab === "preview"}
-								className={`-mb-px cursor-pointer rounded-t-lg border-[var(--color-outline)] border-t border-r border-l px-4 py-2 font-medium text-sm transition-colors ${
-									activeTab === "preview"
-										? "border-b-surface bg-surface text-light"
-										: "border-transparent bg-transparent text-secondary hover:bg-[var(--color-surface-variant)] hover:text-light"
-								}`}
-								onClick={() => setActiveTab("preview")}
-							>
-								Live Examples
 							</button>
 						</div>
 
@@ -264,16 +242,6 @@ A: Let's think step by step... [reasoning]. Therefore, [answer].`}
 										/>
 									</div>
 								</div>
-							)}
-
-							{activeTab === "preview" && (
-								<LivePreview
-									preset={preset}
-									{...(onGenerateExamples && { onGenerateExamples })}
-									{...(onRegenerateExample && { onRegenerateExample })}
-									isGenerating={isGeneratingExamples}
-									regeneratingIndex={regeneratingIndex}
-								/>
 							)}
 						</div>
 

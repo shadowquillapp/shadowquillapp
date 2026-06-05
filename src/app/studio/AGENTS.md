@@ -9,9 +9,9 @@
 studio/
 ├── page.tsx                          # server; metadata only
 ├── PresetStudioPage.tsx              # client; page-level state + composition
-├── components/                       # 10 files (see below)
+├── components/                       # 9 files (see below)
 └── hooks/
-    └── usePresetManager.ts           # load/save/delete/duplicate/import/export + generateExamplesOnly + regenerateExample
+    └── usePresetManager.ts           # load/save/delete/duplicate/import/export
 ```
 
 ## Components
@@ -25,7 +25,6 @@ studio/
 | `BasicSettings.tsx` | Basic config fields. |
 | `AdvancedSettings.tsx` | Advanced config fields. |
 | `TypeSpecificFields.tsx` | Per-task-type fields. |
-| `LivePreview.tsx` | Live preview pane. |
 | `SaveAsDialog.tsx` | Save-as modal. |
 
 ## Conventions (delta from root)
@@ -34,7 +33,7 @@ studio/
 - **Auto-selects last-used preset on mount**; warns on `beforeunload` if dirty.
 - **Themed `data-theme` attribute applied on mount** — same logic as workbench.
 - **All persistence is `localStorage`-backed** via the studio's `usePresetManager` (which delegates to `src/lib/domain/presets.ts`).
-- **`usePresetManager` is the only preset-authoring API** — it owns `generateExamplesOnly` + `regenerateExample` (calls `example-generator`).
+- **`usePresetManager` is the only preset-authoring API** — load, save, delete, duplicate, import, and export presets.
 
 ## Anti-patterns (delta from root)
 

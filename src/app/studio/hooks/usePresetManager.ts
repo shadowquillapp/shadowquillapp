@@ -1,8 +1,4 @@
 import { useCallback, useState } from "react";
-import {
-	generatePresetExamples,
-	generateSingleExample,
-} from "@/lib/example-generator";
 import { getJSON, setJSON } from "@/lib/local-storage";
 import { getDefaultPresets } from "@/lib/presets";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
@@ -10,21 +6,25 @@ import type { PresetLite } from "@/types";
 
 const STORAGE_KEY = STORAGE_KEYS.PRESETS.key;
 
-function stripTemperatureFromPreset(preset: PresetLite): PresetLite {
-	if (!preset.options || !("temperature" in preset.options)) return preset;
-	const { temperature: _removed, ...options } =
-		preset.options as PresetLite["options"] & {
-			temperature?: number;
-		};
-	return { ...preset, options };
+function sanitizeStudioPreset(preset: PresetLite): PresetLite {
+	const { generatedExamples: _removedExamples, ...withoutGeneratedExamples } =
+		preset as PresetLite & { generatedExamples?: unknown };
+	let result =
+		"generatedExamples" in preset
+			? (withoutGeneratedExamples as PresetLite)
+			: preset;
+
+	if (result.options && "temperature" in result.options) {
+		const { temperature: _removedTemp, ...options } =
+			result.options as PresetLite["options"] & { temperature?: number };
+		result = { ...result, options };
+	}
+
+	return result;
 }
 
 export function usePresetManager() {
 	const [presets, setPresets] = useState<PresetLite[]>([]);
-	const [isGeneratingExamples, setIsGeneratingExamples] = useState(false);
-	const [regeneratingIndex, setRegeneratingIndex] = useState<0 | 1 | null>(
-		null,
-	);
 
 	// Load presets from storage
 	const loadPresets = useCallback(() => {
@@ -32,12 +32,14 @@ export function usePresetManager() {
 			const parsed = getJSON<PresetLite[]>(STORAGE_KEY, null);
 			if (parsed && Array.isArray(parsed)) {
 				// Ensure each preset has an ID
-				const presetsWithIds = parsed.map((preset: PresetLite) => ({
-					...preset,
-					id:
-						preset.id ||
-						`preset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-				}));
+				const presetsWithIds = parsed.map((preset: PresetLite) =>
+					sanitizeStudioPreset({
+						...preset,
+						id:
+							preset.id ||
+							`preset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+					}),
+				);
 				setPresets(presetsWithIds);
 			} else {
 				// Create default presets if none exist
@@ -51,7 +53,7 @@ export function usePresetManager() {
 		}
 	}, []);
 
-	// Save preset (create or update) - examples are generated manually via generateExamplesOnly
+	// Save preset (create or update)
 	const savePreset = useCallback(
 		async (preset: PresetLite): Promise<PresetLite> => {
 			try {
@@ -60,20 +62,13 @@ export function usePresetManager() {
 				let savedPreset: PresetLite;
 
 				if (existing) {
-					// Update existing preset, preserve existing examples
-					const presetToSave = stripTemperatureFromPreset({
-						...preset,
-						...(existing.generatedExamples && {
-							generatedExamples: existing.generatedExamples,
-						}),
-					});
+					const presetToSave = sanitizeStudioPreset(preset);
 					updatedPresets = presets.map((p) =>
 						p.id === preset.id ? presetToSave : p,
 					);
 					savedPreset = presetToSave;
 				} else {
-					// Add new preset with generated ID if needed
-					const newPreset = stripTemperatureFromPreset({
+					const newPreset = sanitizeStudioPreset({
 						...preset,
 						id:
 							preset.id ||
@@ -109,14 +104,13 @@ export function usePresetManager() {
 		[presets],
 	);
 
-	// Duplicate preset (copies examples from original)
+	// Duplicate preset
 	const duplicatePreset = useCallback(
 		async (presetId: string) => {
 			try {
 				const original = presets.find((p) => p.id === presetId);
 				if (!original) return null;
 
-				// Create duplicate without generatedExamples so they get regenerated on next save
 				const duplicated: PresetLite = {
 					id: `preset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
 					name: `${original.name} Copy`,
@@ -169,12 +163,14 @@ export function usePresetManager() {
 				const existingIds = new Set(presets.map((p) => p.id));
 				const newPresets = imported
 					.filter((p: PresetLite) => !existingIds.has(p.id || ""))
-					.map((p: PresetLite) => ({
-						...p,
-						id:
-							p.id ||
-							`preset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-					}));
+					.map((p: PresetLite) =>
+						sanitizeStudioPreset({
+							...p,
+							id:
+								p.id ||
+								`preset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+						}),
+					);
 
 				const updatedPresets = [...presets, ...newPresets];
 				setJSON(STORAGE_KEY, updatedPresets);
@@ -189,86 +185,13 @@ export function usePresetManager() {
 		[presets],
 	);
 
-	// Generate examples for a preset without saving (updates in-memory and storage)
-	const generateExamplesOnly = useCallback(
-		async (preset: PresetLite): Promise<PresetLite | null> => {
-			if (!preset.id) return null;
-
-			setIsGeneratingExamples(true);
-			try {
-				const examples = await generatePresetExamples(preset);
-				const presetWithExamples: PresetLite = {
-					...preset,
-					generatedExamples: examples,
-				};
-
-				// Update in presets array and localStorage
-				const updatedPresets = presets.map((p) =>
-					p.id === preset.id ? presetWithExamples : p,
-				);
-				setJSON(STORAGE_KEY, updatedPresets);
-				setPresets(updatedPresets);
-
-				return presetWithExamples;
-			} catch (error) {
-				console.error("Failed to generate examples:", error);
-				return null;
-			} finally {
-				setIsGeneratingExamples(false);
-			}
-		},
-		[presets],
-	);
-
-	// Regenerate a single example at the given index (0 or 1)
-	const regenerateExample = useCallback(
-		async (preset: PresetLite, index: 0 | 1): Promise<PresetLite | null> => {
-			if (!preset.id || !preset.generatedExamples) return null;
-
-			setRegeneratingIndex(index);
-			try {
-				const newExample = await generateSingleExample(preset);
-
-				// Create updated examples array
-				const updatedExamples: [typeof newExample, typeof newExample] =
-					index === 0
-						? [newExample, preset.generatedExamples[1]]
-						: [preset.generatedExamples[0], newExample];
-
-				const presetWithExamples: PresetLite = {
-					...preset,
-					generatedExamples: updatedExamples,
-				};
-
-				// Update in presets array and localStorage
-				const updatedPresets = presets.map((p) =>
-					p.id === preset.id ? presetWithExamples : p,
-				);
-				setJSON(STORAGE_KEY, updatedPresets);
-				setPresets(updatedPresets);
-
-				return presetWithExamples;
-			} catch (error) {
-				console.error("Failed to regenerate example:", error);
-				return null;
-			} finally {
-				setRegeneratingIndex(null);
-			}
-		},
-		[presets],
-	);
-
 	return {
 		presets,
-		isGeneratingExamples,
-		regeneratingIndex,
 		loadPresets,
 		savePreset,
 		deletePreset,
 		duplicatePreset,
 		exportPresets,
 		importPresets,
-		generateExamplesOnly,
-		regenerateExample,
 	};
 }
