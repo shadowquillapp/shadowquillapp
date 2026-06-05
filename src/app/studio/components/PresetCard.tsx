@@ -14,8 +14,6 @@ export default function PresetCard({
 	isSelected,
 	onSelect,
 }: PresetCardProps) {
-	const temperature = preset.options?.temperature ?? 0.7;
-
 	const capitalize = (s: string | undefined) =>
 		s ? s.charAt(0).toUpperCase() + s.slice(1) : "";
 
@@ -122,8 +120,6 @@ export default function PresetCard({
 					<span title={`Format: ${preset.options?.format || "Plain"}`}>
 						{formatLabel}
 					</span>
-					<span className="text-[var(--color-outline)]">•</span>
-					<span>{temperature.toFixed(1)}</span>
 				</div>
 			</div>
 

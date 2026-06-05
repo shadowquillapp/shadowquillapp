@@ -119,7 +119,6 @@ export default function PresetStudioPage() {
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.7,
 				useDelimiters: true,
 				includeVerification: false,
 				reasoningStyle: "none",

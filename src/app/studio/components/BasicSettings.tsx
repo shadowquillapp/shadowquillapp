@@ -1,6 +1,5 @@
 "use client";
 
-import TemperatureControl from "@/app/studio/components/TemperatureControl";
 import { CustomSelect } from "@/components/CustomSelect";
 import { Icon } from "@/components/Icon";
 import type { PresetLite } from "@/types";
@@ -215,14 +214,6 @@ export default function BasicSettings({
 						]}
 					/>
 				</div>
-			</div>
-
-			{/* Temperature - full width with enhanced control */}
-			<div className="pt-2">
-				<TemperatureControl
-					value={options.temperature ?? 0.7}
-					onChange={(v) => onFieldChange("temperature", v)}
-				/>
 			</div>
 		</div>
 	);

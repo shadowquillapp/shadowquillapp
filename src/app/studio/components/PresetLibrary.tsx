@@ -36,9 +36,7 @@ export default function PresetLibrary({
 		| "writing"
 		| "marketing"
 	>("all");
-	const [sortBy, setSortBy] = useState<"name" | "temperature">("name");
 
-	// Filter + sort presets
 	const filteredPresets = presets
 		.filter((preset) =>
 			typeFilter === "all" ? true : preset.taskType === typeFilter,
@@ -50,12 +48,7 @@ export default function PresetLibrary({
 				preset.taskType.toLowerCase().includes(query)
 			);
 		})
-		.sort((a, b) => {
-			if (sortBy === "name") return a.name.localeCompare(b.name);
-			const at = a.options?.temperature ?? 0;
-			const bt = b.options?.temperature ?? 0;
-			return at - bt;
-		});
+		.sort((a, b) => a.name.localeCompare(b.name));
 
 	return (
 		<section className={className} style={style} aria-label="Preset Library">
@@ -117,7 +110,7 @@ export default function PresetLibrary({
 										? "bg-primary text-on-primary"
 										: "text-secondary hover:bg-[var(--color-outline)] hover:text-light"
 								}`}
-								title="Filter & Sort"
+								title="Filter"
 							>
 								<Icon name="sliders" className="h-4 w-4" />
 							</button>
@@ -126,7 +119,7 @@ export default function PresetLibrary({
 
 					{/* Expandable Filters Area */}
 					{showFilters && (
-						<div className="slide-in-from-top-2 fade-in grid animate-in grid-cols-2 gap-3 duration-200">
+						<div className="slide-in-from-top-2 fade-in grid animate-in grid-cols-1 gap-3 duration-200">
 							<div className="space-y-1">
 								<label
 									htmlFor="type-filter"
@@ -147,23 +140,6 @@ export default function PresetLibrary({
 										{ value: "research", label: "Research" },
 										{ value: "writing", label: "Writing" },
 										{ value: "marketing", label: "Marketing" },
-									]}
-								/>
-							</div>
-							<div className="space-y-1">
-								<label
-									htmlFor="sort-by"
-									className="ml-1 font-semibold text-[10px] text-secondary uppercase tracking-wider"
-								>
-									Sort By
-								</label>
-								<CustomSelect
-									id="sort-by"
-									value={sortBy}
-									onChange={(v) => setSortBy(v as typeof sortBy)}
-									options={[
-										{ value: "name", label: "Name" },
-										{ value: "temperature", label: "Temp" },
 									]}
 								/>
 							</div>

@@ -17,6 +17,19 @@ export interface Preset extends PresetLite {
 }
 
 const MAX_VERSIONS = 10;
+
+function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
+	const sanitized = { ...options } as GenerationOptions & {
+		temperature?: number;
+	};
+	delete sanitized.temperature;
+	return sanitized;
+}
+
+function sanitizePreset(preset: Preset): Preset {
+	if (!preset.options) return preset;
+	return { ...preset, options: sanitizePresetOptions(preset.options) };
+}
 const TASK_TYPES: readonly TaskType[] = [
 	"general",
 	"coding",
@@ -67,7 +80,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "brief",
 				format: "markdown",
 				language: "English",
-				temperature: 0.65,
 				useDelimiters: true,
 				includeVerification: true,
 				reasoningStyle: "plan_then_solve",
@@ -84,7 +96,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "brief",
 				format: "markdown",
 				language: "English",
-				temperature: 0.35,
 				useDelimiters: true,
 				includeVerification: false,
 				reasoningStyle: "plan_then_solve",
@@ -101,7 +112,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "brief",
 				format: "markdown",
 				language: "English",
-				temperature: 0.3,
 				includeTests: false,
 				useDelimiters: true,
 				includeVerification: true,
@@ -119,7 +129,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "brief",
 				format: "markdown",
 				language: "English",
-				temperature: 0.25,
 				includeTests: true,
 				useDelimiters: true,
 				includeVerification: true,
@@ -137,7 +146,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "brief",
 				format: "plain",
 				language: "English",
-				temperature: 0.45,
 				writingStyle: "expository",
 				pointOfView: "second",
 				useDelimiters: false,
@@ -156,7 +164,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.4,
 				requireCitations: true,
 				useDelimiters: true,
 				includeVerification: true,
@@ -174,7 +181,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "detailed",
 				format: "markdown",
 				language: "English",
-				temperature: 0.4,
 				requireCitations: true,
 				useDelimiters: true,
 				includeVerification: true,
@@ -192,7 +198,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "brief",
 				format: "markdown",
 				language: "English",
-				temperature: 0.85,
 				marketingChannel: "social",
 				ctaStyle: "soft",
 				useDelimiters: false,
@@ -211,7 +216,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.7,
 				stylePreset: "photorealistic",
 				aspectRatio: "16:9",
 				targetResolution: "1080p",
@@ -231,7 +235,6 @@ export function getDefaultPresets(): Preset[] {
 				detail: "normal",
 				format: "markdown",
 				language: "English",
-				temperature: 0.7,
 				stylePreset: "cinematic",
 				aspectRatio: "16:9",
 				targetResolution: "1080p",
@@ -284,17 +287,18 @@ function optionsEqual(
 }
 
 export function savePreset(preset: Preset, changelog?: string): Preset {
+	const normalizedPreset = sanitizePreset(preset);
 	const list = getPresets();
 	const now = Date.now();
 
-	if (preset.id) {
-		const idx = list.findIndex((p) => p.id === preset.id);
+	if (normalizedPreset.id) {
+		const idx = list.findIndex((p) => p.id === normalizedPreset.id);
 		if (idx !== -1) {
 			const existing = list[idx];
 			if (existing) {
 				const changed =
-					!optionsEqual(existing.options, preset.options) ||
-					existing.taskType !== preset.taskType;
+					!optionsEqual(existing.options, normalizedPreset.options) ||
+					existing.taskType !== normalizedPreset.taskType;
 				let versions = existing.versions ?? [];
 				let currentVersion = existing.currentVersion ?? 0;
 				if (changed && existing.options) {
@@ -304,7 +308,7 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 				}
 				const updated: Preset = {
 					...existing,
-					...preset,
+					...normalizedPreset,
 					versions,
 					currentVersion,
 					createdAt: existing.createdAt ?? now,
@@ -316,7 +320,7 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 			}
 		}
 		const newPreset: Preset = {
-			...preset,
+			...normalizedPreset,
 			versions: [],
 			currentVersion: 0,
 			createdAt: now,
@@ -327,7 +331,7 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 		return newPreset;
 	}
 
-	const normalized = (preset.name || "").trim().toLowerCase();
+	const normalized = (normalizedPreset.name || "").trim().toLowerCase();
 	const byNameIdx = list.findIndex(
 		(p) => (p.name || "").trim().toLowerCase() === normalized,
 	);
@@ -338,8 +342,8 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 				existing.id ??
 				`preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 			const changed =
-				!optionsEqual(existing.options, preset.options) ||
-				existing.taskType !== preset.taskType;
+				!optionsEqual(existing.options, normalizedPreset.options) ||
+				existing.taskType !== normalizedPreset.taskType;
 			let versions = existing.versions ?? [];
 			let currentVersion = existing.currentVersion ?? 0;
 			if (changed && existing.options) {
@@ -349,7 +353,7 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 			}
 			const updated: Preset = {
 				...existing,
-				...preset,
+				...normalizedPreset,
 				id,
 				versions,
 				currentVersion,
@@ -364,7 +368,7 @@ export function savePreset(preset: Preset, changelog?: string): Preset {
 
 	const id = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 	const newPreset: Preset = {
-		...preset,
+		...normalizedPreset,
 		id,
 		versions: [],
 		currentVersion: 0,

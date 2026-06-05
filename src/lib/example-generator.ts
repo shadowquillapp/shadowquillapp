@@ -81,8 +81,6 @@ function buildDirectiveList(preset: PresetLite): string[] {
 	if (options.format) push(`Output format: ${options.format}.`);
 	if (options.language) push(`Respond in ${options.language}.`);
 	if (options.audience) push(`Primary audience: ${options.audience}.`);
-	if (typeof options.temperature === "number")
-		push(`Creativity setting (temperature): ${options.temperature}.`);
 	if (options.useDelimiters) push("Require delimiter-separated sections.");
 	if (options.includeVerification)
 		push("Include verification or QA checklist.");
@@ -265,7 +263,7 @@ async function generateExampleInputs(
 	const prompt = buildExampleGenerationPrompt(preset, 2);
 	const response = await callLocalModelClient(prompt, {
 		taskType: "general",
-		options: { temperature: 0.8, format: "plain" },
+		options: { format: "plain" },
 	});
 	const parsed = parseExampleInputs(response);
 
@@ -368,7 +366,7 @@ export async function generateSingleExample(
 	try {
 		const response = await callLocalModelClient(singlePrompt, {
 			taskType: "general",
-			options: { temperature: 0.8, format: "plain" },
+			options: { format: "plain" },
 		});
 		input = response.trim() || getFallbackExamples(preset.taskType)[0];
 	} catch {

@@ -618,27 +618,6 @@ describe("example-generator", () => {
 			expect(firstCallArgs?.[0]).toContain("developers");
 		});
 
-		it("should include temperature setting", async () => {
-			const preset: PresetLite = {
-				name: "Temperature Test",
-				taskType: "general",
-				options: {
-					temperature: 0.7,
-				},
-			};
-
-			mockCallLocalModelClient.mockResolvedValueOnce(
-				"Input 1\n---SPLIT---\nInput 2",
-			);
-			mockBuildPromptPreview.mockResolvedValue("Enhanced");
-			mockCallLocalModelClient.mockResolvedValue("Output");
-
-			await generatePresetExamples(preset);
-
-			const firstCallArgs = mockCallLocalModelClient.mock.calls[0];
-			expect(firstCallArgs?.[0]).toContain("0.7");
-		});
-
 		it("should include delimiter requirement", async () => {
 			const preset: PresetLite = {
 				name: "Delimiters Test",

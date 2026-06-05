@@ -133,10 +133,6 @@ export function useGeneration(
 				detail: tabOptions.detail ?? "normal",
 				format: tabOptions.format ?? "markdown",
 				...(tabOptions.language && { language: tabOptions.language }),
-				temperature:
-					typeof tabOptions.temperature === "number"
-						? tabOptions.temperature
-						: 0.7,
 				...(tabOptions.audience?.trim() && {
 					audience: tabOptions.audience.trim(),
 				}),

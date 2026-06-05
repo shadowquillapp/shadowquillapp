@@ -15,12 +15,7 @@ interface PresetInfoDialogProps {
 
 const CATEGORIES = {
 	general: ["tone", "detail", "format", "language"],
-	model: [
-		"temperature",
-		"reasoningStyle",
-		"includeVerification",
-		"endOfPromptToken",
-	],
+	model: ["reasoningStyle", "includeVerification", "endOfPromptToken"],
 	content: [
 		"useDelimiters",
 		"requireCitations",

@@ -10,6 +10,15 @@ import type { PresetLite } from "@/types";
 
 const STORAGE_KEY = STORAGE_KEYS.PRESETS.key;
 
+function stripTemperatureFromPreset(preset: PresetLite): PresetLite {
+	if (!preset.options || !("temperature" in preset.options)) return preset;
+	const { temperature: _removed, ...options } =
+		preset.options as PresetLite["options"] & {
+			temperature?: number;
+		};
+	return { ...preset, options };
+}
+
 export function usePresetManager() {
 	const [presets, setPresets] = useState<PresetLite[]>([]);
 	const [isGeneratingExamples, setIsGeneratingExamples] = useState(false);
@@ -52,24 +61,24 @@ export function usePresetManager() {
 
 				if (existing) {
 					// Update existing preset, preserve existing examples
-					const presetToSave: PresetLite = {
+					const presetToSave = stripTemperatureFromPreset({
 						...preset,
 						...(existing.generatedExamples && {
 							generatedExamples: existing.generatedExamples,
 						}),
-					};
+					});
 					updatedPresets = presets.map((p) =>
 						p.id === preset.id ? presetToSave : p,
 					);
 					savedPreset = presetToSave;
 				} else {
 					// Add new preset with generated ID if needed
-					const newPreset: PresetLite = {
+					const newPreset = stripTemperatureFromPreset({
 						...preset,
 						id:
 							preset.id ||
 							`preset_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-					};
+					});
 					updatedPresets = [...presets, newPreset];
 					savedPreset = newPreset;
 				}

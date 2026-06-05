@@ -297,9 +297,6 @@ export default function LivePreview({
 				<span className="rounded border border-[var(--color-outline)] bg-[var(--color-surface)] px-2 py-0.5 font-medium text-[10px] text-on-surface">
 					{preset.options?.format || "markdown"}
 				</span>
-				<span className="rounded border border-[var(--color-outline)] bg-[var(--color-surface)] px-2 py-0.5 font-medium text-[10px] text-on-surface">
-					temp: {(preset.options?.temperature ?? 0.7).toFixed(1)}
-				</span>
 			</div>
 
 			{hasExamples &&

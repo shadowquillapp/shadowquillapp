@@ -41,9 +41,6 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 	if (preset.options?.tone) meta.push(preset.options.tone);
 	if (formatLabel) meta.push(formatLabel);
 	if (preset.options?.detail) meta.push(preset.options.detail);
-	if (typeof preset.options?.temperature === "number") {
-		meta.push(preset.options.temperature.toFixed(1));
-	}
 
 	// Keep the row compact: show only a few meta chips and summarize the rest.
 	const MAX_META = 3;

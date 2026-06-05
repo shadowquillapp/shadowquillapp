@@ -81,7 +81,6 @@ export interface GenerationOptions {
 	detail?: Detail;
 	format?: Format;
 	language?: string;
-	temperature?: number;
 	audience?: string;
 
 	useDelimiters?: boolean;

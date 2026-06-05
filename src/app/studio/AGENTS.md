@@ -25,7 +25,6 @@ studio/
 | `BasicSettings.tsx` | Basic config fields. |
 | `AdvancedSettings.tsx` | Advanced config fields. |
 | `TypeSpecificFields.tsx` | Per-task-type fields. |
-| `TemperatureControl.tsx` | Temperature slider. |
 | `LivePreview.tsx` | Live preview pane. |
 | `SaveAsDialog.tsx` | Save-as modal. |
 
