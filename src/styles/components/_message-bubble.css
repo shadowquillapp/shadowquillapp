@@ -76,7 +76,9 @@
 	box-shadow: var(--shadow-1);
 }
 
-.message-bubble:hover .message-bubble__copy {
+.message-bubble:hover .message-bubble__copy,
+.message-bubble:focus-within .message-bubble__copy,
+.message-bubble__copy:focus-visible {
 	opacity: 1;
 }
 

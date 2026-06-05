@@ -13,6 +13,8 @@
 	--color-attention: #e3b341;
 	--color-attention-variant: #d29922;
 	--color-on-attention: #0a0a0a;
+	--color-tertiary: var(--color-attention);
+	--color-on-tertiary: var(--color-on-attention);
 	--color-destructive: #ff7b72;
 	--color-destructive-variant: #f85149;
 	--color-on-destructive: #0a0a0a;

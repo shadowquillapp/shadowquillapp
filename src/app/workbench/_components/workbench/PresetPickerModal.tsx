@@ -49,9 +49,6 @@ export function PresetPickerModal({
 }: PresetPickerModalProps) {
 	const { confirm } = useDialog();
 	const [searchQuery, setSearchQuery] = useState("");
-	const [_selectedTaskType, setSelectedTaskType] = useState<string | null>(
-		null,
-	);
 	const [activeSection, setActiveSection] = useState<"presets" | "saved">(
 		"presets",
 	);
@@ -144,7 +141,6 @@ export function PresetPickerModal({
 	useEffect(() => {
 		if (!open) {
 			setSearchQuery("");
-			setSelectedTaskType(null);
 			setActiveSection("presets");
 			setIsAnimating(false);
 			setContentHeight("auto");

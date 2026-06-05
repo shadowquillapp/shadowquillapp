@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
 	listAvailableModels,
 	readLocalModelConfig as readLocalModelConfigClient,
@@ -124,7 +124,6 @@ export default function OllamaSetupContent() {
 			}
 		};
 		void load();
-		// eslint-disable-next-line react-hooks/exhaustive-deps
 	}, [checkOllamaInstalled, testLocalConnection]);
 
 	const handleOpenOrInstallOllama = async () => {
@@ -173,9 +172,7 @@ export default function OllamaSetupContent() {
 		}
 	};
 
-	const canSave = useMemo(() => {
-		return !saving && !validating && model.trim() !== "";
-	}, [saving, validating, model]);
+	const canSave = !saving && !validating && model.trim() !== "";
 
 	const hasModels = availableModels.length > 0;
 	const normalizedBaseUrl = normalizeToBaseUrl(localPort);
@@ -190,10 +187,7 @@ export default function OllamaSetupContent() {
 				? "error"
 				: "idle";
 	const statusLabelMap = {
-		success:
-			statusTone === "success" && availableModels.length > 0
-				? "Connected"
-				: "Connected",
+		success: "Connected",
 		error: "Needs attention",
 		loading: "Checking…",
 		idle: "Awaiting test",
@@ -227,13 +221,6 @@ export default function OllamaSetupContent() {
 							title: "",
 							body: "",
 						};
-	const selectedModelMetadata = localTestResult?.models?.find(
-		(m) => m.name === model,
-	);
-	const _formattedModelSize = selectedModelMetadata
-		? (selectedModelMetadata.size / (1024 * 1024 * 1024)).toFixed(1)
-		: null;
-
 	return (
 		<form
 			data-provider-form="true"

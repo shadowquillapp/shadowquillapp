@@ -1,7 +1,9 @@
 // IPC handlers for find in page
 const { ipcMain, BrowserWindow } = require("electron");
+const { requireValidIpcSender } = require("../utils/ipc-security.cjs");
 
 ipcMain.handle("shadowquill:find:findInPage", (e, text, options = {}) => {
+	requireValidIpcSender(e);
 	try {
 		const w = BrowserWindow.fromWebContents(e.sender);
 		if (!w || !text) return { ok: false };
@@ -19,6 +21,7 @@ ipcMain.handle("shadowquill:find:findInPage", (e, text, options = {}) => {
 ipcMain.handle(
 	"shadowquill:find:stopFindInPage",
 	(e, action = "clearSelection") => {
+		requireValidIpcSender(e);
 		try {
 			const w = BrowserWindow.fromWebContents(e.sender);
 			if (w) {

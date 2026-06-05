@@ -724,14 +724,11 @@ export default function ModelConfigGate({ children }: Props) {
 						) : null}
 						{showOllamaMissingModal && (
 							<div className="modal-backdrop-blur fixed inset-0 z-50 flex items-center justify-center">
-								<div
-									className="w-full max-w-lg rounded-xl border border-surface-a40 bg-surface-a10 p-6 text-light shadow-2xl"
-									style={{ backgroundColor: "#1e2028", borderColor: "#2d3039" }}
-								>
-									<h2 className="mb-3 font-semibold text-lg text-primary-300">
+								<div className="w-full max-w-lg rounded-xl border border-[var(--color-outline)] bg-[var(--color-surface-variant)] p-6 text-[var(--color-on-surface)] shadow-2xl">
+									<h2 className="mb-3 font-semibold text-[var(--color-primary)] text-lg">
 										Ollama Not Detected
 									</h2>
-									<div className="mb-4 space-y-3 text-sm text-surface-400">
+									<div className="mb-4 space-y-3 text-[var(--color-on-surface-variant)] text-sm">
 										<p>
 											Hmm you don't seem to have <strong>Ollama</strong> running
 											or installed.
@@ -743,7 +740,7 @@ export default function ModelConfigGate({ children }: Props) {
 										<p>
 											If you don't have Ollama, download it here:{" "}
 											<a
-												className="text-primary-300 underline"
+												className="text-[var(--color-primary)] underline"
 												href="https://ollama.com/download"
 												target="_blank"
 												rel="noreferrer"
@@ -751,7 +748,7 @@ export default function ModelConfigGate({ children }: Props) {
 												https://ollama.com/download
 											</a>
 										</p>
-										<p className="text-[11px] text-surface-400">
+										<p className="text-[11px] text-[var(--color-on-surface-variant)]">
 											After installing & starting Ollama, pull a model e.g.:{" "}
 											<code>ollama pull gemma3:4b</code>
 										</p>
@@ -761,7 +758,7 @@ export default function ModelConfigGate({ children }: Props) {
 											type="button"
 											data-testid="shadowquill-retry-detection-button"
 											onClick={retryOllamaDetection}
-											className="interactive-glow flex-1 rounded-md bg-primary py-2 font-medium text-light text-sm hover:bg-primary-200"
+											className="interactive-glow flex-1 rounded-md bg-[var(--color-primary)] py-2 font-medium text-[var(--color-on-primary)] text-sm hover:bg-[var(--color-primary-variant)]"
 										>
 											Retry Detection
 										</button>

@@ -1,5 +1,11 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
+function onIpcPayload(channel, callback) {
+	const listener = (_event, payload) => callback(payload);
+	ipcRenderer.on(channel, listener);
+	return () => ipcRenderer.removeListener(channel, listener);
+}
+
 contextBridge.exposeInMainWorld("shadowquill", {
 	getEnvSafety: () => ipcRenderer.invoke("shadowquill:getEnvSafety"),
 	restartApp: () => ipcRenderer.invoke("shadowquill:restartApp"),
@@ -34,32 +40,18 @@ contextBridge.exposeInMainWorld("shadowquill", {
 		setZoomFactor: (factor) =>
 			ipcRenderer.invoke("shadowquill:view:setZoomFactor", factor),
 		resetZoom: () => ipcRenderer.invoke("shadowquill:view:resetZoom"),
-		onZoomChanged: (callback) => {
-			ipcRenderer.on("shadowquill:zoom:changed", callback);
-			return () =>
-				ipcRenderer.removeListener("shadowquill:zoom:changed", callback);
-		},
+		onZoomChanged: (callback) =>
+			onIpcPayload("shadowquill:zoom:changed", callback),
 	},
 	find: {
 		findInPage: (text, options) =>
 			ipcRenderer.invoke("shadowquill:find:findInPage", text, options),
 		stopFindInPage: (action) =>
 			ipcRenderer.invoke("shadowquill:find:stopFindInPage", action),
-		onShow: (callback) => {
-			ipcRenderer.on("shadowquill:find:show", callback);
-			return () =>
-				ipcRenderer.removeListener("shadowquill:find:show", callback);
-		},
-		onNext: (callback) => {
-			ipcRenderer.on("shadowquill:find:next", callback);
-			return () =>
-				ipcRenderer.removeListener("shadowquill:find:next", callback);
-		},
-		onPrevious: (callback) => {
-			ipcRenderer.on("shadowquill:find:previous", callback);
-			return () =>
-				ipcRenderer.removeListener("shadowquill:find:previous", callback);
-		},
+		onShow: (callback) => onIpcPayload("shadowquill:find:show", callback),
+		onNext: (callback) => onIpcPayload("shadowquill:find:next", callback),
+		onPrevious: (callback) =>
+			onIpcPayload("shadowquill:find:previous", callback),
 	},
 });
 

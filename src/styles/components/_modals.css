@@ -30,6 +30,10 @@
 	z-index: 1;
 }
 
+.modal-backdrop-blur.fixed {
+	position: fixed;
+}
+
 /* ========================================
  * CONTAINER (.modal-container)
  * Full-screen centering container

@@ -59,6 +59,21 @@ describe("local-config", () => {
 			});
 		});
 
+		it("should normalize stored base URLs before returning config", () => {
+			localStorage.setItem("MODEL_PROVIDER", '"ollama"');
+			localStorage.setItem(
+				"MODEL_BASE_URL",
+				'"http://localhost:11434/custom/path/"',
+			);
+			localStorage.setItem("MODEL_NAME", '"gemma3:4b"');
+
+			expect(readLocalModelConfig()).toEqual({
+				provider: "ollama",
+				baseUrl: "http://localhost:11434",
+				model: "gemma3:4b",
+			});
+		});
+
 		it("should always return provider as 'ollama' regardless of stored value", () => {
 			localStorage.setItem("MODEL_PROVIDER", '"other-provider"');
 			localStorage.setItem("MODEL_BASE_URL", '"http://localhost:11434"');
@@ -482,7 +497,16 @@ describe("local-config", () => {
 
 			expect(global.fetch).toHaveBeenCalledWith(
 				"http://localhost:11434/api/tags",
+				expect.any(Object),
 			);
+		});
+
+		it("should return empty array when fetch rejects", async () => {
+			global.fetch = vi.fn().mockRejectedValue(new Error("network down"));
+
+			const result = await listAvailableModels("http://localhost:11434");
+
+			expect(result).toEqual([]);
 		});
 
 		it("should handle missing models field in response", async () => {

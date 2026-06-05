@@ -9,9 +9,7 @@ interface ShadowQuillViewApi {
 	view?: {
 		getZoomFactor?: () => Promise<number>;
 		setZoomFactor?: (factor: number) => Promise<void>;
-		onZoomChanged?: (
-			callback: (event: unknown, factor: number) => void,
-		) => () => void;
+		onZoomChanged?: (callback: (factor: number) => void) => () => void;
 	};
 	window?: {
 		getSize?: () => Promise<{
@@ -32,13 +30,6 @@ export default function DisplayContent() {
 	const [available, setAvailable] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
 	const [zoomFactor, setZoomFactor] = React.useState(1);
-	const [_contentSize, setContentSize] = React.useState<{
-		w: number;
-		h: number;
-	}>({
-		w: 0,
-		h: 0,
-	});
 	const [windowInfo, setWindowInfo] = React.useState<{
 		ok?: boolean;
 		windowSize?: [number, number];
@@ -74,10 +65,6 @@ export default function DisplayContent() {
 		const api = (window as WindowWithShadowQuill).shadowquill;
 		const hasApi = !!api?.view?.getZoomFactor;
 		setAvailable(hasApi);
-		setContentSize({
-			w: window.innerWidth,
-			h: window.innerHeight,
-		});
 
 		// Ensure theme is applied to document (in case it wasn't set during init)
 		document.documentElement.setAttribute(
@@ -105,10 +92,6 @@ export default function DisplayContent() {
 		void init();
 
 		const onResize = async () => {
-			setContentSize({
-				w: window.innerWidth,
-				h: window.innerHeight,
-			});
 			try {
 				const s = await api?.window?.getSize?.();
 				if (s?.ok) setWindowInfo(s);
@@ -124,7 +107,7 @@ export default function DisplayContent() {
 		const api = (window as WindowWithShadowQuill).shadowquill;
 		if (!api?.view?.onZoomChanged) return;
 
-		const unsubscribe = api.view.onZoomChanged((_event, factor) => {
+		const unsubscribe = api.view.onZoomChanged((factor) => {
 			if (typeof factor === "number" && Number.isFinite(factor)) {
 				setZoomFactor(factor);
 			}

@@ -1,5 +1,7 @@
 const path = require("node:path");
 const { BrowserWindow, shell, Menu } = require("electron");
+const { openExternalUrl } = require("./external-url.cjs");
+const { addAllowedAppOrigin, isAllowedAppUrl } = require("./ipc-security.cjs");
 const { loadWindowState, saveWindowState } = require("./window-state.cjs");
 
 function createWindow(isDev) {
@@ -16,6 +18,7 @@ function createWindow(isDev) {
 			? { frame: false }
 			: {}),
 		webPreferences: {
+			devTools: isDev,
 			nodeIntegration: false,
 			contextIsolation: true,
 			preload: path.join(__dirname, "..", "preload.cjs"),
@@ -229,29 +232,40 @@ function createWindow(isDev) {
 			],
 		});
 
-		template.push({ type: "separator" });
-		template.push({
-			label: "Inspect Element",
-			click: () => {
-				try {
-					win.webContents.inspectElement(params.x, params.y);
-				} catch (_) {}
-			},
-		});
-		template.push({
-			label: "Open DevTools",
-			click: () => {
-				try {
-					win.webContents.openDevTools({ mode: "detach" });
-				} catch (_) {}
-			},
-		});
+		if (isDev) {
+			template.push({ type: "separator" });
+			template.push({
+				label: "Inspect Element",
+				click: () => {
+					try {
+						win.webContents.inspectElement(params.x, params.y);
+					} catch (_) {}
+				},
+			});
+			template.push({
+				label: "Open DevTools",
+				click: () => {
+					try {
+						win.webContents.openDevTools({ mode: "detach" });
+					} catch (_) {}
+				},
+			});
+		}
 
 		const contextMenu = Menu.buildFromTemplate(template);
 		contextMenu.popup();
 	});
 
+	win.webContents.on("will-navigate", (event, navigationUrl) => {
+		if (isAllowedAppUrl(navigationUrl)) return;
+		event.preventDefault();
+		openExternalUrl(shell, navigationUrl).catch((err) => {
+			console.warn("[Window] Blocked navigation URL:", err.message);
+		});
+	});
+
 	if (isDev) {
+		addAllowedAppOrigin("http://localhost:31415");
 		win.loadURL("http://localhost:31415").catch((err) => {
 			console.error("Failed to load start URL", err);
 		});
@@ -271,7 +285,9 @@ function createWindow(isDev) {
 	);
 
 	win.webContents.setWindowOpenHandler((details) => {
-		shell.openExternal(details.url);
+		openExternalUrl(shell, details.url).catch((err) => {
+			console.warn("[Window] Blocked external URL:", err.message);
+		});
 		return { action: "deny" };
 	});
 

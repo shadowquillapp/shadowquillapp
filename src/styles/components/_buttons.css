@@ -200,7 +200,11 @@
 	font-size: 13px;
 	font-weight: 500;
 	cursor: pointer;
-	transition: all 150ms ease;
+	transition:
+		background 150ms ease,
+		border-color 150ms ease,
+		box-shadow 150ms ease,
+		transform 150ms ease;
 	height: 32px;
 	white-space: nowrap;
 	letter-spacing: 0.3px;
