@@ -2,7 +2,7 @@
 
 AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + React 19, wrapped in Electron 39**, talking to a **local Ollama** runtime. TypeScript strict. Pnpm. Biome (no ESLint). Vitest + Testing Library.
 
-> Generated `2026-06-04` from commit `f2af3b9` on `master`. Run `git log --oneline -5` to confirm freshness.
+> Generated `2026-06-05` from commit `eff244b` on `master`. Run `git log --oneline -5` to confirm freshness.
 
 ## Top-level layout
 
@@ -36,10 +36,13 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 | `src/lib/storage-keys.ts` (14 importers) | Sole registry of every localStorage/sessionStorage key + scope. Touching persistence = touching this. |
 | `src/lib/local-storage.ts` (12) | Safe wrapper over `electron-storage` with `window` guards and factory-reset suppression. |
 | `src/lib/local-config.ts` (9) | Ollama model config + connection validation; barrel over `domain/model-config.ts`. |
-| `src/lib/domain/presets.ts` (~5) | Preset CRUD; ships 10 seeded presets. |
+| `src/lib/model-client.ts` | `callLocalModelClient` — Ollama `/api/generate`; fixed temperature 0.2 (not user-configurable). |
+| `src/lib/errors.ts` | Typed error hierarchy (`ShadowQuillError`, `ValidationError`, `ModelError`, …). |
+| `src/lib/prompt-builder-core.ts` | Semantic-intent prompt compiler with `VALIDATION_PIPELINE` + per-`TaskType` domain maps. |
+| `src/lib/domain/presets.ts` (~362 lines) | Preset CRUD; ships 10 seeded presets; no versioning API. |
 | `src/lib/system-prompts.ts` (5) | Customizable system-prompt template. |
 | `src/components/DialogProvider.tsx` | Imperative `useDialog()` modal API used app-wide. |
-| `src/components/ModelConfigGate.tsx` (~1196 lines) | Onboarding gate — first thing in workbench; pre-validates Ollama. |
+| `src/components/ModelConfigGate.tsx` (~1200 lines) | Onboarding gate — first thing in workbench; pre-validates Ollama. |
 | `electron/preload.cjs` | Single `contextBridge` surface (`window.shadowquill.*`). |
 
 ## Commands
@@ -63,8 +66,10 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 - **No server-side state.** Next is the bundler/host; the app is a client-rendered SPA inside Electron. No `cookies()`, `headers()`, `unstable_cache`, route handlers, or RSC data fetching. Server components exist only to set `metadata` and hand off to a client component.
 - **No barrel `index.ts` at `src/lib/` root.** The only barrels are `src/lib/presets.ts` (2-line re-export) and `src/lib/prompt-directives/index.ts`. Import deep paths.
 - **Persistence = localStorage + sessionStorage + Electron IPC file KV.** No IndexedDB, no Cookies. All keys must be declared in `storage-keys.ts`.
+- **Semantic-intent prompt compiler** — `prompt-builder-core.ts` + `prompt-directives/base.ts` assemble prompts by task type (`intent`, `engineering`, `visual`, `analysis`, `narrative`, `persuasion`, `motion`). No per-task directive files.
+- **Temperature is not user-configurable** — fixed at `0.2` in `model-client.ts` (`MODEL_TEMPERATURE`).
 - **Tailwind v4 CSS-first config.** No `tailwind.config.js`. Single `@import "tailwindcss";` in `src/styles/index.css`. No `@theme` block — design tokens are plain `:root` CSS variables, consumed via `var(--color-*)`. Theme switching is `[data-theme="…"]` attribute selectors.
-- **Biome is the only linter/formatter.** Do not introduce ESLint, Prettier, or Husky configs. `biome-ignore` comments are the only suppression mechanism (see `src/app/workbench/_components/PromptWorkbench.tsx:131` for an example).
+- **Biome is the only linter/formatter.** Do not introduce ESLint, Prettier, or Husky configs. `biome-ignore` comments are the only suppression mechanism (see `src/app/workbench/_components/PromptWorkbench.tsx:126` for an example).
 - **Use Heroicons only** (`@heroicons/react/24/solid` or `outline`). Wrap with `src/components/Icon.tsx`.
 - **Vitest with jsdom**, `globals: true`. Mocks for `localStorage`, `sessionStorage`, `matchMedia`, `ResizeObserver`, `IntersectionObserver`, `fetch` live in `src/__tests__/setup.ts`. URL is `http://localhost:31415` (matches Electron dev port).
 - **`"use client"` is required on every component file that uses hooks or browser APIs.** 27 client components already; 0 server components beyond the page/layout shells.
@@ -81,7 +86,7 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 - ❌ **Do not add bare `as any`** — current code has none; use proper types or `as unknown as T`.
 - ❌ **Do not put components in `src/lib/`** — that's data/logic only.
 - ❌ **Do not import `useDialog` in a server component** — it's a context hook.
-- ⚠️ **Hard-coded model allow-list** in `src/lib/local-config.ts:73` (`gemma3:4b|12b|27b`); marked with a `TODO: add more models`. Update here + in `listAvailableModels`.
+- ⚠️ **Hard-coded model allow-list** in `src/lib/local-config.ts` (`SUPPORTED_OLLAMA_MODELS` + `isSupportedOllamaModelName`). Update here and in `listAvailableModels` when adding models.
 
 ## Build / test entry points
 
