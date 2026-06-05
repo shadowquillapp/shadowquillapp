@@ -37,6 +37,7 @@ vi.mock("@/lib/local-config", () => ({
 // Mock local-storage
 vi.mock("@/lib/local-storage", () => ({
 	clearAllStorageForFactoryReset: vi.fn(),
+	abortFactoryReset: vi.fn(),
 }));
 
 // Mock presets
@@ -2111,11 +2112,13 @@ describe("ModelConfigGate", () => {
 			}).catch(() => {});
 
 			await waitFor(() => {
-				const resetBtn = screen.queryByText("DELETE ALL LOCAL DATA");
+				const resetBtn = screen.queryByRole("button", {
+					name: "Factory Reset",
+				});
 				return resetBtn !== null;
 			}).catch(() => {});
 
-			const resetBtn = screen.queryByText("DELETE ALL LOCAL DATA");
+			const resetBtn = screen.queryByRole("button", { name: "Factory Reset" });
 			if (resetBtn) {
 				await user.click(resetBtn);
 
@@ -2123,6 +2126,7 @@ describe("ModelConfigGate", () => {
 					expect(mockConfirm).toHaveBeenCalledWith(
 						expect.objectContaining({
 							title: "Factory Reset",
+							confirmText: "Factory Reset",
 							tone: "destructive",
 						}),
 					);
@@ -2157,11 +2161,13 @@ describe("ModelConfigGate", () => {
 			window.dispatchEvent(new Event("open-data-location"));
 
 			await waitFor(() => {
-				const resetBtn = screen.queryByText("DELETE ALL LOCAL DATA");
+				const resetBtn = screen.queryByRole("button", {
+					name: "Factory Reset",
+				});
 				return resetBtn !== null;
 			}).catch(() => {});
 
-			const resetBtn = screen.queryByText("DELETE ALL LOCAL DATA");
+			const resetBtn = screen.queryByRole("button", { name: "Factory Reset" });
 			if (resetBtn) {
 				await user.click(resetBtn);
 				expect(mockWindowApi.factoryReset).not.toHaveBeenCalled();
@@ -2199,11 +2205,13 @@ describe("ModelConfigGate", () => {
 			window.dispatchEvent(new Event("open-data-location"));
 
 			await waitFor(() => {
-				const resetBtn = screen.queryByText("DELETE ALL LOCAL DATA");
+				const resetBtn = screen.queryByRole("button", {
+					name: "Factory Reset",
+				});
 				return resetBtn !== null;
 			}).catch(() => {});
 
-			const resetBtn = screen.queryByText("DELETE ALL LOCAL DATA");
+			const resetBtn = screen.queryByRole("button", { name: "Factory Reset" });
 			if (resetBtn) {
 				await user.click(resetBtn);
 			}
@@ -2239,11 +2247,13 @@ describe("ModelConfigGate", () => {
 			window.dispatchEvent(new Event("open-data-location"));
 
 			await waitFor(() => {
-				const resetBtn = screen.queryByText("DELETE ALL LOCAL DATA");
+				const resetBtn = screen.queryByRole("button", {
+					name: "Factory Reset",
+				});
 				return resetBtn !== null;
 			}).catch(() => {});
 
-			const resetBtn = screen.queryByText("DELETE ALL LOCAL DATA");
+			const resetBtn = screen.queryByRole("button", { name: "Factory Reset" });
 			if (resetBtn) {
 				await user.click(resetBtn);
 			}

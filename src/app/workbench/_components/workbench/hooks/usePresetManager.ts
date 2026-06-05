@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-	consumeApplyPreset,
 	getLastSelectedPresetKey,
 	mapPresetList,
 	mapPresetToSummary,
@@ -123,18 +122,6 @@ export function usePresetManager(
 		};
 		void load();
 	}, [applyPreset, selectedPresetKey]);
-
-	useEffect(() => {
-		const applyPresetFromStorage = () => {
-			try {
-				const preset = consumeApplyPreset();
-				if (preset) loadPreset(preset);
-			} catch (error) {
-				console.error("Failed to apply preset from storage:", error);
-			}
-		};
-		applyPresetFromStorage();
-	}, [loadPreset]);
 
 	useEffect(() => {
 		const activeTab = tabManager.activeTab;

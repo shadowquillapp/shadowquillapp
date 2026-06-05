@@ -1,6 +1,9 @@
 "use client";
 import { useEffect, useState } from "react";
-import { clearAllStorageForFactoryReset } from "@/lib/local-storage";
+import {
+	abortFactoryReset,
+	clearAllStorageForFactoryReset,
+} from "@/lib/local-storage";
 import { useDialog } from "../DialogProvider";
 
 interface ShadowQuillApi {
@@ -151,7 +154,7 @@ export default function LocalDataManagementContent() {
 							<p className="shadowquill-status-card__body">
 								Factory reset will permanently delete all local data including
 								settings, saved prompts, and presets. This action cannot be
-								undone. The app will restart automatically with a fresh state.
+								undone. The app will return to its initial setup state.
 							</p>
 							<div className="shadowquill-status-card__actions">
 								<button
@@ -166,8 +169,8 @@ export default function LocalDataManagementContent() {
 										const ok = await confirm({
 											title: "Factory Reset",
 											message:
-												"Delete ALL local data and close? The app will close completely. Reopen to start fresh.",
-											confirmText: "Delete & Close",
+												"Delete ALL local data? Settings, prompts, and presets will be permanently removed. The app will return to its initial setup state.",
+											confirmText: "Factory Reset",
 											cancelText: "Cancel",
 											tone: "destructive",
 										});
@@ -179,11 +182,14 @@ export default function LocalDataManagementContent() {
 											const api = (window as WindowWithShadowQuill).shadowquill;
 											const res = await api?.factoryReset?.();
 											if (!res?.ok) {
+												abortFactoryReset();
 												setError(res?.error || "Reset failed");
 												setLoading(false);
+												return;
 											}
-											// App will close after factory reset
+											window.location.assign("/workbench");
 										} catch (e: unknown) {
+											abortFactoryReset();
 											const err = e as Error;
 											setError(err?.message || "Reset failed");
 											setLoading(false);

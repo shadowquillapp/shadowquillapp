@@ -9,9 +9,9 @@
 studio/
 ├── page.tsx                          # server; metadata only
 ├── PresetStudioPage.tsx              # client; page-level state + composition
-├── components/                       # 10 files (see below)
+├── components/                       # 5 files (see below)
 └── hooks/
-    └── usePresetManager.ts           # load/save/delete/duplicate/import/export + generateExamplesOnly + regenerateExample
+    └── usePresetManager.ts           # load/save/delete/duplicate via @/lib/presets
 ```
 
 ## Components
@@ -19,28 +19,22 @@ studio/
 | File | Role |
 |---|---|
 | `StudioHeader.tsx` | Page header (sidebar toggle). |
-| `PresetLibrary.tsx` | List/grid sidebar. |
+| `PresetLibrary.tsx` | Searchable sidebar list. |
 | `PresetCard.tsx` | Preset card item. |
-| `PresetEditor.tsx` | Editor form (consumes all field/setting components). |
-| `BasicSettings.tsx` | Basic config fields. |
-| `AdvancedSettings.tsx` | Advanced config fields. |
-| `TypeSpecificFields.tsx` | Per-task-type fields. |
-| `TemperatureControl.tsx` | Temperature slider. |
-| `LivePreview.tsx` | Live preview pane. |
-| `SaveAsDialog.tsx` | Save-as modal. |
+| `PresetEditor.tsx` | Single-page scrollable editor: `BasicSettings` + inline Context fields (identity, XML schema, additional context). |
+| `BasicSettings.tsx` | Core preset fields. |
 
 ## Conventions (delta from root)
 
 - **`PresetStudioPage` is the page-level state owner** — selected preset, editing preset, dirty flag, sidebar open, small-screen flag. Pull everything through `usePresetManager()`.
 - **Auto-selects last-used preset on mount**; warns on `beforeunload` if dirty.
 - **Themed `data-theme` attribute applied on mount** — same logic as workbench.
-- **All persistence is `localStorage`-backed** via the studio's `usePresetManager` (which delegates to `src/lib/domain/presets.ts`).
-- **`usePresetManager` is the only preset-authoring API** — it owns `generateExamplesOnly` + `regenerateExample` (calls `example-generator`).
+- **Persistence via `@/lib/presets` barrel** through the studio's `usePresetManager` (not direct `@/lib/domain/presets` imports in components).
+- **`usePresetManager` is the only preset-authoring API** — load, save, delete, duplicate only.
 
 ## Anti-patterns (delta from root)
 
-- ❌ **Do not import from `src/lib/domain/presets.ts` directly** — go through the studio's `usePresetManager`.
-- ❌ **Do not create a parallel editor form** — `PresetEditor` composes the field components.
+- ❌ **Do not import from `@/lib/domain/presets.ts` directly in components** — go through the studio's `usePresetManager` or `@/lib/presets` barrel.
+- ❌ **Do not create a parallel editor form** — `PresetEditor` composes `BasicSettings` + inline context fields.
 - ❌ **Do not move `PresetStudioPage.tsx` inside `components/`** — sibling-of-`page.tsx` is the convention here.
 - ❌ **Do not introduce a different state library** — page-level state stays in `PresetStudioPage`.
-- ⚠️ `biome-ignore a11y/useSemanticElements` is used in `SaveAsDialog.tsx:63` (modal backdrop) — keep the justification if you touch it.

@@ -7,13 +7,11 @@ import { Logo } from "@/components/Logo";
 import SettingsDialog from "@/components/SettingsDialog";
 
 interface StudioHeaderProps {
-	isDirty?: boolean;
 	isSmallScreen?: boolean;
 	onToggleSidebar?: () => void;
 }
 
 export default function StudioHeader({
-	isDirty,
 	isSmallScreen,
 	onToggleSidebar,
 }: StudioHeaderProps) {
@@ -104,18 +102,6 @@ export default function StudioHeader({
 							}}
 						>
 							Preset Studio
-							{isDirty && (
-								<span
-									style={{
-										width: 6,
-										height: 6,
-										borderRadius: "50%",
-										background: "var(--color-attention)",
-										flexShrink: 0,
-									}}
-									title="Unsaved changes"
-								/>
-							)}
 						</span>
 						<Logo
 							style={{

@@ -12,17 +12,17 @@ interface PresetInfoRowProps {
 export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 	const getIconName = (taskType: string) => {
 		switch (taskType) {
-			case "coding":
+			case "engineering":
 				return "git-compare";
-			case "image":
+			case "visual":
 				return "palette";
-			case "video":
+			case "motion":
 				return "eye";
-			case "research":
+			case "analysis":
 				return "search";
-			case "writing":
+			case "narrative":
 				return "edit";
-			case "marketing":
+			case "persuasion":
 				return "thumbsUp";
 			default:
 				return "folder-open";
@@ -41,9 +41,6 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 	if (preset.options?.tone) meta.push(preset.options.tone);
 	if (formatLabel) meta.push(formatLabel);
 	if (preset.options?.detail) meta.push(preset.options.detail);
-	if (typeof preset.options?.temperature === "number") {
-		meta.push(preset.options.temperature.toFixed(1));
-	}
 
 	// Keep the row compact: show only a few meta chips and summarize the rest.
 	const MAX_META = 3;

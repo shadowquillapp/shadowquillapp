@@ -1,6 +1,5 @@
 "use client";
 
-import TemperatureControl from "@/app/studio/components/TemperatureControl";
 import { CustomSelect } from "@/components/CustomSelect";
 import { Icon } from "@/components/Icon";
 import type { PresetLite } from "@/types";
@@ -10,29 +9,10 @@ interface BasicSettingsProps {
 	onFieldChange: (field: string, value: unknown) => void;
 }
 
-/** Detail level metadata with word count ranges */
+/** Detail level labels for the picker */
 const DETAIL_LEVELS = {
-	brief: {
-		label: "Brief",
-		words: "75-150",
-		description: "Concise and to the point",
-		icon: "minus",
-		color: "#3b82f6",
-	},
-	normal: {
-		label: "Normal",
-		words: "200-250",
-		description: "Standard level of detail",
-		icon: "sliders",
-		color: "#22c55e",
-	},
-	detailed: {
-		label: "Detailed",
-		words: "300-375",
-		description: "Comprehensive coverage",
-		icon: "plus",
-		color: "#f59e0b",
-	},
+	normal: { label: "Normal", icon: "sliders" as const },
+	detailed: { label: "Detailed", icon: "plus" as const },
 } as const;
 
 export default function BasicSettings({
@@ -42,7 +22,7 @@ export default function BasicSettings({
 	const options = preset.options || {};
 
 	return (
-		<div className="mt-4 space-y-6">
+		<div className="space-y-6">
 			{/* Preset Name - full width */}
 			<div>
 				<label
@@ -75,13 +55,13 @@ export default function BasicSettings({
 						value={preset.taskType}
 						onChange={(v) => onFieldChange("taskType", v)}
 						options={[
-							{ value: "general", label: "General", icon: "bullseye" },
-							{ value: "coding", label: "Coding", icon: "terminal" },
-							{ value: "image", label: "Image", icon: "image" },
-							{ value: "video", label: "Video", icon: "video" },
-							{ value: "research", label: "Research", icon: "flask" },
-							{ value: "writing", label: "Writing", icon: "edit" },
-							{ value: "marketing", label: "Marketing", icon: "bullhorn" },
+							{ value: "intent", label: "Intent", icon: "bullseye" },
+							{ value: "engineering", label: "Engineering", icon: "terminal" },
+							{ value: "visual", label: "Visual", icon: "image" },
+							{ value: "motion", label: "Motion", icon: "video" },
+							{ value: "analysis", label: "Analysis", icon: "flask" },
+							{ value: "narrative", label: "Narrative", icon: "edit" },
+							{ value: "persuasion", label: "Persuasion", icon: "bullhorn" },
 						]}
 					/>
 				</div>
@@ -134,7 +114,7 @@ export default function BasicSettings({
 				<div className="mb-1.5 block font-medium text-secondary text-xs">
 					Detail Level
 				</div>
-				<div className="grid grid-cols-3 gap-2">
+				<div className="grid grid-cols-2 gap-2">
 					{(
 						Object.keys(DETAIL_LEVELS) as Array<keyof typeof DETAIL_LEVELS>
 					).map((level) => {
@@ -215,14 +195,6 @@ export default function BasicSettings({
 						]}
 					/>
 				</div>
-			</div>
-
-			{/* Temperature - full width with enhanced control */}
-			<div className="pt-2">
-				<TemperatureControl
-					value={options.temperature ?? 0.7}
-					onChange={(v) => onFieldChange("temperature", v)}
-				/>
 			</div>
 		</div>
 	);

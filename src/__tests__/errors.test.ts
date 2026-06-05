@@ -94,8 +94,8 @@ describe("GenerationError", () => {
 	});
 
 	it("should include task type", () => {
-		const error = new GenerationError("Failed", { taskType: "coding" });
-		expect(error.taskType).toBe("coding");
+		const error = new GenerationError("Failed", { taskType: "engineering" });
+		expect(error.taskType).toBe("engineering");
 	});
 
 	it("should include input length", () => {
@@ -412,7 +412,7 @@ describe("GenerationError with cause", () => {
 	it("should include cause in generation error", () => {
 		const cause = new Error("Token limit exceeded");
 		const error = new GenerationError("Generation failed", {
-			taskType: "coding",
+			taskType: "engineering",
 			inputLength: 50000,
 			details: { model: "gemma3:4b" },
 			cause,

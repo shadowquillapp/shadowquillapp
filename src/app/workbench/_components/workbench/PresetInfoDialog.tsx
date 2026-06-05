@@ -14,44 +14,17 @@ interface PresetInfoDialogProps {
 }
 
 const CATEGORIES = {
-	general: ["tone", "detail", "format", "language"],
-	model: [
-		"temperature",
-		"reasoningStyle",
-		"includeVerification",
-		"endOfPromptToken",
-	],
-	content: [
-		"useDelimiters",
-		"requireCitations",
-		"includeTests",
-		"outputXMLSchema",
-	],
-	media: [
-		"stylePreset",
-		"aspectRatio",
-		"videoStylePreset",
-		"cameraMovement",
-		"shotType",
-		"durationSeconds",
-		"frameRate",
-	],
-	context: ["identity", "additionalContext", "examplesText"],
+	general: ["tone", "detail", "format", "language", "outputXMLSchema"],
+	context: ["identity", "additionalContext", "audience", "styleGuidelines"],
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
 	general: "General Settings",
-	model: "Model Configuration",
-	content: "Content Structure",
-	media: "Media Settings",
-	context: "Context & Examples",
+	context: "Context",
 };
 
 const CATEGORY_ICONS: Record<string, IconName> = {
 	general: "sliders",
-	model: "cpu",
-	content: "layout",
-	media: "image",
 	context: "file-text",
 };
 
@@ -117,14 +90,7 @@ export function PresetInfoDialog({
 	}
 
 	// Order categories
-	const categoryOrder = [
-		"general",
-		"model",
-		"content",
-		"media",
-		"context",
-		"other",
-	];
+	const categoryOrder = ["general", "context", "other"];
 
 	return (
 		<div className="modal-container">
@@ -174,11 +140,11 @@ export function PresetInfoDialog({
 									<span className="inline-flex items-center gap-1.5 font-bold text-[10px] text-primary uppercase tracking-wider">
 										<Icon
 											name={
-												preset.taskType === "coding"
+												preset.taskType === "engineering"
 													? "git-compare"
-													: preset.taskType === "image"
+													: preset.taskType === "visual"
 														? "palette"
-														: preset.taskType === "video"
+														: preset.taskType === "motion"
 															? "eye"
 															: "sparkles"
 											}
