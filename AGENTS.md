@@ -36,7 +36,7 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 | `src/lib/storage-keys.ts` (14 importers) | Sole registry of every localStorage/sessionStorage key + scope. Touching persistence = touching this. |
 | `src/lib/local-storage.ts` (12) | Safe wrapper over `electron-storage` with `window` guards and factory-reset suppression. |
 | `src/lib/local-config.ts` (9) | Ollama model config + connection validation; barrel over `domain/model-config.ts`. |
-| `src/lib/domain/presets.ts` (~5) | Preset CRUD + 10-version history; ships 10 seeded presets. |
+| `src/lib/domain/presets.ts` (~5) | Preset CRUD; ships 10 seeded presets. |
 | `src/lib/system-prompts.ts` (5) | Customizable system-prompt template. |
 | `src/components/DialogProvider.tsx` | Imperative `useDialog()` modal API used app-wide. |
 | `src/components/ModelConfigGate.tsx` (~1196 lines) | Onboarding gate — first thing in workbench; pre-validates Ollama. |

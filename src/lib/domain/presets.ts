@@ -1,4 +1,11 @@
-import type { GenerationOptions, PresetLite, TaskType } from "@/types";
+import type {
+	Detail,
+	Format,
+	GenerationOptions,
+	PresetLite,
+	TaskType,
+	Tone,
+} from "@/types";
 import { getRaw, setJSON } from "../local-storage";
 import { isOneOf, isRecord, isString, safeParse } from "../schema";
 import { STORAGE_KEYS } from "../storage-keys";
@@ -8,56 +15,26 @@ export interface Preset extends PresetLite {
 	updatedAt?: number;
 }
 
-const LEGACY_OPTION_KEYS = [
-	"stylePreset",
-	"aspectRatio",
-	"targetResolution",
-	"cameraMovement",
-	"shotType",
-	"durationSeconds",
-	"frameRate",
-	"includeStoryboard",
-	"includeTests",
-	"techStack",
-	"projectContext",
-	"codingConstraints",
-	"requireCitations",
-	"writingStyle",
-	"pointOfView",
-	"readingLevel",
-	"targetWordCount",
-	"includeHeadings",
-	"marketingChannel",
-	"ctaStyle",
-	"valueProps",
-	"complianceNotes",
-	"temperature",
-	"examplesText",
-	"useDelimiters",
-	"includeVerification",
-	"reasoningStyle",
-	"endOfPromptToken",
+const ALLOWED_OPTION_KEYS = [
+	"tone",
+	"detail",
+	"format",
+	"language",
+	"audience",
+	"outputXMLSchema",
+	"identity",
+	"additionalContext",
+	"styleGuidelines",
+] as const satisfies readonly (keyof GenerationOptions)[];
+
+const ALLOWED_PRESET_KEYS = [
+	"id",
+	"name",
+	"taskType",
+	"options",
+	"createdAt",
+	"updatedAt",
 ] as const;
-
-function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
-	const sanitized = { ...options } as GenerationOptions &
-		Record<string, unknown>;
-	for (const key of LEGACY_OPTION_KEYS) {
-		delete sanitized[key];
-	}
-	return sanitized;
-}
-
-function sanitizePreset(preset: Preset): Preset {
-	const { generatedExamples: _removedExamples, ...withoutGeneratedExamples } =
-		preset as Preset & { generatedExamples?: unknown };
-	const base =
-		"generatedExamples" in preset
-			? (withoutGeneratedExamples as Preset)
-			: preset;
-	if (!base.options) return base;
-	return { ...base, options: sanitizePresetOptions(base.options) };
-}
 
 const TASK_TYPES: readonly TaskType[] = [
 	"intent",
@@ -69,46 +46,88 @@ const TASK_TYPES: readonly TaskType[] = [
 	"motion",
 ];
 
-const LEGACY_TASK_TYPE_MAP: Record<string, TaskType> = {
-	general: "intent",
-	coding: "engineering",
-	writing: "narrative",
-	research: "analysis",
-	marketing: "persuasion",
-	image: "visual",
-	video: "motion",
-};
+const DETAIL_LEVELS: readonly Detail[] = ["normal", "detailed"];
+const TONE_LEVELS: readonly Tone[] = [
+	"neutral",
+	"friendly",
+	"formal",
+	"technical",
+	"persuasive",
+];
+const FORMAT_LEVELS: readonly Format[] = ["plain", "markdown", "xml"];
 
-export function migrateTaskType(raw: string): TaskType | null {
-	if (isOneOf(raw, TASK_TYPES)) return raw;
-	return LEGACY_TASK_TYPE_MAP[raw] ?? null;
+function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
+	const raw = options as Record<string, unknown>;
+	const sanitized: GenerationOptions = {};
+
+	for (const key of ALLOWED_OPTION_KEYS) {
+		const value = raw[key];
+		if (value === undefined) continue;
+
+		if (key === "tone" && isOneOf(value, TONE_LEVELS)) {
+			sanitized.tone = value;
+		} else if (key === "detail" && isOneOf(value, DETAIL_LEVELS)) {
+			sanitized.detail = value;
+		} else if (key === "format" && isOneOf(value, FORMAT_LEVELS)) {
+			sanitized.format = value;
+		} else if (isString(value)) {
+			if (key === "language") sanitized.language = value;
+			else if (key === "audience") sanitized.audience = value;
+			else if (key === "outputXMLSchema") sanitized.outputXMLSchema = value;
+			else if (key === "identity") sanitized.identity = value;
+			else if (key === "additionalContext") sanitized.additionalContext = value;
+			else if (key === "styleGuidelines") sanitized.styleGuidelines = value;
+		}
+	}
+
+	return sanitized;
+}
+
+function sanitizePreset(preset: Preset): Preset {
+	const raw = preset as unknown as Record<string, unknown>;
+	const sanitized: Preset = {
+		name: preset.name,
+		taskType: preset.taskType,
+	};
+
+	for (const key of ALLOWED_PRESET_KEYS) {
+		if (key === "name" || key === "taskType") continue;
+		const value = raw[key];
+		if (value === undefined) continue;
+
+		if (key === "options" && isRecord(value)) {
+			sanitized.options = sanitizePresetOptions(value as GenerationOptions);
+		} else if (key === "id" && isString(value)) {
+			sanitized.id = value;
+		} else if (
+			(key === "createdAt" || key === "updatedAt") &&
+			typeof value === "number"
+		) {
+			sanitized[key] = value;
+		}
+	}
+
+	return sanitized;
 }
 
 function isPreset(v: unknown): v is Preset {
 	if (!isRecord(v) || !isString(v.name)) return false;
-	if (!isString(v.taskType) || migrateTaskType(v.taskType) === null)
-		return false;
+	if (!isString(v.taskType) || !isOneOf(v.taskType, TASK_TYPES)) return false;
 	return v.options === undefined || isRecord(v.options);
 }
 
-function isPresetArray(v: unknown): v is Preset[] {
-	return Array.isArray(v) && v.every(isPreset);
-}
-
-function migratePreset(preset: Preset): Preset {
-	const migratedType = migrateTaskType(preset.taskType);
-	if (!migratedType) return sanitizePreset(preset);
-	return sanitizePreset({ ...preset, taskType: migratedType });
+function isPresetArray(v: unknown): v is unknown[] {
+	return Array.isArray(v);
 }
 
 export function parsePreset(raw: string | null): Preset | null {
 	const parsed = safeParse(raw, isPreset, null);
-	return parsed ? migratePreset(parsed) : null;
+	return parsed ? sanitizePreset(parsed) : null;
 }
 
 export function getPresets(): Preset[] {
 	const list = safeParse(getRaw(STORAGE_KEYS.PRESETS.key), isPresetArray, []);
-	return list.map(migratePreset);
+	return list.filter(isPreset).map(sanitizePreset);
 }
 
 function writePresets(list: Preset[]): void {
@@ -127,7 +146,7 @@ export function getDefaultPresets(): Preset[] {
 			taskType: "intent",
 			options: {
 				tone: "friendly",
-				detail: "brief",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
 				additionalContext:
@@ -140,7 +159,7 @@ export function getDefaultPresets(): Preset[] {
 			taskType: "intent",
 			options: {
 				tone: "neutral",
-				detail: "brief",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
 				additionalContext:
@@ -153,7 +172,7 @@ export function getDefaultPresets(): Preset[] {
 			taskType: "engineering",
 			options: {
 				tone: "technical",
-				detail: "brief",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
 				additionalContext:
@@ -166,7 +185,7 @@ export function getDefaultPresets(): Preset[] {
 			taskType: "engineering",
 			options: {
 				tone: "technical",
-				detail: "brief",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
 				additionalContext:
@@ -179,7 +198,7 @@ export function getDefaultPresets(): Preset[] {
 			taskType: "narrative",
 			options: {
 				tone: "friendly",
-				detail: "brief",
+				detail: "normal",
 				format: "plain",
 				language: "English",
 				additionalContext:
@@ -205,7 +224,7 @@ export function getDefaultPresets(): Preset[] {
 			taskType: "analysis",
 			options: {
 				tone: "formal",
-				detail: "detailed",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
 				additionalContext:
@@ -218,7 +237,7 @@ export function getDefaultPresets(): Preset[] {
 			taskType: "persuasion",
 			options: {
 				tone: "friendly",
-				detail: "brief",
+				detail: "normal",
 				format: "markdown",
 				language: "English",
 				additionalContext:
@@ -268,11 +287,7 @@ export function ensureDefaultPreset(): void {
 }
 
 export function savePreset(preset: Preset): Preset {
-	const migratedType = migrateTaskType(preset.taskType);
-	const normalizedPreset = sanitizePreset({
-		...preset,
-		...(migratedType && { taskType: migratedType }),
-	});
+	const normalizedPreset = sanitizePreset(preset);
 	const list = getPresets();
 	const now = Date.now();
 

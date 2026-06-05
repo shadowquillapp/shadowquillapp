@@ -47,8 +47,8 @@ describe("buildBaseDirectives", () => {
 		expect(result.some((d) => d.toLowerCase().includes("formal"))).toBe(true);
 	});
 
-	it("should include output length requirement for detail level", () => {
-		const result = buildBaseDirectives({ detail: "brief" });
+	it("should include output length requirement for normal level", () => {
+		const result = buildBaseDirectives({ detail: "normal" });
 		expect(
 			result.some((d) => d.includes("75-150") && d.includes("OUTPUT LENGTH")),
 		).toBe(true);
@@ -57,7 +57,7 @@ describe("buildBaseDirectives", () => {
 	it("should include output length requirement for detailed level", () => {
 		const result = buildBaseDirectives({ detail: "detailed" });
 		expect(
-			result.some((d) => d.includes("300-375") && d.includes("OUTPUT LENGTH")),
+			result.some((d) => d.includes("200-250") && d.includes("OUTPUT LENGTH")),
 		).toBe(true);
 	});
 

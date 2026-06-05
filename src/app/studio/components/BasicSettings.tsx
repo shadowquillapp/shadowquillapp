@@ -11,7 +11,6 @@ interface BasicSettingsProps {
 
 /** Detail level labels for the picker */
 const DETAIL_LEVELS = {
-	brief: { label: "Brief", icon: "minus" as const },
 	normal: { label: "Normal", icon: "sliders" as const },
 	detailed: { label: "Detailed", icon: "plus" as const },
 } as const;
@@ -115,7 +114,7 @@ export default function BasicSettings({
 				<div className="mb-1.5 block font-medium text-secondary text-xs">
 					Detail Level
 				</div>
-				<div className="grid grid-cols-3 gap-2">
+				<div className="grid grid-cols-2 gap-2">
 					{(
 						Object.keys(DETAIL_LEVELS) as Array<keyof typeof DETAIL_LEVELS>
 					).map((level) => {

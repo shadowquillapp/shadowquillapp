@@ -193,9 +193,8 @@ export function buildUnifiedPromptCore(params: {
 
 	if (options?.detail) {
 		const wordLimits: Record<string, string> = {
-			brief: "75-150 words (DO NOT EXCEED 150)",
-			normal: "200-250 words (DO NOT EXCEED 250)",
-			detailed: "300-375 words (DO NOT EXCEED 375)",
+			normal: "75-150 words (DO NOT EXCEED 150)",
+			detailed: "200-250 words (DO NOT EXCEED 250)",
 		};
 		const limit = wordLimits[options.detail];
 		if (limit) {
@@ -283,9 +282,8 @@ export function buildRefinementPromptCore(params: {
 
 	if (options?.detail) {
 		const wordLimits: Record<string, string> = {
-			brief: "75-150 words (DO NOT EXCEED 150)",
-			normal: "200-250 words (DO NOT EXCEED 250)",
-			detailed: "300-375 words (DO NOT EXCEED 375)",
+			normal: "75-150 words (DO NOT EXCEED 150)",
+			detailed: "200-250 words (DO NOT EXCEED 250)",
 		};
 		const limit = wordLimits[options.detail];
 		if (limit) {

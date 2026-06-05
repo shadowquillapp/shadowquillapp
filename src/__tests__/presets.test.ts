@@ -5,7 +5,6 @@ import {
 	getDefaultPresets,
 	getPresetById,
 	getPresets,
-	migrateTaskType,
 	type Preset,
 	savePreset,
 } from "@/lib/presets";
@@ -14,31 +13,10 @@ const clearStorage = () => {
 	localStorage.clear();
 };
 
-describe("migrateTaskType", () => {
-	it("should map legacy task types to new intent-domain names", () => {
-		expect(migrateTaskType("general")).toBe("intent");
-		expect(migrateTaskType("coding")).toBe("engineering");
-		expect(migrateTaskType("writing")).toBe("narrative");
-		expect(migrateTaskType("research")).toBe("analysis");
-		expect(migrateTaskType("marketing")).toBe("persuasion");
-		expect(migrateTaskType("image")).toBe("visual");
-		expect(migrateTaskType("video")).toBe("motion");
-	});
-
-	it("should accept new task types unchanged", () => {
-		expect(migrateTaskType("intent")).toBe("intent");
-		expect(migrateTaskType("engineering")).toBe("engineering");
-	});
-
-	it("should return null for unknown task types", () => {
-		expect(migrateTaskType("unknown")).toBeNull();
-	});
-});
-
 describe("getPresets", () => {
 	beforeEach(clearStorage);
 
-	it("should migrate legacy task types on read", () => {
+	it("should skip presets with invalid task types", () => {
 		localStorage.setItem(
 			"PC_PRESETS",
 			JSON.stringify([
@@ -46,8 +24,21 @@ describe("getPresets", () => {
 			]),
 		);
 
+		expect(getPresets()).toEqual([]);
+	});
+
+	it("should keep valid presets when storage contains invalid entries", () => {
+		localStorage.setItem(
+			"PC_PRESETS",
+			JSON.stringify([
+				{ id: "legacy-1", name: "Legacy Coding", taskType: "coding" },
+				{ id: "valid-1", name: "Valid", taskType: "intent" },
+			]),
+		);
+
 		const presets = getPresets();
-		expect(presets[0]?.taskType).toBe("engineering");
+		expect(presets).toHaveLength(1);
+		expect(presets[0]?.id).toBe("valid-1");
 	});
 
 	it("should return empty array when no presets exist", () => {
@@ -131,9 +122,19 @@ describe("savePreset", () => {
 		expect(stored[0]?.name).toBe("Updated");
 	});
 
-	it("should strip legacy type-specific options on save", () => {
+	it("should strip invalid detail levels on save", () => {
 		const saved = savePreset({
-			name: "Legacy Options",
+			name: "Invalid Detail",
+			taskType: "intent",
+			options: { detail: "brief" } as Preset["options"],
+		});
+
+		expect(saved.options?.detail).toBeUndefined();
+	});
+
+	it("should strip unknown option keys on save", () => {
+		const saved = savePreset({
+			name: "Unknown Options",
 			taskType: "visual",
 			options: {
 				tone: "neutral",

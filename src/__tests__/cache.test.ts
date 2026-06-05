@@ -273,10 +273,10 @@ describe("createPromptCacheKey", () => {
 	it("should produce consistent keys regardless of object key order", () => {
 		const key1 = createPromptCacheKey("test", "intent", {
 			tone: "formal",
-			detail: "brief",
+			detail: "normal",
 		});
 		const key2 = createPromptCacheKey("test", "intent", {
-			detail: "brief",
+			detail: "normal",
 			tone: "formal",
 		});
 		expect(key1).toBe(key2);

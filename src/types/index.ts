@@ -14,7 +14,7 @@ export type Tone =
 	| "technical"
 	| "persuasive";
 
-export type Detail = "brief" | "normal" | "detailed";
+export type Detail = "normal" | "detailed";
 
 export type Format = "plain" | "markdown" | "xml";
 

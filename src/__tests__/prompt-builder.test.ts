@@ -120,7 +120,7 @@ describe("buildUnifiedPromptCore", () => {
 			...defaultParams,
 			options: { detail: "detailed" },
 		});
-		expect(result).toContain("300-375");
+		expect(result).toContain("200-250");
 	});
 
 	it("should include format directive for markdown", () => {
@@ -246,22 +246,13 @@ describe("buildUnifiedPromptCore", () => {
 	});
 
 	describe("detail level word limits", () => {
-		it("should include brief word limit", () => {
-			const result = buildUnifiedPromptCore({
-				...defaultParams,
-				options: { detail: "brief" },
-			});
-			expect(result).toContain("75-150 words");
-			expect(result).toContain("DO NOT EXCEED 150");
-		});
-
 		it("should include normal word limit", () => {
 			const result = buildUnifiedPromptCore({
 				...defaultParams,
 				options: { detail: "normal" },
 			});
-			expect(result).toContain("200-250 words");
-			expect(result).toContain("DO NOT EXCEED 250");
+			expect(result).toContain("75-150 words");
+			expect(result).toContain("DO NOT EXCEED 150");
 		});
 
 		it("should include detailed word limit", () => {
@@ -269,8 +260,8 @@ describe("buildUnifiedPromptCore", () => {
 				...defaultParams,
 				options: { detail: "detailed" },
 			});
-			expect(result).toContain("300-375 words");
-			expect(result).toContain("DO NOT EXCEED 375");
+			expect(result).toContain("200-250 words");
+			expect(result).toContain("DO NOT EXCEED 250");
 		});
 	});
 
@@ -408,20 +399,12 @@ describe("buildRefinementPromptCore", () => {
 	});
 
 	describe("detail level", () => {
-		it("should include brief word limit", () => {
-			const result = buildRefinementPromptCore({
-				...defaultRefinementParams,
-				options: { detail: "brief" },
-			});
-			expect(result).toContain("75-150 words");
-		});
-
 		it("should include normal word limit", () => {
 			const result = buildRefinementPromptCore({
 				...defaultRefinementParams,
 				options: { detail: "normal" },
 			});
-			expect(result).toContain("200-250 words");
+			expect(result).toContain("75-150 words");
 		});
 
 		it("should include detailed word limit", () => {
@@ -429,7 +412,7 @@ describe("buildRefinementPromptCore", () => {
 				...defaultRefinementParams,
 				options: { detail: "detailed" },
 			});
-			expect(result).toContain("300-375 words");
+			expect(result).toContain("200-250 words");
 		});
 	});
 });
