@@ -1,3 +1,10 @@
+## [0.9.9](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.8...v0.9.9) (2026-06-05)
+
+
+### Bug Fixes
+
+* Harden Electron and tighten renderer quality ([#16](https://github.com/shadowquillapp/shadowquillapp/issues/16)) ([0aa6cd1](https://github.com/shadowquillapp/shadowquillapp/commit/0aa6cd1b337b360e76db37e9a4abcecc6cdc50fb))
+
 ## [0.9.8](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.7...v0.9.8) (2026-06-04)
 
 ## [0.9.7](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.6...v0.9.7) (2026-06-04)
