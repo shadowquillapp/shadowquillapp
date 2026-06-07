@@ -18,6 +18,15 @@ vi.mock("@/lib/local-config", () => ({
 	},
 	isSupportedOllamaModelName: (name: string) =>
 		/^(gemma4:(latest|e2b|e4b|12b|26b|31b)|gemma3:(4b|12b|27b))$/i.test(name),
+	isValidOllamaPort: (port: string) => /^\d{2,5}$/.test((port || "").trim()),
+	normalizeOllamaBaseUrlInput: (value?: string) => {
+		const raw = (value || "").trim();
+		if (!raw) return "";
+		if (/^\d{1,5}$/.test(raw)) return `http://localhost:${raw}`;
+		if (/^localhost:\d{1,5}$/.test(raw)) return `http://${raw}`;
+		if (/^https?:\/\//.test(raw)) return raw.replace(/\/$/, "");
+		return raw;
+	},
 	readLocalModelConfig: () => mockReadLocalModelConfig(),
 	writeLocalModelConfig: (config: unknown) => mockWriteLocalModelConfig(config),
 	validateLocalModelConnection: (config: unknown) =>

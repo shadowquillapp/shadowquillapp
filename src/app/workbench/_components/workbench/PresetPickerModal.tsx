@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
 import { Icon } from "@/components/Icon";
 import type { PromptPresetSummary } from "./types";
+import { getTaskTypeIcon } from "./utils/taskTypeIcon";
 
 const visuallyHidden: React.CSSProperties = {
 	position: "absolute",
@@ -279,25 +280,6 @@ export function PresetPickerModal({
 			e.preventDefault();
 			moveFocus(idx, delta);
 			return;
-		}
-	};
-
-	const getTaskTypeIcon = (taskType: string) => {
-		switch (taskType) {
-			case "engineering":
-				return "git-compare";
-			case "visual":
-				return "palette";
-			case "motion":
-				return "eye";
-			case "analysis":
-				return "search";
-			case "narrative":
-				return "edit";
-			case "persuasion":
-				return "thumbsUp";
-			default:
-				return "folder-open";
 		}
 	};
 

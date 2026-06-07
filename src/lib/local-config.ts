@@ -43,6 +43,19 @@ export function formatOllamaModelName(name: string): string {
 	return name;
 }
 
+export function isValidOllamaPort(port: string): boolean {
+	return /^\d{2,5}$/.test((port || "").trim());
+}
+
+export function normalizeOllamaBaseUrlInput(value?: string): string {
+	const raw = (value || "").trim();
+	if (!raw) return "";
+	if (/^\d{1,5}$/.test(raw)) return `http://localhost:${raw}`;
+	if (/^localhost:\d{1,5}$/.test(raw)) return `http://${raw}`;
+	if (/^https?:\/\//.test(raw)) return raw.replace(/\/$/, "");
+	return raw;
+}
+
 export async function validateLocalModelConnection(
 	cfg?: LocalModelConfig | null,
 ): Promise<{ ok: boolean; error?: string }> {

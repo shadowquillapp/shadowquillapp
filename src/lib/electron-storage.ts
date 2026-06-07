@@ -8,6 +8,60 @@ interface ShadowQuillStorage {
 	};
 }
 
+export interface ElectronDataPaths {
+	userData?: string;
+	localStorageDir?: string;
+	localStorageLevelDb?: string;
+}
+
+export type ElectronDataPathsResult =
+	| { ok: true; paths: ElectronDataPaths }
+	| { ok: false; error: string };
+
+interface ElectronDataPathsResponse {
+	ok: boolean;
+	error?: string;
+	userData?: string;
+	localStorageDir?: string;
+	localStorageLevelDb?: string;
+}
+
+export async function getElectronDataPaths(): Promise<ElectronDataPathsResult> {
+	const api = window.shadowquill;
+	if (!api?.getDataPaths) {
+		return { ok: false, error: "Not available outside the desktop app" };
+	}
+	try {
+		const res = await (api.getDataPaths() as Promise<ElectronDataPathsResponse | undefined>);
+		if (res?.ok) {
+			return {
+				ok: true,
+				paths: {
+					...(res.userData && { userData: res.userData }),
+					...(res.localStorageDir && {
+						localStorageDir: res.localStorageDir,
+					}),
+					...(res.localStorageLevelDb && {
+						localStorageLevelDb: res.localStorageLevelDb,
+					}),
+				},
+			};
+		}
+		return { ok: false, error: res?.error || "Failed to load data paths" };
+	} catch (e: unknown) {
+		const err = e as Error;
+		const msg = String(err?.message || "");
+		if (msg.includes("No handler registered")) {
+			return {
+				ok: false,
+				error:
+					"Main process not updated yet. Please fully quit and relaunch the app.",
+			};
+		}
+		return { ok: false, error: err?.message || "Failed to load data paths" };
+	}
+}
+
 type WindowWithShadowQuill = Window & {
 	shadowquill?: ShadowQuillStorage & Record<string, unknown>;
 };

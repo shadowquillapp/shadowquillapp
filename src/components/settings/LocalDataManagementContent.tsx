@@ -4,22 +4,8 @@ import {
 	abortFactoryReset,
 	clearAllStorageForFactoryReset,
 } from "@/lib/local-storage";
+import { getElectronDataPaths } from "@/lib/electron-storage";
 import { useDialog } from "../DialogProvider";
-
-interface ShadowQuillApi {
-	getDataPaths?: () => Promise<{
-		ok: boolean;
-		error?: string;
-		userData?: string;
-		localStorageDir?: string;
-		localStorageLevelDb?: string;
-	}>;
-	factoryReset?: () => Promise<{ ok: boolean; error?: string }>;
-}
-
-interface WindowWithShadowQuill extends Window {
-	shadowquill?: ShadowQuillApi;
-}
 
 export default function LocalDataManagementContent() {
 	const { confirm } = useDialog();
@@ -36,41 +22,11 @@ export default function LocalDataManagementContent() {
 			setLoading(true);
 			setError(null);
 			try {
-				const api = (window as WindowWithShadowQuill).shadowquill;
-				if (!api?.getDataPaths) {
-					setPaths(null);
-					setError("Not available outside the desktop app");
-					return;
-				}
-				let res: Awaited<
-					ReturnType<NonNullable<typeof api.getDataPaths>>
-				> | null = null;
-				try {
-					res = await api.getDataPaths();
-				} catch (e: unknown) {
-					const err = e as Error;
-					const msg = String(err?.message || "");
-					if (msg.includes("No handler registered")) {
-						setPaths(null);
-						setError(
-							"Main process not updated yet. Please fully quit and relaunch the app.",
-						);
-						return;
-					}
-					throw e;
-				}
-				if (res?.ok) {
-					setPaths({
-						...(res.userData && { userData: res.userData }),
-						...(res.localStorageDir && {
-							localStorageDir: res.localStorageDir,
-						}),
-						...(res.localStorageLevelDb && {
-							localStorageLevelDb: res.localStorageLevelDb,
-						}),
-					});
+				const result = await getElectronDataPaths();
+				if (result.ok) {
+					setPaths(result.paths);
 				} else {
-					setError(res?.error || "Failed to load data paths");
+					setError(result.error);
 				}
 			} catch (e: unknown) {
 				const err = e as Error;
@@ -179,8 +135,7 @@ export default function LocalDataManagementContent() {
 										setError(null);
 										try {
 											clearAllStorageForFactoryReset();
-											const api = (window as WindowWithShadowQuill).shadowquill;
-											const res = await api?.factoryReset?.();
+											const res = await (window.shadowquill?.factoryReset?.() as Promise<{ ok: boolean; error?: string } | undefined>);
 											if (!res?.ok) {
 												abortFactoryReset();
 												setError(res?.error || "Reset failed");

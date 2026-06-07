@@ -3,6 +3,7 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import type { PromptPresetSummary } from "./types";
+import { getTaskTypeIcon } from "./utils/taskTypeIcon";
 
 export interface TabInfo {
 	id: string;
@@ -98,25 +99,6 @@ export function TabBar({
 
 	const scrollRight = () => {
 		tabsContainerRef.current?.scrollBy({ left: 200, behavior: "smooth" });
-	};
-
-	const getTaskTypeIcon = (taskType: string) => {
-		switch (taskType) {
-			case "engineering":
-				return "git-compare";
-			case "visual":
-				return "palette";
-			case "motion":
-				return "eye";
-			case "analysis":
-				return "search";
-			case "narrative":
-				return "edit";
-			case "persuasion":
-				return "thumbsUp";
-			default:
-				return "folder-open";
-		}
 	};
 
 	const canAddTab = tabs.length < maxTabs;

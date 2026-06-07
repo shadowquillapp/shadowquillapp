@@ -140,7 +140,6 @@ export default function Titlebar() {
 			.trim();
 	};
 
-	// Define buttons
 	const closeButton = (
 		<TitlebarButton
 			key="close"

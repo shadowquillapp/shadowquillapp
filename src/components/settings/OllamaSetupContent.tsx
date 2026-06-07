@@ -2,13 +2,16 @@
 import { useCallback, useEffect, useState } from "react";
 import {
 	formatOllamaModelName,
+	isValidOllamaPort,
 	isSupportedOllamaModelName,
 	listAvailableModels,
+	normalizeOllamaBaseUrlInput,
 	readLocalModelConfig as readLocalModelConfigClient,
 	validateLocalModelConnection as validateLocalModelConnectionClient,
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
 import { Icon } from "../Icon";
+import { useOpenOrInstallOllama } from "../useOpenOrInstallOllama";
 
 type TestResult = null | {
 	success: boolean;
@@ -35,26 +38,11 @@ export default function OllamaSetupContent() {
 	const [testingLocal, setTestingLocal] = useState(false);
 	const [localTestResult, setLocalTestResult] = useState<TestResult>(null);
 	const [availableModels, setAvailableModels] = useState<string[]>([]);
-	const [isOpeningOllama, setIsOpeningOllama] = useState(false);
-	const [openOllamaError, setOpenOllamaError] = useState<string | null>(null);
 	const [ollamaInstalled, setOllamaInstalled] = useState<boolean | null>(null);
-
-	const isValidPort = (port: string): boolean => {
-		return /^\d{2,5}$/.test((port || "").trim());
-	};
-
-	const normalizeToBaseUrl = useCallback((value?: string): string => {
-		const raw = (value || "").trim();
-		if (!raw) return "";
-		if (/^\d{1,5}$/.test(raw)) return `http://localhost:${raw}`;
-		if (/^localhost:\d{1,5}$/.test(raw)) return `http://${raw}`;
-		if (/^https?:\/\//.test(raw)) return raw.replace(/\/$/, "");
-		return raw;
-	}, []);
 
 	const testLocalConnection = useCallback(
 		async (baseUrlParam?: string, configuredModel?: string) => {
-			const url = normalizeToBaseUrl(baseUrlParam ?? localPort);
+			const url = normalizeOllamaBaseUrlInput(baseUrlParam ?? localPort);
 			if (!url) return;
 			setTestingLocal(true);
 			setLocalTestResult(null);
@@ -94,7 +82,7 @@ export default function OllamaSetupContent() {
 				setTestingLocal(false);
 			}
 		},
-		[localPort, normalizeToBaseUrl],
+		[localPort],
 	);
 
 	const checkOllamaInstalled = useCallback(async () => {
@@ -128,57 +116,21 @@ export default function OllamaSetupContent() {
 		void load();
 	}, [checkOllamaInstalled, testLocalConnection]);
 
-	const handleOpenOrInstallOllama = async () => {
-		setIsOpeningOllama(true);
-		setOpenOllamaError(null);
-
-		try {
-			const win = window as WindowWithShadowQuill;
-
-			// Check if installed first
-			if (ollamaInstalled === null) {
-				await checkOllamaInstalled();
-			}
-
-			if (ollamaInstalled === false) {
-				// Open download page
-				window.open("https://ollama.com/download", "_blank");
-				setIsOpeningOllama(false);
-				return;
-			}
-
-			if (!win.shadowquill?.openOllama) {
-				setOpenOllamaError(
-					"This feature is only available in the desktop app.",
-				);
-				return;
-			}
-
-			const result = await win.shadowquill.openOllama();
-
-			if (result.ok) {
-				// Wait 3 seconds then retest the connection
-				setTimeout(() => {
-					setOpenOllamaError(null);
-					void testLocalConnection();
-				}, 3000);
-			} else {
-				setOpenOllamaError(result.error || "Failed to open Ollama");
-			}
-		} catch (e: unknown) {
-			setOpenOllamaError(
-				e instanceof Error ? e.message : "Failed to open Ollama",
-			);
-		} finally {
-			setIsOpeningOllama(false);
-		}
-	};
+	const {
+		handleOpenOrInstallOllama,
+		isOpeningOllama,
+		openOllamaError,
+	} = useOpenOrInstallOllama({
+		ollamaInstalled,
+		checkOllamaInstalled,
+		testLocalConnection,
+	});
 
 	const canSave = !saving && !validating && model.trim() !== "";
 
 	const hasModels = availableModels.length > 0;
-	const normalizedBaseUrl = normalizeToBaseUrl(localPort);
-	const portInvalid = Boolean(localPort) && !isValidPort(localPort);
+	const normalizedBaseUrl = normalizeOllamaBaseUrlInput(localPort);
+	const portInvalid = Boolean(localPort) && !isValidOllamaPort(localPort);
 	const statusTone: "success" | "error" | "loading" | "idle" = testingLocal
 		? "loading"
 		: localTestResult
@@ -233,7 +185,7 @@ export default function OllamaSetupContent() {
 				try {
 					const payload = {
 						provider: "ollama" as const,
-						baseUrl: normalizeToBaseUrl(localPort),
+						baseUrl: normalizeOllamaBaseUrlInput(localPort),
 						model,
 					};
 					writeLocalModelConfigClient(payload);
@@ -313,7 +265,7 @@ export default function OllamaSetupContent() {
 							<button
 								type="button"
 								onClick={() => testLocalConnection()}
-								disabled={testingLocal || !isValidPort(localPort)}
+								disabled={testingLocal || !isValidOllamaPort(localPort)}
 								className={[
 									"md-btn",
 									"md-btn--primary",
