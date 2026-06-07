@@ -2,8 +2,8 @@
 
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { Icon, type IconName } from "@/components/Icon";
+import { useCloseOnEscape } from "@/components/useCloseOnEscape";
 import { setLastSelectedPresetKey } from "@/lib/preset-store";
 import type { PresetLite } from "@/types";
 
@@ -46,14 +46,7 @@ export function PresetInfoDialog({
 		router.push("/studio");
 	};
 
-	useEffect(() => {
-		if (!open) return;
-		const onEsc = (e: KeyboardEvent) => {
-			if (e.key === "Escape") onClose();
-		};
-		document.addEventListener("keydown", onEsc);
-		return () => document.removeEventListener("keydown", onEsc);
-	}, [open, onClose]);
+	useCloseOnEscape(open, onClose);
 
 	if (!open) return null;
 
