@@ -79,9 +79,3 @@ Next.js • Electron • Ollama • React • TypeScript • Tailwind CSS • Vi
 
 1. [Open an issue](https://github.com/shadowquillapp/shadowquillapp/issues) to discuss changes
 2. Keep PRs focused and preserve the local-first architecture
-
-<p align="left">
-  <a href="https://github.com/shadowquillapp/shadowquillapp/graphs/contributors">
-    <img src="https://contrib.rocks/image?repo=shadowquillapp/shadowquillapp" alt="Contributors" />
-  </a>
-</p>
