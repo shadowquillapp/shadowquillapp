@@ -1,5 +1,6 @@
 import { Icon } from "@/components/Icon";
 import type { PromptPresetSummary } from "../types";
+import { getTaskTypeIcon } from "../utils/taskTypeIcon";
 
 interface PresetInfoRowProps {
 	preset: PromptPresetSummary;
@@ -10,25 +11,6 @@ interface PresetInfoRowProps {
  * Preset information display card showing preset name, task type, and key options.
  */
 export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
-	const getIconName = (taskType: string) => {
-		switch (taskType) {
-			case "engineering":
-				return "git-compare";
-			case "visual":
-				return "palette";
-			case "motion":
-				return "eye";
-			case "analysis":
-				return "search";
-			case "narrative":
-				return "edit";
-			case "persuasion":
-				return "thumbsUp";
-			default:
-				return "folder-open";
-		}
-	};
-
 	const formatLabel = preset.options?.format
 		? preset.options.format === "plain"
 			? "Plain"
@@ -69,7 +51,7 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 				style={{ color: "var(--color-primary)" }}
 			>
 				<Icon
-					name={getIconName(preset.taskType)}
+					name={getTaskTypeIcon(preset.taskType)}
 					style={{ width: 12, height: 12 }}
 				/>
 			</div>

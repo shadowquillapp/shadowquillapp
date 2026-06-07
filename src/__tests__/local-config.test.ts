@@ -1,6 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	isValidOllamaPort,
 	listAvailableModels,
+	normalizeOllamaBaseUrlInput,
 	readLocalModelConfig,
 	validateLocalModelConnection,
 	writeLocalModelConfig,
@@ -14,6 +16,35 @@ describe("local-config", () => {
 
 	afterEach(() => {
 		vi.restoreAllMocks();
+	});
+
+	describe("normalizeOllamaBaseUrlInput", () => {
+		it("should normalize port-like input to a localhost base URL", () => {
+			expect(normalizeOllamaBaseUrlInput("11434")).toBe(
+				"http://localhost:11434",
+			);
+			expect(normalizeOllamaBaseUrlInput("localhost:11434")).toBe(
+				"http://localhost:11434",
+			);
+		});
+
+		it("should trim trailing slashes from explicit URLs", () => {
+			expect(normalizeOllamaBaseUrlInput("http://localhost:11434/")).toBe(
+				"http://localhost:11434",
+			);
+		});
+	});
+
+	describe("isValidOllamaPort", () => {
+		it("should accept two to five digit port inputs", () => {
+			expect(isValidOllamaPort("34")).toBe(true);
+			expect(isValidOllamaPort("11434")).toBe(true);
+		});
+
+		it("should reject empty and non-numeric port inputs", () => {
+			expect(isValidOllamaPort("")).toBe(false);
+			expect(isValidOllamaPort("localhost:11434")).toBe(false);
+		});
 	});
 
 	describe("readLocalModelConfig", () => {

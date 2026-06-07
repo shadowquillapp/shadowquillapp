@@ -3,12 +3,15 @@ import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
 	formatOllamaModelName,
+	isValidOllamaPort,
 	isSupportedOllamaModelName,
 	listAvailableModels,
+	normalizeOllamaBaseUrlInput,
 	readLocalModelConfig as readLocalModelConfigClient,
 	validateLocalModelConnection as validateLocalModelConnectionClient,
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
+import { getElectronDataPaths } from "@/lib/electron-storage";
 import {
 	abortFactoryReset,
 	clearAllStorageForFactoryReset,
@@ -22,6 +25,7 @@ import {
 import { useDialog } from "./DialogProvider";
 import { Icon } from "./Icon";
 import { Logo } from "./Logo";
+import { useOpenOrInstallOllama } from "./useOpenOrInstallOllama";
 
 interface Props {
 	children: React.ReactNode;
@@ -95,8 +99,6 @@ export default function ModelConfigGate({ children }: Props) {
 		duration?: number;
 	}>(null);
 	const [availableModels, setAvailableModels] = useState<string[]>([]);
-	const [isOpeningOllama, setIsOpeningOllama] = useState(false);
-	const [openOllamaError, setOpenOllamaError] = useState<string | null>(null);
 	const [ollamaInstalled, setOllamaInstalled] = useState<boolean | null>(null);
 
 	useEffect(() => {
@@ -124,19 +126,6 @@ export default function ModelConfigGate({ children }: Props) {
 		}
 	}, []);
 
-	const isValidPort = (port: string): boolean => {
-		return /^\d{2,5}$/.test((port || "").trim());
-	};
-
-	const normalizeToBaseUrl = useCallback((value?: string): string => {
-		const raw = (value || "").trim();
-		if (!raw) return "";
-		if (/^\d{1,5}$/.test(raw)) return `http://localhost:${raw}`;
-		if (/^localhost:\d{1,5}$/.test(raw)) return `http://${raw}`;
-		if (/^https?:\/\//.test(raw)) return raw.replace(/\/$/, "");
-		return raw;
-	}, []);
-
 	const checkOllamaInstalled = useCallback(async () => {
 		try {
 			const win = window as WindowWithShadowQuill;
@@ -152,7 +141,7 @@ export default function ModelConfigGate({ children }: Props) {
 
 	const testLocalConnection = useCallback(
 		async (baseUrlParam?: string, configuredModel?: string) => {
-			const url = normalizeToBaseUrl(baseUrlParam ?? localPort);
+			const url = normalizeOllamaBaseUrlInput(baseUrlParam ?? localPort);
 			if (!url) return;
 
 			setTestingLocal(true);
@@ -195,8 +184,18 @@ export default function ModelConfigGate({ children }: Props) {
 				setTestingLocal(false);
 			}
 		},
-		[localPort, normalizeToBaseUrl],
+		[localPort],
 	);
+
+	const {
+		handleOpenOrInstallOllama,
+		isOpeningOllama,
+		openOllamaError,
+	} = useOpenOrInstallOllama({
+		ollamaInstalled,
+		checkOllamaInstalled,
+		testLocalConnection,
+	});
 
 	useEffect(() => {
 		try {
@@ -306,49 +305,6 @@ export default function ModelConfigGate({ children }: Props) {
 		setOllamaCheckPerformed(true);
 	};
 
-	const handleOpenOrInstallOllama = async () => {
-		setIsOpeningOllama(true);
-		setOpenOllamaError(null);
-
-		try {
-			const win = window as WindowWithShadowQuill;
-
-			if (ollamaInstalled === null) {
-				await checkOllamaInstalled();
-			}
-
-			if (ollamaInstalled === false) {
-				window.open("https://ollama.com/download", "_blank");
-				setIsOpeningOllama(false);
-				return;
-			}
-
-			if (!win.shadowquill?.openOllama) {
-				setOpenOllamaError(
-					"This feature is only available in the desktop app.",
-				);
-				return;
-			}
-
-			const result = await win.shadowquill.openOllama();
-
-			if (result.ok) {
-				setTimeout(() => {
-					setOpenOllamaError(null);
-					void testLocalConnection();
-				}, 3000);
-			} else {
-				setOpenOllamaError(result.error || "Failed to open Ollama");
-			}
-		} catch (e: unknown) {
-			setOpenOllamaError(
-				e instanceof Error ? e.message : "Failed to open Ollama",
-			);
-		} finally {
-			setIsOpeningOllama(false);
-		}
-	};
-
 	return (
 		<SystemPromptEditorWrapper>
 			<DataLocationModalWrapper />
@@ -414,7 +370,7 @@ export default function ModelConfigGate({ children }: Props) {
 											try {
 												const payload = {
 													provider: "ollama" as const,
-													baseUrl: normalizeToBaseUrl(localPort),
+													baseUrl: normalizeOllamaBaseUrlInput(localPort),
 													model,
 												};
 												writeLocalModelConfigClient(payload);
@@ -531,7 +487,7 @@ export default function ModelConfigGate({ children }: Props) {
 														<button
 															type="button"
 															onClick={() => testLocalConnection()}
-															disabled={testingLocal || !isValidPort(localPort)}
+															disabled={testingLocal || !isValidOllamaPort(localPort)}
 															className={[
 																"md-btn",
 																"md-btn--primary",
@@ -552,7 +508,7 @@ export default function ModelConfigGate({ children }: Props) {
 														</button>
 													</div>
 													<p className="shadowquill-field-hint">
-														{normalizeToBaseUrl(localPort) ||
+														{normalizeOllamaBaseUrlInput(localPort) ||
 															"Waiting for port value."}
 													</p>
 												</div>
@@ -1007,41 +963,11 @@ function DataLocationModalWrapper() {
 			setLoading(true);
 			setError(null);
 			try {
-				const api = (window as WindowWithShadowQuill).shadowquill;
-				if (!api?.getDataPaths) {
-					setPaths(null);
-					setError("Not available outside the desktop app");
-					return;
-				}
-				let res: Awaited<
-					ReturnType<NonNullable<typeof api.getDataPaths>>
-				> | null = null;
-				try {
-					res = await api.getDataPaths();
-				} catch (e: unknown) {
-					const err = e as Error;
-					const msg = String(err?.message || "");
-					if (msg.includes("No handler registered")) {
-						setPaths(null);
-						setError(
-							"Main process not updated yet. Please fully quit and relaunch the app.",
-						);
-						return;
-					}
-					throw e;
-				}
-				if (res?.ok) {
-					setPaths({
-						...(res.userData && { userData: res.userData }),
-						...(res.localStorageDir && {
-							localStorageDir: res.localStorageDir,
-						}),
-						...(res.localStorageLevelDb && {
-							localStorageLevelDb: res.localStorageLevelDb,
-						}),
-					});
+				const result = await getElectronDataPaths();
+				if (result.ok) {
+					setPaths(result.paths);
 				} else {
-					setError(res?.error || "Failed to load data paths");
+					setError(result.error);
 				}
 			} catch (e: unknown) {
 				const err = e as Error;

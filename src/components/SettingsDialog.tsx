@@ -8,6 +8,7 @@ import DisplayContent from "./settings/DisplayContent";
 import LocalDataManagementContent from "./settings/LocalDataManagementContent";
 import OllamaSetupContent from "./settings/OllamaSetupContent";
 import SystemPromptEditorContent from "./settings/SystemPromptEditorContent";
+import { useCloseOnEscape } from "./useCloseOnEscape";
 
 export type SettingsTab = "system" | "ollama" | "data" | "display" | "version";
 
@@ -102,14 +103,7 @@ export default function SettingsDialog({
 		setActiveTab(initialTab);
 	}, [open, initialTab]);
 
-	useEffect(() => {
-		if (!open) return;
-		const onEsc = (e: KeyboardEvent) => {
-			if (e.key === "Escape") onClose();
-		};
-		document.addEventListener("keydown", onEsc);
-		return () => document.removeEventListener("keydown", onEsc);
-	}, [open, onClose]);
+	useCloseOnEscape(open, onClose);
 
 	const TabItem: React.FC<{ tab: SettingsTab; label: string }> = ({
 		tab,
