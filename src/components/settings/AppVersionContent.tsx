@@ -26,9 +26,8 @@ export default function AppVersionContent() {
 		setUpdateResult(null);
 
 		try {
-			// @ts-expect-error - window.shadowquill is defined in preload
-			const result = await window.shadowquill.checkForUpdates();
-			setUpdateResult(result);
+			const result = await window.shadowquill?.checkForUpdates?.();
+			if (result) setUpdateResult(result);
 		} catch (error) {
 			setUpdateResult({
 				success: false,
@@ -42,8 +41,7 @@ export default function AppVersionContent() {
 	const handleOpenReleaseUrl = async () => {
 		if (updateResult?.releaseUrl) {
 			try {
-				// @ts-expect-error - window.shadowquill is defined in preload
-				await window.shadowquill.openExternalUrl(updateResult.releaseUrl);
+				await window.shadowquill?.openExternalUrl?.(updateResult.releaseUrl);
 			} catch (error) {
 				console.error("Failed to open URL:", error);
 			}

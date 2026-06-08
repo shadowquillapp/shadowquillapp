@@ -8,24 +8,6 @@ import {
 } from "@/lib/local-config";
 import { Icon } from "./Icon";
 
-interface ShadowQuillWindowApi {
-	getPlatform?: () => Promise<string>;
-	getSystemSpecs?: () => Promise<{
-		cpu: string;
-		ram: number;
-		gpu: string;
-	}>;
-	window?: {
-		close?: () => void;
-		minimize?: () => void;
-		maximizeToggle?: () => void;
-	};
-}
-
-type WindowWithShadowQuill = Window & {
-	shadowquill?: ShadowQuillWindowApi;
-};
-
 const TitlebarButton: React.FC<{
 	children: React.ReactNode;
 	color: string;
@@ -73,25 +55,21 @@ export default function Titlebar() {
 	const [currentModelId, setCurrentModelId] = useState<string | null>(null);
 
 	useEffect(() => {
-		// Detect platform on mount
 		const detectPlatform = async () => {
 			try {
-				const win = window as WindowWithShadowQuill;
-				const platformValue = await win.shadowquill?.getPlatform?.();
+				const platformValue = await window.shadowquill?.getPlatform?.();
 				setPlatform(platformValue || null);
 
-				const specsValue = await win.shadowquill?.getSystemSpecs?.();
+				const specsValue = await window.shadowquill?.getSystemSpecs?.();
 				if (specsValue) {
 					setSpecs(specsValue);
 				}
 			} catch {
-				// Fallback: not in Electron or API not available
 				setPlatform(null);
 			}
 		};
 		detectPlatform();
 
-		// Helper to read model from config
 		const syncModel = () => {
 			try {
 				const cfg = readLocalModelConfig();
@@ -103,15 +81,12 @@ export default function Titlebar() {
 			return false;
 		};
 
-		// Load currently selected model
 		syncModel();
 
-		// Poll until model is found (handles initial setup delay)
 		const pollId = setInterval(() => {
 			if (syncModel()) clearInterval(pollId);
 		}, 500);
 
-		// Listen for model change broadcasts from elsewhere in the app
 		const onModelChanged = (e: Event) => {
 			try {
 				const modelId = (e as CustomEvent<{ modelId?: string }>)?.detail
@@ -132,7 +107,6 @@ export default function Titlebar() {
 
 	const isMac = platform === "darwin";
 
-	// Filter out unwanted terms from CPU string
 	const cleanCpuName = (cpuName: string) => {
 		return cpuName
 			.replace(/Intel®|Core™|Processor/gi, "")
@@ -147,7 +121,7 @@ export default function Titlebar() {
 			color="#FF5F57"
 			onClick={() => {
 				try {
-					(window as WindowWithShadowQuill).shadowquill?.window?.close?.();
+					window.shadowquill?.window?.close?.();
 				} catch {}
 			}}
 		>
@@ -162,7 +136,7 @@ export default function Titlebar() {
 			color="#FFBD2E"
 			onClick={() => {
 				try {
-					(window as WindowWithShadowQuill).shadowquill?.window?.minimize?.();
+					window.shadowquill?.window?.minimize?.();
 				} catch {}
 			}}
 		>
@@ -177,9 +151,7 @@ export default function Titlebar() {
 			color="#28CA42"
 			onClick={() => {
 				try {
-					(
-						window as WindowWithShadowQuill
-					).shadowquill?.window?.maximizeToggle?.();
+					window.shadowquill?.window?.maximizeToggle?.();
 				} catch {}
 			}}
 		>
@@ -187,10 +159,9 @@ export default function Titlebar() {
 		</TitlebarButton>
 	);
 
-	// Order buttons based on platform
 	const buttons = isMac
-		? [closeButton, minimizeButton, maximizeButton] // macOS order
-		: [minimizeButton, maximizeButton, closeButton]; // Windows/Linux order
+		? [closeButton, minimizeButton, maximizeButton]
+		: [minimizeButton, maximizeButton, closeButton];
 
 	const specsDisplay = specs && (
 		<div
@@ -261,7 +232,6 @@ export default function Titlebar() {
 				zIndex: 100,
 			}}
 		>
-			{/* Mac: Buttons Left, Specs Right */}
 			{isMac && (
 				<>
 					<div className="app-region-no-drag ml-2 flex gap-2 px-2">
@@ -272,7 +242,6 @@ export default function Titlebar() {
 				</>
 			)}
 
-			{/* Windows/Linux: Specs Left, Buttons Right */}
 			{!isMac && (
 				<>
 					{specsDisplay}

@@ -100,10 +100,8 @@ export async function callLocalModelClient(
 		const rawText =
 			typeof data?.response === "string" ? data.response : JSON.stringify(data);
 
-		// Post-process according to requested output format
 		const requestedFormat = opts?.options?.format ?? "plain";
 
-		// Helper: unwrap a single outer fenced block and return its inner content
 		const unwrapOuterFence = (
 			text: string,
 		): { inner: string; stripped: boolean } => {
@@ -121,16 +119,13 @@ export async function callLocalModelClient(
 		}
 
 		if (requestedFormat === "xml") {
-			// Try to unwrap if it already came fenced
 			let candidate = rawText.trim();
 			const unwrapped = unwrapOuterFence(candidate);
 			if (unwrapped.stripped) candidate = unwrapped.inner.trim();
-			// No XML pretty-print; just wrap
 			candidate = stripMetaWordCount(candidate);
 			return `\`\`\`xml\n${candidate}\n\`\`\``;
 		}
 
-		// Plain text: return raw
 		return stripMetaWordCount(rawText);
 	} finally {
 		clearTimeout(to);

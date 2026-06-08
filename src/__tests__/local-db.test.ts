@@ -9,7 +9,6 @@ import {
 	updateProjectVersionGraph,
 } from "@/lib/local-db";
 
-// Mock crypto.getRandomValues for consistent test behavior
 const mockCrypto = {
 	getRandomValues: vi.fn((array: Uint32Array) => {
 		array[0] = 123456789;
@@ -27,7 +26,6 @@ describe("local-db", () => {
 	beforeEach(() => {
 		localStorage.clear();
 		vi.clearAllMocks();
-		// Reset date mock if any
 		vi.useRealTimers();
 	});
 
@@ -122,7 +120,6 @@ describe("local-db", () => {
 		});
 
 		it("should include messageCount for each project", async () => {
-			// Use different crypto values to generate unique message IDs
 			let callCount = 0;
 			mockCrypto.getRandomValues.mockImplementation((array: Uint32Array) => {
 				callCount++;
@@ -132,7 +129,6 @@ describe("local-db", () => {
 			});
 
 			const project = await createProject("Project with messages");
-			// Add messages one at a time to ensure they are stored correctly
 			await appendMessagesWithCap(
 				project.id,
 				[{ role: "user", content: "Hello" }],
@@ -197,7 +193,6 @@ describe("local-db", () => {
 			const created = await createProject("Test");
 
 			for (let i = 0; i < 10; i++) {
-				// Advance time to ensure distinct timestamps
 				vi.setSystemTime(new Date(2024, 0, 1, 0, 0, i));
 				await appendMessagesWithCap(
 					created.id,
@@ -209,7 +204,6 @@ describe("local-db", () => {
 			const project = await getProject(created.id, 5);
 
 			expect(project.messages).toHaveLength(5);
-			// Should return the LAST 5 messages
 			expect(project.messages[0]?.content).toBe("Message 5");
 			expect(project.messages[4]?.content).toBe("Message 9");
 
@@ -303,7 +297,6 @@ describe("local-db", () => {
 				100,
 			);
 
-			// Mock different crypto values for second call
 			mockCrypto.getRandomValues.mockImplementationOnce(
 				(array: Uint32Array) => {
 					array[0] = 111111111;
@@ -325,7 +318,6 @@ describe("local-db", () => {
 			vi.useFakeTimers();
 			const project = await createProject("Test");
 
-			// Add first batch of messages
 			vi.setSystemTime(new Date(2024, 0, 1, 0, 0, 0));
 			await appendMessagesWithCap(
 				project.id,
@@ -347,7 +339,6 @@ describe("local-db", () => {
 				3,
 			);
 
-			// Now add 2 more messages - should trigger deletion
 			vi.setSystemTime(new Date(2024, 0, 1, 0, 0, 3));
 			await appendMessagesWithCap(
 				project.id,
@@ -362,10 +353,8 @@ describe("local-db", () => {
 				3,
 			);
 
-			// Messages 1 and 2 should have been deleted in batches
 			const retrieved = await getProject(project.id);
 			expect(retrieved.messages).toHaveLength(3);
-			// The remaining messages should be Message 3, 4, 5
 			expect(retrieved.messages.map((m) => m.content)).toEqual([
 				"Message 3",
 				"Message 4",
@@ -391,7 +380,6 @@ describe("local-db", () => {
 			vi.useFakeTimers();
 			const project = await createProject("Test");
 
-			// Add exactly cap number of messages
 			for (let i = 0; i < 3; i++) {
 				vi.setSystemTime(new Date(2024, 0, 1, 0, 0, i));
 				await appendMessagesWithCap(
@@ -403,7 +391,6 @@ describe("local-db", () => {
 
 			const retrieved = await getProject(project.id);
 			expect(retrieved.messages).toHaveLength(3);
-			// No deletions should have occurred
 			expect(retrieved.messages.map((m) => m.content)).toEqual([
 				"Message 0",
 				"Message 1",
@@ -457,7 +444,6 @@ describe("local-db", () => {
 			);
 
 			expect(result.created).toHaveLength(1);
-			// Project timestamp update should not throw
 		});
 	});
 
@@ -492,7 +478,6 @@ describe("local-db", () => {
 		});
 
 		it("should handle non-existent project gracefully", async () => {
-			// Should not throw
 			await expect(
 				updateProjectVersionGraph("non-existent", { data: "test" }),
 			).resolves.not.toThrow();
@@ -599,7 +584,6 @@ describe("local-db", () => {
 		it("should fallback to Math.random when crypto fails", async () => {
 			const originalCrypto = global.crypto;
 
-			// Make crypto.getRandomValues throw
 			Object.defineProperty(global, "crypto", {
 				value: {
 					getRandomValues: () => {
@@ -620,7 +604,6 @@ describe("local-db", () => {
 			expect(retrieved.messages).toHaveLength(1);
 			expect(retrieved.messages[0]?.id).toMatch(/^msg-\d+-[a-z0-9]+$/);
 
-			// Restore crypto
 			Object.defineProperty(global, "crypto", {
 				value: originalCrypto,
 				writable: true,
@@ -630,12 +613,9 @@ describe("local-db", () => {
 		it("should handle crypto.getRandomValues returning sparse array", async () => {
 			const originalCrypto = global.crypto;
 
-			// Mock crypto to return array-like object with undefined values
 			Object.defineProperty(global, "crypto", {
 				value: {
 					getRandomValues: (array: Uint32Array) => {
-						// Create a proxy that returns undefined for index access
-						// to simulate the ?? 0 fallback
 						return new Proxy(array, {
 							get(target, prop) {
 								if (prop === "0" || prop === "1") {
@@ -658,10 +638,8 @@ describe("local-db", () => {
 
 			const retrieved = await getProject(project.id);
 			expect(retrieved.messages).toHaveLength(1);
-			// ID should still be valid even with fallback to 0
 			expect(retrieved.messages[0]?.id).toMatch(/^msg-\d+-/);
 
-			// Restore crypto
 			Object.defineProperty(global, "crypto", {
 				value: originalCrypto,
 				writable: true,

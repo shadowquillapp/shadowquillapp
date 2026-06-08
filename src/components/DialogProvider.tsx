@@ -14,7 +14,6 @@ type DialogTone = "default" | "destructive" | "primary";
 
 interface BaseDialogOptions {
 	title?: string;
-	// Accept string or React node for rich content
 	message: React.ReactNode;
 }
 
@@ -85,7 +84,6 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 		});
 	}, []);
 
-	// Keyboard handlers for active dialog
 	useEffect(() => {
 		if (!active) return;
 		const onKey = (e: KeyboardEvent) => {

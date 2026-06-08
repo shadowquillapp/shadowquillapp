@@ -40,9 +40,6 @@ interface InputPanelProps {
 	setShowPresetInfo: (show: boolean) => void;
 }
 
-/**
- * Input panel component containing the editor, refinement context, model selector, and run button.
- */
 export function InputPanel({
 	leftPanelWidth,
 	isResizing,
@@ -87,22 +84,17 @@ export function InputPanel({
 				padding: "var(--space-6)",
 			}}
 		>
-			{/* Editor Area with Integrated Toolbar */}
 			<div
 				className="group relative flex min-h-0 flex-1 flex-col rounded-2xl"
 				style={{
-					// Solid background + solid border (no gradient)
-					// Use input-card variable if available, fallback to surface-variant
 					background: "var(--color-input-card, var(--color-surface-variant))",
 					border: "1px solid var(--color-outline)",
 					boxShadow: "0 6px 12px rgba(0,0,0,0.18)",
 				}}
 			>
-				{/* Header bar inside the text area container */}
 				<div
 					className="flex shrink-0 items-center justify-between rounded-t-2xl"
 					style={{
-						// No gradients — keep header flat
 						background: "var(--color-input-card, var(--color-surface-variant))",
 						borderBottom:
 							"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
@@ -111,12 +103,10 @@ export function InputPanel({
 							"var(--space-3) var(--space-3) var(--space-3) var(--space-3)",
 					}}
 				>
-					{/* Left: Badge & Stats */}
 					<div
 						className="flex min-w-0 items-center"
 						style={{ gap: "var(--space-3)" }}
 					>
-						{/* Editor Badge - Changes based on refinement mode */}
 						<div
 							style={{
 								display: "flex",
@@ -162,13 +152,10 @@ export function InputPanel({
 							</span>
 						</div>
 
-						{/* Stats - Hidden on very small screens */}
 						<TextStats wordCount={wordCount} charCount={charCount} />
 					</div>
 
-					{/* Right: Actions */}
 					<div className="flex items-center" style={{ gap: "var(--space-1)" }}>
-						{/* Copy Button */}
 						<button
 							type="button"
 							onClick={() =>
@@ -204,7 +191,6 @@ export function InputPanel({
 					</div>
 				</div>
 
-				{/* Refinement Context Panel - Version History Timeline */}
 				{isRefinementMode && outputToRefine && (
 					<RefinementContextPanel
 						showRefinementContext={showRefinementContext}
@@ -228,13 +214,11 @@ export function InputPanel({
 					<textarea
 						className="absolute inset-0 h-full w-full resize-none rounded-b-2xl p-3 pt-3 pb-24 font-mono text-[10px] text-on-surface leading-[20px] shadow-none transition-all duration-200 ease-out placeholder:text-on-surface-variant/50 focus:border-[var(--color-outline)] focus:outline-none focus:ring-2 focus:ring-[var(--color-outline)] md:p-6 md:pt-4 md:pb-24 md:text-[11px] md:leading-[24px]"
 						style={{
-							// Lighter background that respects theme - lighter in light mode, slightly lighter in dark mode
 							backgroundColor:
 								"color-mix(in srgb, var(--color-surface-variant), var(--color-surface) 55%)",
 							caretColor: "var(--color-primary)",
 							boxShadow:
 								"inset 0 0 0 1px color-mix(in srgb, var(--color-outline), white 18%)",
-							// Disable pointer events when generating
 							pointerEvents: isGenerating ? "none" : "auto",
 						}}
 						value={activeTab?.draft ?? ""}
@@ -249,7 +233,6 @@ export function InputPanel({
 						disabled={!activeTab || isGenerating}
 					/>
 
-					{/* Model Selector - Bottom Left */}
 					<ModelSelector
 						availableModels={availableModels}
 						currentModelId={currentModelId}
@@ -257,7 +240,6 @@ export function InputPanel({
 						isGenerating={isGenerating}
 					/>
 
-					{/* Run Button - Bottom Right */}
 					<button
 						type="button"
 						onClick={() =>
@@ -285,7 +267,6 @@ export function InputPanel({
 							transition:
 								"background 120ms ease, border-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease",
 							zIndex: 10,
-							// Keep interactive during generation
 							pointerEvents: "auto",
 							opacity: 1,
 						}}
@@ -331,7 +312,6 @@ export function InputPanel({
 				</div>
 			</div>
 
-			{/* Preset Info Row - Moved Under Editor Area */}
 			{activeTab?.preset && (
 				<PresetInfoRow
 					preset={activeTab.preset}

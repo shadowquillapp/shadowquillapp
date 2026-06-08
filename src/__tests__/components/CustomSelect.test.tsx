@@ -225,11 +225,9 @@ describe("CustomSelect", () => {
 
 			const button = screen.getByRole("button");
 
-			// Open
 			await user.click(button);
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 
-			// Close
 			await user.click(button);
 			await waitFor(() => {
 				expect(screen.queryByRole("menu")).not.toBeInTheDocument();
@@ -345,15 +343,12 @@ describe("CustomSelect", () => {
 				/>,
 			);
 
-			// Icon should appear in the selected display (Heroicons render as SVG with h-4 w-4 classes)
 			const button = screen.getByRole("button");
 			const svgInButton = button.querySelector("svg.text-secondary");
 			expect(svgInButton).toBeInTheDocument();
 
-			// Open dropdown
 			await user.click(button);
 
-			// Icons should appear in dropdown options (Icon uses h-4 w-4 class)
 			const menu = screen.getByRole("menu");
 			const svgsInMenu = menu.querySelectorAll("svg.h-4.w-4");
 			expect(svgsInMenu.length).toBe(2);
@@ -380,7 +375,6 @@ describe("CustomSelect", () => {
 
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 
-			// Click outside
 			const outsideElement = screen.getByTestId("outside-element");
 			await user.click(outsideElement);
 
@@ -406,10 +400,8 @@ describe("CustomSelect", () => {
 			const menu = screen.getByRole("menu");
 			expect(menu).toBeInTheDocument();
 
-			// Click on menu itself (not an option)
 			fireEvent.click(menu);
 
-			// Menu should still be open
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 		});
 
@@ -426,11 +418,9 @@ describe("CustomSelect", () => {
 
 			const button = screen.getByRole("button");
 
-			// Open dropdown
 			await user.click(button);
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 
-			// Click button again should toggle (close)
 			await user.click(button);
 
 			await waitFor(() => {
@@ -456,10 +446,8 @@ describe("CustomSelect", () => {
 
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 
-			// Trigger resize event
 			fireEvent.resize(window);
 
-			// Menu should still be open after resize
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 		});
 
@@ -479,10 +467,8 @@ describe("CustomSelect", () => {
 
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 
-			// Trigger scroll event
 			fireEvent.scroll(window);
 
-			// Menu should still be open after scroll
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 		});
 	});
@@ -505,14 +491,12 @@ describe("CustomSelect", () => {
 			const menu = screen.getByRole("menu");
 			expect(menu).toBeInTheDocument();
 
-			// Check that menu has fixed positioning class (Tailwind CSS)
 			expect(menu).toHaveClass("fixed");
 		});
 
 		it("should open upward when not enough space below", async () => {
 			const user = userEvent.setup();
 
-			// Mock getBoundingClientRect to simulate button near bottom of viewport
 			const originalGetBoundingClientRect =
 				Element.prototype.getBoundingClientRect;
 			Element.prototype.getBoundingClientRect = vi.fn().mockReturnValue({
@@ -538,14 +522,12 @@ describe("CustomSelect", () => {
 			const menu = screen.getByRole("menu");
 			expect(menu).toBeInTheDocument();
 
-			// Restore original method
 			Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
 		});
 
 		it("should constrain horizontal position to viewport", async () => {
 			const user = userEvent.setup();
 
-			// Mock getBoundingClientRect to simulate button near right edge
 			const originalGetBoundingClientRect =
 				Element.prototype.getBoundingClientRect;
 			Element.prototype.getBoundingClientRect = vi.fn().mockReturnValue({
@@ -571,7 +553,6 @@ describe("CustomSelect", () => {
 			const menu = screen.getByRole("menu");
 			expect(menu).toBeInTheDocument();
 
-			// Restore original method
 			Element.prototype.getBoundingClientRect = originalGetBoundingClientRect;
 		});
 	});
@@ -609,14 +590,12 @@ describe("CustomSelect", () => {
 
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 
-			// Close dropdown
 			await user.keyboard("{Escape}");
 
 			await waitFor(() => {
 				expect(screen.queryByRole("menu")).not.toBeInTheDocument();
 			});
 
-			// Unmount component
 			unmount();
 		});
 
@@ -636,10 +615,7 @@ describe("CustomSelect", () => {
 
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 
-			// Unmount while dropdown is open
 			unmount();
-
-			// Event listeners should be cleaned up
 		});
 	});
 
@@ -660,8 +636,6 @@ describe("CustomSelect", () => {
 
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 
-			// Dispatch a click event on the document that targets the button
-			// This simulates a click that bypasses the button's React onClick handler
 			const clickEvent = new MouseEvent("click", {
 				bubbles: true,
 				cancelable: true,
@@ -672,7 +646,6 @@ describe("CustomSelect", () => {
 			});
 			document.dispatchEvent(clickEvent);
 
-			// Menu should still be open because we're clicking on the trigger button
 			expect(screen.getByRole("menu")).toBeInTheDocument();
 		});
 	});
@@ -706,7 +679,6 @@ describe("CustomSelect", () => {
 			});
 			await user.click(button);
 
-			// Parent should not receive click due to stopPropagation
 			expect(parentClickHandler).not.toHaveBeenCalled();
 		});
 
@@ -741,7 +713,6 @@ describe("CustomSelect", () => {
 			const option = screen.getByText("Option 1");
 			await user.click(option);
 
-			// Parent should not receive click due to stopPropagation
 			expect(parentClickHandler).not.toHaveBeenCalled();
 		});
 	});

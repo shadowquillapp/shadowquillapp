@@ -1,6 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-// Mock the cache module
 vi.mock("@/lib/cache", () => ({
 	createPromptCacheKey: vi.fn(
 		(input, taskType, options) =>
@@ -14,7 +13,6 @@ vi.mock("@/lib/cache", () => ({
 	saveToSessionCache: vi.fn(),
 }));
 
-// Mock the system-prompts module
 vi.mock("@/lib/system-prompts", () => ({
 	DEFAULT_BUILD_PROMPT: "You are a test prompt enhancer.",
 	ensureSystemPromptBuild: vi.fn(() => "You are a test prompt enhancer."),
@@ -122,7 +120,6 @@ describe("buildUnifiedPrompt", () => {
 			});
 
 			expect(result).toBe("cached prompt from session");
-			// Should promote to memory cache
 			expect(mockMemoryCache.set).toHaveBeenCalled();
 		});
 
@@ -370,7 +367,6 @@ describe("buildRefinementPrompt", () => {
 			taskType: "visual",
 		});
 
-		// Should reference image task type in some way
 		expect(result.toLowerCase()).toContain("visual");
 	});
 });

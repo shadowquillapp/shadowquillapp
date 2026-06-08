@@ -9,7 +9,6 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DialogProvider, useDialog } from "@/components/DialogProvider";
 
-// Test component that uses the dialog hooks
 function TestConsumer({
 	onReady,
 }: {
@@ -487,21 +486,17 @@ describe("DialogProvider", () => {
 				</DialogProvider>,
 			);
 
-			// Queue two dialogs
 			act(() => {
 				dialogApi?.showInfo({ message: "First dialog" });
 				dialogApi?.showInfo({ message: "Second dialog" });
 			});
 
-			// First dialog should be visible
 			await waitFor(() => {
 				expect(screen.getByText("First dialog")).toBeInTheDocument();
 			});
 
-			// Close first dialog
 			await user.click(screen.getByText("OK"));
 
-			// Second dialog should appear
 			await waitFor(() => {
 				expect(screen.getByText("Second dialog")).toBeInTheDocument();
 			});
@@ -607,10 +602,8 @@ describe("DialogProvider", () => {
 
 	describe("default context", () => {
 		it("should provide default no-op functions when used outside provider", async () => {
-			// This tests the default context value
 			let dialogApi: ReturnType<typeof useDialog> | undefined;
 
-			// Render without provider to use default context
 			render(
 				<TestConsumer
 					onReady={(d) => {
@@ -620,7 +613,6 @@ describe("DialogProvider", () => {
 			);
 
 			expect(dialogApi).toBeDefined();
-			// Default confirm should return false
 			const result = await dialogApi?.confirm({ message: "Test" });
 			expect(result).toBe(false);
 		});
@@ -631,7 +623,6 @@ describe("DialogProvider", () => {
 			const originalAddEventListener = window.addEventListener;
 			let _callCount = 0;
 
-			// Make addEventListener throw on "app-info" event registration
 			window.addEventListener = vi.fn((type, listener, options) => {
 				_callCount++;
 				if (type === "app-info") {
@@ -640,7 +631,6 @@ describe("DialogProvider", () => {
 				return originalAddEventListener.call(window, type, listener, options);
 			}) as typeof window.addEventListener;
 
-			// Should not throw
 			expect(() => {
 				render(
 					<DialogProvider>
@@ -649,7 +639,6 @@ describe("DialogProvider", () => {
 				);
 			}).not.toThrow();
 
-			// Restore
 			window.addEventListener = originalAddEventListener;
 		});
 	});
@@ -675,7 +664,6 @@ describe("DialogProvider", () => {
 			const dialog = screen.getByRole("dialog");
 			expect(dialog).toBeInTheDocument();
 
-			// Dispatch keydown on the dialog
 			const event = new KeyboardEvent("keydown", { key: "Tab", bubbles: true });
 			const stopPropagationSpy = vi.spyOn(event, "stopPropagation");
 

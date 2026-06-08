@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import SettingsDialog, { type SettingsTab } from "@/components/SettingsDialog";
 
-// Mock the settings content components
 vi.mock("@/components/settings/DisplayContent", () => ({
 	default: () => <div data-testid="display-content">Display Content</div>,
 }));
@@ -50,7 +49,6 @@ describe("SettingsDialog", () => {
 		it("should render close button", () => {
 			render(<SettingsDialog open={true} onClose={mockOnClose} />);
 			const closeButtons = screen.getAllByRole("button");
-			// Find the close button (it's in the header)
 			const closeButton = closeButtons.find(
 				(btn) => btn.querySelector("svg") !== null,
 			);
@@ -112,7 +110,6 @@ describe("SettingsDialog", () => {
 					initialTab={"unknown-tab" as unknown as SettingsTab}
 				/>,
 			);
-			// Should not crash and default tab should be shown
 			expect(screen.getByTestId("ollama-content")).toBeInTheDocument();
 		});
 
@@ -120,13 +117,10 @@ describe("SettingsDialog", () => {
 			const user = userEvent.setup();
 			render(<SettingsDialog open={true} onClose={mockOnClose} />);
 
-			// Initially shows ollama
 			expect(screen.getByTestId("ollama-content")).toBeInTheDocument();
 
-			// Click Display tab
 			await user.click(screen.getByText("Display"));
 
-			// Wait for animation to start but not complete
 			await new Promise((resolve) => setTimeout(resolve, 100));
 
 			expect(screen.getByTestId("display-content")).toBeInTheDocument();
@@ -136,25 +130,18 @@ describe("SettingsDialog", () => {
 			const user = userEvent.setup();
 			render(<SettingsDialog open={true} onClose={mockOnClose} />);
 
-			// Click Display tab first
 			await user.click(screen.getByText("Display"));
 
-			// Immediately click System tab (before animation completes)
 			await user.click(screen.getByText("System Prompt"));
 
-			// Wait for any pending animations to complete
 			await new Promise((resolve) => setTimeout(resolve, 1000));
 
-			// Should show system content (last clicked tab)
 			expect(screen.getByTestId("system-content")).toBeInTheDocument();
 		});
 
 		it("should render null for invalid tab in renderContentFor", () => {
-			// Test the default case in the renderContentFor switch statement
 			render(<SettingsDialog open={true} onClose={mockOnClose} />);
 
-			// The default case returns null, but since it's only used internally
-			// and the component uses valid tabs, this is mainly for coverage
 			expect(screen.getByTestId("ollama-content")).toBeInTheDocument();
 		});
 	});
@@ -192,15 +179,12 @@ describe("SettingsDialog", () => {
 			const user = userEvent.setup({ advanceTimers: vi.advanceTimersByTime });
 			render(<SettingsDialog open={true} onClose={mockOnClose} />);
 
-			// Click multiple tabs rapidly
 			await user.click(screen.getByText("Display"));
 			await user.click(screen.getByText("System Prompt"));
 			await user.click(screen.getByText("Data Management"));
 
-			// Advance timers to complete animations
 			vi.advanceTimersByTime(1500);
 
-			// Should end up on the last clicked tab
 			expect(screen.getByTestId("data-content")).toBeInTheDocument();
 
 			vi.useRealTimers();
@@ -210,10 +194,8 @@ describe("SettingsDialog", () => {
 			const user = userEvent.setup();
 			render(<SettingsDialog open={true} onClose={mockOnClose} />);
 
-			// Click the already active tab
 			await user.click(screen.getByText("Ollama Setup"));
 
-			// Should still show ollama content
 			expect(screen.getByTestId("ollama-content")).toBeInTheDocument();
 		});
 
@@ -228,10 +210,8 @@ describe("SettingsDialog", () => {
 				/>,
 			);
 
-			// Switch to an earlier tab
 			await user.click(screen.getByText("Ollama Setup"));
 
-			// Advance timers
 			vi.advanceTimersByTime(1500);
 
 			expect(screen.getByTestId("ollama-content")).toBeInTheDocument();
@@ -250,10 +230,8 @@ describe("SettingsDialog", () => {
 				/>,
 			);
 
-			// Close the dialog
 			rerender(<SettingsDialog open={false} onClose={mockOnClose} />);
 
-			// Reopen with different initial tab
 			rerender(
 				<SettingsDialog
 					open={true}
@@ -274,13 +252,10 @@ describe("SettingsDialog", () => {
 				<SettingsDialog open={true} onClose={mockOnClose} />,
 			);
 
-			// Start a tab transition
 			await user.click(screen.getByText("Display"));
 
-			// Unmount while transition is in progress
 			unmount();
 
-			// Advance timers - should not throw
 			vi.advanceTimersByTime(1500);
 
 			vi.useRealTimers();
@@ -294,7 +269,6 @@ describe("SettingsDialog", () => {
 			const modalContent = document.querySelector(".modal-content");
 			expect(modalContent).toBeInTheDocument();
 
-			// Dispatch keydown on the dialog
 			const event = new KeyboardEvent("keydown", { key: "a", bubbles: true });
 			const stopPropagationSpy = vi.spyOn(event, "stopPropagation");
 
@@ -309,7 +283,6 @@ describe("SettingsDialog", () => {
 			const modalContent = document.querySelector(".modal-content");
 			expect(modalContent).toBeInTheDocument();
 
-			// Dispatch click on the dialog
 			const event = new MouseEvent("click", { bubbles: true });
 			const stopPropagationSpy = vi.spyOn(event, "stopPropagation");
 

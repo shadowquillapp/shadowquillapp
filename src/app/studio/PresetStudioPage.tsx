@@ -16,14 +16,11 @@ export default function PresetStudioPage() {
 	const { presets, loadPresets, savePreset, deletePreset, duplicatePreset } =
 		usePresetManager();
 
-	// Selection states
 	const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
 
-	// Editor state
 	const [editingPreset, setEditingPreset] = useState<PresetLite | null>(null);
 	const [isDirty, setIsDirty] = useState(false);
 
-	// Sidebar state - initialize based on window size to prevent flicker
 	const [sidebarOpen, setSidebarOpen] = useState(false);
 	const [isSmallScreen, setIsSmallScreen] = useState(() => {
 		if (typeof window !== "undefined") {
@@ -32,19 +29,14 @@ export default function PresetStudioPage() {
 		return false;
 	});
 
-	// Load presets on mount
 	useEffect(() => {
 		loadPresets();
 	}, [loadPresets]);
 
-	// Auto-select the currently active preset when presets are loaded
 	useEffect(() => {
-		// Only auto-select if we don't already have an editing preset
-		// (to avoid overwriting a new preset being created)
 		if (presets.length > 0 && !selectedPresetId && !editingPreset) {
 			const lastSelectedPresetKey = getLastSelectedPresetKey();
 			if (lastSelectedPresetKey) {
-				// Match by ID first, then by name (for presets without IDs)
 				const preset = presets.find(
 					(p: PresetLite) =>
 						p.id === lastSelectedPresetKey || p.name === lastSelectedPresetKey,
@@ -58,17 +50,14 @@ export default function PresetStudioPage() {
 		}
 	}, [presets, selectedPresetId, editingPreset]);
 
-	// Load and apply saved theme
 	useEffect(() => {
 		let savedTheme = getJSON<
 			"earth" | "purpledark" | "dark" | "light" | "default" | null
 		>(STORAGE_KEYS.THEME_PREFERENCE.key, null);
-		// Migrate old 'default' theme to 'purpledark'
 		if (savedTheme === "default") {
 			savedTheme = "purpledark";
 			setJSON(STORAGE_KEYS.THEME_PREFERENCE.key, "purpledark");
 		}
-		// Default to earth theme if no saved preference
 		if (
 			savedTheme &&
 			(savedTheme === "earth" ||
@@ -81,12 +70,10 @@ export default function PresetStudioPage() {
 				savedTheme === "earth" ? "" : savedTheme,
 			);
 		} else {
-			// No saved preference - use earth as default
 			document.documentElement.setAttribute("data-theme", "");
 		}
 	}, []);
 
-	// Handle preset selection
 	const handleSelectPreset = useCallback(
 		(presetId: string) => {
 			const preset = presets.find((p: PresetLite) => p.id === presetId);
@@ -99,7 +86,6 @@ export default function PresetStudioPage() {
 		[presets],
 	);
 
-	// Handle creating new preset
 	const handleNewPreset = useCallback(() => {
 		const newPreset: PresetLite = {
 			id: `preset_${Date.now()}`,
@@ -117,20 +103,17 @@ export default function PresetStudioPage() {
 		setIsDirty(true);
 	}, []);
 
-	// Handle field changes in editor
 	const handleFieldChange = useCallback(
 		(field: string, value: unknown) => {
 			if (!editingPreset) return;
 
 			const updatedPreset = { ...editingPreset };
 
-			// Handle top-level fields
 			if (field === "name" && typeof value === "string") {
 				updatedPreset.name = value;
 			} else if (field === "taskType") {
 				updatedPreset.taskType = value as typeof updatedPreset.taskType;
 			} else {
-				// Handle options fields
 				updatedPreset.options = {
 					...updatedPreset.options,
 					[field]: value,
@@ -143,7 +126,6 @@ export default function PresetStudioPage() {
 		[editingPreset],
 	);
 
-	// Handle save
 	const handleSave = useCallback(async () => {
 		if (!editingPreset) return;
 
@@ -158,7 +140,6 @@ export default function PresetStudioPage() {
 		}
 	}, [editingPreset, savePreset, loadPresets]);
 
-	// Handle duplicate
 	const handleDuplicate = useCallback(
 		async (presetId: string) => {
 			const duplicated = await duplicatePreset(presetId);
@@ -170,7 +151,6 @@ export default function PresetStudioPage() {
 		[duplicatePreset, loadPresets, handleSelectPreset],
 	);
 
-	// Handle unsaved changes warning
 	const handleDelete = useCallback(
 		async (presetId: string) => {
 			const preset = presets.find((p: PresetLite) => p.id === presetId);
@@ -196,7 +176,6 @@ export default function PresetStudioPage() {
 		[presets, selectedPresetId, deletePreset, loadPresets, confirm],
 	);
 
-	// Handle delete
 	useEffect(() => {
 		const handleBeforeUnload = (e: BeforeUnloadEvent) => {
 			if (isDirty) {
@@ -209,21 +188,18 @@ export default function PresetStudioPage() {
 		return () => window.removeEventListener("beforeunload", handleBeforeUnload);
 	}, [isDirty]);
 
-	// Handle responsive sidebar
 	useEffect(() => {
 		const checkScreenSize = () => {
-			const isSmall = window.innerWidth < 1280; // xl breakpoint
+			const isSmall = window.innerWidth < 1280;
 			setIsSmallScreen((prev) => {
-				// Only update if the value actually changed to prevent unnecessary re-renders
 				if (prev !== isSmall) {
-					if (!isSmall) setSidebarOpen(false); // Auto-close sidebar when switching to large screen
+					if (!isSmall) setSidebarOpen(false);
 					return isSmall;
 				}
 				return prev;
 			});
 		};
 
-		// Only add resize listener, don't call checkScreenSize on mount since state is already initialized
 		window.addEventListener("resize", checkScreenSize);
 		return () => {
 			window.removeEventListener("resize", checkScreenSize);
@@ -237,7 +213,6 @@ export default function PresetStudioPage() {
 				onToggleSidebar={() => setSidebarOpen((v) => !v)}
 			/>
 
-			{/* Sidebar backdrop for mobile */}
 			{isSmallScreen && sidebarOpen && (
 				<button
 					type="button"
@@ -264,7 +239,6 @@ export default function PresetStudioPage() {
 				className="flex flex-1 flex-col overflow-hidden xl:flex-row"
 				style={{ position: "relative" }}
 			>
-				{/* Row 1 / Col 1: Preset Library */}
 				<aside
 					className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
 						isSmallScreen
@@ -286,7 +260,6 @@ export default function PresetStudioPage() {
 					/>
 				</aside>
 
-				{/* Row 2 / Col 2: Preset Editor */}
 				<div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-surface">
 					<PresetEditor
 						preset={editingPreset}

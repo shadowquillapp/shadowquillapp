@@ -1,12 +1,8 @@
 import type { GenerationOptions, TaskType } from "@/types";
 
-/**
- * Build base directives that apply to all task types
- */
 export function buildBaseDirectives(options: GenerationOptions): string[] {
 	const directives: string[] = [];
 
-	// Tone
 	if (options.tone) {
 		const toneMap: Record<string, string> = {
 			neutral: "Use a neutral, matter-of-fact tone.",
@@ -18,7 +14,6 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 		directives.push(toneMap[options.tone] ?? `Use a ${options.tone} tone.`);
 	}
 
-	// Detail level / word count - STRICT ENFORCEMENT (applies to YOUR output, not to be included in the compiled prompt)
 	if (options.detail) {
 		const wordLimits: Record<
 			string,
@@ -35,19 +30,16 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 		}
 	}
 
-	// Language - strong enforcement for non-English output
 	if (options.language && options.language.toLowerCase() !== "english") {
 		directives.push(
 			`LANGUAGE REQUIREMENT: The compiled prompt output MUST be written entirely in ${options.language}. Even if the user's input is in English or another language, your output must be in ${options.language}. This is non-negotiable.`,
 		);
 	}
 
-	// Audience
 	if (options.audience) {
 		directives.push(`Target audience: ${options.audience}.`);
 	}
 
-	// Style guidelines
 	if (options.styleGuidelines) {
 		directives.push(`Style guidelines: ${options.styleGuidelines}`);
 	}
@@ -55,9 +47,6 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 	return directives;
 }
 
-/**
- * Build format-related directives
- */
 export function buildFormatDirectives(
 	taskType: TaskType,
 	options: GenerationOptions,
@@ -72,34 +61,26 @@ export function buildFormatDirectives(
 				`XML Schema: Follow this structure:\n${options.outputXMLSchema}`,
 			);
 		} else {
-			directives.push(getDefaultXMLSchema(taskType));
+			const defaultSchemas: Record<TaskType, string> = {
+				visual:
+					"XML: <image_prompt> with <subject>, <environment>, <composition>, <visual_style>",
+				motion:
+					"XML: <video_prompt> with <subject>, <action>, <environment>, <visual_style>, <camera_motion>",
+				engineering:
+					"XML: <engineering_task> with <objective>, <requirements>, <constraints>",
+				narrative:
+					"XML: <narrative_prompt> with <topic>, <audience>, <style_guide>, <structure>, <key_points>",
+				analysis:
+					"XML: <analysis_task> with <core_question>, <scope>, <methodology>, <source_requirements>, <deliverables>",
+				persuasion:
+					"XML: <persuasion_content> with <target_audience>, <core_message>, <value_props>, <call_to_action>",
+				intent: "XML: <prompt> with <goal>, <context>, <requirements>, <style>",
+			};
+			directives.push(defaultSchemas[taskType] ?? defaultSchemas.intent);
 		}
 	} else if (options.format === "plain") {
 		directives.push("Format: Plain text only, no markdown or special syntax.");
 	}
 
 	return directives;
-}
-
-/**
- * Get the default XML schema for a task type (explicit opt-in via format: xml).
- */
-function getDefaultXMLSchema(taskType: TaskType): string {
-	const defaultSchemas: Record<TaskType, string> = {
-		visual:
-			"XML: <image_prompt> with <subject>, <environment>, <composition>, <visual_style>",
-		motion:
-			"XML: <video_prompt> with <subject>, <action>, <environment>, <visual_style>, <camera_motion>",
-		engineering:
-			"XML: <engineering_task> with <objective>, <requirements>, <constraints>",
-		narrative:
-			"XML: <narrative_prompt> with <topic>, <audience>, <style_guide>, <structure>, <key_points>",
-		analysis:
-			"XML: <analysis_task> with <core_question>, <scope>, <methodology>, <source_requirements>, <deliverables>",
-		persuasion:
-			"XML: <persuasion_content> with <target_audience>, <core_message>, <value_props>, <call_to_action>",
-		intent: "XML: <prompt> with <goal>, <context>, <requirements>, <style>",
-	};
-
-	return defaultSchemas[taskType] ?? defaultSchemas.intent;
 }

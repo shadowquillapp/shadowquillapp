@@ -1,17 +1,17 @@
 "use client";
 import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getElectronDataPaths } from "@/lib/electron-storage";
 import {
 	formatOllamaModelName,
-	isValidOllamaPort,
 	isSupportedOllamaModelName,
+	isValidOllamaPort,
 	listAvailableModels,
 	normalizeOllamaBaseUrlInput,
 	readLocalModelConfig as readLocalModelConfigClient,
 	validateLocalModelConnection as validateLocalModelConnectionClient,
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
-import { getElectronDataPaths } from "@/lib/electron-storage";
 import {
 	abortFactoryReset,
 	clearAllStorageForFactoryReset,
@@ -31,23 +31,6 @@ interface Props {
 	children: React.ReactNode;
 }
 
-interface ShadowQuillApi {
-	checkOllamaInstalled?: () => Promise<{ installed: boolean }>;
-	openOllama?: () => Promise<{ ok: boolean; error?: string }>;
-	getDataPaths?: () => Promise<{
-		ok: boolean;
-		error?: string;
-		userData?: string;
-		localStorageDir?: string;
-		localStorageLevelDb?: string;
-	}>;
-	factoryReset?: () => Promise<{ ok: boolean; error?: string }>;
-}
-
-interface WindowWithShadowQuill extends Window {
-	shadowquill?: ShadowQuillApi;
-}
-
 function isElectronRuntime(): boolean {
 	if (typeof process !== "undefined") {
 		if (
@@ -63,7 +46,6 @@ function isElectronRuntime(): boolean {
 }
 
 export default function ModelConfigGate({ children }: Props) {
-	// Detect Electron at build/SSR via env; fall back to client runtime detection.
 	const initialElectron =
 		typeof process !== "undefined" &&
 		(process.env.NEXT_PUBLIC_ELECTRON === "1" || process.env.ELECTRON === "1");
@@ -128,11 +110,10 @@ export default function ModelConfigGate({ children }: Props) {
 
 	const checkOllamaInstalled = useCallback(async () => {
 		try {
-			const win = window as WindowWithShadowQuill;
-			if (!win.shadowquill?.checkOllamaInstalled) {
+			if (!window.shadowquill?.checkOllamaInstalled) {
 				return;
 			}
-			const result = await win.shadowquill.checkOllamaInstalled();
+			const result = await window.shadowquill.checkOllamaInstalled();
 			setOllamaInstalled(result.installed);
 		} catch (e) {
 			console.error("Failed to check Ollama installation:", e);
@@ -187,15 +168,12 @@ export default function ModelConfigGate({ children }: Props) {
 		[localPort],
 	);
 
-	const {
-		handleOpenOrInstallOllama,
-		isOpeningOllama,
-		openOllamaError,
-	} = useOpenOrInstallOllama({
-		ollamaInstalled,
-		checkOllamaInstalled,
-		testLocalConnection,
-	});
+	const { handleOpenOrInstallOllama, isOpeningOllama, openOllamaError } =
+		useOpenOrInstallOllama({
+			ollamaInstalled,
+			checkOllamaInstalled,
+			testLocalConnection,
+		});
 
 	useEffect(() => {
 		try {
@@ -374,7 +352,6 @@ export default function ModelConfigGate({ children }: Props) {
 													model,
 												};
 												writeLocalModelConfigClient(payload);
-												// After saving validate immediately
 												setValidating(true);
 												try {
 													const vjson =
@@ -487,7 +464,9 @@ export default function ModelConfigGate({ children }: Props) {
 														<button
 															type="button"
 															onClick={() => testLocalConnection()}
-															disabled={testingLocal || !isValidOllamaPort(localPort)}
+															disabled={
+																testingLocal || !isValidOllamaPort(localPort)
+															}
 															className={[
 																"md-btn",
 																"md-btn--primary",
@@ -789,7 +768,6 @@ function SystemPromptEditorWrapper({
 
 	return (
 		<>
-			{/* System Prompt open controlled via global event */}
 			<OpenSystemPromptsListener onOpen={() => setOpen(true)} />
 			{children}
 			{open && (
@@ -1087,8 +1065,7 @@ function DataLocationModalWrapper() {
 													// beforeunload handlers from re-saving data
 													clearAllStorageForFactoryReset();
 
-													const api = (window as WindowWithShadowQuill)
-														.shadowquill;
+													const api = window.shadowquill;
 													const res = await api?.factoryReset?.();
 													if (!res?.ok) {
 														abortFactoryReset();

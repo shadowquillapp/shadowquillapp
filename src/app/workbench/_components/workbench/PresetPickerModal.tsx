@@ -18,6 +18,15 @@ const visuallyHidden: React.CSSProperties = {
 	border: 0,
 };
 
+const resetButtonStyle: React.CSSProperties = {
+	padding: "6px 10px",
+	fontSize: 12,
+	borderRadius: 8,
+	border: "1px solid var(--color-outline-variant)",
+	background: "var(--color-surface)",
+	color: "var(--color-on-surface)",
+};
+
 interface SavedProject {
 	id: string;
 	title: string | null;
@@ -105,21 +114,6 @@ export function PresetPickerModal({
 		if (!ok) return;
 
 		await onDeleteAllProjects();
-	};
-
-	const doesMatchSearch = (preset: PromptPresetSummary, query: string) => {
-		if (query.trim() === "") return true;
-		const q = query.toLowerCase();
-		return (
-			preset.name.toLowerCase().includes(q) ||
-			preset.taskType.toLowerCase().includes(q)
-		);
-	};
-
-	const doesMatchProjectSearch = (project: SavedProject, query: string) => {
-		if (query.trim() === "") return true;
-		const q = query.toLowerCase();
-		return (project.title ?? "Untitled").toLowerCase().includes(q);
 	};
 
 	useEffect(() => {
@@ -223,12 +217,22 @@ export function PresetPickerModal({
 	if (!open) return null;
 
 	const filteredPresets = presets.filter((preset) => {
-		return doesMatchSearch(preset, searchQuery);
+		if (searchQuery.trim() === "") return true;
+		const q = searchQuery.toLowerCase();
+		return (
+			preset.name.toLowerCase().includes(q) ||
+			preset.taskType.toLowerCase().includes(q)
+		);
 	});
 	const presetKeys = filteredPresets.map((p) => p.id ?? p.name);
 
 	const filteredProjects = savedProjects
-		.filter((project) => doesMatchProjectSearch(project, searchQuery))
+		.filter((project) => {
+			if (searchQuery.trim() === "") return true;
+			return (project.title ?? "Untitled")
+				.toLowerCase()
+				.includes(searchQuery.toLowerCase());
+		})
 		.sort(
 			(a, b) =>
 				new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
@@ -346,7 +350,6 @@ export function PresetPickerModal({
 							borderBottom: "1px solid var(--color-outline)",
 						}}
 					>
-						{/* Tab Switcher */}
 						<div
 							style={{
 								display: "flex",
@@ -418,7 +421,6 @@ export function PresetPickerModal({
 							</button>
 						</div>
 
-						{/* Search Bar */}
 						<div
 							style={{
 								width: "100%",
@@ -491,7 +493,6 @@ export function PresetPickerModal({
 								)}
 							</div>
 
-							{/* Delete All button */}
 							{activeSection === "saved" &&
 								savedProjects.length > 0 &&
 								onDeleteAllProjects && (
@@ -519,9 +520,6 @@ export function PresetPickerModal({
 								)}
 						</div>
 					</div>
-					{/* End Tab Switcher + Search Bar */}
-
-					{/* Content based on active section */}
 					<div
 						style={{
 							overflow: "hidden",
@@ -543,7 +541,6 @@ export function PresetPickerModal({
 							}}
 						>
 							{activeSection === "presets" ? (
-								/* Preset Grid */
 								filteredPresets.length === 0 ? (
 									<div
 										className="text-secondary"
@@ -569,14 +566,7 @@ export function PresetPickerModal({
 													onClick={() => {
 														setSearchQuery("");
 													}}
-													style={{
-														padding: "6px 10px",
-														fontSize: 12,
-														borderRadius: 8,
-														border: "1px solid var(--color-outline-variant)",
-														background: "var(--color-surface)",
-														color: "var(--color-on-surface)",
-													}}
+													style={resetButtonStyle}
 												>
 													Reset
 												</button>
@@ -693,8 +683,7 @@ export function PresetPickerModal({
 										))}
 									</div>
 								)
-							) : /* Saved Projects List */
-							filteredProjects.length === 0 ? (
+							) : filteredProjects.length === 0 ? (
 								<div
 									className="text-secondary"
 									style={{
@@ -729,14 +718,7 @@ export function PresetPickerModal({
 													type="button"
 													className="md-btn"
 													onClick={() => setSearchQuery("")}
-													style={{
-														padding: "6px 10px",
-														fontSize: 12,
-														borderRadius: 8,
-														border: "1px solid var(--color-outline-variant)",
-														background: "var(--color-surface)",
-														color: "var(--color-on-surface)",
-													}}
+													style={resetButtonStyle}
 												>
 													Reset
 												</button>
@@ -836,7 +818,7 @@ export function PresetPickerModal({
 															flex: 1,
 															minWidth: 0,
 															overflow: "hidden",
-															paddingRight: 8, // Ensure space for ellipsis
+															paddingRight: 8,
 														}}
 													>
 														<div
@@ -847,7 +829,7 @@ export function PresetPickerModal({
 																overflow: "hidden",
 																textOverflow: "ellipsis",
 																whiteSpace: "nowrap",
-																maxWidth: "200px", // Force truncation to show ellipsis
+																maxWidth: "200px",
 																paddingTop: 2,
 															}}
 														>
@@ -891,7 +873,6 @@ export function PresetPickerModal({
 													/>
 												</button>
 
-												{/* Delete button */}
 												{onDeleteProject && (
 													<button
 														type="button"

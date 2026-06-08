@@ -1,12 +1,3 @@
-/**
- * Structured error handling system for ShadowQuill
- * Provides typed error classes with detailed context
- */
-
-// ============================================
-// Error Codes
-// ============================================
-
 export type PromptErrorCode =
 	| "VALIDATION_ERROR"
 	| "GENERATION_ERROR"
@@ -16,14 +7,6 @@ export type PromptErrorCode =
 	| "NETWORK_ERROR"
 	| "PRESET_ERROR";
 
-// ============================================
-// Base Error Class
-// ============================================
-
-/**
- * Base error class for ShadowQuill errors
- * Extends Error with structured metadata
- */
 export class ShadowQuillError extends Error {
 	readonly code: PromptErrorCode;
 	readonly timestamp: Date;
@@ -45,15 +28,11 @@ export class ShadowQuillError extends Error {
 		this.details = options?.details;
 		this.cause = options?.cause;
 
-		// Maintain proper stack trace in V8 environments
 		if (Error.captureStackTrace) {
 			Error.captureStackTrace(this, this.constructor);
 		}
 	}
 
-	/**
-	 * Get a user-friendly error message
-	 */
 	get userMessage(): string {
 		const messages: Record<PromptErrorCode, string> = {
 			VALIDATION_ERROR: "The input provided is invalid.",
@@ -67,9 +46,6 @@ export class ShadowQuillError extends Error {
 		return messages[this.code];
 	}
 
-	/**
-	 * Convert to JSON for logging/serialization
-	 */
 	toJSON(): Record<string, unknown> {
 		return {
 			name: this.name,
@@ -82,13 +58,6 @@ export class ShadowQuillError extends Error {
 	}
 }
 
-// ============================================
-// Specific Error Classes
-// ============================================
-
-/**
- * Error for input validation failures
- */
 export class ValidationError extends ShadowQuillError {
 	readonly field: string | undefined;
 	readonly value: unknown | undefined;
@@ -110,9 +79,6 @@ export class ValidationError extends ShadowQuillError {
 	}
 }
 
-/**
- * Error for prompt generation failures
- */
 export class GenerationError extends ShadowQuillError {
 	readonly taskType: string | undefined;
 	readonly inputLength: number | undefined;
@@ -136,9 +102,6 @@ export class GenerationError extends ShadowQuillError {
 	}
 }
 
-/**
- * Error for storage/persistence failures
- */
 export class StorageError extends ShadowQuillError {
 	readonly operation: "read" | "write" | "delete" | undefined;
 	readonly key: string | undefined;
@@ -162,9 +125,6 @@ export class StorageError extends ShadowQuillError {
 	}
 }
 
-/**
- * Error for AI model communication failures
- */
 export class ModelError extends ShadowQuillError {
 	readonly modelId: string | undefined;
 	readonly statusCode: number | undefined;
@@ -191,9 +151,6 @@ export class ModelError extends ShadowQuillError {
 	}
 }
 
-/**
- * Error for cache-related failures
- */
 export class CacheError extends ShadowQuillError {
 	readonly cacheType: "memory" | "session" | "local" | undefined;
 
@@ -214,9 +171,6 @@ export class CacheError extends ShadowQuillError {
 	}
 }
 
-/**
- * Error for network/connectivity failures
- */
 export class NetworkError extends ShadowQuillError {
 	readonly endpoint: string | undefined;
 	readonly statusCode: number | undefined;
@@ -243,9 +197,6 @@ export class NetworkError extends ShadowQuillError {
 	}
 }
 
-/**
- * Error for preset-related failures
- */
 export class PresetError extends ShadowQuillError {
 	readonly presetId: string | undefined;
 	readonly presetName: string | undefined;
@@ -272,20 +223,10 @@ export class PresetError extends ShadowQuillError {
 	}
 }
 
-// ============================================
-// Error Utilities
-// ============================================
-
-/**
- * Type guard to check if an error is a ShadowQuillError
- */
 export function isShadowQuillError(error: unknown): error is ShadowQuillError {
 	return error instanceof ShadowQuillError;
 }
 
-/**
- * Wrap an unknown error in a ShadowQuillError
- */
 export function wrapError(
 	error: unknown,
 	code: PromptErrorCode = "GENERATION_ERROR",
@@ -307,9 +248,6 @@ export function wrapError(
 	});
 }
 
-/**
- * Extract a user-friendly message from any error
- */
 export function getUserMessage(error: unknown): string {
 	if (isShadowQuillError(error)) {
 		return error.userMessage;
@@ -320,9 +258,6 @@ export function getUserMessage(error: unknown): string {
 	return "An unexpected error occurred";
 }
 
-/**
- * Create a formatted error log entry
- */
 export function formatErrorLog(error: unknown): string {
 	if (isShadowQuillError(error)) {
 		return JSON.stringify(error.toJSON(), null, 2);
