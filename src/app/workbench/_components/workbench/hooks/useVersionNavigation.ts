@@ -2,9 +2,6 @@ import { useCallback } from "react";
 import type { useTabManager } from "../useTabManager";
 import { redoVersion, undoVersion } from "../version-graph";
 
-/**
- * Hook for navigating between versions in the version graph.
- */
 export function useVersionNavigation(
 	tabManager: ReturnType<typeof useTabManager>,
 	setOutputAnimateKey: React.Dispatch<React.SetStateAction<number>>,
@@ -51,8 +48,6 @@ export function useVersionNavigation(
 			const versionNode = tab.versionGraph.nodes[versionId];
 			if (!versionNode) return;
 
-			// Keep draft empty when jumping to a version that has output (refinement mode)
-			// The original input is shown in the context preview, not the editable field
 			if (!versionNode.outputMessageId) {
 				tabManager.updateDraft(
 					versionNode.originalInput || versionNode.content,
@@ -60,7 +55,6 @@ export function useVersionNavigation(
 			} else {
 				tabManager.updateDraft("");
 			}
-			// Update the version graph to point to this version
 			const updatedGraph = {
 				...tab.versionGraph,
 				activeId: versionId,

@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import OllamaSetupContent from "@/components/settings/OllamaSetupContent";
 
-// Mock local-config
 const mockReadLocalModelConfig = vi.fn();
 const mockWriteLocalModelConfig = vi.fn();
 const mockValidateLocalModelConnection = vi.fn();
@@ -184,7 +183,6 @@ describe("OllamaSetupContent", () => {
 
 			await waitFor(() => {
 				expect(screen.getByText("Needs attention")).toBeInTheDocument();
-				// "Connection failed" appears in both title and body
 				expect(screen.getAllByText("Connection failed").length).toBeGreaterThan(
 					0,
 				);
@@ -292,14 +290,12 @@ describe("OllamaSetupContent", () => {
 
 			render(<OllamaSetupContent />);
 
-			// First test connection to enable save
 			await user.click(screen.getByTitle("Check for available Ollama models"));
 
 			await waitFor(() => {
 				expect(screen.getByText("Connected")).toBeInTheDocument();
 			});
 
-			// Submit form
 			await user.click(screen.getByRole("button", { name: /save changes/i }));
 
 			await waitFor(() => {
@@ -373,7 +369,6 @@ describe("OllamaSetupContent", () => {
 
 			const portInput = screen.getByLabelText("Ollama localhost Port");
 			await user.clear(portInput);
-			// This will be filtered to just digits
 			await user.type(portInput, "8080");
 
 			expect(screen.getByText("http://localhost:8080")).toBeInTheDocument();
@@ -386,7 +381,6 @@ describe("OllamaSetupContent", () => {
 
 			render(<OllamaSetupContent />);
 
-			// Should not throw and should render normally
 			expect(screen.getByText("Secure Ollama bridge")).toBeInTheDocument();
 		});
 
@@ -446,7 +440,6 @@ describe("OllamaSetupContent", () => {
 			const user = userEvent.setup();
 			(window as unknown as { shadowquill?: unknown }).shadowquill = {
 				checkOllamaInstalled: vi.fn().mockResolvedValue({ installed: true }),
-				// openOllama is not defined
 			};
 			mockListAvailableModels.mockRejectedValue(new Error("Connection failed"));
 
@@ -536,7 +529,6 @@ describe("OllamaSetupContent", () => {
 
 			await user.click(screen.getByRole("button", { name: /open ollama/i }));
 
-			// Advance time to trigger the setTimeout
 			vi.advanceTimersByTime(3500);
 
 			await waitFor(() => {
@@ -548,7 +540,6 @@ describe("OllamaSetupContent", () => {
 
 		it("should check Ollama installation if ollamaInstalled is null", async () => {
 			const user = userEvent.setup();
-			// Initially set to null by not calling checkOllamaInstalled
 			(window as unknown as { shadowquill?: unknown }).shadowquill = {
 				checkOllamaInstalled: vi.fn().mockResolvedValue({ installed: true }),
 				openOllama: vi.fn().mockResolvedValue({ ok: true }),

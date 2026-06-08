@@ -15,9 +15,6 @@ import {
 	migrateVersionGraph,
 } from "../version-graph";
 
-/**
- * Hook for managing projects: loading, deleting, and ensuring project existence.
- */
 export function useProjectManager(
 	tabManager: ReturnType<typeof useTabManager>,
 	presets: Array<{
@@ -121,7 +118,6 @@ export function useProjectManager(
 					}),
 				);
 
-				// Find the preset for this project
 				let projectPreset: PromptPresetSummary | null = null;
 				if (data.presetId) {
 					const preset = presets.find((p) => p.id === data.presetId);
@@ -232,7 +228,6 @@ export function useProjectManager(
 		} catch {}
 	}, [recentProjects, deleteProject]);
 
-	// Auto-save version graph when project changes
 	const activeTab = tabManager.activeTab;
 	useEffect(() => {
 		if (!activeTab?.projectId || !activeTab?.versionGraph) return;

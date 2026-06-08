@@ -23,9 +23,6 @@ interface RefinementContextPanelProps {
 	copiedMessageId: string | null;
 }
 
-/**
- * Collapsible refinement context panel showing version history timeline.
- */
 export function RefinementContextPanel({
 	showRefinementContext,
 	setShowRefinementContext,
@@ -89,7 +86,6 @@ export function RefinementContextPanel({
 
 							const handleJumpToVersion = () => {
 								if (isCurrentVersion) return;
-								// Keep draft empty when jumping to a version that has output (refinement mode)
 								if (version.outputMessageId) {
 									tabManager.updateDraft("");
 								} else {
@@ -97,7 +93,6 @@ export function RefinementContextPanel({
 										version.originalInput || version.content,
 									);
 								}
-								// Update the version graph to point to this version
 								if (activeTab?.versionGraph) {
 									const updatedGraph: VersionGraph = {
 										...activeTab.versionGraph,

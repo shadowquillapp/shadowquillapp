@@ -24,40 +24,29 @@ interface StoredProject {
 	versionGraph?: unknown;
 }
 
-function isStoredTestMessage(v: unknown): v is StoredTestMessage {
-	return (
-		isRecord(v) &&
-		isString(v.id) &&
-		isString(v.projectId) &&
-		(v.role === "user" || v.role === "assistant") &&
-		isString(v.content) &&
-		typeof v.createdAt === "number"
+function readMap<T>(
+	key: string,
+	isValue: (v: unknown) => v is T,
+): Record<string, T> {
+	return safeParse(
+		getRaw(key),
+		(v): v is Record<string, T> =>
+			isRecord(v) && Object.values(v).every(isValue),
+		{},
 	);
-}
-
-function isStoredTestMessageMap(
-	v: unknown,
-): v is Record<string, StoredTestMessage> {
-	return isRecord(v) && Object.values(v).every(isStoredTestMessage);
-}
-
-function isStoredProject(v: unknown): v is StoredProject {
-	return (
-		isRecord(v) &&
-		isString(v.id) &&
-		isString(v.userId) &&
-		(v.title === null || isString(v.title)) &&
-		typeof v.createdAt === "number" &&
-		typeof v.updatedAt === "number"
-	);
-}
-
-function isStoredProjectMap(v: unknown): v is Record<string, StoredProject> {
-	return isRecord(v) && Object.values(v).every(isStoredProject);
 }
 
 function readProjects(): Record<string, StoredProject> {
-	return safeParse(getRaw(STORAGE_KEYS.PROJECTS.key), isStoredProjectMap, {});
+	return readMap(
+		STORAGE_KEYS.PROJECTS.key,
+		(v): v is StoredProject =>
+			isRecord(v) &&
+			isString(v.id) &&
+			isString(v.userId) &&
+			(v.title === null || isString(v.title)) &&
+			typeof v.createdAt === "number" &&
+			typeof v.updatedAt === "number",
+	);
 }
 
 function writeProjects(map: Record<string, StoredProject>): void {
@@ -65,10 +54,15 @@ function writeProjects(map: Record<string, StoredProject>): void {
 }
 
 function readTestMessages(): Record<string, StoredTestMessage> {
-	return safeParse(
-		getRaw(STORAGE_KEYS.TEST_MESSAGES.key),
-		isStoredTestMessageMap,
-		{},
+	return readMap(
+		STORAGE_KEYS.TEST_MESSAGES.key,
+		(v): v is StoredTestMessage =>
+			isRecord(v) &&
+			isString(v.id) &&
+			isString(v.projectId) &&
+			(v.role === "user" || v.role === "assistant") &&
+			isString(v.content) &&
+			typeof v.createdAt === "number",
 	);
 }
 
@@ -169,7 +163,6 @@ export async function appendMessagesWithCap(
 		project.updatedAt = now;
 		projects[projectId] = project;
 	}
-	// Single, atomic-relative write — both maps go out together.
 	writeProjectsAndMessages(projects, messagesMap);
 	return { created, deletedIds };
 }

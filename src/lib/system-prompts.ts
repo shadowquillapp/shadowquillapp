@@ -3,10 +3,6 @@ import { STORAGE_KEYS } from "./storage-keys";
 
 const SYSTEM_PROMPT_BUILD_KEY = STORAGE_KEYS.SYSTEM_PROMPT_BUILD.key;
 
-/**
- * Default system prompt for ShadowQuill
- * Intent-alignment compiler — specifics handled by directives and domain maps
- */
 export const DEFAULT_BUILD_PROMPT = `You are an intent-alignment compiler for ShadowQuill.
 
 Your task: Translate natural human requests into stable execution framing for EXTERNAL AI systems.
@@ -68,9 +64,7 @@ function writeRawPrompt(value: string): void {
 	if (typeof window === "undefined") return;
 	try {
 		setJSON(SYSTEM_PROMPT_BUILD_KEY, value);
-	} catch {
-		// ignore storage failures
-	}
+	} catch {}
 }
 
 function normalize(prompt: string | null | undefined): string {

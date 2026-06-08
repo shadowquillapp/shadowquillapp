@@ -7,9 +7,6 @@ interface PresetInfoRowProps {
 	onClick: () => void;
 }
 
-/**
- * Preset information display card showing preset name, task type, and key options.
- */
 export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 	const formatLabel = preset.options?.format
 		? preset.options.format === "plain"
@@ -23,11 +20,6 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 	if (preset.options?.tone) meta.push(preset.options.tone);
 	if (formatLabel) meta.push(formatLabel);
 	if (preset.options?.detail) meta.push(preset.options.detail);
-
-	// Keep the row compact: show only a few meta chips and summarize the rest.
-	const MAX_META = 3;
-	const visibleMeta = meta.slice(0, MAX_META);
-	const hiddenMetaCount = Math.max(0, meta.length - visibleMeta.length);
 
 	return (
 		<button
@@ -45,7 +37,6 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 			onClick={onClick}
 			title="Click for full preset details"
 		>
-			{/* Icon */}
 			<div
 				className="flex shrink-0 items-center justify-center"
 				style={{ color: "var(--color-primary)" }}
@@ -56,7 +47,6 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 				/>
 			</div>
 
-			{/* Content - single line */}
 			<div
 				className="flex min-w-0 flex-1 items-center overflow-hidden"
 				style={{ gap: 8 }}
@@ -83,8 +73,7 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 				>
 					{preset.taskType}
 				</span>
-				{/* Meta chips - inline */}
-				{visibleMeta.map((item) => (
+				{meta.map((item) => (
 					<span
 						key={item}
 						className="shrink-0"
@@ -108,22 +97,8 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 						{item}
 					</span>
 				))}
-				{hiddenMetaCount > 0 && (
-					<span
-						className="shrink-0"
-						style={{
-							fontSize: 9,
-							color: "var(--color-on-surface-variant)",
-							opacity: 0.6,
-							fontWeight: 600,
-						}}
-					>
-						+{hiddenMetaCount}
-					</span>
-				)}
 			</div>
 
-			{/* Chevron */}
 			<div
 				className="flex shrink-0 items-center justify-center"
 				style={{

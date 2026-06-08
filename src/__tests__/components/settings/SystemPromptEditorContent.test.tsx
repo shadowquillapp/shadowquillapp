@@ -2,7 +2,6 @@ import { render, screen, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import SystemPromptEditorContent from "@/components/settings/SystemPromptEditorContent";
 
-// Mock system-prompts
 const mockEnsureSystemPromptBuild = vi.fn();
 
 vi.mock("@/lib/system-prompts", () => ({
@@ -12,7 +11,6 @@ vi.mock("@/lib/system-prompts", () => ({
 describe("SystemPromptEditorContent", () => {
 	const defaultPrompt = "You are a helpful AI assistant.";
 
-	// Helper to get the read-only display div
 	const getDisplayDiv = () =>
 		document.getElementById("system-prompt-display") as HTMLDivElement;
 
@@ -47,7 +45,6 @@ describe("SystemPromptEditorContent", () => {
 			await waitFor(() => {
 				const displayDiv = getDisplayDiv();
 				expect(displayDiv).toBeInTheDocument();
-				// Verify it's a div (not an input/textarea) which makes it read-only
 				expect(displayDiv.tagName).toBe("DIV");
 			});
 		});
@@ -95,16 +92,11 @@ describe("SystemPromptEditorContent", () => {
 
 	describe("loading state", () => {
 		it("should show loading indicator initially", () => {
-			// Mock a slow load
 			mockEnsureSystemPromptBuild.mockImplementation(() => {
 				return defaultPrompt;
 			});
 
 			render(<SystemPromptEditorContent />);
-
-			// Initially should show loading
-			// Note: This is hard to test since loading is very fast
-			// The component will show "Loading…" briefly
 		});
 
 		it("should handle load error gracefully", async () => {
@@ -115,7 +107,6 @@ describe("SystemPromptEditorContent", () => {
 			render(<SystemPromptEditorContent />);
 
 			await waitFor(() => {
-				// After error, display div should exist with fallback message
 				const displayDiv = getDisplayDiv();
 				expect(displayDiv).toBeInTheDocument();
 				expect(displayDiv).toHaveTextContent("No system prompt available.");
@@ -130,14 +121,12 @@ describe("SystemPromptEditorContent", () => {
 			await waitFor(() => {
 				const displayDiv = getDisplayDiv();
 				expect(displayDiv).toBeInTheDocument();
-				// Verify it has the expected max-height for scrolling
 				expect(displayDiv).toHaveStyle({ maxHeight: "400px" });
 				expect(displayDiv).toHaveStyle({ overflowY: "auto" });
 			});
 		});
 
 		it("should display long content with scrolling when it exceeds max height", async () => {
-			// Set a longer prompt to test scrolling
 			const longPrompt = defaultPrompt + "\n".repeat(50);
 			mockEnsureSystemPromptBuild.mockReturnValue(longPrompt);
 
@@ -146,9 +135,7 @@ describe("SystemPromptEditorContent", () => {
 			await waitFor(() => {
 				const displayDiv = getDisplayDiv();
 				expect(displayDiv).toBeInTheDocument();
-				// Check that the content includes the default prompt (textContent normalizes whitespace)
 				expect(displayDiv.textContent).toContain(defaultPrompt);
-				// Verify scrolling is enabled
 				expect(displayDiv).toHaveStyle({ overflowY: "auto" });
 			});
 		});
@@ -162,11 +149,9 @@ describe("SystemPromptEditorContent", () => {
 			await waitFor(() => {
 				const displayDiv = getDisplayDiv();
 				expect(displayDiv).toBeInTheDocument();
-				// Check that all lines are present (textContent normalizes whitespace but content is there)
 				expect(displayDiv.textContent).toContain("Line 1");
 				expect(displayDiv.textContent).toContain("Line 2");
 				expect(displayDiv.textContent).toContain("Line 3");
-				// Verify whitespace preservation style is set
 				expect(displayDiv).toHaveStyle({ whiteSpace: "pre-wrap" });
 			});
 		});

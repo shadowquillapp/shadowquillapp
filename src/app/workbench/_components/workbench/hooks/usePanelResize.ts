@@ -2,9 +2,6 @@ import { useCallback, useEffect, useRef } from "react";
 import { setJSON } from "@/lib/local-storage";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 
-/**
- * Hook for managing panel resizing with mouse drag.
- */
 export function usePanelResize(
 	leftPanelWidth: number,
 	setLeftPanelWidth: React.Dispatch<React.SetStateAction<number>>,

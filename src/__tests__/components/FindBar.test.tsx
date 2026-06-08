@@ -9,7 +9,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import FindBar from "@/components/FindBar";
 
-// Store callbacks to trigger them in tests
 let showCallback: (() => void) | null = null;
 let nextCallback: (() => void) | null = null;
 let previousCallback: (() => void) | null = null;
@@ -51,16 +50,13 @@ describe("FindBar", () => {
 		showCallback = null;
 		nextCallback = null;
 		previousCallback = null;
-		// Reset DOM body to clean state
 		document.body.innerHTML = "";
 		setupMockFind();
 
-		// Mock scrollIntoView which doesn't exist in jsdom
 		Element.prototype.scrollIntoView = vi.fn();
 	});
 
 	afterEach(() => {
-		// Clean up any highlights left behind
 		const highlights = document.querySelectorAll(".find-highlight");
 		for (const h of highlights) {
 			h.remove();
@@ -182,7 +178,6 @@ describe("FindBar", () => {
 			const closeButton = screen.getByTitle("Close (Escape)");
 			await user.click(closeButton);
 
-			// Re-open and verify input is empty
 			triggerShow();
 
 			await waitFor(() => {
@@ -236,7 +231,6 @@ describe("FindBar", () => {
 
 	describe("search highlighting", () => {
 		beforeEach(() => {
-			// Add searchable content to the document
 			const content = document.createElement("div");
 			content.id = "search-content";
 			content.textContent = "Hello world. Hello again.";
@@ -258,7 +252,6 @@ describe("FindBar", () => {
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "Hello");
 
-			// Click next to trigger search
 			const nextButton = screen.getByTitle("Next (Enter)");
 			await user.click(nextButton);
 
@@ -283,7 +276,6 @@ describe("FindBar", () => {
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "Hello");
 
-			// Click next to trigger search
 			const nextButton = screen.getByTitle("Next (Enter)");
 			await user.click(nextButton);
 
@@ -307,7 +299,6 @@ describe("FindBar", () => {
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "nonexistent");
 
-			// Click next to trigger search
 			const nextButton = screen.getByTitle("Next (Enter)");
 			await user.click(nextButton);
 
@@ -331,7 +322,6 @@ describe("FindBar", () => {
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "Hello");
 
-			// Click next twice
 			const nextButton = screen.getByTitle("Next (Enter)");
 			await user.click(nextButton);
 
@@ -446,7 +436,6 @@ describe("FindBar", () => {
 				expect(document.querySelectorAll(".find-highlight").length).toBe(2);
 			});
 
-			// Clear input
 			await user.clear(input);
 
 			await waitFor(() => {
@@ -476,7 +465,6 @@ describe("FindBar", () => {
 				expect(document.querySelectorAll(".find-highlight").length).toBe(2);
 			});
 
-			// Close find bar
 			const closeButton = screen.getByTitle("Close (Escape)");
 			await user.click(closeButton);
 
@@ -560,10 +548,8 @@ describe("FindBar", () => {
 				expect(document.querySelectorAll(".find-highlight").length).toBe(1);
 			});
 
-			// Unmount the component
 			unmount();
 
-			// Highlights should be cleaned up
 			expect(document.querySelectorAll(".find-highlight").length).toBe(0);
 		});
 	});
@@ -591,8 +577,6 @@ describe("FindBar", () => {
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "searchable");
 
-			// Focus should be on input after typing
-			// Press Enter to trigger search
 			await user.keyboard("{Enter}");
 
 			await waitFor(() => {
@@ -616,7 +600,6 @@ describe("FindBar", () => {
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "searchable");
 
-			// First search
 			await user.keyboard("{Enter}");
 
 			await waitFor(() => {
@@ -624,7 +607,6 @@ describe("FindBar", () => {
 				expect(highlights.length).toBeGreaterThan(0);
 			});
 
-			// Shift+Enter to go previous
 			await user.keyboard("{Shift>}{Enter}{/Shift}");
 		});
 	});
@@ -652,11 +634,9 @@ describe("FindBar", () => {
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "test");
 
-			// Trigger initial search
 			const nextButton = screen.getByTitle("Next (Enter)");
 			await user.click(nextButton);
 
-			// Now trigger via IPC
 			if (nextCallback) {
 				const callback = nextCallback;
 				act(() => {
@@ -685,11 +665,9 @@ describe("FindBar", () => {
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "test");
 
-			// Trigger initial search
 			const nextButton = screen.getByTitle("Next (Enter)");
 			await user.click(nextButton);
 
-			// Now trigger previous via IPC
 			if (previousCallback) {
 				const callback = previousCallback;
 				act(() => {
@@ -701,7 +679,6 @@ describe("FindBar", () => {
 		it("should not respond to IPC events when find bar is not visible", () => {
 			render(<FindBar />);
 
-			// Don't show the find bar - IPC events shouldn't do anything
 			if (nextCallback) {
 				const callback = nextCallback;
 				act(() => {
@@ -715,7 +692,6 @@ describe("FindBar", () => {
 				});
 			}
 
-			// Find bar should still be hidden
 			expect(
 				screen.queryByPlaceholderText("Find in page..."),
 			).not.toBeInTheDocument();
@@ -732,7 +708,6 @@ describe("FindBar", () => {
 				).toBeInTheDocument();
 			});
 
-			// Trigger IPC events without search text - should not crash
 			if (nextCallback) {
 				const callback = nextCallback;
 				act(() => {
@@ -752,7 +727,6 @@ describe("FindBar", () => {
 		it("should handle Escape key when find bar is not visible", () => {
 			render(<FindBar />);
 
-			// Press Escape when find bar is not visible - should not crash
 			fireEvent.keyDown(document, { key: "Escape" });
 
 			expect(
@@ -772,11 +746,9 @@ describe("FindBar", () => {
 				).toBeInTheDocument();
 			});
 
-			// Try to search with whitespace only
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "   ");
 
-			// Buttons should be enabled when there's text (even whitespace)
 			const nextButton = screen.getByTitle("Next (Enter)");
 			expect(nextButton).not.toBeDisabled();
 		});
@@ -784,7 +756,6 @@ describe("FindBar", () => {
 		it("should skip nodes already highlighted", async () => {
 			const user = userEvent.setup();
 
-			// Add content with existing highlight
 			const content = document.createElement("div");
 			content.id = "highlight-test";
 			content.innerHTML =
@@ -807,7 +778,6 @@ describe("FindBar", () => {
 			const nextButton = screen.getByTitle("Next (Enter)");
 			await user.click(nextButton);
 
-			// Should only find the "hello" in "world hello", not the one inside the mark
 			await waitFor(() => {
 				const highlights = document.querySelectorAll(".find-highlight");
 				expect(highlights.length).toBeGreaterThan(0);
@@ -817,7 +787,6 @@ describe("FindBar", () => {
 		it("should skip text inside script tags", async () => {
 			const user = userEvent.setup();
 
-			// Add content with script tag containing searchable text
 			const content = document.createElement("div");
 			content.id = "script-test";
 			content.innerHTML =
@@ -840,10 +809,8 @@ describe("FindBar", () => {
 			const nextButton = screen.getByTitle("Next (Enter)");
 			await user.click(nextButton);
 
-			// Should only highlight the text in <p>, not in <script>
 			await waitFor(() => {
 				const highlights = document.querySelectorAll(".find-highlight");
-				// The highlight should be in the paragraph, not in the script
 				expect(highlights.length).toBeGreaterThan(0);
 				for (const h of highlights) {
 					expect(h.closest("script")).toBeNull();
@@ -864,14 +831,12 @@ describe("FindBar", () => {
 				).toBeInTheDocument();
 			});
 
-			// Type "Find" which appears in the placeholder
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "Find");
 
 			const nextButton = screen.getByTitle("Next (Enter)");
 			await user.click(nextButton);
 
-			// The find bar itself should not be highlighted
 			const findBarContainer = document.querySelector("[data-find-bar]");
 			const highlightsInFindBar =
 				findBarContainer?.querySelectorAll(".find-highlight");
@@ -881,7 +846,6 @@ describe("FindBar", () => {
 		it("should trigger search when goToPrevious is called with no highlights", async () => {
 			const user = userEvent.setup();
 
-			// Add searchable content
 			const content = document.createElement("div");
 			content.id = "prev-search-test";
 			content.textContent = "hello world";
@@ -900,11 +864,9 @@ describe("FindBar", () => {
 			const input = screen.getByPlaceholderText("Find in page...");
 			await user.type(input, "hello");
 
-			// Click previous instead of next (should trigger search first)
 			const prevButton = screen.getByTitle("Previous (Shift+Enter)");
 			await user.click(prevButton);
 
-			// Should have performed search
 			await waitFor(() => {
 				const highlights = document.querySelectorAll(".find-highlight");
 				expect(highlights.length).toBeGreaterThan(0);
@@ -914,7 +876,6 @@ describe("FindBar", () => {
 		it("should skip text nodes with null parent", async () => {
 			const user = userEvent.setup();
 
-			// Add normal content
 			const content = document.createElement("div");
 			content.id = "null-parent-test";
 			content.textContent = "test content";
@@ -936,7 +897,6 @@ describe("FindBar", () => {
 			const nextButton = screen.getByTitle("Next (Enter)");
 			await user.click(nextButton);
 
-			// Should work without crashing
 			await waitFor(() => {
 				const highlights = document.querySelectorAll(".find-highlight");
 				expect(highlights.length).toBeGreaterThan(0);

@@ -13,9 +13,6 @@ import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type { GenerationOptions, TaskType } from "@/types";
 import type { useTabManager } from "../useTabManager";
 
-/**
- * Hook for managing presets.
- */
 export function usePresetManager(
 	tabManager: ReturnType<typeof useTabManager>,
 	_showPresetPicker: boolean,

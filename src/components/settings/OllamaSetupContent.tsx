@@ -2,8 +2,8 @@
 import { useCallback, useEffect, useState } from "react";
 import {
 	formatOllamaModelName,
-	isValidOllamaPort,
 	isSupportedOllamaModelName,
+	isValidOllamaPort,
 	listAvailableModels,
 	normalizeOllamaBaseUrlInput,
 	readLocalModelConfig as readLocalModelConfigClient,
@@ -20,13 +20,6 @@ type TestResult = null | {
 	error?: string;
 	duration?: number;
 };
-
-interface WindowWithShadowQuill extends Window {
-	shadowquill?: {
-		checkOllamaInstalled?: () => Promise<{ installed: boolean }>;
-		openOllama?: () => Promise<{ ok: boolean; error?: string }>;
-	};
-}
 
 export default function OllamaSetupContent() {
 	const [localPort, setLocalPort] = useState<string>("11434");
@@ -87,11 +80,10 @@ export default function OllamaSetupContent() {
 
 	const checkOllamaInstalled = useCallback(async () => {
 		try {
-			const win = window as WindowWithShadowQuill;
-			if (!win.shadowquill?.checkOllamaInstalled) {
+			if (!window.shadowquill?.checkOllamaInstalled) {
 				return;
 			}
-			const result = await win.shadowquill.checkOllamaInstalled();
+			const result = await window.shadowquill.checkOllamaInstalled();
 			setOllamaInstalled(result.installed);
 		} catch (e) {
 			console.error("Failed to check Ollama installation:", e);
@@ -109,22 +101,17 @@ export default function OllamaSetupContent() {
 					setLocalPort(portMatch?.[1] ?? "11434");
 					await testLocalConnection(cfg.baseUrl, cfg.model);
 				}
-			} catch {
-				// ignore
-			}
+			} catch {}
 		};
 		void load();
 	}, [checkOllamaInstalled, testLocalConnection]);
 
-	const {
-		handleOpenOrInstallOllama,
-		isOpeningOllama,
-		openOllamaError,
-	} = useOpenOrInstallOllama({
-		ollamaInstalled,
-		checkOllamaInstalled,
-		testLocalConnection,
-	});
+	const { handleOpenOrInstallOllama, isOpeningOllama, openOllamaError } =
+		useOpenOrInstallOllama({
+			ollamaInstalled,
+			checkOllamaInstalled,
+			testLocalConnection,
+		});
 
 	const canSave = !saving && !validating && model.trim() !== "";
 

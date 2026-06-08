@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import ModelConfigGate from "@/components/ModelConfigGate";
 
-// Mock DialogProvider
 const mockConfirm = vi.fn();
 vi.mock("@/components/DialogProvider", () => ({
 	useDialog: () => ({
@@ -12,7 +11,6 @@ vi.mock("@/components/DialogProvider", () => ({
 	}),
 }));
 
-// Mock local-config
 const mockReadLocalModelConfig = vi.fn();
 const mockWriteLocalModelConfig = vi.fn();
 const mockValidateLocalModelConnection = vi.fn();
@@ -43,18 +41,15 @@ vi.mock("@/lib/local-config", () => ({
 	listAvailableModels: (url: string) => mockListAvailableModels(url),
 }));
 
-// Mock local-storage
 vi.mock("@/lib/local-storage", () => ({
 	clearAllStorageForFactoryReset: vi.fn(),
 	abortFactoryReset: vi.fn(),
 }));
 
-// Mock presets
 vi.mock("@/lib/presets", () => ({
 	ensureDefaultPreset: vi.fn(),
 }));
 
-// Mock system-prompts
 const {
 	mockEnsureSystemPromptBuild,
 	mockResetSystemPromptBuild,
@@ -83,7 +78,6 @@ describe("ModelConfigGate", () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
-		// Set electron mode for tests that need it
 		process.env = { ...originalEnv, NEXT_PUBLIC_ELECTRON: "1" };
 		(window as unknown as { shadowquill?: unknown }).shadowquill =
 			mockWindowApi;
@@ -144,7 +138,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// The component should render a container with data-model-gate attribute
 			const container = document.querySelector("[data-model-gate]");
 			expect(container).toBeInTheDocument();
 		});
@@ -165,7 +158,6 @@ describe("ModelConfigGate", () => {
 				{ name: "gemma3:12b", size: 12 * 1024 * 1024 * 1024 },
 			]);
 
-			// Mock fetch to simulate Ollama being detected
 			const originalFetch = global.fetch;
 			global.fetch = vi.fn().mockResolvedValue({
 				ok: true,
@@ -178,17 +170,14 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for the component to load and find the port input
 			await waitFor(() => {
 				const portInput = screen.queryByPlaceholderText("11434");
 				return portInput !== null;
 			});
 
-			// Enter a port value to enable the test button
 			const portInput = screen.getByPlaceholderText("11434");
 			await user.type(portInput, "11434");
 
-			// Look for the test button
 			const testButton = screen.queryByTitle(
 				"Check for available Ollama models",
 			);
@@ -210,7 +199,6 @@ describe("ModelConfigGate", () => {
 				throw new Error("Config read error");
 			});
 
-			// Should not throw
 			expect(() => {
 				render(
 					<ModelConfigGate>
@@ -236,7 +224,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for component to render and find save button
 			await waitFor(
 				() => {
 					const saveBtn = screen.queryByRole("button", {
@@ -245,9 +232,7 @@ describe("ModelConfigGate", () => {
 					return saveBtn !== null;
 				},
 				{ timeout: 2000 },
-			).catch(() => {
-				// Component may not show save button in all states
-			});
+			).catch(() => {});
 
 			const saveBtn = screen.queryByRole("button", { name: /save changes/i });
 			if (saveBtn && !saveBtn.hasAttribute("disabled")) {
@@ -263,7 +248,6 @@ describe("ModelConfigGate", () => {
 		it("should render ModelConfigGate without errors", () => {
 			mockReadLocalModelConfig.mockReturnValue(null);
 
-			// Should render without throwing
 			expect(() => {
 				render(
 					<ModelConfigGate>
@@ -370,7 +354,6 @@ describe("ModelConfigGate", () => {
 		it("should open Ollama download page when not installed", async () => {
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
-			// Return installed: false to trigger the download page path (lines 285-289)
 			mockWindowApi.checkOllamaInstalled.mockResolvedValue({
 				installed: false,
 			});
@@ -406,7 +389,6 @@ describe("ModelConfigGate", () => {
 				}
 			}
 
-			// Wait for the Install Ollama button to appear
 			await waitFor(
 				() => {
 					const installBtn = screen.queryByText("Install Ollama");
@@ -432,7 +414,6 @@ describe("ModelConfigGate", () => {
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 			mockWindowApi.checkOllamaInstalled.mockResolvedValue({ installed: true });
-			// Return ok: true to trigger the success path (lines 301-306)
 			mockWindowApi.openOllama.mockResolvedValue({ ok: true });
 			mockListAvailableModels.mockRejectedValue(new Error("Connection failed"));
 
@@ -462,7 +443,6 @@ describe("ModelConfigGate", () => {
 				}
 			}
 
-			// Wait for connection failed state
 			await waitFor(
 				() => {
 					const openBtn = screen.queryByText("Open Ollama");
@@ -475,7 +455,6 @@ describe("ModelConfigGate", () => {
 			if (openBtn) {
 				await user.click(openBtn);
 
-				// Verify openOllama was called
 				await waitFor(() => {
 					expect(mockWindowApi.openOllama).toHaveBeenCalled();
 				});
@@ -491,7 +470,6 @@ describe("ModelConfigGate", () => {
 			mockReadLocalModelConfig.mockReturnValue(null);
 			mockWindowApi.checkOllamaInstalled.mockResolvedValue({ installed: true });
 			mockWindowApi.openOllama.mockResolvedValue({ ok: true });
-			// First call fails, second succeeds (after Ollama is opened)
 			mockListAvailableModels
 				.mockRejectedValueOnce(new Error("Connection failed"))
 				.mockResolvedValue([
@@ -540,15 +518,12 @@ describe("ModelConfigGate", () => {
 				await user.click(openBtn);
 				await vi.runAllTimersAsync();
 
-				// Wait for openOllama to be called
 				await waitFor(() => {
 					expect(mockWindowApi.openOllama).toHaveBeenCalled();
 				});
 
-				// Advance timers by 3 seconds to trigger the retest (lines 303-306)
 				await vi.advanceTimersByTimeAsync(3000);
 
-				// Verify listAvailableModels was called again
 				await waitFor(() => {
 					expect(mockListAvailableModels).toHaveBeenCalledTimes(2);
 				}).catch(() => {});
@@ -562,7 +537,6 @@ describe("ModelConfigGate", () => {
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 			mockWindowApi.checkOllamaInstalled.mockResolvedValue({ installed: true });
-			// Return ok: false to trigger error path (line 308)
 			mockWindowApi.openOllama.mockResolvedValue({
 				ok: false,
 				error: "Failed to launch",
@@ -595,7 +569,6 @@ describe("ModelConfigGate", () => {
 				}
 			}
 
-			// Wait for connection failed state
 			await waitFor(
 				() => {
 					const openBtn = screen.queryByText("Open Ollama");
@@ -608,7 +581,6 @@ describe("ModelConfigGate", () => {
 			if (openBtn) {
 				await user.click(openBtn);
 
-				// Verify openOllama was called and error was handled
 				await waitFor(() => {
 					expect(mockWindowApi.openOllama).toHaveBeenCalled();
 				});
@@ -621,7 +593,6 @@ describe("ModelConfigGate", () => {
 	describe("data-model-gate attribute", () => {
 		it("should set data-model-gate to disabled when not in electron mode", () => {
 			mockReadLocalModelConfig.mockReturnValue(null);
-			// Simulate non-electron environment
 			vi.stubGlobal("process", { env: {} });
 
 			render(
@@ -649,7 +620,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for port input to appear
 			await waitFor(
 				() => {
 					const portInput = screen.queryByPlaceholderText("11434");
@@ -689,12 +659,10 @@ describe("ModelConfigGate", () => {
 				expect(screen.getByTestId("app-content")).toBeInTheDocument();
 			});
 
-			// Dispatch the event to open system prompt editor
 			window.dispatchEvent(new Event("open-system-prompts"));
 
 			await waitFor(() => {
 				const systemPromptModal = screen.queryByText("Edit System Prompt");
-				// Modal may or may not appear depending on implementation
 				return systemPromptModal !== null || true;
 			}).catch(() => {});
 		});
@@ -727,7 +695,6 @@ describe("ModelConfigGate", () => {
 				expect(screen.getByTestId("app-content")).toBeInTheDocument();
 			});
 
-			// Dispatch the event to open data location modal
 			window.dispatchEvent(new Event("open-data-location"));
 
 			await waitFor(() => {
@@ -802,7 +769,6 @@ describe("ModelConfigGate", () => {
 				expect(screen.getByTestId("app-content")).toBeInTheDocument();
 			});
 
-			// Dispatch the event to open provider selection
 			window.dispatchEvent(new Event("open-provider-selection"));
 		});
 	});
@@ -825,7 +791,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for form to load and find submit button
 			await waitFor(
 				() => {
 					const submitBtn = screen.queryByRole("button", {
@@ -856,7 +821,6 @@ describe("ModelConfigGate", () => {
 			mockListAvailableModels.mockResolvedValue([
 				{ name: "gemma3:4b", size: 4 * 1024 * 1024 * 1024 },
 			]);
-			// Return model-not-found error on validation (covers lines 446-449)
 			mockValidateLocalModelConnection.mockResolvedValue({
 				ok: false,
 				error: "model-not-found",
@@ -874,12 +838,10 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for provider selection to appear
 			await waitFor(() => {
 				return screen.queryByText("AI Model Connection Setup") !== null;
 			}).catch(() => {});
 
-			// Enter port and test connection
 			const portInput = screen.getByPlaceholderText("11434");
 			await user.type(portInput, "11434");
 
@@ -890,7 +852,6 @@ describe("ModelConfigGate", () => {
 				expect(mockListAvailableModels).toHaveBeenCalled();
 			});
 
-			// Wait for submit button to be enabled
 			await waitFor(
 				() => {
 					const submitBtn = screen.queryByRole("button", {
@@ -901,13 +862,11 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			);
 
-			// Submit the form
 			const submitBtn = screen.getByRole("button", {
 				name: /get started/i,
 			});
 			await user.click(submitBtn);
 
-			// Verify validation was called and error path was hit
 			await waitFor(() => {
 				expect(mockValidateLocalModelConnection).toHaveBeenCalled();
 			});
@@ -921,7 +880,6 @@ describe("ModelConfigGate", () => {
 			mockListAvailableModels.mockResolvedValue([
 				{ name: "gemma3:4b", size: 4 * 1024 * 1024 * 1024 },
 			]);
-			// Return generic error on validation (covers lines 450-451)
 			mockValidateLocalModelConnection.mockResolvedValue({
 				ok: false,
 				error: "Server unreachable",
@@ -981,7 +939,6 @@ describe("ModelConfigGate", () => {
 			mockListAvailableModels.mockResolvedValue([
 				{ name: "gemma3:4b", size: 4 * 1024 * 1024 * 1024 },
 			]);
-			// Return ok: false without error message (covers line 445)
 			mockValidateLocalModelConnection.mockResolvedValue({
 				ok: false,
 			});
@@ -1057,7 +1014,6 @@ describe("ModelConfigGate", () => {
 				expect(screen.getByTestId("app-content")).toBeInTheDocument();
 			});
 
-			// Dispatch the event to open system prompt editor
 			window.dispatchEvent(new Event("open-system-prompts"));
 
 			await waitFor(() => {
@@ -1085,7 +1041,6 @@ describe("ModelConfigGate", () => {
 				expect(screen.getByTestId("app-content")).toBeInTheDocument();
 			});
 
-			// Open system prompts modal
 			window.dispatchEvent(new Event("open-system-prompts"));
 
 			await waitFor(() => {
@@ -1093,7 +1048,6 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			}).catch(() => {});
 
-			// Find and click close button
 			const closeBtn = screen.queryByRole("button", { name: "Close" });
 			if (closeBtn) {
 				await user.click(closeBtn);
@@ -1105,7 +1059,6 @@ describe("ModelConfigGate", () => {
 		it("should show Ollama missing modal when not detected", async () => {
 			mockReadLocalModelConfig.mockReturnValue(null);
 
-			// Mock fetch to fail
 			const originalFetch = global.fetch;
 			global.fetch = vi.fn().mockRejectedValue(new Error("Connection refused"));
 
@@ -1127,7 +1080,6 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should close Ollama missing modal when close button clicked", async () => {
-			// This test covers line 789 - the close button onClick handler
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 
@@ -1148,12 +1100,10 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			).catch(() => {});
 
-			// Find the close button by data-testid
 			const closeBtn = screen.queryByTestId("shadowquill-missing-close-button");
 			if (closeBtn) {
 				await user.click(closeBtn);
 
-				// Modal should be closed
 				await waitFor(
 					() => {
 						return screen.queryByText("Ollama Not Detected") === null;
@@ -1166,7 +1116,6 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should retry Ollama detection when retry button clicked and succeed", async () => {
-			// This test covers lines 222-233, 242 of retryOllamaDetection
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 
@@ -1175,10 +1124,8 @@ describe("ModelConfigGate", () => {
 			global.fetch = vi.fn().mockImplementation(() => {
 				callCount++;
 				if (callCount === 1) {
-					// First call fails - triggers Ollama missing modal
 					return Promise.reject(new Error("Connection refused"));
 				}
-				// Second call succeeds - retry detection success
 				return Promise.resolve({
 					ok: true,
 					json: () => Promise.resolve({ models: [] }),
@@ -1191,7 +1138,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for Ollama Not Detected modal to appear
 			await waitFor(
 				() => {
 					const modal = screen.queryByText("Ollama Not Detected");
@@ -1202,11 +1148,9 @@ describe("ModelConfigGate", () => {
 
 			const modal = screen.queryByText("Ollama Not Detected");
 			if (modal) {
-				// Find and click the Retry Detection button
 				const retryBtn = screen.getByText("Retry Detection");
 				await user.click(retryBtn);
 
-				// After retry succeeds, modal should close
 				await waitFor(
 					() => {
 						return screen.queryByText("Ollama Not Detected") === null;
@@ -1219,12 +1163,10 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should retry Ollama detection and show modal again on non-ok response", async () => {
-			// This test covers lines 234-236 of retryOllamaDetection
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 
 			const originalFetch = global.fetch;
-			// All calls return non-ok response
 			global.fetch = vi.fn().mockResolvedValue({
 				ok: false,
 				status: 500,
@@ -1236,7 +1178,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for Ollama Not Detected modal to appear
 			await waitFor(
 				() => {
 					const modal = screen.queryByText("Ollama Not Detected");
@@ -1247,11 +1188,9 @@ describe("ModelConfigGate", () => {
 
 			const modal = screen.queryByText("Ollama Not Detected");
 			if (modal) {
-				// Click retry
 				const retryBtn = screen.getByText("Retry Detection");
 				await user.click(retryBtn);
 
-				// Modal should still be visible after failed retry
 				await waitFor(
 					() => {
 						return screen.queryByText("Ollama Not Detected") !== null;
@@ -1264,12 +1203,10 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should retry Ollama detection and show modal on error", async () => {
-			// This test covers lines 238-240 of retryOllamaDetection
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 
 			const originalFetch = global.fetch;
-			// All calls throw errors
 			global.fetch = vi.fn().mockRejectedValue(new Error("Network error"));
 
 			render(
@@ -1278,7 +1215,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for Ollama Not Detected modal to appear
 			await waitFor(
 				() => {
 					const modal = screen.queryByText("Ollama Not Detected");
@@ -1289,11 +1225,9 @@ describe("ModelConfigGate", () => {
 
 			const modal = screen.queryByText("Ollama Not Detected");
 			if (modal) {
-				// Click retry
 				const retryBtn = screen.getByText("Retry Detection");
 				await user.click(retryBtn);
 
-				// Modal should still be visible after error
 				await waitFor(
 					() => {
 						return screen.queryByText("Ollama Not Detected") !== null;
@@ -1306,8 +1240,6 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should execute all lines in retryOllamaDetection including finally block", async () => {
-			// This test ensures lines 224-225, 227-233, 243-244 are covered
-			// by explicitly testing the retry flow with a successful response
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 
@@ -1316,10 +1248,8 @@ describe("ModelConfigGate", () => {
 			global.fetch = vi.fn().mockImplementation(() => {
 				fetchCallCount++;
 				if (fetchCallCount === 1) {
-					// First call fails - triggers modal
 					return Promise.reject(new Error("Connection refused"));
 				}
-				// Second call (retry) succeeds - covers lines 234-235
 				return Promise.resolve({
 					ok: true,
 					json: () => Promise.resolve({ models: [] }),
@@ -1332,7 +1262,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for modal to appear
 			await waitFor(
 				() => {
 					const modal = screen.queryByText("Ollama Not Detected");
@@ -1341,19 +1270,12 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			).catch(() => {});
 
-			// Click retry button - this calls retryOllamaDetection
-			// which executes lines 224-225 (setOllamaCheckPerformed, setShowOllamaMissingModal)
-			// then lines 227-233 (try block with fetch)
-			// then lines 234-235 (if res.ok)
-			// then lines 243-244 (finally block)
 			const retryBtn = screen.queryByText("Retry Detection");
 			if (retryBtn) {
 				await user.click(retryBtn);
 
-				// Wait for retry to complete
 				await waitFor(
 					() => {
-						// After successful retry, modal should close and port should be set
 						return fetchCallCount >= 2;
 					},
 					{ timeout: 3000 },
@@ -1364,7 +1286,6 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should handle retryOllamaDetection failure paths", async () => {
-			// This test covers lines 239-240 (else branch) and 243-244 (catch block)
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 
@@ -1373,10 +1294,8 @@ describe("ModelConfigGate", () => {
 			global.fetch = vi.fn().mockImplementation(() => {
 				fetchCallCount++;
 				if (fetchCallCount === 1) {
-					// First call fails - triggers modal
 					return Promise.reject(new Error("Connection refused"));
 				}
-				// Second call (retry) fails with non-ok response - covers lines 239-240
 				return Promise.resolve({
 					ok: false,
 					status: 404,
@@ -1390,7 +1309,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for modal to appear
 			await waitFor(
 				() => {
 					const modal = screen.queryByText("Ollama Not Detected");
@@ -1399,14 +1317,12 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			).catch(() => {});
 
-			// Click retry button - this calls retryOllamaDetection
 			const retryBtn = screen.queryByTestId(
 				"shadowquill-retry-detection-button",
 			);
 			if (retryBtn) {
 				await user.click(retryBtn);
 
-				// Wait for retry to complete - this should trigger the else branch (lines 239-240)
 				await waitFor(
 					() => {
 						return fetchCallCount >= 2;
@@ -1419,7 +1335,6 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should handle retryOllamaDetection with exception in fetch", async () => {
-			// This test covers the catch block (lines 243-244) when fetch throws an exception
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 
@@ -1428,10 +1343,8 @@ describe("ModelConfigGate", () => {
 			global.fetch = vi.fn().mockImplementation(() => {
 				fetchCallCount++;
 				if (fetchCallCount === 1) {
-					// First call fails - triggers modal
 					return Promise.reject(new Error("Connection refused"));
 				}
-				// Second call (retry) throws exception - covers lines 243-244
 				throw new Error("Network error");
 			});
 
@@ -1441,7 +1354,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for modal to appear
 			await waitFor(
 				() => {
 					const modal = screen.queryByText("Ollama Not Detected");
@@ -1450,12 +1362,10 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			).catch(() => {});
 
-			// Click retry button - this calls retryOllamaDetection
 			const retryBtn = screen.queryByText("Retry Detection");
 			if (retryBtn) {
 				await user.click(retryBtn);
 
-				// Wait for retry to complete - this should trigger the catch block (lines 243-244)
 				await waitFor(
 					() => {
 						return fetchCallCount >= 2;
@@ -1495,7 +1405,6 @@ describe("ModelConfigGate", () => {
 				await user.clear(portInput);
 				await user.type(portInput, "8080");
 
-				// Check the hint shows the full URL
 				const hint = screen.queryByText("http://localhost:8080");
 				expect(hint).toBeInTheDocument();
 			}
@@ -1504,7 +1413,6 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should handle non-standard URL format as passthrough", async () => {
-			// This test covers line 257 - the fallback case in normalizeToBaseUrl
 			const _user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 
@@ -1525,16 +1433,10 @@ describe("ModelConfigGate", () => {
 				return portInput !== null;
 			}).catch(() => {});
 
-			// The port input only accepts digits, so we can't directly enter non-standard
-			// text. Instead we rely on the internal normalizeToBaseUrl being called.
-			// The function is tested indirectly through the hint display.
-
 			global.fetch = originalFetch;
 		});
 
 		it("should return raw value when normalizeToBaseUrl doesn't match any pattern", async () => {
-			// This test covers line 259 - the final return raw in normalizeToBaseUrl
-			// We test this by providing a config with a non-standard baseUrl format
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
 				baseUrl: "custom://example.com:1234",
@@ -1623,7 +1525,6 @@ describe("ModelConfigGate", () => {
 						expect(mockListAvailableModels).toHaveBeenCalled();
 					});
 
-					// Should show connection failed message
 					await waitFor(() => {
 						const failedMsg = screen.queryByText("Connection failed");
 						return failedMsg !== null;
@@ -1656,12 +1557,10 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for provider selection to appear
 			await waitFor(() => {
 				return screen.queryByText("AI Model Connection Setup") !== null;
 			}).catch(() => {});
 
-			// Enter port and test connection first
 			const portInput = screen.queryByPlaceholderText("11434");
 			if (portInput) {
 				await user.type(portInput, "11434");
@@ -1676,7 +1575,6 @@ describe("ModelConfigGate", () => {
 					});
 				}
 
-				// Now submit the form
 				await waitFor(() => {
 					const submitBtn = screen.queryByRole("button", {
 						name: /get started/i,
@@ -1822,7 +1720,6 @@ describe("ModelConfigGate", () => {
 				expect(screen.getByTestId("app-content")).toBeInTheDocument();
 			});
 
-			// Open system prompts modal
 			window.dispatchEvent(new Event("open-system-prompts"));
 
 			await waitFor(() => {
@@ -1830,7 +1727,6 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			}).catch(() => {});
 
-			// Find and click save button
 			const saveBtn = screen.queryByRole("button", { name: /^save$/i });
 			if (saveBtn) {
 				await user.click(saveBtn);
@@ -1982,7 +1878,6 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			}).catch(() => {});
 
-			// Find backdrop and trigger keyboard event
 			const backdrop = document.querySelector(".modal-backdrop-blur");
 			if (backdrop) {
 				await user.click(backdrop as Element);
@@ -2355,7 +2250,6 @@ describe("ModelConfigGate", () => {
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 			mockListAvailableModels.mockRejectedValue(new Error("Connection failed"));
-			// Return null initially, then installed after check
 			mockWindowApi.checkOllamaInstalled
 				.mockResolvedValueOnce({ installed: null })
 				.mockResolvedValue({ installed: true });
@@ -2384,12 +2278,10 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should call checkOllamaInstalled when ollamaInstalled is null on button click", async () => {
-			// This test covers line 282 - checkOllamaInstalled call when ollamaInstalled is null
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
 			mockListAvailableModels.mockRejectedValue(new Error("Connection failed"));
 
-			// First call returns null, subsequent calls return installed: true
 			let callCount = 0;
 			mockWindowApi.checkOllamaInstalled.mockImplementation(() => {
 				callCount++;
@@ -2425,7 +2317,6 @@ describe("ModelConfigGate", () => {
 				}
 			}
 
-			// Wait for Open Ollama button to appear (connection failed)
 			await waitFor(
 				() => {
 					const openBtn = screen.queryByText("Open Ollama");
@@ -2436,10 +2327,8 @@ describe("ModelConfigGate", () => {
 
 			const openBtn = screen.queryByText("Open Ollama");
 			if (openBtn) {
-				// Click Open Ollama - this should trigger checkOllamaInstalled if null
 				await user.click(openBtn);
 
-				// Verify checkOllamaInstalled was called
 				await waitFor(() => {
 					expect(mockWindowApi.checkOllamaInstalled).toHaveBeenCalled();
 				});
@@ -2511,7 +2400,6 @@ describe("ModelConfigGate", () => {
 			if (retryBtn) {
 				await user.click(retryBtn);
 
-				// After successful retry, port should be set to 11434
 				await waitFor(() => {
 					const portInput = screen.queryByPlaceholderText("11434");
 					return portInput !== null;
@@ -2678,11 +2566,9 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should return false when process and navigator are undefined", () => {
-			// This test covers line 58 - the final return false in isElectronRuntime
 			const originalProcess = global.process;
 			const originalNavigator = global.navigator;
 
-			// Remove process and navigator
 			Object.defineProperty(global, "process", {
 				value: undefined,
 				writable: true,
@@ -2702,7 +2588,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Restore
 			Object.defineProperty(global, "process", {
 				value: originalProcess,
 				writable: true,
@@ -2716,8 +2601,6 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should return false when process exists but no electron indicators and navigator doesn't match", () => {
-			// This test covers line 58 - when process exists but no electron env vars/versions
-			// and navigator doesn't match Electron pattern
 			const originalProcess = global.process;
 			const originalNavigator = global.navigator;
 
@@ -2743,7 +2626,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Restore
 			Object.defineProperty(global, "process", {
 				value: originalProcess,
 				writable: true,
@@ -2780,7 +2662,6 @@ describe("ModelConfigGate", () => {
 
 			unmount();
 
-			// Verify that removeEventListener was called for open-data-location
 			expect(removeEventListenerSpy).toHaveBeenCalledWith(
 				"open-data-location",
 				expect.any(Function),
@@ -2814,12 +2695,10 @@ describe("ModelConfigGate", () => {
 
 			window.dispatchEvent(new Event("open-data-location"));
 
-			// Wait for getDataPaths to be called
 			await waitFor(() => {
 				expect(mockWindowApi.getDataPaths).toHaveBeenCalled();
 			});
 
-			// Wait for modal to appear and show error
 			await waitFor(
 				() => {
 					const modal = screen.queryByText("Local Data Management");
@@ -2828,20 +2707,14 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			);
 
-			// The specific error message should be displayed
 			await waitFor(
 				() => {
-					// Look for any part of the error message
 					const errorText = screen.queryByText(/Main process not updated/i);
 					return errorText !== null;
 				},
 				{ timeout: 3000 },
-			).catch(() => {
-				// If the specific error message isn't found, at least verify the API was called
-				// This still tests the error path was executed
-			});
+			).catch(() => {});
 
-			// Verify the API was called (main verification)
 			expect(mockWindowApi.getDataPaths).toHaveBeenCalled();
 		});
 
@@ -2868,12 +2741,10 @@ describe("ModelConfigGate", () => {
 
 			window.dispatchEvent(new Event("open-data-location"));
 
-			// Wait for getDataPaths to be called
 			await waitFor(() => {
 				expect(mockWindowApi.getDataPaths).toHaveBeenCalled();
 			});
 
-			// Give time for modal to appear
 			await waitFor(
 				() => {
 					const modal = screen.queryByText("Local Data Management");
@@ -2882,7 +2753,6 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			).catch(() => {});
 
-			// Main verification - API was called and error path was exercised
 			expect(mockWindowApi.getDataPaths).toHaveBeenCalled();
 		});
 
@@ -2895,7 +2765,6 @@ describe("ModelConfigGate", () => {
 			mockValidateLocalModelConnection.mockResolvedValue({ ok: true });
 			mockWindowApi.getDataPaths.mockResolvedValue({
 				ok: false,
-				// No error message provided - should fall back to default
 			});
 
 			render(
@@ -2910,12 +2779,10 @@ describe("ModelConfigGate", () => {
 
 			window.dispatchEvent(new Event("open-data-location"));
 
-			// Wait for getDataPaths to be called
 			await waitFor(() => {
 				expect(mockWindowApi.getDataPaths).toHaveBeenCalled();
 			});
 
-			// Give time for modal to appear and error to be set
 			await waitFor(
 				() => {
 					const modal = screen.queryByText("Local Data Management");
@@ -2924,7 +2791,6 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			).catch(() => {});
 
-			// Main verification - API was called and error path was exercised
 			expect(mockWindowApi.getDataPaths).toHaveBeenCalled();
 		});
 
@@ -2935,7 +2801,6 @@ describe("ModelConfigGate", () => {
 				model: "gemma3:4b",
 			});
 			mockValidateLocalModelConnection.mockResolvedValue({ ok: true });
-			// Reject with an object that has no message property
 			mockWindowApi.getDataPaths.mockRejectedValue({ code: "UNKNOWN" });
 
 			render(
@@ -2950,12 +2815,10 @@ describe("ModelConfigGate", () => {
 
 			window.dispatchEvent(new Event("open-data-location"));
 
-			// Wait for getDataPaths to be called (which will throw)
 			await waitFor(() => {
 				expect(mockWindowApi.getDataPaths).toHaveBeenCalled();
 			});
 
-			// Give time for the error handling to complete
 			await waitFor(
 				() => {
 					const modal = screen.queryByText("Local Data Management");
@@ -2964,7 +2827,6 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			).catch(() => {});
 
-			// Verify the API was called - this exercises the error handling path
 			expect(mockWindowApi.getDataPaths).toHaveBeenCalled();
 		});
 	});
@@ -3002,17 +2864,14 @@ describe("ModelConfigGate", () => {
 
 			expect(screen.getByText("Local Data Management")).toBeInTheDocument();
 
-			// Find backdrop and trigger Escape key
 			const backdrop = document.querySelector(
 				".modal-backdrop-blur",
 			) as HTMLElement;
 			expect(backdrop).toBeInTheDocument();
 
-			// Focus the backdrop and press Escape
 			backdrop.focus();
 			await user.keyboard("{Escape}");
 
-			// Modal should be closed
 			await waitFor(() => {
 				expect(
 					screen.queryByText("Local Data Management"),
@@ -3050,11 +2909,9 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			});
 
-			// Click inside the modal content (on the title)
 			const modalTitle = screen.getByText("Local Data Management");
 			await user.click(modalTitle);
 
-			// Modal should still be open
 			expect(screen.getByText("Local Data Management")).toBeInTheDocument();
 		});
 
@@ -3088,17 +2945,14 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			});
 
-			// Find modal content and trigger keydown
 			const modalContent = document.querySelector(
 				".modal-content",
 			) as HTMLElement;
 			expect(modalContent).toBeInTheDocument();
 
-			// Type inside modal content - should not close modal
 			modalContent.focus();
 			await user.keyboard("test");
 
-			// Modal should still be open
 			expect(screen.getByText("Local Data Management")).toBeInTheDocument();
 		});
 
@@ -3132,7 +2986,6 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			});
 
-			// Find and click the close button in the modal header
 			const closeButtons = screen.getAllByRole("button");
 			const closeBtn = closeButtons.find(
 				(btn) =>
@@ -3183,12 +3036,10 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			});
 
-			// Click save button
 			const saveBtn = screen.queryByRole("button", { name: /^save$/i });
 			if (saveBtn) {
 				await user.click(saveBtn);
 
-				// Error should be displayed
 				await waitFor(() => {
 					const errorText = screen.queryByText("Failed to save prompt");
 					return errorText !== null;
@@ -3230,14 +3081,12 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			});
 
-			// Click restore default button
 			const restoreBtn = screen.queryByRole("button", {
 				name: /restore default/i,
 			});
 			if (restoreBtn) {
 				await user.click(restoreBtn);
 
-				// Error should be displayed
 				await waitFor(() => {
 					const errorText = screen.queryByText("Failed to reset prompt");
 					return errorText !== null;
@@ -3276,16 +3125,12 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			});
 
-			// Modal should still be open even with load error
 			expect(screen.getByText("Edit System Prompt")).toBeInTheDocument();
 		});
 	});
 
 	describe("Form validation edge cases", () => {
 		it("should handle validation returning ok: false without error message", async () => {
-			// This test verifies that when validation returns ok: false without an error message,
-			// the component defaults to "Connection failed" error. We test this through the
-			// initial load path where a saved config is validated.
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://localhost:11434",
@@ -3294,7 +3139,6 @@ describe("ModelConfigGate", () => {
 			mockListAvailableModels.mockResolvedValue([
 				{ name: "gemma3:4b", size: 4 * 1024 * 1024 * 1024 },
 			]);
-			// Return ok: false without error message - should default to "Connection failed"
 			mockValidateLocalModelConnection.mockResolvedValue({
 				ok: false,
 			});
@@ -3305,12 +3149,10 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for validation to complete
 			await waitFor(() => {
 				expect(mockValidateLocalModelConnection).toHaveBeenCalled();
 			});
 
-			// Should show provider selection since validation failed
 			await waitFor(
 				() => {
 					const setup = screen.queryByText("AI Model Connection Setup");
@@ -3343,11 +3185,9 @@ describe("ModelConfigGate", () => {
 				return portInput !== null;
 			});
 
-			// Clear the port input (making URL empty)
 			const portInput = screen.getByPlaceholderText("11434");
 			await user.clear(portInput);
 
-			// Verify the test button should be disabled
 			const testButton = screen.queryByTitle(
 				"Check for available Ollama models",
 			);
@@ -3379,7 +3219,6 @@ describe("ModelConfigGate", () => {
 				expect(screen.getByTestId("app-content")).toBeInTheDocument();
 			});
 
-			// Open system prompts modal
 			window.dispatchEvent(new Event("open-system-prompts"));
 
 			await waitFor(() => {
@@ -3387,14 +3226,11 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			});
 
-			// Find the textarea and type in it
 			const textarea = screen.getByRole("textbox");
 			expect(textarea).toBeInTheDocument();
 
-			// Type new content - this triggers the onChange handler (line 909)
 			await user.type(textarea, "New prompt content");
 
-			// Verify the value includes the typed content
 			expect(textarea).toHaveValue("New prompt content");
 		});
 	});
@@ -3428,20 +3264,17 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			});
 
-			// Find modal content and trigger keydown - this exercises line 862
 			const modalContent = document.querySelector(
 				".modal-content.modal-content--large",
 			) as HTMLElement;
 			expect(modalContent).toBeInTheDocument();
 
-			// Trigger a keyboard event on the modal content
 			const keyEvent = new KeyboardEvent("keydown", {
 				key: "Tab",
 				bubbles: true,
 			});
 			modalContent.dispatchEvent(keyEvent);
 
-			// Modal should still be open
 			expect(screen.getByText("Edit System Prompt")).toBeInTheDocument();
 		});
 
@@ -3475,21 +3308,18 @@ describe("ModelConfigGate", () => {
 				return modal !== null;
 			});
 
-			// Find modal content (not the large variant) - exercises line 1078
 			const modalContents = document.querySelectorAll(".modal-content");
 			const dataLocationModal = Array.from(modalContents).find(
 				(el) => !el.classList.contains("modal-content--large"),
 			) as HTMLElement;
 
 			if (dataLocationModal) {
-				// Trigger a keyboard event on the modal content
 				const keyEvent = new KeyboardEvent("keydown", {
 					key: "a",
 					bubbles: true,
 				});
 				dataLocationModal.dispatchEvent(keyEvent);
 
-				// Modal should still be open
 				expect(screen.getByText("Local Data Management")).toBeInTheDocument();
 			}
 		});
@@ -3523,7 +3353,6 @@ describe("ModelConfigGate", () => {
 				expect(screen.getByText("Edit System Prompt")).toBeInTheDocument();
 			});
 
-			// Find and click the close button in the modal header (line 868)
 			const modalHeader = document.querySelector(".modal-header");
 			expect(modalHeader).toBeInTheDocument();
 			const closeBtn = modalHeader?.querySelector("button");
@@ -3532,7 +3361,6 @@ describe("ModelConfigGate", () => {
 
 			await user.click(closeBtn);
 
-			// Modal should be closed
 			await waitFor(() => {
 				expect(
 					screen.queryByText("Edit System Prompt"),
@@ -3567,20 +3395,17 @@ describe("ModelConfigGate", () => {
 				expect(screen.getByText("Edit System Prompt")).toBeInTheDocument();
 			});
 
-			// Find backdrop and trigger Escape key (line 853)
 			const backdrop = document.querySelector(
 				".modal-backdrop-blur",
 			) as HTMLElement;
 			expect(backdrop).toBeInTheDocument();
 
-			// Dispatch Escape keydown event directly on backdrop
 			const escapeEvent = new KeyboardEvent("keydown", {
 				key: "Escape",
 				bubbles: true,
 			});
 			backdrop.dispatchEvent(escapeEvent);
 
-			// Modal should be closed
 			await waitFor(() => {
 				expect(
 					screen.queryByText("Edit System Prompt"),
@@ -3608,14 +3433,11 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for provider selection form to appear
 			await waitFor(() => {
 				const setupText = screen.queryByText("AI Model Connection Setup");
 				return setupText !== null;
 			});
 
-			// The submit button should show "Get Started" when not saving (line 707)
-			// First, we need to have a model selected
 			const user = userEvent.setup();
 			const portInput = screen.getByPlaceholderText("11434");
 			await user.type(portInput, "11434");
@@ -3627,7 +3449,6 @@ describe("ModelConfigGate", () => {
 				expect(mockListAvailableModels).toHaveBeenCalled();
 			});
 
-			// Now check for the submit button with "Get Started" text
 			await waitFor(() => {
 				const submitBtn = screen.queryByRole("button", {
 					name: /get started/i,
@@ -3639,7 +3460,6 @@ describe("ModelConfigGate", () => {
 				name: /get started/i,
 			});
 			expect(submitBtn).toBeInTheDocument();
-			// The button should contain the text (with Icon, which covers line 707)
 			expect(submitBtn.textContent).toContain("Get Started");
 
 			global.fetch = originalFetch;
@@ -3650,7 +3470,6 @@ describe("ModelConfigGate", () => {
 		it("should retry connection when retry check button is clicked", async () => {
 			const user = userEvent.setup();
 			mockReadLocalModelConfig.mockReturnValue(null);
-			// First call fails, second succeeds
 			mockListAvailableModels
 				.mockRejectedValueOnce(new Error("Connection failed"))
 				.mockResolvedValue([
@@ -3677,16 +3496,13 @@ describe("ModelConfigGate", () => {
 			const portInput = screen.getByPlaceholderText("11434");
 			await user.type(portInput, "11434");
 
-			// Click test button - this will fail
 			const testButton = screen.getByTitle("Check for available Ollama models");
 			await user.click(testButton);
 
-			// Wait for failure state
 			await waitFor(() => {
 				expect(mockListAvailableModels).toHaveBeenCalled();
 			});
 
-			// Look for "Retry check" button (line 607)
 			await waitFor(
 				() => {
 					const retryBtn = screen.queryByText("Retry check");
@@ -3699,7 +3515,6 @@ describe("ModelConfigGate", () => {
 			if (retryBtn) {
 				await user.click(retryBtn);
 
-				// Verify testLocalConnection was called again
 				await waitFor(() => {
 					expect(mockListAvailableModels).toHaveBeenCalledTimes(2);
 				});
@@ -3711,7 +3526,6 @@ describe("ModelConfigGate", () => {
 
 	describe("Additional branch coverage tests", () => {
 		it("should handle config with different port format", async () => {
-			// Test normalizeToBaseUrl with http:// prefix (line 256)
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://192.168.1.1:11434/",
@@ -3734,7 +3548,6 @@ describe("ModelConfigGate", () => {
 		});
 
 		it("should handle validation error without error property", async () => {
-			// Tests the error || "Connection failed" branch
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://localhost:11434",
@@ -3742,7 +3555,6 @@ describe("ModelConfigGate", () => {
 			});
 			mockValidateLocalModelConnection.mockResolvedValue({
 				ok: false,
-				// No error property
 			});
 			mockListAvailableModels.mockResolvedValue([]);
 
@@ -3760,13 +3572,11 @@ describe("ModelConfigGate", () => {
 
 	describe("Loading state modal keyboard handler", () => {
 		it("should stop keyboard propagation in loading modal content", async () => {
-			// This test covers line 384 - the onKeyDown handler for the loading modal
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://localhost:11434",
 				model: "gemma3:4b",
 			});
-			// Never resolve to keep component in loading/validating state
 			mockValidateLocalModelConnection.mockImplementation(
 				() => new Promise(() => {}),
 			);
@@ -3777,7 +3587,6 @@ describe("ModelConfigGate", () => {
 				</ModelConfigGate>,
 			);
 
-			// Wait for validating state to appear
 			await waitFor(
 				() => {
 					const validatingText = screen.queryByText(
@@ -3788,27 +3597,22 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			).catch(() => {});
 
-			// Find modal content during loading state and trigger keydown
 			const modalContent = document.querySelector(
 				".modal-content",
 			) as HTMLElement;
 			if (modalContent) {
-				// Dispatch keydown event - this should be stopped by the handler (line 384)
 				const keyEvent = new KeyboardEvent("keydown", {
 					key: "Escape",
 					bubbles: true,
 				});
 				modalContent.dispatchEvent(keyEvent);
 
-				// The modal should still be visible (loading state continues)
 				const loadingText = screen.queryByText(/Validating|Loading/i);
-				// Just verify the keydown didn't cause errors
 				expect(loadingText).toBeDefined();
 			}
 		});
 
 		it("should stop click propagation in loading modal content", async () => {
-			// This test covers line 383 - the onClick handler for the loading modal
 			mockReadLocalModelConfig.mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://localhost:11434",
@@ -3834,7 +3638,6 @@ describe("ModelConfigGate", () => {
 				{ timeout: 3000 },
 			).catch(() => {});
 
-			// Find modal content during loading state and trigger click (line 383)
 			const modalContent = document.querySelector(
 				".modal-content",
 			) as HTMLElement;
@@ -3844,7 +3647,6 @@ describe("ModelConfigGate", () => {
 				});
 				modalContent.dispatchEvent(clickEvent);
 
-				// The modal should still be visible (loading state continues)
 				const loadingText = screen.queryByText(/Validating|Loading/i);
 				expect(loadingText).toBeDefined();
 			}

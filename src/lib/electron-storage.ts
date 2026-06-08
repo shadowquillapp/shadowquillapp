@@ -1,13 +1,3 @@
-interface ShadowQuillStorage {
-	storage?: {
-		getItem: (key: string) => Promise<string | null>;
-		setItem: (key: string, value: string) => Promise<boolean>;
-		removeItem: (key: string) => Promise<boolean>;
-		clear: () => Promise<boolean>;
-		getAll: () => Promise<Record<string, string>>;
-	};
-}
-
 export interface ElectronDataPaths {
 	userData?: string;
 	localStorageDir?: string;
@@ -32,7 +22,9 @@ export async function getElectronDataPaths(): Promise<ElectronDataPathsResult> {
 		return { ok: false, error: "Not available outside the desktop app" };
 	}
 	try {
-		const res = await (api.getDataPaths() as Promise<ElectronDataPathsResponse | undefined>);
+		const res = await (api.getDataPaths() as Promise<
+			ElectronDataPathsResponse | undefined
+		>);
 		if (res?.ok) {
 			return {
 				ok: true,
@@ -62,14 +54,8 @@ export async function getElectronDataPaths(): Promise<ElectronDataPathsResult> {
 	}
 }
 
-type WindowWithShadowQuill = Window & {
-	shadowquill?: ShadowQuillStorage & Record<string, unknown>;
-};
-
 function isElectronStorageAvailable(): boolean {
-	if (typeof window === "undefined") return false;
-	const win = window as WindowWithShadowQuill;
-	return !!win.shadowquill?.storage;
+	return typeof window !== "undefined" && !!window.shadowquill?.storage;
 }
 
 class ElectronStorage {
@@ -85,8 +71,7 @@ class ElectronStorage {
 		this.initPromise = (async () => {
 			if (isElectronStorageAvailable()) {
 				try {
-					const win = window as WindowWithShadowQuill;
-					const allData = await win.shadowquill?.storage?.getAll();
+					const allData = await window.shadowquill?.storage?.getAll();
 					if (allData) {
 						this.cache = new Map(Object.entries(allData));
 					}
@@ -126,8 +111,7 @@ class ElectronStorage {
 
 		if (isElectronStorageAvailable()) {
 			try {
-				const win = window as WindowWithShadowQuill;
-				const value = await win.shadowquill?.storage?.getItem(key);
+				const value = await window.shadowquill?.storage?.getItem(key);
 				if (value !== null && value !== undefined) {
 					this.cache.set(key, value);
 				} else {
@@ -154,8 +138,7 @@ class ElectronStorage {
 		await this.enqueueWrite(async () => {
 			if (isElectronStorageAvailable()) {
 				try {
-					const win = window as WindowWithShadowQuill;
-					await win.shadowquill?.storage?.setItem(key, value);
+					await window.shadowquill?.storage?.setItem(key, value);
 					return;
 				} catch (e) {
 					console.error("[ElectronStorage] setItem failed:", e);
@@ -175,8 +158,7 @@ class ElectronStorage {
 		await this.enqueueWrite(async () => {
 			if (isElectronStorageAvailable()) {
 				try {
-					const win = window as WindowWithShadowQuill;
-					await win.shadowquill?.storage?.removeItem(key);
+					await window.shadowquill?.storage?.removeItem(key);
 					return;
 				} catch (e) {
 					console.error("[ElectronStorage] removeItem failed:", e);
@@ -196,8 +178,7 @@ class ElectronStorage {
 		await this.enqueueWrite(async () => {
 			if (isElectronStorageAvailable()) {
 				try {
-					const win = window as WindowWithShadowQuill;
-					await win.shadowquill?.storage?.clear();
+					await window.shadowquill?.storage?.clear();
 					return;
 				} catch (e) {
 					console.error("[ElectronStorage] clear failed:", e);
@@ -233,9 +214,7 @@ export const storage = {
 				electronStorage.setCached(key, localValue);
 				return localValue;
 			}
-		} catch {
-			// ignore
-		}
+		} catch {}
 
 		void electronStorage.getItem(key);
 		return null;
@@ -255,9 +234,7 @@ export const storage = {
 
 		try {
 			localStorage.setItem(key, value);
-		} catch {
-			// ignore
-		}
+		} catch {}
 
 		void electronStorage.setItem(key, value);
 	},
@@ -276,9 +253,7 @@ export const storage = {
 
 		try {
 			localStorage.removeItem(key);
-		} catch {
-			// ignore
-		}
+		} catch {}
 
 		void electronStorage.removeItem(key);
 	},
@@ -297,30 +272,19 @@ export const storage = {
 
 		try {
 			localStorage.clear();
-		} catch {
-			// ignore
-		}
+		} catch {}
 
 		void electronStorage.clear();
 	},
 };
 
 export const storageAsync = {
-	getItem: (key: string): Promise<string | null> => {
-		return electronStorage.getItem(key);
-	},
-
-	setItem: (key: string, value: string): Promise<void> => {
-		return electronStorage.setItem(key, value);
-	},
-
-	removeItem: (key: string): Promise<void> => {
-		return electronStorage.removeItem(key);
-	},
-
-	clear: (): Promise<void> => {
-		return electronStorage.clear();
-	},
+	getItem: (key: string): Promise<string | null> =>
+		electronStorage.getItem(key),
+	setItem: (key: string, value: string): Promise<void> =>
+		electronStorage.setItem(key, value),
+	removeItem: (key: string): Promise<void> => electronStorage.removeItem(key),
+	clear: (): Promise<void> => electronStorage.clear(),
 };
 
 if (typeof window !== "undefined") {

@@ -1,7 +1,7 @@
 "use client";
 
 import type React from "react";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon, type IconName } from "@/components/Icon";
 
@@ -48,36 +48,30 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 	const selectedOption = options.find((opt) => opt.value === value);
 	const displayText = selectedOption?.label || placeholder;
 
-	const calculatePosition = () => {
+	const calculatePosition = useCallback(() => {
 		if (!buttonRef.current) return null;
 
 		const rect = buttonRef.current.getBoundingClientRect();
 		const viewportHeight = window.innerHeight;
 		const viewportWidth = window.innerWidth;
 
-		// Estimate dropdown height (40px per option + padding)
 		const estimatedDropdownHeight = options.length * 40 + 16;
 
-		// Check space below
 		const spaceBelow = viewportHeight - rect.bottom - 8;
 		const spaceAbove = rect.top - 8;
 
-		// Decide whether to open upward or downward
 		const openUpward =
 			spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow;
 
-		// Calculate available height
 		const maxHeight = Math.min(
 			estimatedDropdownHeight,
 			openUpward ? spaceAbove : spaceBelow,
-			300, // Maximum dropdown height
+			300,
 		);
 
-		// Calculate horizontal position
 		let left = rect.left;
 		const dropdownWidth = rect.width;
 
-		// Ensure dropdown doesn't overflow viewport horizontally
 		if (left + dropdownWidth > viewportWidth) {
 			left = viewportWidth - dropdownWidth - 8;
 		}
@@ -92,7 +86,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 			maxHeight,
 			openUpward,
 		};
-	};
+	}, [options.length]);
 
 	const toggleDropdown = () => {
 		if (disabled) return;
@@ -109,22 +103,18 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 		setIsOpen(false);
 	};
 
-	// Close dropdown when clicking outside
 	useEffect(() => {
 		const handleClickOutside = (event: MouseEvent) => {
 			const target = event.target as Element;
 
-			// Don't close if clicking on the trigger button
 			if (buttonRef.current?.contains(target)) {
 				return;
 			}
 
-			// Don't close if clicking on the dropdown itself
 			if (target.closest(".menu-panel")) {
 				return;
 			}
 
-			// Close the dropdown
 			setIsOpen(false);
 		};
 
@@ -135,7 +125,6 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 		return undefined;
 	}, [isOpen]);
 
-	// Close dropdown on escape and reposition on window events
 	useEffect(() => {
 		const handleEscape = (event: KeyboardEvent) => {
 			if (event.key === "Escape") {
@@ -143,33 +132,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 			}
 		};
 
-		const handleWindowResize = () => {
-			if (isOpen && buttonRef.current) {
-				// Recalculate position on window resize/scroll
-				const rect = buttonRef.current.getBoundingClientRect();
-				const viewportHeight = window.innerHeight;
-				const estimatedDropdownHeight = options.length * 40 + 16;
-				const spaceBelow = viewportHeight - rect.bottom - 8;
-				const spaceAbove = rect.top - 8;
-				const openUpward =
-					spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow;
-				const maxHeight = Math.min(
-					estimatedDropdownHeight,
-					openUpward ? spaceAbove : spaceBelow,
-					300,
-				);
-				setDropdownPos({
-					top: openUpward ? rect.top - maxHeight - 4 : rect.bottom + 4,
-					left: Math.max(
-						8,
-						Math.min(rect.left, window.innerWidth - rect.width - 8),
-					),
-					width: rect.width,
-					maxHeight,
-					openUpward,
-				});
-			}
-		};
+		const handleWindowResize = () => setDropdownPos(calculatePosition());
 
 		if (isOpen) {
 			document.addEventListener("keydown", handleEscape);
@@ -183,7 +146,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 			};
 		}
 		return undefined;
-	}, [isOpen, options.length]);
+	}, [isOpen, calculatePosition]);
 
 	return (
 		<>

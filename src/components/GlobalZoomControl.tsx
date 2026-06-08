@@ -2,24 +2,9 @@
 "use client";
 import { useEffect } from "react";
 
-interface ShadowQuillViewApi {
-	view?: {
-		getZoomFactor?: () => Promise<number>;
-		setZoomFactor?: (factor: number) => Promise<void>;
-	};
-}
-
-type WindowWithShadowQuill = Window & {
-	shadowquill?: ShadowQuillViewApi;
-};
-
-/**
- * Global zoom control that enables Control/Cmd + Scroll Wheel zooming
- * throughout the entire application.
- */
 export default function GlobalZoomControl() {
 	useEffect(() => {
-		const api = (window as WindowWithShadowQuill).shadowquill;
+		const api = window.shadowquill;
 		if (!api?.view?.setZoomFactor || !api?.view?.getZoomFactor) return;
 
 		const handleWheel = async (e: WheelEvent) => {

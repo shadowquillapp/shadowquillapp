@@ -9,7 +9,6 @@ export interface TabInfo {
 	id: string;
 	label: string;
 	preset: PromptPresetSummary;
-	isDirty: boolean;
 }
 
 interface TabBarProps {
@@ -41,7 +40,6 @@ export function TabBar({
 	const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 	const dropHandledRef = useRef(false);
 
-	// Check scroll position
 	const checkScroll = useCallback(() => {
 		const container = tabsContainerRef.current;
 		if (!container) return;
@@ -51,7 +49,6 @@ export function TabBar({
 		);
 	}, []);
 
-	// Recalculate tab width based on available space
 	const recalcSizes = useCallback(() => {
 		const container = tabsContainerRef.current;
 		if (!container) return;
@@ -59,12 +56,10 @@ export function TabBar({
 		const addBtn = embedded ? 32 : 28;
 		const scrollReserve =
 			(showLeftScroll ? 28 + gap : 0) + (showRightScroll ? 28 + gap : 0);
-		// small safety padding to avoid crowding
 		const safety = embedded ? 8 : 4;
 		const available =
 			container.clientWidth - addBtn - scrollReserve - safety - gap;
 		const n = Math.max(1, tabs.length);
-		// space per tab, accounting for gaps between them
 		const ideal = Math.floor((available - gap * (n - 1)) / n);
 		const minW = 84;
 		const maxW = 180;
@@ -88,7 +83,6 @@ export function TabBar({
 		return undefined;
 	}, [checkScroll, recalcSizes]);
 
-	// Recalc sizes when inputs change
 	useEffect(() => {
 		recalcSizes();
 	}, [recalcSizes]);
@@ -120,7 +114,6 @@ export function TabBar({
 				minHeight: embedded ? "auto" : "48px",
 			}}
 		>
-			{/* Left scroll button */}
 			{showLeftScroll && (
 				<button
 					type="button"
@@ -139,7 +132,6 @@ export function TabBar({
 				</button>
 			)}
 
-			{/* Tabs container */}
 			<div
 				ref={tabsContainerRef}
 				style={{
@@ -160,7 +152,6 @@ export function TabBar({
 
 					return (
 						<Fragment key={tab.id}>
-							{/* Drop zone before each tab (only show when dragging) */}
 							{onReorderTabs &&
 								draggedIndex !== null &&
 								draggedIndex !== index && (
@@ -184,8 +175,6 @@ export function TabBar({
 											e.preventDefault();
 											dropHandledRef.current = true;
 
-											// Calculate correct target index
-											// When moving forward, we need to account for the removal shifting indices
 											let targetIndex = index;
 											if (draggedIndex < index) {
 												targetIndex = index - 1;
@@ -195,7 +184,6 @@ export function TabBar({
 												onReorderTabs(draggedIndex, targetIndex);
 											}
 
-											// Clear immediately
 											setDraggedIndex(null);
 											setDragOverIndex(null);
 										}}
@@ -234,7 +222,6 @@ export function TabBar({
 									e.dataTransfer.effectAllowed = "move";
 								}}
 								onDragEnd={() => {
-									// Cleanup if drop wasn't handled (dragged outside)
 									if (!dropHandledRef.current) {
 										setDraggedIndex(null);
 										setDragOverIndex(null);
@@ -242,7 +229,6 @@ export function TabBar({
 									dropHandledRef.current = false;
 								}}
 								onDragOver={(e) => {
-									// Prevent default to allow dropping, but don't set dragOverIndex for tabs
 									if (
 										!onReorderTabs ||
 										draggedIndex === null ||
@@ -259,15 +245,12 @@ export function TabBar({
 										dropHandledRef.current
 									)
 										return;
-									// Use the last highlighted drop zone position if available
 									if (dragOverIndex !== null && dragOverIndex !== index) {
 										e.preventDefault();
 										dropHandledRef.current = true;
 
-										// Calculate target based on dragOverIndex
 										let targetIndex = dragOverIndex;
 										if (dragOverIndex === tabs.length) {
-											// Drop at end
 											targetIndex = tabs.length - 1;
 										} else if (draggedIndex < dragOverIndex) {
 											targetIndex = dragOverIndex - 1;
@@ -315,7 +298,6 @@ export function TabBar({
 									}
 								}}
 							>
-								{/* Preset icon */}
 								<Icon
 									name={getTaskTypeIcon(tab.preset.taskType)}
 									style={{
@@ -326,7 +308,6 @@ export function TabBar({
 									}}
 								/>
 
-								{/* Tab label with dirty indicator */}
 								<span
 									style={{
 										flex: 1,
@@ -344,7 +325,6 @@ export function TabBar({
 									{tab.label}
 								</span>
 
-								{/* Close button */}
 								<button
 									type="button"
 									onClick={(e) => {
@@ -385,7 +365,6 @@ export function TabBar({
 					);
 				})}
 
-				{/* Drop zone after last tab */}
 				{onReorderTabs && draggedIndex !== null && (
 					<button
 						type="button"
@@ -404,7 +383,6 @@ export function TabBar({
 							e.preventDefault();
 							dropHandledRef.current = true;
 
-							// Move to end
 							if (draggedIndex !== tabs.length - 1) {
 								onReorderTabs(draggedIndex, tabs.length - 1);
 							}
@@ -426,7 +404,6 @@ export function TabBar({
 					></button>
 				)}
 
-				{/* New tab button - positioned right after tabs */}
 				<button
 					type="button"
 					className="md-btn"
@@ -486,7 +463,6 @@ export function TabBar({
 				</button>
 			</div>
 
-			{/* Right scroll button */}
 			{showRightScroll && (
 				<button
 					type="button"

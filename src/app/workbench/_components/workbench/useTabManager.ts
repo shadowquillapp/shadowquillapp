@@ -93,25 +93,6 @@ function generateTabLabel(
 	return `${baseName} ${counter}`;
 }
 
-function createNewTab(
-	preset: PromptPresetSummary,
-	existingTabs: Tab[],
-	tabId: string,
-): Tab {
-	return {
-		id: tabId,
-		label: generateTabLabel(preset, existingTabs),
-		preset,
-		projectId: null,
-		draft: "",
-		messages: [],
-		versionGraph: createVersionGraph("", "Start"),
-		sending: false,
-		error: null,
-		isDirty: false,
-	};
-}
-
 function patchTab(
 	state: TabManagerState,
 	tabId: string,
@@ -130,11 +111,18 @@ const reducer = (
 	switch (action.type) {
 		case "CREATE_TAB": {
 			if (state.tabs.length >= MAX_TABS) return state;
-			const newTab = createNewTab(
-				action.payload.preset,
-				state.tabs,
-				action.payload.tabId,
-			);
+			const newTab: Tab = {
+				id: action.payload.tabId,
+				label: generateTabLabel(action.payload.preset, state.tabs),
+				preset: action.payload.preset,
+				projectId: null,
+				draft: "",
+				messages: [],
+				versionGraph: createVersionGraph("", "Start"),
+				sending: false,
+				error: null,
+				isDirty: false,
+			};
 			return {
 				tabs: [...state.tabs, newTab],
 				activeTabId: newTab.id,
@@ -305,8 +293,8 @@ export function useTabManager() {
 	}, [state]);
 
 	useEffect(() => {
-		if (!isInitialized) return; // Don't save during initial load
-		if (isFactoryResetInProgress()) return; // Don't save during factory reset
+		if (!isInitialized) return;
+		if (isFactoryResetInProgress()) return;
 		const timer = window.setTimeout(() => {
 			try {
 				persistTabs(state);
@@ -320,7 +308,7 @@ export function useTabManager() {
 	useEffect(() => {
 		const handleBeforeUnload = () => {
 			if (!isInitialized) return;
-			if (isFactoryResetInProgress()) return; // Don't save during factory reset
+			if (isFactoryResetInProgress()) return;
 			try {
 				persistTabs(stateRef.current);
 			} catch (error) {
@@ -592,7 +580,6 @@ export function useTabManager() {
 		maxTabs: MAX_TABS,
 		canCreateTab: state.tabs.length < MAX_TABS,
 
-		// Tab management
 		createTab,
 		closeTab,
 		switchTab,

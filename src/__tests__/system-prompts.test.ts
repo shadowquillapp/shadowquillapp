@@ -203,13 +203,10 @@ Line 3`;
 
 	describe("normalization behavior", () => {
 		it("should handle null values gracefully", () => {
-			// This tests the normalize helper internally via getSystemPromptBuild
-			// when localStorage returns null
 			expect(() => getSystemPromptBuild()).not.toThrow();
 		});
 
 		it("should handle undefined values gracefully", () => {
-			// Set to undefined-like state
 			localStorage.removeItem(STORAGE_KEY);
 
 			expect(() => getSystemPromptBuild()).not.toThrow();
@@ -251,7 +248,6 @@ Line 3`;
 
 	describe("localStorage error handling", () => {
 		it("should return DEFAULT_BUILD_PROMPT when localStorage.getItem throws", async () => {
-			// Reset module to get fresh instance that will use our mocked localStorage
 			vi.resetModules();
 
 			const originalGetItem = localStorage.getItem.bind(localStorage);
@@ -292,7 +288,6 @@ Line 3`;
 			};
 
 			const freshModule = await import("@/lib/system-prompts");
-			// Should not throw and should return DEFAULT_BUILD_PROMPT
 			expect(() => freshModule.ensureSystemPromptBuild()).not.toThrow();
 			const result = freshModule.ensureSystemPromptBuild();
 			expect(result).toBe(freshModule.DEFAULT_BUILD_PROMPT);

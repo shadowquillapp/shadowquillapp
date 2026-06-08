@@ -2,7 +2,6 @@ import { act, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import OllamaConnectionMonitor from "@/components/OllamaConnectionMonitor";
 
-// Mock DialogProvider
 const mockConfirm = vi.fn();
 vi.mock("@/components/DialogProvider", () => ({
 	useDialog: () => ({
@@ -11,7 +10,6 @@ vi.mock("@/components/DialogProvider", () => ({
 	}),
 }));
 
-// Mock local-config
 const mockReadLocalModelConfig = vi.fn();
 const mockValidateLocalModelConnection = vi.fn();
 vi.mock("@/lib/local-config", () => ({
@@ -51,7 +49,6 @@ describe("OllamaConnectionMonitor", () => {
 			mockReadLocalModelConfig.mockReturnValue(null);
 			render(<OllamaConnectionMonitor />);
 
-			// Advance past initial delay
 			await vi.advanceTimersByTimeAsync(3500);
 
 			expect(mockValidateLocalModelConnection).not.toHaveBeenCalled();
@@ -67,10 +64,8 @@ describe("OllamaConnectionMonitor", () => {
 
 			render(<OllamaConnectionMonitor />);
 
-			// Initially not called
 			expect(mockValidateLocalModelConnection).not.toHaveBeenCalled();
 
-			// After 3 second delay
 			await vi.advanceTimersByTimeAsync(3500);
 
 			expect(mockValidateLocalModelConnection).toHaveBeenCalled();
@@ -88,7 +83,6 @@ describe("OllamaConnectionMonitor", () => {
 
 			render(<OllamaConnectionMonitor />);
 
-			// Wait for the initial check to happen
 			await vi.advanceTimersByTimeAsync(3500);
 
 			expect(mockReadLocalModelConfig).toHaveBeenCalled();
@@ -106,11 +100,9 @@ describe("OllamaConnectionMonitor", () => {
 
 			render(<OllamaConnectionMonitor />);
 
-			// Initial check
 			await vi.advanceTimersByTimeAsync(3500);
 			expect(mockValidateLocalModelConnection).toHaveBeenCalledTimes(1);
 
-			// Fire MODEL_CHANGED event
 			window.dispatchEvent(new Event("MODEL_CHANGED"));
 
 			await waitFor(() => {
@@ -142,7 +134,6 @@ describe("OllamaConnectionMonitor", () => {
 
 			await vi.advanceTimersByTimeAsync(3500);
 
-			// Should not throw even without the API
 			expect(mockValidateLocalModelConnection).toHaveBeenCalled();
 		});
 
@@ -198,13 +189,11 @@ describe("OllamaConnectionMonitor", () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
 
-			// Trigger connection loss
 			await act(async () => {
 				window.dispatchEvent(new Event("MODEL_CHANGED"));
 				await vi.runOnlyPendingTimersAsync();
 			});
 
-			// Should still show dialog even without checkOllamaInstalled API
 			expect(mockConfirm).toHaveBeenCalled();
 		});
 
@@ -231,7 +220,6 @@ describe("OllamaConnectionMonitor", () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
 
-			// Trigger connection loss
 			await act(async () => {
 				window.dispatchEvent(new Event("MODEL_CHANGED"));
 				await vi.runOnlyPendingTimersAsync();
@@ -255,20 +243,17 @@ describe("OllamaConnectionMonitor", () => {
 			});
 			mockWindowApi.checkOllamaInstalled.mockResolvedValue({ installed: true });
 
-			// First call: connection OK, second call: connection lost
 			mockValidateLocalModelConnection
 				.mockResolvedValueOnce({ ok: true })
 				.mockResolvedValueOnce({ ok: false, error: "Connection lost" });
 
 			render(<OllamaConnectionMonitor />);
 
-			// Initial check - wait for it to complete
 			await act(async () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
 			expect(mockValidateLocalModelConnection).toHaveBeenCalledTimes(1);
 
-			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
 				window.dispatchEvent(new Event("MODEL_CHANGED"));
 				await vi.runOnlyPendingTimersAsync();
@@ -301,7 +286,6 @@ describe("OllamaConnectionMonitor", () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
 
-			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
 				window.dispatchEvent(new Event("MODEL_CHANGED"));
 				await vi.runOnlyPendingTimersAsync();
@@ -332,7 +316,6 @@ describe("OllamaConnectionMonitor", () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
 
-			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
 				window.dispatchEvent(new Event("MODEL_CHANGED"));
 				await vi.runOnlyPendingTimersAsync();
@@ -372,7 +355,6 @@ describe("OllamaConnectionMonitor", () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
 
-			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
 				window.dispatchEvent(new Event("MODEL_CHANGED"));
 				await vi.runOnlyPendingTimersAsync();
@@ -407,7 +389,6 @@ describe("OllamaConnectionMonitor", () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
 
-			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
 				window.dispatchEvent(new Event("MODEL_CHANGED"));
 				await vi.runOnlyPendingTimersAsync();
@@ -415,7 +396,6 @@ describe("OllamaConnectionMonitor", () => {
 
 			expect(mockWindowApi.openOllama).toHaveBeenCalled();
 
-			// Advance timers for the 3 second recheck delay
 			await act(async () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
@@ -446,18 +426,13 @@ describe("OllamaConnectionMonitor", () => {
 			const callCountBefore =
 				mockValidateLocalModelConnection.mock.calls.length;
 
-			// Trigger connection loss via MODEL_CHANGED event
 			await act(async () => {
 				window.dispatchEvent(new Event("MODEL_CHANGED"));
-				// Advance just enough time for the checkConnection async operations
-				// and the 3-second recheck timeout after openOllama
 				await vi.advanceTimersByTimeAsync(3100);
 			});
 
 			expect(mockWindowApi.openOllama).toHaveBeenCalled();
 
-			// Should have rechecked connection after opening Ollama
-			// Additional calls: 1 (MODEL_CHANGED) + 1 (recheck after openOllama) = at least 2 more
 			expect(
 				mockValidateLocalModelConnection.mock.calls.length,
 			).toBeGreaterThanOrEqual(callCountBefore + 2);
@@ -485,13 +460,11 @@ describe("OllamaConnectionMonitor", () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
 
-			// Trigger recheck via MODEL_CHANGED event and flush async operations - should not throw
 			await act(async () => {
 				window.dispatchEvent(new Event("MODEL_CHANGED"));
 				await vi.runOnlyPendingTimersAsync();
 			});
 
-			// Should have called confirm even without openOllama API
 			expect(mockConfirm).toHaveBeenCalled();
 		});
 
@@ -519,7 +492,6 @@ describe("OllamaConnectionMonitor", () => {
 				await vi.advanceTimersByTimeAsync(3500);
 			});
 
-			// Trigger recheck via MODEL_CHANGED event and flush async operations
 			await act(async () => {
 				window.dispatchEvent(new Event("MODEL_CHANGED"));
 				await vi.runOnlyPendingTimersAsync();
@@ -547,14 +519,11 @@ describe("OllamaConnectionMonitor", () => {
 
 			render(<OllamaConnectionMonitor />);
 
-			// Initial check
 			await vi.advanceTimersByTimeAsync(3500);
 			expect(mockValidateLocalModelConnection).toHaveBeenCalledTimes(1);
 
-			// Next check - config is now null
 			await vi.advanceTimersByTimeAsync(10500);
 
-			// Should have called read config but not validate (since config is null)
 			expect(mockReadLocalModelConfig).toHaveBeenCalled();
 		});
 	});
@@ -572,7 +541,6 @@ describe("OllamaConnectionMonitor", () => {
 
 			unmount();
 
-			// Event should not trigger validation after unmount
 			window.dispatchEvent(new Event("MODEL_CHANGED"));
 		});
 	});
