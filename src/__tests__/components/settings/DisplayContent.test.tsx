@@ -22,7 +22,6 @@ describe("DisplayContent", () => {
 			view: mockViewApi,
 			window: mockWindowApi,
 		};
-		// Mock localStorage - spy on localStorage directly for more reliable mocking
 		getItemSpy = vi.spyOn(window.localStorage, "getItem").mockReturnValue(null);
 		setItemSpy = vi
 			.spyOn(window.localStorage, "setItem")
@@ -161,7 +160,6 @@ describe("DisplayContent", () => {
 
 			await user.click(screen.getByLabelText("Select Dark theme"));
 
-			// setJSON stringifies the value, so check for JSON-stringified "dark"
 			expect(localStorage.setItem).toHaveBeenCalledWith(
 				"theme-preference",
 				JSON.stringify("dark"),
@@ -173,7 +171,6 @@ describe("DisplayContent", () => {
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 			render(<DisplayContent />);
 
-			// Verify all theme options are rendered
 			expect(screen.getByLabelText("Select Earth theme")).toBeInTheDocument();
 			expect(
 				screen.getByLabelText("Select Dark Purple theme"),
@@ -187,7 +184,6 @@ describe("DisplayContent", () => {
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 			render(<DisplayContent />);
 
-			// Click on light theme
 			await user.click(screen.getByLabelText("Select Light theme"));
 
 			expect(document.documentElement.getAttribute("data-theme")).toBe("light");
@@ -199,7 +195,6 @@ describe("DisplayContent", () => {
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 			render(<DisplayContent />);
 
-			// Stats should always be visible
 			expect(screen.getByText("Display Stats")).toBeInTheDocument();
 			expect(screen.getByText("Window Size")).toBeInTheDocument();
 			expect(screen.getByText("State")).toBeInTheDocument();
@@ -262,7 +257,6 @@ describe("DisplayContent", () => {
 			render(<DisplayContent />);
 
 			await waitFor(() => {
-				// Should show dash for unknown values
 				const dashes = screen.getAllByText("—");
 				expect(dashes.length).toBeGreaterThan(0);
 			});
@@ -271,13 +265,11 @@ describe("DisplayContent", () => {
 
 	describe("theme migration", () => {
 		it("should migrate old 'default' theme to 'purpledark'", () => {
-			// Mock getItem to return JSON-stringified value
 			getItemSpy.mockReturnValue(JSON.stringify("default"));
 			mockViewApi.getZoomFactor.mockResolvedValue(1);
 
 			render(<DisplayContent />);
 
-			// setJSON stringifies the value, so check for JSON-stringified "purpledark"
 			expect(setItemSpy).toHaveBeenCalledWith(
 				"theme-preference",
 				JSON.stringify("purpledark"),
@@ -290,7 +282,6 @@ describe("DisplayContent", () => {
 
 			render(<DisplayContent />);
 
-			// Should show dark theme button as selected
 			const darkButton = screen.getByLabelText("Select Dark theme");
 			expect(darkButton).toBeInTheDocument();
 		});
@@ -313,7 +304,6 @@ describe("DisplayContent", () => {
 				expect(screen.getByText("100%")).toBeInTheDocument();
 			});
 
-			// Trigger zoom change via callback
 			if (zoomChangedCallback) {
 				zoomChangedCallback(1.2);
 			}
@@ -339,13 +329,11 @@ describe("DisplayContent", () => {
 				expect(screen.getByText("100%")).toBeInTheDocument();
 			});
 
-			// Trigger with invalid values
 			if (zoomChangedCallback) {
 				zoomChangedCallback(Number.NaN);
 				zoomChangedCallback(Number.POSITIVE_INFINITY);
 			}
 
-			// Should still show 100%
 			expect(screen.getByText("100%")).toBeInTheDocument();
 		});
 	});
@@ -363,11 +351,9 @@ describe("DisplayContent", () => {
 
 			render(<DisplayContent />);
 
-			// Trigger resize event
 			window.dispatchEvent(new Event("resize"));
 
 			await waitFor(() => {
-				// Component should still be rendering
 				expect(screen.getByText("Display")).toBeInTheDocument();
 			});
 		});
@@ -417,10 +403,8 @@ describe("DisplayContent", () => {
 				expect(screen.getByText("80%")).toBeInTheDocument();
 			});
 
-			// Try to decrease below minimum
 			await user.click(screen.getByLabelText("Zoom out"));
 
-			// Should clamp to 80%
 			expect(mockViewApi.setZoomFactor).toHaveBeenCalledWith(0.8);
 		});
 
@@ -435,10 +419,8 @@ describe("DisplayContent", () => {
 				expect(screen.getByText("150%")).toBeInTheDocument();
 			});
 
-			// Try to increase above maximum
 			await user.click(screen.getByLabelText("Zoom in"));
 
-			// Should clamp to 150%
 			expect(mockViewApi.setZoomFactor).toHaveBeenCalledWith(1.5);
 		});
 	});

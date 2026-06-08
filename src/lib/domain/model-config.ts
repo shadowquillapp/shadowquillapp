@@ -1,5 +1,5 @@
-import { getJSON, remove, setJSON } from "../local-storage";
-import { isRecord, isString } from "../schema";
+import { getJSON, setJSON } from "../local-storage";
+import { isString } from "../schema";
 import { STORAGE_KEYS } from "../storage-keys";
 
 export interface LocalModelConfig {
@@ -34,16 +34,6 @@ export function validateOllamaBaseUrl(value: unknown): string | null {
 	}
 }
 
-function isLocalModelConfig(v: unknown): v is LocalModelConfig {
-	return (
-		isRecord(v) &&
-		v.provider === "ollama" &&
-		typeof v.baseUrl === "string" &&
-		typeof v.model === "string" &&
-		validateOllamaBaseUrl(v.baseUrl) !== null
-	);
-}
-
 export function readLocalModelConfig(): LocalModelConfig | null {
 	const provider = getJSON<string | null>(
 		STORAGE_KEYS.MODEL_PROVIDER.key,
@@ -54,10 +44,9 @@ export function readLocalModelConfig(): LocalModelConfig | null {
 	if (!isString(provider) || !isString(baseUrl) || !isString(model)) {
 		return null;
 	}
-	const candidate = { provider: "ollama" as const, baseUrl, model };
-	const validBaseUrl = validateOllamaBaseUrl(candidate.baseUrl);
-	return isLocalModelConfig(candidate) && validBaseUrl
-		? { ...candidate, baseUrl: validBaseUrl }
+	const validBaseUrl = validateOllamaBaseUrl(baseUrl);
+	return validBaseUrl
+		? { provider: "ollama", baseUrl: validBaseUrl, model }
 		: null;
 }
 
@@ -69,10 +58,4 @@ export function writeLocalModelConfig(cfg: LocalModelConfig): void {
 	setJSON(STORAGE_KEYS.MODEL_PROVIDER.key, cfg.provider);
 	setJSON(STORAGE_KEYS.MODEL_BASE_URL.key, validBaseUrl);
 	setJSON(STORAGE_KEYS.MODEL_NAME.key, cfg.model);
-}
-
-export function clearLocalModelConfig(): void {
-	remove(STORAGE_KEYS.MODEL_PROVIDER.key);
-	remove(STORAGE_KEYS.MODEL_BASE_URL.key);
-	remove(STORAGE_KEYS.MODEL_NAME.key);
 }

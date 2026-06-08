@@ -15,9 +15,6 @@ interface VersionDropdownProps {
 	jumpToVersion: (versionId: string) => void;
 }
 
-/**
- * Version dropdown component for selecting and switching between versions.
- */
 export function VersionDropdown({
 	versionDropdownRef,
 	showVersionDropdown,
@@ -36,7 +33,7 @@ export function VersionDropdown({
 			<button
 				ref={versionDropdownRef}
 				type="button"
-				className={`md-btn ${versions.length > 0 ? "md-btn" : ""}`}
+				className="md-btn"
 				disabled={versions.length === 0}
 				onClick={() => {
 					if (versions.length > 0) {

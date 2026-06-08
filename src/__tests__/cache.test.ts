@@ -98,10 +98,8 @@ describe("LRUCache", () => {
 			cache.set("key2", "value2");
 			cache.set("key3", "value3");
 
-			// Access key1 to make it most recently used
 			cache.get("key1");
 
-			// Add key4, should evict key2 (now least recently used)
 			cache.set("key4", "value4");
 
 			expect(cache.get("key1")).toBe("value1");
@@ -119,10 +117,8 @@ describe("LRUCache", () => {
 			cache.set("key2", "value2");
 			cache.set("key3", "value3");
 
-			// Re-set key1 to make it most recently used
 			cache.set("key1", "updated");
 
-			// Add key4, should evict key2
 			cache.set("key4", "value4");
 
 			expect(cache.get("key1")).toBe("updated");
@@ -142,7 +138,6 @@ describe("LRUCache", () => {
 			});
 			cache.set("key1", "value1");
 
-			// Advance time past TTL
 			vi.advanceTimersByTime(1500);
 
 			expect(cache.get("key1")).toBeUndefined();
@@ -155,7 +150,6 @@ describe("LRUCache", () => {
 			});
 			cache.set("key1", "value1");
 
-			// Advance time but not past TTL
 			vi.advanceTimersByTime(500);
 
 			expect(cache.get("key1")).toBe("value1");
@@ -314,12 +308,10 @@ describe("session storage cache", () => {
 	const mockSessionStorage: Record<string, string> = {};
 
 	beforeEach(() => {
-		// Clear mock storage
 		for (const key of Object.keys(mockSessionStorage)) {
 			delete mockSessionStorage[key];
 		}
 
-		// Mock sessionStorage
 		vi.stubGlobal("sessionStorage", {
 			getItem: vi.fn((key: string) => mockSessionStorage[key] ?? null),
 			setItem: vi.fn((key: string, value: string) => {
@@ -355,7 +347,6 @@ describe("session storage cache", () => {
 		});
 
 		it("should limit entries to maximum size", () => {
-			// Add 25 entries (max is 20)
 			for (let i = 0; i < 25; i++) {
 				saveToSessionCache(`key-${i}`, `value-${i}`);
 			}
@@ -363,7 +354,6 @@ describe("session storage cache", () => {
 			const stored = JSON.parse(mockSessionStorage.SQ_PROMPT_CACHE ?? "{}");
 			expect(stored.entries).toHaveLength(20);
 
-			// Should keep most recent entries (5-24)
 			expect(stored.entries[0].key).toBe("key-5");
 			expect(stored.entries[19].key).toBe("key-24");
 		});
@@ -387,7 +377,6 @@ describe("session storage cache", () => {
 				removeItem: vi.fn(),
 			});
 
-			// Should not throw
 			expect(() => {
 				saveToSessionCache("test-key", "test-value");
 			}).not.toThrow();
@@ -396,7 +385,6 @@ describe("session storage cache", () => {
 		it("should do nothing in server-side environment", () => {
 			vi.stubGlobal("window", undefined);
 
-			// Should not throw
 			expect(() => {
 				saveToSessionCache("test-key", "test-value");
 			}).not.toThrow();
@@ -442,13 +430,10 @@ describe("session storage cache", () => {
 		});
 
 		it("should catch errors when entries.find throws", () => {
-			// Mock sessionStorage to return data that causes find() to fail
 			vi.stubGlobal("sessionStorage", {
 				getItem: vi.fn(() => {
-					// Return valid JSON that will cause an error when accessing entries.find
 					return JSON.stringify({
 						entries: {
-							// entries is an object with a throwing find getter
 							get find() {
 								throw new Error("find error");
 							},
@@ -490,7 +475,6 @@ describe("session storage cache", () => {
 				}),
 			});
 
-			// Should not throw
 			expect(() => {
 				clearSessionCache();
 			}).not.toThrow();
@@ -499,7 +483,6 @@ describe("session storage cache", () => {
 		it("should do nothing in server-side environment", () => {
 			vi.stubGlobal("window", undefined);
 
-			// Should not throw
 			expect(() => {
 				clearSessionCache();
 			}).not.toThrow();
@@ -580,18 +563,14 @@ describe("LRUCache edge cases", () => {
 			ttlMs: 0,
 		});
 
-		// Add one item to fill cache
 		cache.set("key1", "value1");
 
-		// Mock the internal map's keys().next().value to return undefined
-		// by accessing the private cache property
 		const internalCache = (cache as unknown as { cache: Map<string, unknown> })
 			.cache;
 		const originalKeys = internalCache.keys.bind(internalCache);
 		let callCount = 0;
 		internalCache.keys = () => {
 			callCount++;
-			// On the second call (during the while loop), return an iterator that yields undefined
 			if (callCount > 1) {
 				return {
 					next: () => ({ value: undefined, done: false }),
@@ -604,10 +583,8 @@ describe("LRUCache edge cases", () => {
 			return originalKeys();
 		};
 
-		// This should trigger the break statement when firstKey is undefined
 		cache.set("key2", "value2");
 
-		// Cache should still work
 		expect(cache.size).toBeGreaterThanOrEqual(1);
 	});
 });

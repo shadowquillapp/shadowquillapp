@@ -15,10 +15,6 @@ export function isString(v: unknown): v is string {
 	return typeof v === "string";
 }
 
-export function isStringArray(v: unknown): v is string[] {
-	return Array.isArray(v) && v.every(isString);
-}
-
 export function isOneOf<T extends string>(
 	v: unknown,
 	allowed: readonly T[],

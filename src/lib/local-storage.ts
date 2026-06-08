@@ -41,9 +41,7 @@ export function setJSON<T>(key: string, value: T): void {
 		if (canUseStorage()) {
 			storage.setItem(key, JSON.stringify(value));
 		}
-	} catch {
-		// ignore
-	}
+	} catch {}
 }
 
 export function remove(key: string): void {
@@ -51,9 +49,7 @@ export function remove(key: string): void {
 		if (canUseStorage()) {
 			storage.removeItem(key);
 		}
-	} catch {
-		// ignore
-	}
+	} catch {}
 }
 
 export function clearAllStorageForFactoryReset(): void {
@@ -64,30 +60,22 @@ export function clearAllStorageForFactoryReset(): void {
 	for (const key of ALL_LOCAL_KEYS) {
 		try {
 			storage.removeItem(key);
-		} catch {
-			// ignore
-		}
+		} catch {}
 	}
 
 	for (const key of ALL_SESSION_KEYS) {
 		try {
 			sessionStorage.removeItem(key);
-		} catch {
-			// ignore
-		}
+		} catch {}
 	}
 
 	try {
 		storage.clear();
-	} catch {
-		// ignore
-	}
+	} catch {}
 
 	try {
 		sessionStorage.clear();
-	} catch {
-		// ignore
-	}
+	} catch {}
 
 	console.log("[Factory Reset] All renderer storage cleared");
 }

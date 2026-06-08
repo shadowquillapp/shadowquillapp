@@ -51,9 +51,7 @@ function runElectronInstallScript() {
 					electronDir = candidatePath;
 				}
 			}
-		} catch (_error) {
-			// rip
-		}
+		} catch {}
 	}
 
 	if (!electronDir) {
@@ -84,56 +82,52 @@ function runElectronInstallScript() {
 	return false;
 }
 
-function ensureElectronInstalled() {
-	const isWindows = platform() === "win32";
-	const projectRoot = path.join(__dirname, "..");
+const isWindows = platform() === "win32";
+const projectRoot = path.join(__dirname, "..");
 
-	try {
-		const electronInstalled = verifyElectronInstallation();
-		if (!electronInstalled) {
-			console.log("[postinstall] Electron not properly installed, fixing...");
-			const installScriptRan = runElectronInstallScript();
-			if (!installScriptRan) {
-				try {
-					console.log("[postinstall] Running pnpm rebuild electron...");
-					execSync("pnpm rebuild electron", {
-						stdio: "inherit",
-						cwd: projectRoot,
-						shell: isWindows,
-					});
-				} catch (_rebuildError) {
-					console.log("[postinstall] Rebuild failed, trying full reinstall...");
-					execSync("pnpm install electron --force", {
-						stdio: "inherit",
-						cwd: projectRoot,
-						shell: isWindows,
-					});
-					runElectronInstallScript();
-				}
+try {
+	const electronInstalled = verifyElectronInstallation();
+	if (!electronInstalled) {
+		console.log("[postinstall] Electron not properly installed, fixing...");
+		const installScriptRan = runElectronInstallScript();
+		if (!installScriptRan) {
+			try {
+				console.log("[postinstall] Running pnpm rebuild electron...");
+				execSync("pnpm rebuild electron", {
+					stdio: "inherit",
+					cwd: projectRoot,
+					shell: isWindows,
+				});
+			} catch (_rebuildError) {
+				console.log("[postinstall] Rebuild failed, trying full reinstall...");
+				execSync("pnpm install electron --force", {
+					stdio: "inherit",
+					cwd: projectRoot,
+					shell: isWindows,
+				});
+				runElectronInstallScript();
 			}
-			const verified = verifyElectronInstallation();
-			if (verified) {
-				console.log("[postinstall] Electron installed successfully!");
-			} else {
-				console.warn(
-					"[postinstall] Electron installation fix attempted but verification still failed.",
-				);
-				console.warn(
-					"[postinstall] You may need to manually run: pnpm exec electron",
-				);
-			}
-		} else {
-			console.log("[postinstall] Electron installation verified!");
 		}
-	} catch (error) {
-		console.warn("[postinstall] Failed to verify/fix Electron:", error.message);
-		console.warn(
-			"[postinstall] You may need to manually run: pnpm exec electron",
-		);
+		const verified = verifyElectronInstallation();
+		if (verified) {
+			console.log("[postinstall] Electron installed successfully!");
+		} else {
+			console.warn(
+				"[postinstall] Electron installation fix attempted but verification still failed.",
+			);
+			console.warn(
+				"[postinstall] You may need to manually run: pnpm exec electron",
+			);
+		}
+	} else {
+		console.log("[postinstall] Electron installation verified!");
 	}
+} catch (error) {
+	console.warn("[postinstall] Failed to verify/fix Electron:", error.message);
+	console.warn(
+		"[postinstall] You may need to manually run: pnpm exec electron",
+	);
 }
-
-ensureElectronInstalled();
 
 const nextDir = path.join(__dirname, "..", ".next");
 
@@ -142,7 +136,6 @@ if (!fs.existsSync(nextDir)) {
 		"[postinstall] .next directory not found, attempting to build...",
 	);
 	try {
-		// Check if build tools are available
 		const packageJsonPath = path.join(__dirname, "..", "package.json");
 		const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, "utf8"));
 		const hasBuildScript = packageJson.scripts?.["build:electron"];

@@ -7,13 +7,6 @@ import {
 } from "@/lib/local-config";
 import { useDialog } from "./DialogProvider";
 
-interface WindowWithShadowQuill extends Window {
-	shadowquill?: {
-		checkOllamaInstalled?: () => Promise<{ installed: boolean }>;
-		openOllama?: () => Promise<{ ok: boolean; error?: string }>;
-	};
-}
-
 export default function OllamaConnectionMonitor() {
 	const { confirm } = useDialog();
 	const [isMonitoring, setIsMonitoring] = useState(false);
@@ -24,11 +17,10 @@ export default function OllamaConnectionMonitor() {
 		boolean | null
 	> => {
 		try {
-			const win = window as WindowWithShadowQuill;
-			if (!win.shadowquill?.checkOllamaInstalled) {
+			if (!window.shadowquill?.checkOllamaInstalled) {
 				return null;
 			}
-			const result = await win.shadowquill.checkOllamaInstalled();
+			const result = await window.shadowquill.checkOllamaInstalled();
 			ollamaInstalledRef.current = result.installed;
 			return result.installed;
 		} catch (e) {
@@ -40,18 +32,16 @@ export default function OllamaConnectionMonitor() {
 	const handleOpenOrInstallOllama = useCallback(
 		async (isInstalled: boolean | null) => {
 			try {
-				const win = window as WindowWithShadowQuill;
-
 				if (isInstalled === false) {
 					window.open("https://ollama.com/download", "_blank");
 					return;
 				}
 
-				if (!win.shadowquill?.openOllama) {
+				if (!window.shadowquill?.openOllama) {
 					return;
 				}
 
-				const result = await win.shadowquill.openOllama();
+				const result = await window.shadowquill.openOllama();
 
 				if (result.ok) {
 					return new Promise<void>((resolve) => {
@@ -114,7 +104,6 @@ export default function OllamaConnectionMonitor() {
 		return () => clearTimeout(initialTimeout);
 	}, [checkConnection]);
 
-	// Periodic monitoring every 10 seconds
 	useEffect(() => {
 		if (!isMonitoring) return;
 		const interval = setInterval(() => {

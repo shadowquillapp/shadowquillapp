@@ -1,12 +1,10 @@
 import { useEffect, useRef, useState } from "react";
+import { useCloseOnEscape } from "@/components/useCloseOnEscape";
 import {
 	listAvailableModels,
 	readLocalModelConfig as readLocalModelConfigClient,
 } from "@/lib/local-config";
 
-/**
- * Hook for managing model selection and available models.
- */
 export function useModelManager() {
 	const [availableModels, setAvailableModels] = useState<
 		Array<{ name: string; size: number }>
@@ -15,6 +13,7 @@ export function useModelManager() {
 	const [modelMenuOpen, setModelMenuOpen] = useState(false);
 	const modelBtnRef = useRef<HTMLButtonElement | null>(null);
 	const modelMenuRef = useRef<HTMLDivElement | null>(null);
+	useCloseOnEscape(modelMenuOpen, () => setModelMenuOpen(false));
 
 	useEffect(() => {
 		const load = async () => {
@@ -44,14 +43,9 @@ export function useModelManager() {
 				setModelMenuOpen(false);
 			}
 		};
-		const onEsc = (e: KeyboardEvent) => {
-			if (e.key === "Escape") setModelMenuOpen(false);
-		};
 		document.addEventListener("mousedown", onClickOutside);
-		document.addEventListener("keydown", onEsc);
 		return () => {
 			document.removeEventListener("mousedown", onClickOutside);
-			document.removeEventListener("keydown", onEsc);
 		};
 	}, [modelMenuOpen]);
 

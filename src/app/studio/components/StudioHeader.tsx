@@ -21,7 +21,6 @@ export default function StudioHeader({
 		"system" | "ollama" | "data" | "display" | "version"
 	>("version");
 
-	// Global event to open Settings dialog with initial tab
 	useEffect(() => {
 		const handler = (e: Event) => {
 			try {
@@ -46,7 +45,6 @@ export default function StudioHeader({
 					alignItems: "center",
 				}}
 			>
-				{/* Left side: Hamburger (mobile) + Title & Logo */}
 				<div
 					className="simple-workbench__header-left"
 					style={{
@@ -59,7 +57,6 @@ export default function StudioHeader({
 						overflow: "hidden",
 					}}
 				>
-					{/* Hamburger menu for mobile */}
 					{isSmallScreen && (
 						<button
 							type="button"
@@ -82,7 +79,6 @@ export default function StudioHeader({
 						</button>
 					)}
 
-					{/* Title + Logo */}
 					<div
 						style={{
 							display: "flex",
@@ -114,7 +110,6 @@ export default function StudioHeader({
 					</div>
 				</div>
 
-				{/* Right side: Actions */}
 				<div
 					className="simple-workbench__header-actions"
 					style={{
@@ -143,7 +138,6 @@ export default function StudioHeader({
 				</div>
 			</header>
 
-			{/* Settings Dialog */}
 			{settingsOpen && (
 				<SettingsDialog
 					open={settingsOpen}

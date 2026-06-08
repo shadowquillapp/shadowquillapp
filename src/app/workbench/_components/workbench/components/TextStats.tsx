@@ -5,9 +5,6 @@ interface TextStatsProps {
 	charCount: number;
 }
 
-/**
- * Reusable component for displaying word and character counts.
- */
 export function TextStats({ wordCount, charCount }: TextStatsProps) {
 	return (
 		<div

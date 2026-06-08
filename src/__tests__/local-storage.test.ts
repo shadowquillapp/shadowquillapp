@@ -1,10 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { getJSON, remove, setJSON } from "@/lib/local-storage";
 
-// Helper to access internal state - we need to reload the module to reset state
 const resetModule = async () => {
 	vi.resetModules();
-	// Re-import to get fresh module state
 	const module = await import("@/lib/local-storage");
 	return module;
 };
@@ -157,10 +155,8 @@ describe("factory reset blocking", () => {
 	it("should block setJSON calls during factory reset", async () => {
 		const freshModule = await resetModule();
 
-		// Trigger factory reset
 		freshModule.clearAllStorageForFactoryReset();
 
-		// Try to write - should be blocked
 		freshModule.setJSON("blocked-key", { data: "should not be saved" });
 
 		expect(localStorage.getItem("blocked-key")).toBeNull();
@@ -184,9 +180,6 @@ describe("isFactoryResetInProgress", () => {
 
 describe("SSR safety", () => {
 	it("should handle window being undefined gracefully", () => {
-		// The module checks typeof window !== 'undefined'
-		// In jsdom environment, window exists, so we can't easily test this
-		// But we can verify the functions don't throw
 		expect(() => getJSON("key", null)).not.toThrow();
 		expect(() => setJSON("key", "value")).not.toThrow();
 		expect(() => remove("key")).not.toThrow();
@@ -224,9 +217,7 @@ describe("SSR safety", () => {
 
 		it("clearAllStorageForFactoryReset should return early when window is undefined", async () => {
 			const freshModule = await resetModule();
-			// Should not throw and should not set the flag (returns early)
 			expect(() => freshModule.clearAllStorageForFactoryReset()).not.toThrow();
-			// The flag should not be set since we returned early
 			expect(freshModule.isFactoryResetInProgress()).toBe(false);
 		});
 	});
@@ -251,7 +242,6 @@ describe("localStorage error handling", () => {
 			throw new Error("QuotaExceededError");
 		};
 
-		// Should not throw
 		expect(() => setJSON("test-key", { data: "value" })).not.toThrow();
 
 		Storage.prototype.setItem = originalSetItem;
@@ -263,7 +253,6 @@ describe("localStorage error handling", () => {
 			throw new Error("localStorage disabled");
 		};
 
-		// Should not throw
 		expect(() => remove("test-key")).not.toThrow();
 
 		Storage.prototype.removeItem = originalRemoveItem;
@@ -274,7 +263,6 @@ describe("clearAllStorageForFactoryReset error handling", () => {
 	it("should handle errors when removing individual keys", async () => {
 		const freshModule = await resetModule();
 
-		// Mock removeItem to throw for specific keys
 		const originalRemoveItem = Storage.prototype.removeItem;
 		let callCount = 0;
 		Storage.prototype.removeItem = (key: string) => {
@@ -288,7 +276,6 @@ describe("clearAllStorageForFactoryReset error handling", () => {
 		localStorage.setItem("PC_PRESETS", "[]");
 		localStorage.setItem("theme-preference", "dark");
 
-		// Should not throw even when individual removes fail
 		expect(() => freshModule.clearAllStorageForFactoryReset()).not.toThrow();
 
 		Storage.prototype.removeItem = originalRemoveItem;
@@ -302,7 +289,6 @@ describe("clearAllStorageForFactoryReset error handling", () => {
 			throw new Error("Clear failed");
 		};
 
-		// Should not throw
 		expect(() => freshModule.clearAllStorageForFactoryReset()).not.toThrow();
 
 		Storage.prototype.clear = originalClear;
@@ -316,7 +302,6 @@ describe("clearAllStorageForFactoryReset error handling", () => {
 			throw new Error("Session clear failed");
 		};
 
-		// Should not throw
 		expect(() => freshModule.clearAllStorageForFactoryReset()).not.toThrow();
 
 		sessionStorage.clear = originalClear;
@@ -360,14 +345,11 @@ describe("setJSON during factory reset", () => {
 	it("should block setJSON calls after clearAllStorageForFactoryReset", async () => {
 		const freshModule = await resetModule();
 
-		// First set some data
 		freshModule.setJSON("before-reset", { data: "exists" });
 		expect(localStorage.getItem("before-reset")).not.toBeNull();
 
-		// Trigger factory reset
 		freshModule.clearAllStorageForFactoryReset();
 
-		// Now try to set - should be blocked
 		freshModule.setJSON("after-reset", { data: "should-not-exist" });
 		expect(localStorage.getItem("after-reset")).toBeNull();
 	});

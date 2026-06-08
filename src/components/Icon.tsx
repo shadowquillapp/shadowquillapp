@@ -97,12 +97,10 @@ const icons: Record<string, HeroIcon> = {
 	sun: SunIcon,
 	moon: MoonIcon,
 	terminal: CommandLineIcon,
-	// Task Type icons
 	bullseye: StopIcon,
 	video: VideoCameraIcon,
 	flask: BeakerIcon,
 	bullhorn: MegaphoneIcon,
-	// Tone icons
 	equals: Bars2Icon,
 	"face-smile": FaceSmileIcon,
 	briefcase: BriefcaseIcon,

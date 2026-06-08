@@ -168,7 +168,6 @@ export function migrateVersionGraph(
 	let needsMigration = false;
 	const migratedNodes: Record<string, VersionNode> = {};
 
-	// Check if any node needs migration
 	for (const [_id, node] of Object.entries(graph.nodes)) {
 		if (!("originalInput" in node) || !("outputMessageId" in node)) {
 			needsMigration = true;
@@ -180,7 +179,6 @@ export function migrateVersionGraph(
 		return graph;
 	}
 
-	// Migrate each node
 	for (const [id, node] of Object.entries(graph.nodes)) {
 		const nodeRecord = node as unknown as Record<string, unknown>;
 		const migratedNode: VersionNode = {
@@ -195,10 +193,8 @@ export function migrateVersionGraph(
 					: null,
 		};
 
-		// Try to match with assistant messages by timestamp if messages are provided
 		if (messages && !migratedNode.outputMessageId) {
 			const assistantMessages = messages.filter((m) => m.role === "assistant");
-			// Find assistant message closest in time (within 5 seconds)
 			const matchingMessage = assistantMessages.find((m) => {
 				if (!m.createdAt) return false;
 				const timeDiff = Math.abs(m.createdAt - node.createdAt);

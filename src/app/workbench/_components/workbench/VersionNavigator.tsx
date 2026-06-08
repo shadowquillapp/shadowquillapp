@@ -26,11 +26,9 @@ export function VersionNavigator({
 	const currentVersion = currentIndex >= 0 ? currentIndex + 1 : 0;
 	const totalVersions = versions.length;
 
-	// Get current version's metadata for mode indication
 	const currentVersionNode = versions[currentIndex];
 	const isRefinement = currentVersionNode?.metadata?.isRefinement === true;
-	const versionsWithOutput = versions.filter((v) => v.outputMessageId);
-	const hasBaseVersion = versionsWithOutput.length > 0;
+	const hasBaseVersion = versions.some((v) => v.outputMessageId);
 
 	const canGoPrev = hasUndo(versionGraph);
 	const canGoNext = hasRedo(versionGraph);
@@ -48,7 +46,6 @@ export function VersionNavigator({
 		);
 	}
 
-	// Build tooltip text based on mode
 	const tooltipText = hasBaseVersion
 		? `v${currentVersion} ${isRefinement ? "(Refinement)" : "(Base)"} • Click to view history • Next input will refine this output`
 		: `v${currentVersion} • Click to view history`;
@@ -57,19 +54,17 @@ export function VersionNavigator({
 		<div
 			className={`version-nav-vertical version-nav-vertical--compact ${justCreatedVersion ? "version-nav-vertical--pulse" : ""} ${isGenerating ? "version-nav-vertical--generating" : ""}`}
 		>
-			{/* Up: Previous button */}
 			<button
 				type="button"
 				className="version-nav-vertical__btn"
 				onClick={onPrev}
 				disabled={!canGoPrev || isGenerating}
-				title={`Previous version${tooltipText ? ` • ${tooltipText}` : ""}`}
+				title={`Previous version • ${tooltipText}`}
 				aria-label="Go to previous version"
 			>
 				<Icon name="chevron-up" />
 			</button>
 
-			{/* Center: Version indicator */}
 			<div
 				className="version-nav-vertical__center"
 				style={{ cursor: "default", pointerEvents: "none" }}
@@ -77,13 +72,12 @@ export function VersionNavigator({
 				<Icon name="code-compare" style={{ width: 16, height: 16 }} />
 			</div>
 
-			{/* Down: Next button */}
 			<button
 				type="button"
 				className="version-nav-vertical__btn"
 				onClick={onNext}
 				disabled={!canGoNext || isGenerating}
-				title={`Next version${tooltipText ? ` • ${tooltipText}` : ""}`}
+				title={`Next version • ${tooltipText}`}
 				aria-label="Go to next version"
 			>
 				<Icon name="chevron-down" />

@@ -20,15 +20,12 @@ export default function FindBar() {
 	const inputRef = useRef<HTMLInputElement>(null);
 	const highlightsRef = useRef<HTMLElement[]>([]);
 
-	// Clear all highlights from the DOM
 	const clearHighlights = useCallback(() => {
 		for (const mark of highlightsRef.current) {
 			const parent = mark.parentNode;
 			if (parent) {
-				// Replace the mark with its text content
 				const text = document.createTextNode(mark.textContent || "");
 				parent.replaceChild(text, mark);
-				// Normalize to merge adjacent text nodes
 				parent.normalize();
 			}
 		}
@@ -37,38 +34,31 @@ export default function FindBar() {
 		setCurrentMatch(0);
 	}, []);
 
-	// Activate a specific match (make it the "current" one)
 	const activateMatch = useCallback((marks: HTMLElement[], index: number) => {
-		// Remove active class from all
 		for (const m of marks) {
 			m.classList.remove(ACTIVE_CLASS);
 			m.classList.remove(PULSE_CLASS);
 		}
 
-		// Add active class to current
 		const activeMatch = marks[index];
 		if (activeMatch) {
 			activeMatch.classList.add(ACTIVE_CLASS);
 			activeMatch.classList.add(PULSE_CLASS);
 
-			// Scroll into view
 			activeMatch.scrollIntoView({
 				behavior: "smooth",
 				block: "center",
 				inline: "nearest",
 			});
 
-			// Remove pulse class after animation
 			setTimeout(() => {
 				activeMatch.classList.remove(PULSE_CLASS);
 			}, 400);
 		}
 	}, []);
 
-	// Perform search and highlight matches
 	const performSearch = useCallback(
 		(text: string) => {
-			// First clear existing highlights
 			clearHighlights();
 
 			if (!text.trim()) return;
@@ -76,13 +66,11 @@ export default function FindBar() {
 			const searchTerm = text.toLowerCase();
 			const marks: HTMLElement[] = [];
 
-			// Walk the DOM and find text nodes
 			const walker = document.createTreeWalker(
 				document.body,
 				NodeFilter.SHOW_TEXT,
 				{
 					acceptNode: (node) => {
-						// Skip script, style, and our own find bar
 						const parent = node.parentElement;
 						if (!parent) return NodeFilter.FILTER_REJECT;
 
@@ -95,17 +83,14 @@ export default function FindBar() {
 							return NodeFilter.FILTER_REJECT;
 						}
 
-						// Skip the find bar itself
 						if (parent.closest("[data-find-bar]")) {
 							return NodeFilter.FILTER_REJECT;
 						}
 
-						// Skip already highlighted nodes
 						if (parent.classList.contains(HIGHLIGHT_CLASS)) {
 							return NodeFilter.FILTER_REJECT;
 						}
 
-						// Check if text contains search term
 						const nodeText = node.textContent?.toLowerCase() || "";
 						if (nodeText.includes(searchTerm)) {
 							return NodeFilter.FILTER_ACCEPT;
@@ -123,7 +108,6 @@ export default function FindBar() {
 				currentNode = walker.nextNode();
 			}
 
-			// Process each text node
 			for (const textNode of nodesToProcess) {
 				const nodeText = textNode.textContent || "";
 				const lowerText = nodeText.toLowerCase();
@@ -135,14 +119,12 @@ export default function FindBar() {
 				const fragment = document.createDocumentFragment();
 
 				while (index !== -1) {
-					// Add text before match
 					if (index > lastIndex) {
 						fragment.appendChild(
 							document.createTextNode(nodeText.slice(lastIndex, index)),
 						);
 					}
 
-					// Create highlight mark
 					const mark = document.createElement("mark");
 					mark.className = HIGHLIGHT_CLASS;
 					mark.textContent = nodeText.slice(index, index + searchTerm.length);
@@ -153,14 +135,12 @@ export default function FindBar() {
 					index = lowerText.indexOf(searchTerm, lastIndex);
 				}
 
-				// Add remaining text
 				if (lastIndex < nodeText.length) {
 					fragment.appendChild(
 						document.createTextNode(nodeText.slice(lastIndex)),
 					);
 				}
 
-				// Replace text node with fragment
 				textNode.parentNode?.replaceChild(fragment, textNode);
 			}
 
@@ -168,7 +148,6 @@ export default function FindBar() {
 			setMatchCount(marks.length);
 			setHasSearched(true);
 
-			// Activate first match if any
 			if (marks.length > 0) {
 				setCurrentMatch(1);
 				activateMatch(marks, 0);
@@ -177,10 +156,8 @@ export default function FindBar() {
 		[clearHighlights, activateMatch],
 	);
 
-	// Navigate to next match
 	const goToNext = useCallback(() => {
 		if (highlightsRef.current.length === 0) {
-			// If no search yet, perform search first
 			if (searchText.trim()) {
 				performSearch(searchText);
 			}
@@ -192,10 +169,8 @@ export default function FindBar() {
 		activateMatch(highlightsRef.current, newIndex - 1);
 	}, [currentMatch, matchCount, searchText, performSearch, activateMatch]);
 
-	// Navigate to previous match
 	const goToPrevious = useCallback(() => {
 		if (highlightsRef.current.length === 0) {
-			// If no search yet, perform search first
 			if (searchText.trim()) {
 				performSearch(searchText);
 			}
@@ -207,7 +182,6 @@ export default function FindBar() {
 		activateMatch(highlightsRef.current, newIndex - 1);
 	}, [currentMatch, matchCount, searchText, performSearch, activateMatch]);
 
-	// Close and cleanup
 	const closeFindBar = useCallback(() => {
 		setIsVisible(false);
 		setSearchText("");
@@ -215,7 +189,6 @@ export default function FindBar() {
 		clearHighlights();
 	}, [clearHighlights]);
 
-	// Listen for IPC events from main process
 	useEffect(() => {
 		if (!window.shadowquill?.find) return;
 
@@ -243,17 +216,14 @@ export default function FindBar() {
 		};
 	}, [isVisible, searchText, goToNext, goToPrevious]);
 
-	// Handle keyboard shortcuts
 	useEffect(() => {
 		const handleKeyDown = (e: KeyboardEvent) => {
-			// Escape closes the find bar
 			if (e.key === "Escape" && isVisible) {
 				e.preventDefault();
 				closeFindBar();
 				return;
 			}
 
-			// Enter in find bar triggers find
 			if (
 				e.key === "Enter" &&
 				isVisible &&
@@ -272,16 +242,13 @@ export default function FindBar() {
 		return () => document.removeEventListener("keydown", handleKeyDown);
 	}, [isVisible, closeFindBar, goToNext, goToPrevious]);
 
-	// Clear highlights and reset search state when search text changes
 	useEffect(() => {
 		if (!searchText) {
 			clearHighlights();
 		}
-		// Reset search state when text changes
 		setHasSearched(false);
 	}, [searchText, clearHighlights]);
 
-	// Cleanup on unmount
 	useEffect(() => {
 		return () => {
 			clearHighlights();
@@ -296,7 +263,6 @@ export default function FindBar() {
 			className="fixed top-12 right-4 z-[9999] flex items-center gap-2 rounded-2xl border border-white/20 px-3 py-2 backdrop-blur-2xl"
 			style={{
 				minWidth: 280,
-				// No gradients — flat frosted surface
 				background: "color-mix(in srgb, var(--color-surface) 65%, transparent)",
 				boxShadow:
 					"0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 1px 0 rgba(255,255,255,0.15) inset, 0 -1px 0 rgba(0,0,0,0.1) inset",

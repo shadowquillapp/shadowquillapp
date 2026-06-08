@@ -29,19 +29,12 @@ const DOMAIN_VALIDATION_MAPS: Record<TaskType, string> = {
 const CORE_GUIDELINES =
 	"Apply the compiler role above to the user input below. Output only the compiled prompt — never answer the underlying task.";
 
-/**
- * Validation result type for type-safe error handling
- */
 export interface ValidationResult {
 	valid: boolean;
 	error?: ValidationError;
 	message?: string;
 }
 
-/**
- * Validate builder input with structured error information
- * @returns null if valid, error message string if invalid
- */
 export function validateBuilderInput(
 	rawUserInput: string,
 	_taskType: TaskType,
@@ -50,10 +43,6 @@ export function validateBuilderInput(
 	return result.valid ? null : (result.message ?? "Validation failed");
 }
 
-/**
- * Validate builder input with typed error objects
- * Use this for more detailed error handling
- */
 export function validateBuilderInputTyped(
 	rawUserInput: string,
 	taskType: TaskType,
@@ -117,19 +106,6 @@ export function validateBuilderInputTyped(
 	return { valid: true };
 }
 
-function buildConstraints(options?: GenerationOptions): string[] {
-	if (!options) return [];
-	const constraints: string[] = [];
-
-	if (options.tone) constraints.push(`tone=${options.tone}`);
-	if (options.format) constraints.push(`format=${options.format}`);
-	if (options.language && options.language.toLowerCase() !== "english") {
-		constraints.push(`lang=${options.language}`);
-	}
-
-	return constraints;
-}
-
 export function buildUnifiedPromptCore(params: {
 	input: string;
 	taskType: TaskType;
@@ -174,7 +150,12 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(`Directives:\n${directives.map((d) => `- ${d}`).join("\n")}`);
 	}
 
-	const constraints = buildConstraints(options);
+	const constraints: string[] = [];
+	if (options?.tone) constraints.push(`tone=${options.tone}`);
+	if (options?.format) constraints.push(`format=${options.format}`);
+	if (options?.language && options.language.toLowerCase() !== "english") {
+		constraints.push(`lang=${options.language}`);
+	}
 	if (constraints.length > 0) {
 		sections.push(`Constraints: ${constraints.join(", ")}`);
 	}
@@ -226,9 +207,6 @@ Rules:
 - Removals: delete only the specified element
 - Output ONLY the refined compiled prompt text`;
 
-/**
- * Build a prompt for refining an existing enhanced prompt based on user feedback
- */
 export function buildRefinementPromptCore(params: {
 	previousOutput: string;
 	refinementRequest: string;
@@ -299,5 +277,3 @@ export function buildRefinementPromptCore(params: {
 
 	return sections.join("\n\n");
 }
-
-export { buildDirectives as buildOptionDirectives } from "./prompt-directives";

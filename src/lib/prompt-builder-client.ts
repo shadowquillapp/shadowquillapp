@@ -1,7 +1,3 @@
-/**
- * Client-side prompt builder wrapper
- * Uses localStorage for system prompt storage and caching for performance
- */
 import {
 	buildRefinementPromptCore,
 	buildUnifiedPromptCore,
@@ -24,21 +20,9 @@ export interface BuildPromptInput {
 	input: string;
 	taskType: TaskType;
 	options?: GenerationOptions;
-	/** Skip cache lookup and generation (useful for forcing fresh generation) */
 	skipCache?: boolean;
 }
 
-/**
- * Build a unified prompt with multi-level caching
- *
- * Cache hierarchy:
- * 1. In-memory LRU cache (fastest, session-scoped)
- * 2. Session storage cache (persists across page reloads)
- * 3. Fresh generation (slowest, always accurate)
- *
- * @param params - The prompt building parameters
- * @returns The generated or cached prompt string
- */
 export async function buildUnifiedPrompt({
 	input,
 	taskType,
@@ -47,7 +31,6 @@ export async function buildUnifiedPrompt({
 }: BuildPromptInput): Promise<string> {
 	const rawUserInput = input.trim();
 
-	// Validate input first (always runs, no caching for validation)
 	const validationError = validateBuilderInput(rawUserInput, taskType);
 	if (validationError) throw new ValidationError(validationError);
 
@@ -58,27 +41,21 @@ export async function buildUnifiedPrompt({
 		systemPrompt,
 	};
 
-	// Generate cache key
 	const cacheKey = createPromptCacheKey(rawUserInput, taskType, cacheOptions);
 
-	// Check caches if not skipping
 	if (!skipCache) {
-		// Level 1: In-memory cache
 		const memCached = getPromptCache().get(cacheKey);
 		if (memCached) {
 			return memCached;
 		}
 
-		// Level 2: Session storage cache
 		const sessionCached = getFromSessionCache(cacheKey);
 		if (sessionCached) {
-			// Promote to memory cache for faster subsequent access
 			getPromptCache().set(cacheKey, sessionCached);
 			return sessionCached;
 		}
 	}
 
-	// Level 3: Generate fresh prompt
 	const generatedPrompt = buildUnifiedPromptCore({
 		input: rawUserInput,
 		taskType,
@@ -86,17 +63,12 @@ export async function buildUnifiedPrompt({
 		...(options && { options }),
 	});
 
-	// Store in both caches
 	getPromptCache().set(cacheKey, generatedPrompt);
 	saveToSessionCache(cacheKey, generatedPrompt);
 
 	return generatedPrompt;
 }
 
-/**
- * Build a prompt without caching (for preview purposes)
- * Useful for real-time preview where we want fresh generation each time
- */
 export async function buildPromptPreview({
 	input,
 	taskType,
@@ -111,19 +83,12 @@ export async function buildPromptPreview({
 }
 
 export interface BuildRefinementPromptInput {
-	previousOutput: string; // The existing enhanced prompt to refine
-	refinementRequest: string; // User's tweak/fix instruction
+	previousOutput: string;
+	refinementRequest: string;
 	taskType: TaskType;
 	options?: GenerationOptions;
 }
 
-/**
- * Build a refinement prompt that modifies an existing enhanced prompt based on user feedback.
- * Used in the versioning workflow when the user wants to tweak/fix a previous output.
- *
- * @param params - The refinement parameters
- * @returns The generated refinement prompt string
- */
 export async function buildRefinementPrompt({
 	previousOutput,
 	refinementRequest,
@@ -132,22 +97,18 @@ export async function buildRefinementPrompt({
 }: BuildRefinementPromptInput): Promise<string> {
 	const trimmedRequest = refinementRequest.trim();
 
-	// Validate the refinement request (must have some content)
 	if (!trimmedRequest) {
 		throw new ValidationError(
 			"Please provide a refinement request describing what to change.",
 		);
 	}
 
-	// Generate the refinement prompt (no caching for refinements as they depend on previous output)
-	const generatedPrompt = buildRefinementPromptCore({
+	return buildRefinementPromptCore({
 		previousOutput,
 		refinementRequest: trimmedRequest,
 		taskType,
 		...(options && { options }),
 	});
-
-	return generatedPrompt;
 }
 
 export { validateBuilderInput } from "@/lib/prompt-builder-core";

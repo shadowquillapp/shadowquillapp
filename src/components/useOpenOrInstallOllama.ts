@@ -2,12 +2,6 @@
 
 import { useCallback, useState } from "react";
 
-interface WindowWithOllamaApi extends Window {
-	shadowquill?: {
-		openOllama?: () => Promise<{ ok: boolean; error?: string }>;
-	};
-}
-
 interface UseOpenOrInstallOllamaOptions {
 	ollamaInstalled: boolean | null;
 	checkOllamaInstalled: () => Promise<void>;
@@ -27,8 +21,6 @@ export function useOpenOrInstallOllama({
 		setOpenOllamaError(null);
 
 		try {
-			const win = window as WindowWithOllamaApi;
-
 			if (ollamaInstalled === null) {
 				await checkOllamaInstalled();
 			}
@@ -38,14 +30,14 @@ export function useOpenOrInstallOllama({
 				return;
 			}
 
-			if (!win.shadowquill?.openOllama) {
+			if (!window.shadowquill?.openOllama) {
 				setOpenOllamaError(
 					"This feature is only available in the desktop app.",
 				);
 				return;
 			}
 
-			const result = await win.shadowquill.openOllama();
+			const result = await window.shadowquill.openOllama();
 
 			if (result.ok) {
 				setTimeout(() => {

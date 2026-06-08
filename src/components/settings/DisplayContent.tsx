@@ -5,27 +5,6 @@ import { getJSON, setJSON } from "@/lib/local-storage";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { Icon, type IconName } from "../Icon";
 
-interface ShadowQuillViewApi {
-	view?: {
-		getZoomFactor?: () => Promise<number>;
-		setZoomFactor?: (factor: number) => Promise<void>;
-		onZoomChanged?: (callback: (factor: number) => void) => () => void;
-	};
-	window?: {
-		getSize?: () => Promise<{
-			ok: boolean;
-			windowSize?: [number, number];
-			contentSize?: [number, number];
-			isMaximized?: boolean;
-			isFullScreen?: boolean;
-		}>;
-	};
-}
-
-type WindowWithShadowQuill = Window & {
-	shadowquill?: ShadowQuillViewApi;
-};
-
 export default function DisplayContent() {
 	const [available, setAvailable] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
@@ -37,11 +16,9 @@ export default function DisplayContent() {
 		isMaximized?: boolean;
 		isFullScreen?: boolean;
 	} | null>(null);
-	// Initialize theme from localStorage immediately to prevent reset on mount
 	const [currentTheme, setCurrentTheme] = React.useState<
 		"earth" | "purpledark" | "dark" | "light"
 	>(() => {
-		// Load saved theme synchronously during initialization
 		let savedTheme = getJSON<
 			"earth" | "purpledark" | "dark" | "light" | "default" | null
 		>(STORAGE_KEYS.THEME_PREFERENCE.key, null);
@@ -62,11 +39,10 @@ export default function DisplayContent() {
 	});
 
 	React.useEffect(() => {
-		const api = (window as WindowWithShadowQuill).shadowquill;
+		const api = window.shadowquill;
 		const hasApi = !!api?.view?.getZoomFactor;
 		setAvailable(hasApi);
 
-		// Ensure theme is applied to document (in case it wasn't set during init)
 		document.documentElement.setAttribute(
 			"data-theme",
 			currentTheme === "earth" ? "" : currentTheme,
@@ -104,7 +80,7 @@ export default function DisplayContent() {
 	}, [currentTheme]);
 
 	React.useEffect(() => {
-		const api = (window as WindowWithShadowQuill).shadowquill;
+		const api = window.shadowquill;
 		if (!api?.view?.onZoomChanged) return;
 
 		const unsubscribe = api.view.onZoomChanged((factor) => {
@@ -117,7 +93,7 @@ export default function DisplayContent() {
 	}, []);
 
 	const applyZoom = async (factor: number) => {
-		const api = (window as WindowWithShadowQuill).shadowquill;
+		const api = window.shadowquill;
 		const clamped = Math.max(0.8, Math.min(1.5, factor));
 		setZoomFactor(clamped);
 		try {
@@ -192,7 +168,6 @@ export default function DisplayContent() {
 						</div>
 					)}
 
-					{/* Theme Selection - More Compact */}
 					<div className="shadowquill-field" style={{ marginBottom: "24px" }}>
 						<div
 							className="shadowquill-label"
@@ -249,7 +224,6 @@ export default function DisplayContent() {
 						</div>
 					</div>
 
-					{/* Zoom Controls - More Compact */}
 					<div className="shadowquill-field" style={{ marginBottom: "24px" }}>
 						<div
 							className="shadowquill-label"
@@ -334,7 +308,6 @@ export default function DisplayContent() {
 						</div>
 					</div>
 
-					{/* Display Stats */}
 					<div className="shadowquill-field" style={{ marginBottom: "0" }}>
 						<div
 							className="shadowquill-label"

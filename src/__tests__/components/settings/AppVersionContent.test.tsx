@@ -11,7 +11,6 @@ describe("AppVersionContent", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 
-		// Mock window.shadowquill
 		Object.defineProperty(window, "shadowquill", {
 			value: {
 				checkForUpdates: mockCheckForUpdates,
@@ -64,7 +63,6 @@ describe("AppVersionContent", () => {
 			const button = screen.getByRole("button", { name: "Check for Updates" });
 			await user.click(button);
 
-			// Button should have aria-label "Checking..." and be disabled
 			expect(
 				screen.getByRole("button", { name: "Checking..." }),
 			).toBeInTheDocument();
@@ -292,7 +290,6 @@ describe("AppVersionContent", () => {
 			const button = screen.getByRole("button", { name: "Check for Updates" });
 			await user.click(button);
 
-			// Button should be disabled and have aria-label "Checking..."
 			const checkingButton = screen.getByRole("button", {
 				name: "Checking...",
 			});
@@ -338,7 +335,6 @@ describe("AppVersionContent", () => {
 			await waitFor(() => {
 				const resultDiv = screen.getByText("You're up to date!").parentElement;
 				expect(resultDiv).toBeInTheDocument();
-				// Check that styles are applied (browser normalizes colors so we check individually)
 				const styles = window.getComputedStyle(resultDiv as Element);
 				expect(styles.borderRadius).toBe("8px");
 				expect(styles.marginTop).toBe("16px");
@@ -365,11 +361,9 @@ describe("AppVersionContent", () => {
 			await waitFor(() => {
 				const resultDiv = screen.getByText("Update Available!").parentElement;
 				expect(resultDiv).toBeInTheDocument();
-				// Check that download button exists
 				expect(
 					screen.getByRole("button", { name: "Download Latest Version" }),
 				).toBeInTheDocument();
-				// Check that styles are applied
 				const styles = window.getComputedStyle(resultDiv as Element);
 				expect(styles.borderRadius).toBe("8px");
 				expect(styles.marginTop).toBe("16px");
@@ -394,9 +388,7 @@ describe("AppVersionContent", () => {
 					"Error Checking for Updates",
 				).parentElement;
 				expect(resultDiv).toBeInTheDocument();
-				// Check that error message is displayed
 				expect(screen.getByText("Network error")).toBeInTheDocument();
-				// Check that styles are applied
 				const styles = window.getComputedStyle(resultDiv as Element);
 				expect(styles.borderRadius).toBe("8px");
 				expect(styles.marginTop).toBe("16px");

@@ -2,7 +2,6 @@ import { render } from "@testing-library/react";
 import { afterAll, afterEach, describe, expect, it, vi } from "vitest";
 import { Icon } from "@/components/Icon";
 
-// Mock console.error to test error handling
 const mockConsoleError = vi
 	.spyOn(console, "error")
 	.mockImplementation(() => {});
@@ -41,7 +40,6 @@ describe("Icon", () => {
 	});
 
 	it("should accept title prop", () => {
-		// Heroicons handle title as a standard SVG attribute - just verify render doesn't throw
 		expect(() =>
 			render(<Icon name="copy" title="Copy to clipboard" />),
 		).not.toThrow();
@@ -52,12 +50,10 @@ describe("Icon", () => {
 	it("should apply custom style", () => {
 		render(<Icon name="check" style={{ color: "green" }} />);
 		const icon = document.querySelector("svg");
-		// JSDOM converts named colors to RGB
 		expect(icon).toHaveStyle({ color: "rgb(0, 128, 0)" });
 	});
 
 	it("should return null for invalid icon name", () => {
-		// Restore console.error for this test to capture it
 		mockConsoleError.mockRestore();
 		const originalError = console.error;
 		const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});

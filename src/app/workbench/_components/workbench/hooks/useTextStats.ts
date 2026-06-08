@@ -1,8 +1,5 @@
 import { useMemo } from "react";
 
-/**
- * Calculates word and character counts for a given text.
- */
 export function useTextStats(text: string | null | undefined): {
 	wordCount: number;
 	charCount: number;

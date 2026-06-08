@@ -5,15 +5,7 @@ import { fileURLToPath } from "node:url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-/**
- * Semantic-release prepare plugin to update src/lib/version.ts with the new version
- */
 export default {
-	/**
-	 * @param {object} pluginConfig
-	 * @param {object} context
-	 * @returns {Promise<void>}
-	 */
 	async prepare(_pluginConfig, context) {
 		const { nextRelease } = context;
 		const { version } = nextRelease;

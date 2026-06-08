@@ -10,16 +10,19 @@ import OllamaSetupContent from "./settings/OllamaSetupContent";
 import SystemPromptEditorContent from "./settings/SystemPromptEditorContent";
 import { useCloseOnEscape } from "./useCloseOnEscape";
 
-export type SettingsTab = "system" | "ollama" | "data" | "display" | "version";
+const SETTINGS_TABS = [
+	{ tab: "version", label: "App Version", Content: AppVersionContent },
+	{ tab: "display", label: "Display", Content: DisplayContent },
+	{
+		tab: "data",
+		label: "Data Management",
+		Content: LocalDataManagementContent,
+	},
+	{ tab: "ollama", label: "Ollama Setup", Content: OllamaSetupContent },
+	{ tab: "system", label: "System Prompt", Content: SystemPromptEditorContent },
+] as const;
 
-// Tab order for determining animation direction
-const TAB_ORDER: SettingsTab[] = [
-	"version",
-	"display",
-	"data",
-	"ollama",
-	"system",
-];
+export type SettingsTab = (typeof SETTINGS_TABS)[number]["tab"];
 
 interface Props {
 	open: boolean;
@@ -40,20 +43,18 @@ export default function SettingsDialog({
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const [containerHeight, setContainerHeight] = useState<number>(0);
 
-	// Handle tab switching with animation
 	const handleTabChange = useCallback(
 		(newTab: SettingsTab) => {
 			if (newTab === activeTab) return;
 
-			// Determine direction based on tab order
-			const currentIndex = TAB_ORDER.indexOf(activeTab);
-			const newIndex = TAB_ORDER.indexOf(newTab);
+			const currentIndex = SETTINGS_TABS.findIndex(
+				(item) => item.tab === activeTab,
+			);
+			const newIndex = SETTINGS_TABS.findIndex((item) => item.tab === newTab);
 			setTransitionDirection(newIndex > currentIndex ? "down" : "up");
 
-			// Update to new tab
 			setActiveTab(newTab);
 
-			// Update container height based on cached or estimated height
 			const cachedHeight = contentHeightRef.current.get(newTab);
 			if (cachedHeight) {
 				setContainerHeight(cachedHeight);
@@ -62,7 +63,6 @@ export default function SettingsDialog({
 		[activeTab],
 	);
 
-	// Update container height whenever content changes
 	useEffect(() => {
 		if (!containerRef.current) return;
 
@@ -78,10 +78,8 @@ export default function SettingsDialog({
 			}
 		};
 
-		// Initial measurement
 		updateHeight();
 
-		// Use ResizeObserver to track content size changes
 		const resizeObserver = new ResizeObserver(() => {
 			updateHeight();
 		});
@@ -153,23 +151,6 @@ export default function SettingsDialog({
 		);
 	};
 
-	const renderContentFor = (tab: SettingsTab | string) => {
-		switch (tab) {
-			case "system":
-				return <SystemPromptEditorContent />;
-			case "ollama":
-				return <OllamaSetupContent />;
-			case "data":
-				return <LocalDataManagementContent />;
-			case "display":
-				return <DisplayContent />;
-			case "version":
-				return <AppVersionContent />;
-			default:
-				return null;
-		}
-	};
-
 	if (!open) return null;
 
 	return (
@@ -197,7 +178,6 @@ export default function SettingsDialog({
             display: none !important;
           }
           
-          /* Modal opening animation with elegant spring */
           .settings-dialog--entering {
             animation: modalEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
           }
@@ -216,7 +196,6 @@ export default function SettingsDialog({
             }
           }
           
-          /* Backdrop fade in with blur */
           .settings-backdrop-animated {
             animation: backdropFadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
           }
@@ -232,7 +211,6 @@ export default function SettingsDialog({
             }
           }
           
-          /* Sidebar tab button transitions with micro-interactions */
           .settings-tab-btn {
             transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
@@ -253,14 +231,12 @@ export default function SettingsDialog({
             transform: translateX(2px) scale(0.98);
           }
           
-          /* Tab content container - smooth height with spring easing */
           .settings-tab-content {
             position: relative;
             overflow: visible;
             transition: height 0.5s cubic-bezier(0.34, 1.35, 0.64, 1);
           }
           
-          /* Tab panel - absolutely positioned for silky crossfade */
           .settings-tab-panel {
             position: absolute;
             top: 0;
@@ -274,7 +250,6 @@ export default function SettingsDialog({
             will-change: opacity, transform;
           }
           
-          /* Active tab - visible with subtle scale for depth */
           .settings-tab-panel--active {
             opacity: 1;
             transform: translateY(0) scale(1);
@@ -284,7 +259,6 @@ export default function SettingsDialog({
             z-index: 2;
           }
           
-          /* Inactive tabs - elegantly hidden */
           .settings-tab-panel--inactive {
             opacity: 0;
             pointer-events: none;
@@ -292,17 +266,14 @@ export default function SettingsDialog({
             z-index: 1;
           }
           
-          /* Entering from below - elegant upward motion */
           .settings-tab-panel--inactive.settings-tab-panel--from-down {
             transform: translateY(28px) scale(0.96);
           }
           
-          /* Entering from above - elegant downward motion */
           .settings-tab-panel--inactive.settings-tab-panel--from-up {
             transform: translateY(-28px) scale(0.96);
           }
           
-          /* Add subtle animation to active content */
           .settings-tab-panel--active > * {
             animation: contentEnter 0.45s cubic-bezier(0.34, 1.35, 0.64, 1) forwards;
           }
@@ -350,7 +321,6 @@ export default function SettingsDialog({
 				</div>
 				<div className="modal-body" style={{ overflow: "hidden" }}>
 					<div style={{ display: "flex", gap: 20, alignItems: "flex-start" }}>
-						{/* Left sidebar tabs */}
 						<nav
 							aria-label="Settings sections"
 							style={{
@@ -366,13 +336,10 @@ export default function SettingsDialog({
 								overflow: "hidden",
 							}}
 						>
-							<TabItem tab="version" label="App Version" />
-							<TabItem tab="display" label="Display" />
-							<TabItem tab="data" label="Data Management" />
-							<TabItem tab="ollama" label="Ollama Setup" />
-							<TabItem tab="system" label="System Prompt" />
+							{SETTINGS_TABS.map((item) => (
+								<TabItem key={item.tab} tab={item.tab} label={item.label} />
+							))}
 						</nav>
-						{/* Right content */}
 						<div
 							style={{
 								flex: 1,
@@ -386,16 +353,7 @@ export default function SettingsDialog({
 									height: containerHeight > 0 ? `${containerHeight}px` : "auto",
 								}}
 							>
-								{/* Render all tabs, but only show the active one */}
-								{(
-									[
-										"version",
-										"display",
-										"data",
-										"ollama",
-										"system",
-									] as SettingsTab[]
-								).map((tab) => {
+								{SETTINGS_TABS.map(({ tab, Content }) => {
 									const isActive = activeTab === tab;
 									const directionClass =
 										transitionDirection === "down"
@@ -413,7 +371,7 @@ export default function SettingsDialog({
 											}`}
 											aria-hidden={!isActive}
 										>
-											{renderContentFor(tab)}
+											<Content />
 										</div>
 									);
 								})}

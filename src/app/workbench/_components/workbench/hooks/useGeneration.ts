@@ -11,9 +11,6 @@ import type { MessageItem } from "../types";
 import type { useTabManager } from "../useTabManager";
 import { appendVersion, versionList } from "../version-graph";
 
-/**
- * Hook for managing prompt generation: sending prompts and stopping generation.
- */
 export function useGeneration(
 	tabManager: ReturnType<typeof useTabManager>,
 	ensureProject: (firstLine: string, tabId?: string) => Promise<string | null>,
@@ -84,7 +81,6 @@ export function useGeneration(
 					tabManager.updateMessageForTab(tabId, user.id, { id: createdUserId });
 			} catch {}
 
-			// Use the active tab's preset directly to ensure tab isolation
 			const tabPreset = activeTab.preset;
 			const tabTaskType = tabPreset.taskType;
 			const tabOptions = tabPreset.options ?? ({} as GenerationOptions);
@@ -112,7 +108,6 @@ export function useGeneration(
 				}),
 			};
 
-			// Check if we're in refinement mode (has at least one version with output)
 			const existingVersions = versionList(graph).filter(
 				(v) => v.label !== "Start",
 			);

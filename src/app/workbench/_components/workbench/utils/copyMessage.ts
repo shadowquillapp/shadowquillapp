@@ -1,7 +1,3 @@
-/**
- * Extracts content from code fences if present, otherwise returns the original content.
- * Removes duplicate code fence markers from the extracted content.
- */
 export function extractCodeFenceContent(content: string): string {
 	let textToCopy = content;
 	const fenceMatch = textToCopy.match(
@@ -21,9 +17,6 @@ export function extractCodeFenceContent(content: string): string {
 	return textToCopy;
 }
 
-/**
- * Copies text to clipboard with fallback for older browsers.
- */
 export async function copyToClipboard(content: string): Promise<void> {
 	const textToCopy = extractCodeFenceContent(content);
 	try {

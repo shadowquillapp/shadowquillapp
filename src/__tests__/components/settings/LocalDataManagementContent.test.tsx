@@ -3,7 +3,6 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import LocalDataManagementContent from "@/components/settings/LocalDataManagementContent";
 
-// Mock DialogProvider
 const mockConfirm = vi.fn();
 vi.mock("@/components/DialogProvider", () => ({
 	useDialog: () => ({
@@ -12,7 +11,6 @@ vi.mock("@/components/DialogProvider", () => ({
 	}),
 }));
 
-// Mock local-storage
 vi.mock("@/lib/local-storage", () => ({
 	clearAllStorageForFactoryReset: vi.fn(),
 	abortFactoryReset: vi.fn(),
@@ -358,7 +356,6 @@ describe("LocalDataManagementContent", () => {
 				userData: "/path/to/data",
 			});
 			mockConfirm.mockResolvedValue(true);
-			// Make factoryReset hang
 			mockApi.factoryReset.mockImplementation(
 				() => new Promise(() => {}), // Never resolves
 			);

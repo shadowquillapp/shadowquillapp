@@ -22,56 +22,45 @@ export interface StoredTabState {
 	activeTabId?: string | null;
 }
 
-function isPreset(v: unknown): v is PromptPresetSummary {
-	return isRecord(v) && isString(v.name) && isString(v.taskType);
-}
-
-function isMessage(v: unknown): v is MessageItem {
-	return (
-		isRecord(v) &&
-		isString(v.id) &&
-		(v.role === "user" || v.role === "assistant") &&
-		isString(v.content)
-	);
-}
-
-function isVersionGraph(v: unknown): v is VersionGraph {
-	return (
-		isRecord(v) &&
-		isRecord(v.nodes) &&
-		isString(v.headId) &&
-		isString(v.tailId) &&
-		isString(v.activeId)
-	);
-}
-
-function isStoredTab(v: unknown): v is StoredTab {
-	return (
-		isRecord(v) &&
-		isString(v.id) &&
-		isString(v.label) &&
-		isPreset(v.preset) &&
-		(v.projectId === undefined ||
-			v.projectId === null ||
-			isString(v.projectId)) &&
-		(v.draft === undefined || isString(v.draft)) &&
-		(v.messages === undefined || isArrayOf(v.messages, isMessage)) &&
-		(v.versionGraph === undefined || isVersionGraph(v.versionGraph))
-	);
-}
-
-function isStoredTabState(v: unknown): v is StoredTabState {
-	return (
-		isRecord(v) &&
-		isArrayOf(v.tabs, isStoredTab) &&
-		(v.activeTabId === undefined ||
-			v.activeTabId === null ||
-			isString(v.activeTabId))
-	);
-}
-
 export function parseTabState(raw: string | null): StoredTabState {
-	return safeParse(raw, isStoredTabState, { tabs: [], activeTabId: null });
+	return safeParse(
+		raw,
+		(v): v is StoredTabState =>
+			isRecord(v) &&
+			isArrayOf(
+				v.tabs,
+				(tab): tab is StoredTab =>
+					isRecord(tab) &&
+					isString(tab.id) &&
+					isString(tab.label) &&
+					isRecord(tab.preset) &&
+					isString(tab.preset.name) &&
+					isString(tab.preset.taskType) &&
+					(tab.projectId === undefined ||
+						tab.projectId === null ||
+						isString(tab.projectId)) &&
+					(tab.draft === undefined || isString(tab.draft)) &&
+					(tab.messages === undefined ||
+						isArrayOf(
+							tab.messages,
+							(message): message is MessageItem =>
+								isRecord(message) &&
+								isString(message.id) &&
+								(message.role === "user" || message.role === "assistant") &&
+								isString(message.content),
+						)) &&
+					(tab.versionGraph === undefined ||
+						(isRecord(tab.versionGraph) &&
+							isRecord(tab.versionGraph.nodes) &&
+							isString(tab.versionGraph.headId) &&
+							isString(tab.versionGraph.tailId) &&
+							isString(tab.versionGraph.activeId))),
+			) &&
+			(v.activeTabId === undefined ||
+				v.activeTabId === null ||
+				isString(v.activeTabId)),
+		{ tabs: [], activeTabId: null },
+	);
 }
 
 export function readTabState(): StoredTabState {

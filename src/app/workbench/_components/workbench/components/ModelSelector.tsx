@@ -12,9 +12,6 @@ interface ModelSelectorProps {
 	isGenerating: boolean;
 }
 
-/**
- * Vertical slider model selector component for choosing between installed Gemma models.
- */
 export function ModelSelector({
 	availableModels,
 	currentModelId,
@@ -52,12 +49,10 @@ export function ModelSelector({
 			style={{
 				left: "var(--space-4)",
 				bottom: "var(--space-4)",
-				// Disable during generation - handled by parent CSS
 				pointerEvents: isGenerating ? "none" : "auto",
 				transition: "opacity 0.2s ease",
 			}}
 		>
-			{/* Vertical Slider Model Selector */}
 			<div
 				className="relative"
 				style={{
@@ -67,7 +62,6 @@ export function ModelSelector({
 					minHeight: "80px",
 				}}
 			>
-				{/* Slider container */}
 				<div
 					className="absolute inset-0 overflow-hidden rounded-[18px] border"
 					style={{
@@ -80,7 +74,6 @@ export function ModelSelector({
 						padding: "var(--space-2)",
 					}}
 				>
-					{/* Header */}
 					<div
 						className="text-center font-bold text-[10px] uppercase tracking-wider"
 						style={{
@@ -92,7 +85,6 @@ export function ModelSelector({
 					>
 						GEMMA
 					</div>
-					{/* Stops */}
 					<div
 						className="relative z-[1] flex h-full flex-col items-stretch justify-between"
 						style={{ height: "calc(100% - var(--space-4))" }}

@@ -25,17 +25,12 @@ interface OutputPanelProps {
 	outputCharCount: number;
 	copyMessage: (messageId: string, content: string) => Promise<void>;
 	copiedMessageId: string | null;
-	lastAssistantMessage: MessageItem | undefined;
 	scrollContainerRef: React.RefObject<HTMLDivElement | null>;
 	activeMessages: MessageItem[];
-	hasMessages: boolean;
 	outputAnimateKey: number;
 	endRef: React.RefObject<HTMLDivElement | null>;
 }
 
-/**
- * Output panel component displaying generated responses, version navigation, and error messages.
- */
 export function OutputPanel({
 	tabManager,
 	isResizing,
@@ -49,13 +44,16 @@ export function OutputPanel({
 	outputCharCount,
 	copyMessage,
 	copiedMessageId,
-	lastAssistantMessage,
 	scrollContainerRef,
 	activeMessages,
-	hasMessages,
 	outputAnimateKey,
 	endRef,
 }: OutputPanelProps) {
+	const hasMessages = activeMessages.length > 0;
+	const lastAssistantMessage = activeMessages
+		.filter((m) => m.role === "assistant")
+		.slice(-1)[0];
+
 	return (
 		<section
 			className="prompt-output-pane relative flex h-full flex-col overflow-hidden"
@@ -98,7 +96,6 @@ export function OutputPanel({
 						className="flex min-w-0 items-center"
 						style={{ gap: "var(--space-3)" }}
 					>
-						{/* Version Badge */}
 						<VersionDropdown
 							versionDropdownRef={versionDropdownRef}
 							showVersionDropdown={showVersionDropdown}
@@ -113,9 +110,7 @@ export function OutputPanel({
 						/>
 					</div>
 
-					{/* Right: Actions */}
 					<div className="flex items-center" style={{ gap: "var(--space-1)" }}>
-						{/* Copy Button */}
 						<button
 							type="button"
 							onClick={() => {
@@ -160,7 +155,6 @@ export function OutputPanel({
 					</div>
 				</div>
 
-				{/* Scrollable Content Area */}
 				<div
 					ref={scrollContainerRef}
 					className="custom-scrollbar relative overflow-y-auto"
@@ -195,7 +189,6 @@ export function OutputPanel({
 						</div>
 					) : (
 						(() => {
-							// Get the active version's output message ID
 							const activeOutputId = activeTab
 								? getOutputMessageId(
 										activeTab.versionGraph,
@@ -229,7 +222,6 @@ export function OutputPanel({
 											className="group relative flex flex-col"
 											style={{ gap: "var(--space-3)" }}
 										>
-											{/* Message Content */}
 											<div className="max-w-none font-mono text-[11px] text-on-surface leading-relaxed">
 												<MessageRenderer
 													content={activeOutput.content}
@@ -273,7 +265,6 @@ export function OutputPanel({
 				</div>
 			</div>
 
-			{/* Error Toast/Banner */}
 			{activeTab?.error && (
 				<div
 					className="slide-in-from-bottom-2 absolute flex animate-in items-center rounded-lg border border-attention/10 bg-attention/10 text-attention shadow-lg"

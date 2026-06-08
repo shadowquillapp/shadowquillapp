@@ -116,17 +116,8 @@ function isPreset(v: unknown): v is Preset {
 	return v.options === undefined || isRecord(v.options);
 }
 
-function isPresetArray(v: unknown): v is unknown[] {
-	return Array.isArray(v);
-}
-
-export function parsePreset(raw: string | null): Preset | null {
-	const parsed = safeParse(raw, isPreset, null);
-	return parsed ? sanitizePreset(parsed) : null;
-}
-
 export function getPresets(): Preset[] {
-	const list = safeParse(getRaw(STORAGE_KEYS.PRESETS.key), isPresetArray, []);
+	const list = safeParse(getRaw(STORAGE_KEYS.PRESETS.key), Array.isArray, []);
 	return list.filter(isPreset).map(sanitizePreset);
 }
 

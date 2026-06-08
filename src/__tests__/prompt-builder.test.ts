@@ -308,7 +308,6 @@ describe("buildUnifiedPromptCore", () => {
 				systemPrompt: "",
 			});
 			expect(result).toContain("A test");
-			// Assembly guidelines are always included regardless of system prompt
 			expect(result).toContain("Apply the compiler role above");
 		});
 	});

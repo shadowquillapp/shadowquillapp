@@ -39,29 +39,6 @@ export interface PresetLite {
 	options?: GenerationOptions;
 }
 
-export interface ValidationError {
-	field: string;
-	message: string;
-}
-
-export interface AppSetting {
-	id: string;
-	key: string;
-	value: string | null;
-	createdAt: Date;
-	updatedAt: Date;
-}
-
-export interface PromptPreset {
-	id: string;
-	userId: string;
-	name: string;
-	taskType: string;
-	options: GenerationOptions;
-	createdAt: Date;
-	updatedAt: Date;
-}
-
 export interface PromptProject {
 	id: string;
 	userId: string;
@@ -86,25 +63,53 @@ export interface SystemSpecs {
 	gpu: string;
 }
 
-// ============================================
-// Global Window Extensions
-// ============================================
-
 declare global {
 	interface Window {
 		shadowquill?: {
+			getEnvSafety?: () => Promise<unknown>;
+			restartApp?: () => Promise<unknown>;
 			getPlatform?: () => Promise<string>;
 			getSystemSpecs?: () => Promise<SystemSpecs>;
+			checkForUpdates?: () => Promise<{
+				success: boolean;
+				currentVersion?: string;
+				latestVersion?: string;
+				updateAvailable?: boolean;
+				releaseUrl?: string;
+				releaseNotes?: string;
+				publishedAt?: string;
+				error?: string;
+			}>;
+			openExternalUrl?: (url: string) => Promise<unknown>;
 			window?: {
 				minimize?: () => Promise<void>;
 				maximizeToggle?: () => Promise<void>;
 				close?: () => Promise<void>;
+				getSize?: () => Promise<{
+					ok: boolean;
+					windowSize?: [number, number];
+					contentSize?: [number, number];
+					isMaximized?: boolean;
+					isFullScreen?: boolean;
+				}>;
+			};
+			view?: {
+				getZoomFactor?: () => Promise<number>;
+				setZoomFactor?: (factor: number) => Promise<void>;
+				resetZoom?: () => Promise<void>;
+				onZoomChanged?: (callback: (factor: number) => void) => () => void;
+			};
+			storage?: {
+				getItem: (key: string) => Promise<string | null>;
+				setItem: (key: string, value: string) => Promise<boolean>;
+				removeItem: (key: string) => Promise<boolean>;
+				clear: () => Promise<boolean>;
+				getAll: () => Promise<Record<string, string>>;
 			};
 			checkOllamaInstalled?: () => Promise<{ installed: boolean }>;
 			openOllama?: () => Promise<{ ok: boolean; error?: string }>;
 			getDataPaths?: () => Promise<unknown>;
-			factoryReset?: () => Promise<unknown>;
-			restartApp?: () => Promise<unknown>;
+			factoryReset?: () => Promise<{ ok: boolean; error?: string }>;
 			find?: {
 				findInPage: (
 					text: string,

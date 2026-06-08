@@ -1,13 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ModelError, NetworkError } from "@/lib/errors";
 
-// Mock the local-config module
 vi.mock("@/lib/local-config", () => ({
 	readLocalModelConfig: vi.fn(),
 }));
 
 import { readLocalModelConfig } from "@/lib/local-config";
-// Import after mocking
 import { callLocalModelClient } from "@/lib/model-client";
 
 const mockReadLocalModelConfig = vi.mocked(readLocalModelConfig);
@@ -175,7 +173,6 @@ describe("callLocalModelClient", () => {
 			});
 
 			const result = await callLocalModelClient("prompt");
-			// Should return stringified empty object when json parsing fails
 			expect(result).toBe("{}");
 		});
 	});
@@ -215,7 +212,6 @@ describe("callLocalModelClient", () => {
 				options: { format: "markdown" },
 			});
 
-			// Should not double-wrap
 			expect(result).toBe("```markdown\n# Content\n```");
 		});
 
@@ -248,7 +244,6 @@ describe("callLocalModelClient", () => {
 				options: { format: "xml" },
 			});
 
-			// Should unwrap and re-wrap
 			expect(result).toBe("```xml\n<root><item>value</item></root>\n```");
 		});
 

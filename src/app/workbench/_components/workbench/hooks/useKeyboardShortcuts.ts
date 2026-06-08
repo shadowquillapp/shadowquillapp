@@ -1,9 +1,6 @@
 import { useEffect } from "react";
 import type { useTabManager } from "../useTabManager";
 
-/**
- * Hook for handling keyboard shortcuts in the workbench.
- */
 export function useKeyboardShortcuts(
 	tabManager: ReturnType<typeof useTabManager>,
 	setShowPresetPicker: (show: boolean) => void,
@@ -25,7 +22,6 @@ export function useKeyboardShortcuts(
 					tabManager.closeTab(activeTab.id);
 				}
 			}
-			// Switch tabs with Cmd/Ctrl + 1-8
 			if ((e.metaKey || e.ctrlKey) && e.key >= "1" && e.key <= "8") {
 				e.preventDefault();
 				const index = Number.parseInt(e.key, 10) - 1;

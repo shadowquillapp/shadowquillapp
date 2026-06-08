@@ -36,7 +36,6 @@ export function PresetInfoDialog({
 	const router = useRouter();
 
 	const handleOpenInStudio = () => {
-		// Set the preset ID in storage so it auto-selects when studio loads
 		if (preset.id) {
 			setLastSelectedPresetKey(preset.id);
 		} else if (preset.name) {
@@ -52,7 +51,6 @@ export function PresetInfoDialog({
 
 	const options = preset.options || {};
 
-	// Group options by category
 	const groupedOptions: Record<
 		string,
 		Array<{ key: string; value: unknown }>
@@ -82,7 +80,6 @@ export function PresetInfoDialog({
 		groupedOptions[category]?.push({ key, value });
 	}
 
-	// Order categories
 	const categoryOrder = ["general", "context", "other"];
 
 	return (
@@ -114,11 +111,9 @@ export function PresetInfoDialog({
 
 				<div className="modal-body">
 					<div className="flex flex-col gap-6">
-						{/* Header Info */}
 						<div
 							className="flex items-start justify-between gap-4 rounded-xl border border-[var(--color-outline)] p-5"
 							style={{
-								// No gradients — keep header card flat
 								background: "var(--color-surface-variant)",
 							}}
 						>
@@ -168,7 +163,6 @@ export function PresetInfoDialog({
 							</button>
 						</div>
 
-						{/* Grouped Settings */}
 						<div className="flex flex-col gap-5">
 							{categoryOrder.map((cat) => {
 								const items = groupedOptions[cat];

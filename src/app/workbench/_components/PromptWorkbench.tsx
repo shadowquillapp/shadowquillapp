@@ -137,14 +137,12 @@ export default function PromptWorkbench() {
 
 	const activeTab = tabManager.activeTab;
 	const activeMessages = activeTab?.messages ?? [];
-	const hasMessages = activeMessages.length > 0;
 
 	const versions = activeTab
 		? versionList(activeTab.versionGraph).filter((v) => v.label !== "Start")
 		: [];
 	const isVersionNavigatorEmpty = Boolean(activeTab) && versions.length === 0;
 
-	// Close version dropdown when clicking outside
 	useEffect(() => {
 		if (!showVersionDropdown) return;
 
@@ -186,11 +184,6 @@ export default function PromptWorkbench() {
 	const inputThatGeneratedOutput = activeVersion?.originalInput ?? null;
 
 	const { wordCount, charCount } = useTextStats(activeTab?.draft);
-
-	const lastAssistantMessage = useMemo(
-		() => activeMessages.filter((m) => m.role === "assistant").slice(-1)[0],
-		[activeMessages],
-	);
 
 	const activeVersionOutput = useMemo(() => {
 		if (!activeVersion?.outputMessageId) return null;
@@ -271,7 +264,6 @@ export default function PromptWorkbench() {
 								id: tab.id,
 								label: tab.label,
 								preset: tab.preset,
-								isDirty: tab.isDirty,
 							}))}
 							activeTabId={tabManager.activeTabId}
 							maxTabs={tabManager.maxTabs}
@@ -296,7 +288,6 @@ export default function PromptWorkbench() {
 						<button
 							type="button"
 							onClick={() => {
-								// Set the active tab's preset as the selected preset
 								const activeTab = tabManager.activeTab;
 								if (activeTab?.preset) {
 									const presetKey =
@@ -338,7 +329,6 @@ export default function PromptWorkbench() {
 						marginRight: "var(--space-2)",
 					}}
 				>
-					{/* LEFT PANE: Input */}
 					<InputPanel
 						leftPanelWidth={leftPanelWidth}
 						isResizing={isResizing}
@@ -367,7 +357,6 @@ export default function PromptWorkbench() {
 						setShowPresetInfo={setShowPresetInfo}
 					/>
 
-					{/* CENTER: Resize Handle + Version Navigator */}
 					{/* biome-ignore lint/a11y/useSemanticElements: Interactive resize handle requires div, not hr */}
 					<div
 						className={`panel-resize-container relative hidden flex-col items-center justify-center md:flex ${isResizing ? "panel-resize-container--active" : ""} ${isVersionNavigatorEmpty ? "panel-resize-container--solid" : ""}`}
@@ -386,12 +375,9 @@ export default function PromptWorkbench() {
 							cursor: "col-resize",
 						}}
 					>
-						{/* Single centered resize line - top segment */}
 						<div className="panel-resize-line panel-resize-line--top" />
-						{/* Single centered resize line - bottom segment */}
 						<div className="panel-resize-line panel-resize-line--bottom" />
 
-						{/* Version Navigator - sits in the cutout */}
 						{activeTab && (
 							<VersionNavigator
 								versionGraph={activeTab.versionGraph}
@@ -403,7 +389,6 @@ export default function PromptWorkbench() {
 						)}
 					</div>
 
-					{/* RIGHT PANE: Output */}
 					<OutputPanel
 						tabManager={tabManager}
 						isResizing={isResizing}
@@ -417,17 +402,14 @@ export default function PromptWorkbench() {
 						outputCharCount={outputCharCount}
 						copyMessage={copyMessage}
 						copiedMessageId={copiedMessageId}
-						lastAssistantMessage={lastAssistantMessage}
 						scrollContainerRef={scrollContainerRef}
 						activeMessages={activeMessages}
-						hasMessages={hasMessages}
 						outputAnimateKey={outputAnimateKey}
 						endRef={endRef}
 					/>
 				</div>
 			</div>
 
-			{/* Settings Dialog */}
 			{settingsOpen && (
 				<SettingsDialog
 					open={settingsOpen}
@@ -436,7 +418,6 @@ export default function PromptWorkbench() {
 				/>
 			)}
 
-			{/* Preset Info Dialog */}
 			{activeTab?.preset && (
 				<PresetInfoDialog
 					open={showPresetInfo}
@@ -445,7 +426,6 @@ export default function PromptWorkbench() {
 				/>
 			)}
 
-			{/* Preset Picker Modal */}
 			<PresetPickerModal
 				open={showPresetPicker}
 				onClose={() => {
@@ -454,7 +434,6 @@ export default function PromptWorkbench() {
 				}}
 				onSelectPreset={(preset) => {
 					if (presetPickerForNewTab) {
-						// Create new tab with selected preset
 						applyPreset(preset);
 						tabManager.createTab(preset);
 					}

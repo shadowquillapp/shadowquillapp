@@ -9,7 +9,6 @@ interface BasicSettingsProps {
 	onFieldChange: (field: string, value: unknown) => void;
 }
 
-/** Detail level labels for the picker */
 const DETAIL_LEVELS = {
 	normal: { label: "Normal", icon: "sliders" as const },
 	detailed: { label: "Detailed", icon: "plus" as const },
@@ -23,7 +22,6 @@ export default function BasicSettings({
 
 	return (
 		<div className="space-y-6">
-			{/* Preset Name - full width */}
 			<div>
 				<label
 					htmlFor="preset-name"
@@ -41,7 +39,6 @@ export default function BasicSettings({
 				/>
 			</div>
 
-			{/* Task Type with visual indicator */}
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
 				<div>
 					<label
@@ -66,7 +63,6 @@ export default function BasicSettings({
 					/>
 				</div>
 
-				{/* Format with preview */}
 				<div>
 					<label
 						htmlFor="output-format"
@@ -86,7 +82,6 @@ export default function BasicSettings({
 					/>
 				</div>
 
-				{/* Tone with icon indicator */}
 				<div>
 					<label
 						htmlFor="tone"
@@ -109,7 +104,6 @@ export default function BasicSettings({
 				</div>
 			</div>
 
-			{/* Detail Level - simplified */}
 			<div>
 				<div className="mb-1.5 block font-medium text-secondary text-xs">
 					Detail Level
@@ -171,7 +165,6 @@ export default function BasicSettings({
 				</div>
 			</div>
 
-			{/* Language */}
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				<div>
 					<label
