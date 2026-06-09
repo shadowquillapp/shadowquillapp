@@ -1,6 +1,10 @@
 import type { GenerationOptions, TaskType } from "@/types";
 import { ValidationError } from "./errors";
-import { buildDirectives } from "./prompt-directives";
+import {
+	buildDirectives,
+	DETAIL_WORD_LIMIT_LABELS,
+	isNonEnglishLanguage,
+} from "./prompt-directives/base";
 
 export const VALIDATION_PIPELINE = `Validation pipeline (apply in order):
 1. User Goal Preservation
@@ -28,6 +32,37 @@ const DOMAIN_VALIDATION_MAPS: Record<TaskType, string> = {
 
 const CORE_GUIDELINES =
 	"Apply the compiler role above to the user input below. Output only the compiled prompt — never answer the underlying task.";
+
+function pushLanguagePreamble(
+	sections: string[],
+	language: string | undefined,
+): void {
+	if (!isNonEnglishLanguage(language)) return;
+	sections.push(
+		`[LANGUAGE INSTRUCTION - READ FIRST]\nYou MUST respond ONLY in ${language}. Every single word of your response must be in ${language}.\nDo NOT use English. This is your primary instruction.\n[END LANGUAGE INSTRUCTION]`,
+	);
+}
+
+function pushLanguageReminder(
+	sections: string[],
+	language: string | undefined,
+	mode: "unified" | "refinement",
+): void {
+	if (!isNonEnglishLanguage(language)) return;
+	const subject =
+		mode === "unified"
+			? "The user input may be in English, but YOUR response must be 100%"
+			: "The existing prompt may be in English, but YOUR refined output must be 100%";
+	sections.push(
+		`⚠️ REMINDER: Write your ENTIRE output in ${language}. ${subject} in ${language}.`,
+	);
+}
+
+function languageFinalSuffix(language: string | undefined): string {
+	return isNonEnglishLanguage(language)
+		? ` Your entire output MUST be written in ${language}.`
+		: "";
+}
 
 export interface ValidationResult {
 	valid: boolean;
@@ -114,14 +149,11 @@ export function buildUnifiedPromptCore(params: {
 }): string {
 	const { input, taskType, options, systemPrompt } = params;
 	const rawUserInput = input.trim();
+	const language = options?.language;
 
 	const sections: string[] = [];
 
-	if (options?.language && options.language.toLowerCase() !== "english") {
-		sections.push(
-			`[LANGUAGE INSTRUCTION - READ FIRST]\nYou MUST respond ONLY in ${options.language}. Every single word of your response must be in ${options.language}.\nDo NOT use English. This is your primary instruction.\n[END LANGUAGE INSTRUCTION]`,
-		);
-	}
+	pushLanguagePreamble(sections, language);
 
 	if (systemPrompt) {
 		sections.push(systemPrompt);
@@ -131,11 +163,7 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(`Act as ${options.identity.trim()}.`);
 	}
 
-	if (options?.language && options.language.toLowerCase() !== "english") {
-		sections.push(
-			`⚠️ REMINDER: Write your ENTIRE output in ${options.language}. The user input may be in English, but YOUR response must be 100% in ${options.language}.`,
-		);
-	}
+	pushLanguageReminder(sections, language, "unified");
 
 	sections.push(CORE_GUIDELINES);
 	sections.push(VALIDATION_PIPELINE);
@@ -153,8 +181,8 @@ export function buildUnifiedPromptCore(params: {
 	const constraints: string[] = [];
 	if (options?.tone) constraints.push(`tone=${options.tone}`);
 	if (options?.format) constraints.push(`format=${options.format}`);
-	if (options?.language && options.language.toLowerCase() !== "english") {
-		constraints.push(`lang=${options.language}`);
+	if (isNonEnglishLanguage(language)) {
+		constraints.push(`lang=${language}`);
 	}
 	if (constraints.length > 0) {
 		sections.push(`Constraints: ${constraints.join(", ")}`);
@@ -173,19 +201,13 @@ export function buildUnifiedPromptCore(params: {
 	let finalInstruction = `Compile the user input into stable ${taskType} execution framing. Output ONLY the compiled prompt text — no preamble or meta-commentary.`;
 
 	if (options?.detail) {
-		const wordLimits: Record<string, string> = {
-			normal: "75-150 words (DO NOT EXCEED 150)",
-			detailed: "200-250 words (DO NOT EXCEED 250)",
-		};
-		const limit = wordLimits[options.detail];
+		const limit = DETAIL_WORD_LIMIT_LABELS[options.detail];
 		if (limit) {
 			finalInstruction += ` Your compiled output must be ${limit}. Do NOT include word count constraints in the compiled prompt itself.`;
 		}
 	}
 
-	if (options?.language && options.language.toLowerCase() !== "english") {
-		finalInstruction += ` Your entire output MUST be written in ${options.language}.`;
-	}
+	finalInstruction += languageFinalSuffix(language);
 
 	sections.push(finalInstruction);
 
@@ -218,22 +240,15 @@ export function buildRefinementPromptCore(params: {
 		params;
 	const trimmedRequest = refinementRequest.trim();
 	const trimmedPrevious = previousOutput.trim();
+	const language = options?.language;
 
 	const sections: string[] = [];
 
-	if (options?.language && options.language.toLowerCase() !== "english") {
-		sections.push(
-			`[LANGUAGE INSTRUCTION - READ FIRST]\nYou MUST respond ONLY in ${options.language}. Every single word of your response must be in ${options.language}.\nDo NOT use English. This is your primary instruction.\n[END LANGUAGE INSTRUCTION]`,
-		);
-	}
+	pushLanguagePreamble(sections, language);
 
 	sections.push(systemPrompt?.trim() || REFINEMENT_GUIDELINES);
 
-	if (options?.language && options.language.toLowerCase() !== "english") {
-		sections.push(
-			`⚠️ REMINDER: Write your ENTIRE output in ${options.language}. The existing prompt may be in English, but YOUR refined output must be 100% in ${options.language}.`,
-		);
-	}
+	pushLanguageReminder(sections, language, "refinement");
 
 	sections.push(`Task Type: ${taskType}`);
 	sections.push(VALIDATION_PIPELINE);
@@ -259,19 +274,13 @@ export function buildRefinementPromptCore(params: {
 		"Apply the refinement request to the existing compiled prompt. Output ONLY the refined prompt text — no preamble or meta-commentary.";
 
 	if (options?.detail) {
-		const wordLimits: Record<string, string> = {
-			normal: "75-150 words (DO NOT EXCEED 150)",
-			detailed: "200-250 words (DO NOT EXCEED 250)",
-		};
-		const limit = wordLimits[options.detail];
+		const limit = DETAIL_WORD_LIMIT_LABELS[options.detail];
 		if (limit) {
 			finalInstruction += ` Your refined output must be ${limit}.`;
 		}
 	}
 
-	if (options?.language && options.language.toLowerCase() !== "english") {
-		finalInstruction += ` Your entire output MUST be written in ${options.language}.`;
-	}
+	finalInstruction += languageFinalSuffix(language);
 
 	sections.push(finalInstruction);
 

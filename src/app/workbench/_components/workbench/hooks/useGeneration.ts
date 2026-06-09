@@ -1,6 +1,6 @@
 import { useCallback, useRef } from "react";
 import type { useDialog } from "@/components/DialogProvider";
-import { appendMessagesWithCap as localAppendMessages } from "@/lib/local-db";
+import { appendMessagesWithCap as localAppendMessages } from "@/lib/domain/projects";
 import { callLocalModelClient } from "@/lib/model-client";
 import {
 	buildRefinementPrompt,

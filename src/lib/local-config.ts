@@ -12,6 +12,10 @@ interface OllamaTagsResponse {
 	models?: Array<{ name?: string; id?: string; size?: number }>;
 }
 
+type OllamaTagsResult =
+	| { ok: true; data: OllamaTagsResponse }
+	| { ok: false; error: string };
+
 export const SUPPORTED_OLLAMA_MODELS = [
 	"gemma4:latest",
 	"gemma4:e2b",
@@ -56,15 +60,7 @@ export function normalizeOllamaBaseUrlInput(value?: string): string {
 	return raw;
 }
 
-export async function validateLocalModelConnection(
-	cfg?: LocalModelConfig | null,
-): Promise<{ ok: boolean; error?: string }> {
-	const config = cfg ?? readLocalModelConfig();
-	if (!config) return { ok: false, error: "not-configured" };
-	if (config.provider !== "ollama")
-		return { ok: false, error: "unsupported-provider" };
-	const baseUrl = validateOllamaBaseUrl(config.baseUrl);
-	if (!baseUrl) return { ok: false, error: "invalid-base-url" };
+async function fetchOllamaTags(baseUrl: string): Promise<OllamaTagsResult> {
 	const controller = new AbortController();
 	const to = setTimeout(() => controller.abort(), 15000);
 	try {
@@ -72,19 +68,8 @@ export async function validateLocalModelConnection(
 			signal: controller.signal,
 		});
 		if (!res.ok) return { ok: false, error: "unreachable" };
-		const json = (await res.json().catch(() => ({}))) as OllamaTagsResponse;
-		const models: Array<{ name?: string; id?: string }> = Array.isArray(
-			json?.models,
-		)
-			? json.models
-			: [];
-		if (!models.length) return { ok: false, error: "no-models-found" };
-		const found = models.some(
-			(m) =>
-				(m?.name || m?.id || "").toLowerCase() === config.model.toLowerCase(),
-		);
-		if (!found) return { ok: false, error: "model-not-found" };
-		return { ok: true };
+		const data = (await res.json().catch(() => ({}))) as OllamaTagsResponse;
+		return { ok: true, data };
 	} catch (e: unknown) {
 		const err = e as { name?: string };
 		return {
@@ -96,40 +81,56 @@ export async function validateLocalModelConnection(
 	}
 }
 
+export async function validateLocalModelConnection(
+	cfg?: LocalModelConfig | null,
+): Promise<{ ok: boolean; error?: string }> {
+	const config = cfg ?? readLocalModelConfig();
+	if (!config) return { ok: false, error: "not-configured" };
+	if (config.provider !== "ollama")
+		return { ok: false, error: "unsupported-provider" };
+	const baseUrl = validateOllamaBaseUrl(config.baseUrl);
+	if (!baseUrl) return { ok: false, error: "invalid-base-url" };
+
+	const result = await fetchOllamaTags(baseUrl);
+	if (!result.ok) return { ok: false, error: result.error };
+
+	const models: Array<{ name?: string; id?: string }> = Array.isArray(
+		result.data?.models,
+	)
+		? result.data.models
+		: [];
+	if (!models.length) return { ok: false, error: "no-models-found" };
+	const found = models.some(
+		(m) =>
+			(m?.name || m?.id || "").toLowerCase() === config.model.toLowerCase(),
+	);
+	if (!found) return { ok: false, error: "model-not-found" };
+	return { ok: true };
+}
+
 export async function listAvailableModels(
 	baseUrl: string,
 ): Promise<Array<{ name: string; size: number }>> {
 	const validBaseUrl = validateOllamaBaseUrl(baseUrl);
 	if (!validBaseUrl) return [];
 
-	const controller = new AbortController();
-	const to = setTimeout(() => controller.abort(), 15000);
+	const result = await fetchOllamaTags(validBaseUrl);
+	if (!result.ok) return [];
 
-	try {
-		const res = await fetch(`${validBaseUrl}/api/tags`, {
-			signal: controller.signal,
-		});
-		if (!res.ok) return [];
-		const json = (await res.json().catch(() => ({}))) as OllamaTagsResponse;
-		const models = Array.isArray(json?.models) ? json.models : [];
-		const uniq = new Map<string, { name: string; size: number }>();
+	const models = Array.isArray(result.data?.models) ? result.data.models : [];
+	const uniq = new Map<string, { name: string; size: number }>();
 
-		for (const model of models) {
-			const name = String(model?.name || model?.id || "");
-			const key = name.toLowerCase();
-			if (isSupportedOllamaModelName(key) && !uniq.has(key)) {
-				uniq.set(key, { name, size: Number(model?.size || 0) });
-			}
+	for (const model of models) {
+		const name = String(model?.name || model?.id || "");
+		const key = name.toLowerCase();
+		if (isSupportedOllamaModelName(key) && !uniq.has(key)) {
+			uniq.set(key, { name, size: Number(model?.size || 0) });
 		}
-
-		return Array.from(uniq.values()).sort(
-			(a, b) =>
-				SUPPORTED_OLLAMA_MODELS.indexOf(a.name.toLowerCase()) -
-				SUPPORTED_OLLAMA_MODELS.indexOf(b.name.toLowerCase()),
-		);
-	} catch {
-		return [];
-	} finally {
-		clearTimeout(to);
 	}
+
+	return Array.from(uniq.values()).sort(
+		(a, b) =>
+			SUPPORTED_OLLAMA_MODELS.indexOf(a.name.toLowerCase()) -
+			SUPPORTED_OLLAMA_MODELS.indexOf(b.name.toLowerCase()),
+	);
 }

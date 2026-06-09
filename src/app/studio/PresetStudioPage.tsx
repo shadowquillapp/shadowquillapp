@@ -6,9 +6,8 @@ import PresetLibrary from "@/app/studio/components/PresetLibrary";
 import StudioHeader from "@/app/studio/components/StudioHeader";
 import { usePresetManager } from "@/app/studio/hooks/usePresetManager";
 import { useDialog } from "@/components/DialogProvider";
-import { getJSON, setJSON } from "@/lib/local-storage";
 import { getLastSelectedPresetKey } from "@/lib/preset-store";
-import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { applyStoredThemeToDocument } from "@/lib/theme-preference";
 import type { PresetLite } from "@/types";
 
 export default function PresetStudioPage() {
@@ -51,27 +50,7 @@ export default function PresetStudioPage() {
 	}, [presets, selectedPresetId, editingPreset]);
 
 	useEffect(() => {
-		let savedTheme = getJSON<
-			"earth" | "purpledark" | "dark" | "light" | "default" | null
-		>(STORAGE_KEYS.THEME_PREFERENCE.key, null);
-		if (savedTheme === "default") {
-			savedTheme = "purpledark";
-			setJSON(STORAGE_KEYS.THEME_PREFERENCE.key, "purpledark");
-		}
-		if (
-			savedTheme &&
-			(savedTheme === "earth" ||
-				savedTheme === "purpledark" ||
-				savedTheme === "dark" ||
-				savedTheme === "light")
-		) {
-			document.documentElement.setAttribute(
-				"data-theme",
-				savedTheme === "earth" ? "" : savedTheme,
-			);
-		} else {
-			document.documentElement.setAttribute("data-theme", "");
-		}
+		applyStoredThemeToDocument();
 	}, []);
 
 	const handleSelectPreset = useCallback(

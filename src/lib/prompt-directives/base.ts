@@ -1,5 +1,24 @@
 import type { GenerationOptions, TaskType } from "@/types";
 
+export const DETAIL_WORD_LIMIT_DESCRIPTIONS: Record<
+	string,
+	{ min: number; max: number; description: string }
+> = {
+	normal: { min: 75, max: 150, description: "Normal (75-150 words)" },
+	detailed: { min: 200, max: 250, description: "Detailed (200-250 words)" },
+};
+
+export const DETAIL_WORD_LIMIT_LABELS = Object.fromEntries(
+	Object.entries(DETAIL_WORD_LIMIT_DESCRIPTIONS).map(([key, limit]) => [
+		key,
+		`${limit.min}-${limit.max} words (DO NOT EXCEED ${limit.max})`,
+	]),
+) as Record<string, string>;
+
+export function isNonEnglishLanguage(language?: string): language is string {
+	return !!language && language.toLowerCase() !== "english";
+}
+
 export function buildBaseDirectives(options: GenerationOptions): string[] {
 	const directives: string[] = [];
 
@@ -15,14 +34,7 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 	}
 
 	if (options.detail) {
-		const wordLimits: Record<
-			string,
-			{ min: number; max: number; description: string }
-		> = {
-			normal: { min: 75, max: 150, description: "Normal (75-150 words)" },
-			detailed: { min: 200, max: 250, description: "Detailed (200-250 words)" },
-		};
-		const limit = wordLimits[options.detail];
+		const limit = DETAIL_WORD_LIMIT_DESCRIPTIONS[options.detail];
 		if (limit) {
 			directives.push(
 				`OUTPUT LENGTH REQUIREMENT: Your compiled prompt must be ${limit.description}. This is a constraint on YOUR output length - do NOT include word count constraints in the compiled prompt itself. Exceeding ${limit.max} words is NOT acceptable.`,
@@ -30,7 +42,7 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 		}
 	}
 
-	if (options.language && options.language.toLowerCase() !== "english") {
+	if (isNonEnglishLanguage(options.language)) {
 		directives.push(
 			`LANGUAGE REQUIREMENT: The compiled prompt output MUST be written entirely in ${options.language}. Even if the user's input is in English or another language, your output must be in ${options.language}. This is non-negotiable.`,
 		);
@@ -83,4 +95,15 @@ export function buildFormatDirectives(
 	}
 
 	return directives;
+}
+
+export function buildDirectives(
+	taskType: TaskType,
+	options?: GenerationOptions,
+): string[] {
+	if (!options) return [];
+	return [
+		...buildBaseDirectives(options),
+		...buildFormatDirectives(taskType, options),
+	].filter((d) => d.length > 0);
 }
