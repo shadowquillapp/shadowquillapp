@@ -1,10 +1,10 @@
 "use client";
 import { useEffect, useState } from "react";
+import { getElectronDataPaths } from "@/lib/electron-storage";
 import {
 	abortFactoryReset,
 	clearAllStorageForFactoryReset,
 } from "@/lib/local-storage";
-import { getElectronDataPaths } from "@/lib/electron-storage";
 import { useDialog } from "../DialogProvider";
 
 export default function LocalDataManagementContent() {
@@ -135,7 +135,10 @@ export default function LocalDataManagementContent() {
 										setError(null);
 										try {
 											clearAllStorageForFactoryReset();
-											const res = await (window.shadowquill?.factoryReset?.() as Promise<{ ok: boolean; error?: string } | undefined>);
+											const res =
+												await (window.shadowquill?.factoryReset?.() as Promise<
+													{ ok: boolean; error?: string } | undefined
+												>);
 											if (!res?.ok) {
 												abortFactoryReset();
 												setError(res?.error || "Reset failed");
