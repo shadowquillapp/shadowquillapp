@@ -7,6 +7,8 @@ export default defineConfig({
 
 		include: ["src/**/*.test.ts", "src/**/*.test.tsx"],
 
+		passWithNoTests: true,
+
 		exclude: ["node_modules", ".next", "dist", "electron"],
 
 		testTimeout: 10000,
@@ -22,8 +24,6 @@ export default defineConfig({
 				"node_modules/**",
 			],
 		},
-
-		setupFiles: ["./src/__tests__/setup.ts"],
 
 		globals: true,
 

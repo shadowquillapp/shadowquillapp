@@ -53,18 +53,12 @@ Output rules:
 
 function readRawPrompt(): string {
 	if (typeof window === "undefined") return "";
-	try {
-		return getJSON<string>(SYSTEM_PROMPT_BUILD_KEY, "") || "";
-	} catch {
-		return "";
-	}
+	return getJSON<string>(SYSTEM_PROMPT_BUILD_KEY, "") || "";
 }
 
 function writeRawPrompt(value: string): void {
 	if (typeof window === "undefined") return;
-	try {
-		setJSON(SYSTEM_PROMPT_BUILD_KEY, value);
-	} catch {}
+	setJSON(SYSTEM_PROMPT_BUILD_KEY, value);
 }
 
 function normalize(prompt: string | null | undefined): string {

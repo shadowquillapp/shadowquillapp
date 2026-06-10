@@ -1,6 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/Icon";
+import { getTaskTypeIcon } from "@/lib/task-type-icon";
 import type { PresetLite } from "@/types";
 
 interface PresetCardProps {
@@ -14,27 +15,6 @@ export default function PresetCard({
 	isSelected,
 	onSelect,
 }: PresetCardProps) {
-	const getIconForType = (
-		type: string,
-	): import("@/components/Icon").IconName => {
-		switch (type) {
-			case "engineering":
-				return "git-compare";
-			case "visual":
-				return "palette";
-			case "motion":
-				return "eye";
-			case "analysis":
-				return "search";
-			case "narrative":
-				return "edit";
-			case "persuasion":
-				return "thumbsUp";
-			default:
-				return "folder-open";
-		}
-	};
-
 	const taskType = preset.taskType || "intent";
 
 	return (
@@ -77,7 +57,7 @@ export default function PresetCard({
 					color: isSelected ? "var(--color-on-primary)" : undefined,
 				}}
 			>
-				<Icon name={getIconForType(taskType)} className="h-4 w-4" />
+				<Icon name={getTaskTypeIcon(taskType)} className="h-4 w-4" />
 			</div>
 
 			<div className="flex min-w-0 flex-1 items-center justify-between gap-2">

@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
 import SettingsDialog from "@/components/SettingsDialog";
-import { getJSON, setJSON } from "@/lib/local-storage";
+import { getJSON } from "@/lib/local-storage";
 import { setLastSelectedPresetKey } from "@/lib/preset-store";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
+import { applyStoredThemeToDocument } from "@/lib/theme-preference";
 import { InputPanel } from "./workbench/components/InputPanel";
 import { OutputPanel } from "./workbench/components/OutputPanel";
 import { useCopyMessage } from "./workbench/hooks/useCopyMessage";
@@ -69,27 +70,7 @@ export default function PromptWorkbench() {
 	} = useProjectManager(tabManager, presets, applyPreset, showInfo);
 
 	useEffect(() => {
-		let savedTheme = getJSON<
-			"earth" | "purpledark" | "dark" | "light" | "default" | null
-		>(STORAGE_KEYS.THEME_PREFERENCE.key, null);
-		if (savedTheme === "default") {
-			savedTheme = "purpledark";
-			setJSON(STORAGE_KEYS.THEME_PREFERENCE.key, "purpledark");
-		}
-		if (
-			savedTheme &&
-			(savedTheme === "earth" ||
-				savedTheme === "purpledark" ||
-				savedTheme === "dark" ||
-				savedTheme === "light")
-		) {
-			document.documentElement.setAttribute(
-				"data-theme",
-				savedTheme === "earth" ? "" : savedTheme,
-			);
-		} else {
-			document.documentElement.setAttribute("data-theme", "");
-		}
+		applyStoredThemeToDocument();
 	}, []);
 
 	useEffect(() => {

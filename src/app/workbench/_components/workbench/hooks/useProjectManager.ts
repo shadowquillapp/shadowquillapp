@@ -6,7 +6,7 @@ import {
 	getProject as localGetProject,
 	listProjectsByUser as localListProjects,
 	updateProjectVersionGraph,
-} from "@/lib/local-db";
+} from "@/lib/domain/projects";
 import type { MessageItem, PromptPresetSummary, VersionGraph } from "../types";
 import type { useTabManager } from "../useTabManager";
 import {

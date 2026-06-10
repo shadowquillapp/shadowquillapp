@@ -241,244 +241,129 @@
  * SYNTAX TOKENS - EARTH THEME
  * ======================================== */
 
-:root[data-theme=""] .token-key,
-:root:not([data-theme]) .token-key {
+:root:is([data-theme=""], :not([data-theme])) .token-key {
 	color: #88c0d0;
 }
 
-:root[data-theme=""] .token-string,
-:root:not([data-theme]) .token-string {
+:root:is([data-theme=""], :not([data-theme])) .token-string {
 	color: #87c095;
 }
 
-:root[data-theme=""] .token-number,
-:root:not([data-theme]) .token-number {
+:root:is([data-theme=""], :not([data-theme])) .token-number {
 	color: #d4a574;
 }
 
-:root[data-theme=""] .token-boolean,
-:root:not([data-theme]) .token-boolean {
+:root:is([data-theme=""], :not([data-theme])) .token-boolean {
 	color: #6eb5be;
 }
 
-:root[data-theme=""] .token-null,
-:root:not([data-theme]) .token-null {
+:root:is([data-theme=""], :not([data-theme])) .token-null {
 	color: #b48ead;
 }
 
-:root[data-theme=""] .token-brace,
-:root:not([data-theme]) .token-brace {
+:root:is([data-theme=""], :not([data-theme])) .token-brace {
 	color: #b48ead;
 }
 
-:root[data-theme=""] .token-bracket,
-:root:not([data-theme]) .token-bracket {
+:root:is([data-theme=""], :not([data-theme])) .token-bracket {
 	color: #ebcb8b;
 }
 
-:root[data-theme=""] .token-colon,
-:root:not([data-theme]) .token-colon {
+:root:is([data-theme=""], :not([data-theme])) .token-colon {
 	color: #b8a882;
 }
 
-:root[data-theme=""] .token-comma,
-:root:not([data-theme]) .token-comma {
+:root:is([data-theme=""], :not([data-theme])) .token-comma {
 	color: #7c7060;
 }
 
-:root[data-theme=""] .token-punctuation,
-:root:not([data-theme]) .token-punctuation {
+:root:is([data-theme=""], :not([data-theme])) .token-punctuation {
 	color: #b8a882;
 }
 
-:root[data-theme=""] .token-md-header,
-:root:not([data-theme]) .token-md-header {
+:root:is([data-theme=""], :not([data-theme])) .token-md-header {
 	color: #88c0d0;
 }
 
-:root[data-theme=""] .token-md-header-text,
-:root:not([data-theme]) .token-md-header-text {
+:root:is([data-theme=""], :not([data-theme])) .token-md-header-text {
 	color: #88c0d0;
 }
 
-:root[data-theme=""] .token-md-bold,
-:root:not([data-theme]) .token-md-bold {
+:root:is([data-theme=""], :not([data-theme])) .token-md-bold {
 	color: #d08770;
 }
 
-:root[data-theme=""] .token-md-bold-text,
-:root:not([data-theme]) .token-md-bold-text {
+:root:is([data-theme=""], :not([data-theme])) .token-md-bold-text {
 	color: #eee8d5;
 }
 
-:root[data-theme=""] .token-md-italic,
-:root:not([data-theme]) .token-md-italic {
+:root:is([data-theme=""], :not([data-theme])) .token-md-italic {
 	color: #b48ead;
 }
 
-:root[data-theme=""] .token-md-italic-text,
-:root:not([data-theme]) .token-md-italic-text {
+:root:is([data-theme=""], :not([data-theme])) .token-md-italic-text {
 	color: #eee8d5;
 }
 
-:root[data-theme=""] .token-md-code-tick,
-:root:not([data-theme]) .token-md-code-tick {
+:root:is([data-theme=""], :not([data-theme])) .token-md-code-tick {
 	color: #6eb5be;
 }
 
-:root[data-theme=""] .token-md-code,
-:root:not([data-theme]) .token-md-code {
+:root:is([data-theme=""], :not([data-theme])) .token-md-code {
 	color: #87c095;
 	background: #87c0951a;
 }
 
-:root[data-theme=""] .token-md-link-text,
-:root:not([data-theme]) .token-md-link-text {
+:root:is([data-theme=""], :not([data-theme])) .token-md-link-text {
 	color: #88c0d0;
 }
 
-:root[data-theme=""] .token-md-url,
-:root:not([data-theme]) .token-md-url {
+:root:is([data-theme=""], :not([data-theme])) .token-md-url {
 	color: #6eb5be;
 }
 
-:root[data-theme=""] .token-md-list-marker,
-:root:not([data-theme]) .token-md-list-marker {
+:root:is([data-theme=""], :not([data-theme])) .token-md-list-marker {
 	color: #ebcb8b;
 }
 
-:root[data-theme=""] .token-md-quote-text,
-:root:not([data-theme]) .token-md-quote-text {
+:root:is([data-theme=""], :not([data-theme])) .token-md-quote-text {
 	color: #b8a882;
 }
 
-:root[data-theme=""] .token-md-strike,
-:root:not([data-theme]) .token-md-strike {
+:root:is([data-theme=""], :not([data-theme])) .token-md-strike {
 	color: #d08770;
 }
 
-:root[data-theme=""] .token-md-strike-text,
-:root:not([data-theme]) .token-md-strike-text {
+:root:is([data-theme=""], :not([data-theme])) .token-md-strike-text {
 	color: #b8a882;
 }
 
-:root[data-theme=""] .token-attribute,
-:root:not([data-theme]) .token-attribute {
+:root:is([data-theme=""], :not([data-theme])) .token-attribute {
 	color: #d4a574;
 }
 
-:root[data-theme=""] .token-comment,
-:root:not([data-theme]) .token-comment {
+:root:is([data-theme=""], :not([data-theme])) .token-comment {
 	color: #65737e;
 }
 
 /* ========================================
- * SYNTAX TOKENS - DARK THEME
+ * SYNTAX TOKENS - DARK THEME (overrides only)
  * ======================================== */
-
-[data-theme="dark"] .token-key {
-	color: #61afef;
-}
-
-[data-theme="dark"] .token-string {
-	color: #98c379;
-}
-
-[data-theme="dark"] .token-number {
-	color: #d19a66;
-}
-
-[data-theme="dark"] .token-boolean {
-	color: #56b6c2;
-}
-
-[data-theme="dark"] .token-null {
-	color: #c678dd;
-}
-
-[data-theme="dark"] .token-brace {
-	color: #c678dd;
-}
-
-[data-theme="dark"] .token-bracket {
-	color: #e5c07b;
-}
-
-[data-theme="dark"] .token-colon {
-	color: #abb2bf;
-}
-
-[data-theme="dark"] .token-comma {
-	color: #5c6370;
-}
-
-[data-theme="dark"] .token-punctuation {
-	color: #abb2bf;
-}
-
-[data-theme="dark"] .token-md-header {
-	color: #61afef;
-}
-
-[data-theme="dark"] .token-md-header-text {
-	color: #61afef;
-}
-
-[data-theme="dark"] .token-md-bold {
-	color: #e06c75;
-}
 
 [data-theme="dark"] .token-md-bold-text {
 	color: #e0e0e0;
-}
-
-[data-theme="dark"] .token-md-italic {
-	color: #c678dd;
 }
 
 [data-theme="dark"] .token-md-italic-text {
 	color: #e0e0e0;
 }
 
-[data-theme="dark"] .token-md-code-tick {
-	color: #56b6c2;
-}
-
-[data-theme="dark"] .token-md-code {
-	color: #98c379;
-	background: #98c3791a;
-}
-
-[data-theme="dark"] .token-md-link-text {
-	color: #61afef;
-}
-
-[data-theme="dark"] .token-md-url {
-	color: #56b6c2;
-}
-
-[data-theme="dark"] .token-md-list-marker {
-	color: #e5c07b;
-}
-
 [data-theme="dark"] .token-md-quote-text {
 	color: #9e9e9e;
 }
 
-[data-theme="dark"] .token-md-strike {
-	color: #e06c75;
-}
-
 [data-theme="dark"] .token-md-strike-text {
 	color: #9e9e9e;
-}
-
-[data-theme="dark"] .token-attribute {
-	color: #d19a66;
-}
-
-[data-theme="dark"] .token-comment {
-	color: #5c6370;
 }
 
 /* ========================================

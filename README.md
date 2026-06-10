@@ -2,7 +2,7 @@
   
 # ShadowQuill
 
-**Privacy-First AI Prompt Studio**
+**A local prompt studio that stays on your machine**
 
   [![Stars](https://img.shields.io/github/stars/shadowquillapp/shadowquillapp)](https://github.com/shadowquillapp/shadowquillapp/stargazers)
   [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
@@ -10,18 +10,18 @@
 
 ## Overview
 
-ShadowQuill transforms natural language ideas into structured, high-quality prompts. Powered by Ollama and Google Gemma, it runs 100% offline, completely local and free.
+ShadowQuill turns rough ideas into structured prompts you can actually use. It talks to [Ollama](https://ollama.com) and runs Google Gemma models locally — no cloud API, no account, no network required after setup.
 
-## Quick Start
+## Quick start
 
-**Prerequisites:** [Ollama](https://ollama.com) with a Google Gemma model
+**You need:** [Ollama](https://ollama.com) installed, plus at least one Gemma model pulled.
 
 ```bash
-# Download a Google Gemma model
+# Pull a Gemma model
 ollama pull gemma4:e4b  # Gemma 4
 ollama pull gemma3:4b   # Gemma 3
 
-# Clone, install, and run
+# Clone, install, run
 git clone https://github.com/shadowquillapp/shadowquillapp.git
 cd shadowquillapp
 pnpm install
@@ -32,19 +32,19 @@ pnpm start
 
 | Feature | Details |
 |---------|---------|
-| **8 Tabs** | Work on multiple prompts simultaneously |
-| **7 Task Types** | Intent, Engineering, Visual, Motion, Analysis, Narrative, Persuasion |
-| **10 Default Presets** | Ready-to-use configurations for common workflows |
-| **Preset Studio** | Create custom presets with live preview |
-| **Version History** | Track prompt iterations with a visual timeline |
-| **4 Themes** | Earth, Dark Purple, Dark, Light |
-| **Google Gemma Support** | Auto-detection from Ollama |
+| **8 tabs** | Keep several prompts open at once |
+| **7 task types** | Intent, Engineering, Visual, Motion, Analysis, Narrative, Persuasion |
+| **10 default presets** | Starting points for common workflows |
+| **Preset Studio** | Build your own presets with live preview |
+| **Version history** | Step through prompt versions with prev/next navigation |
+| **4 themes** | Earth, Dark Purple, Dark, Light |
+| **Gemma via Ollama** | Finds compatible models on your local instance |
 
-### Default Presets
+### Default presets
 
 `Daily Helper` • `Quick Summary` • `Code Helper` • `Bug Hunter` • `Email Draft` • `Research Assistant` • `Deep Analyst` • `Social Post` • `Image Creator` • `Video Creator`
 
-### Keyboard Shortcuts
+### Keyboard shortcuts
 
 | Shortcut | Action |
 |----------|--------|
@@ -57,25 +57,25 @@ pnpm start
 
 ```bash
 pnpm install              # Install packages
-pnpm run dev              # Development mode
+pnpm run dev              # Dev mode (Electron + Next)
 pnpm run build            # Production build
-pnpm start                # Production mode
-pnpm run test             # Run tests
-pnpm run typecheck        # Type checking
+pnpm start                # Run production build
+pnpm run test             # Vitest
+pnpm run typecheck        # TypeScript check
 pnpm run check            # Lint with Biome
 ```
 
-## Tech Stack
+## Tech stack
 
 Next.js • Electron • Ollama • React • TypeScript • Tailwind CSS • Vitest • Biome
 
-## Philosophy
+## How we think about it
 
-- **Offline-First** — Fully operational without internet
-- **Zero Telemetry** — No tracking or data collection
-- **Local Storage** — All data stays on your machine
+- **Offline-first** — Works without internet once Ollama and the app are set up
+- **No telemetry** — Nothing phones home
+- **Local storage** — Projects, presets, and config live on your disk
 
 ## Contributing
 
-1. [Open an issue](https://github.com/shadowquillapp/shadowquillapp/issues) to discuss changes
-2. Keep PRs focused and preserve the local-first architecture
+1. [Open an issue](https://github.com/shadowquillapp/shadowquillapp/issues) if you want to discuss a change first
+2. Keep PRs small and leave the local-first setup alone unless the PR is explicitly about that
