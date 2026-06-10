@@ -1,7 +1,7 @@
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import { createRequire } from "node:module";
-import { platform } from "node:os";
+import { homedir, platform } from "node:os";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,16 +25,15 @@ function verifyElectronInstallation() {
 	}
 }
 
-function runElectronInstallScript() {
-	const isWindows = platform() === "win32";
+function resolveElectronDir() {
 	const projectRoot = path.join(__dirname, "..");
 	const electronPath = path.join(projectRoot, "node_modules", "electron");
 	const pnpmStorePath = path.join(projectRoot, "node_modules", ".pnpm");
-	let electronDir = null;
 
 	if (fs.existsSync(electronPath)) {
-		electronDir = electronPath;
-	} else if (fs.existsSync(pnpmStorePath)) {
+		return electronPath;
+	}
+	if (fs.existsSync(pnpmStorePath)) {
 		try {
 			const entries = fs.readdirSync(pnpmStorePath);
 			const electronEntry = entries.find((entry) =>
@@ -48,11 +47,85 @@ function runElectronInstallScript() {
 					"electron",
 				);
 				if (fs.existsSync(candidatePath)) {
-					electronDir = candidatePath;
+					return candidatePath;
 				}
 			}
 		} catch {}
 	}
+
+	return null;
+}
+
+function getElectronPlatformPath() {
+	switch (platform()) {
+		case "darwin":
+			return "Electron.app/Contents/MacOS/Electron";
+		case "win32":
+			return "electron.exe";
+		default:
+			return "electron";
+	}
+}
+
+function findCachedElectronZip(version) {
+	const cacheRoot =
+		process.env.electron_config_cache ||
+		path.join(homedir(), ".cache", "electron");
+	if (!fs.existsSync(cacheRoot)) {
+		return null;
+	}
+
+	const zipSuffix = `electron-v${version}-${platform()}-${process.arch}.zip`;
+	for (const entry of fs.readdirSync(cacheRoot, { withFileTypes: true })) {
+		if (!entry.isDirectory()) {
+			continue;
+		}
+		const zipPath = path.join(cacheRoot, entry.name, zipSuffix);
+		if (fs.existsSync(zipPath)) {
+			return zipPath;
+		}
+	}
+
+	return null;
+}
+
+function extractElectronFromCache(electronDir) {
+	const distPath = path.join(electronDir, "dist");
+	const platformPath = getElectronPlatformPath();
+	const binaryPath = path.join(distPath, platformPath);
+	if (fs.existsSync(binaryPath)) {
+		return true;
+	}
+
+	const { version } = JSON.parse(
+		fs.readFileSync(path.join(electronDir, "package.json"), "utf8"),
+	);
+	const zipPath = findCachedElectronZip(version);
+	if (!zipPath) {
+		return false;
+	}
+
+	try {
+		console.log("[postinstall] Extracting Electron from cache with unzip...");
+		fs.mkdirSync(distPath, { recursive: true });
+		execSync(`unzip -oq "${zipPath}" -d "${distPath}"`, {
+			stdio: "inherit",
+		});
+		fs.writeFileSync(path.join(electronDir, "path.txt"), platformPath);
+		return fs.existsSync(binaryPath);
+	} catch (error) {
+		console.warn(
+			"[postinstall] Failed to extract Electron from cache:",
+			error.message,
+		);
+		return false;
+	}
+}
+
+function runElectronInstallScript() {
+	const isWindows = platform() === "win32";
+	const projectRoot = path.join(__dirname, "..");
+	const electronDir = resolveElectronDir();
 
 	if (!electronDir) {
 		return false;
@@ -89,8 +162,12 @@ try {
 	const electronInstalled = verifyElectronInstallation();
 	if (!electronInstalled) {
 		console.log("[postinstall] Electron not properly installed, fixing...");
-		const installScriptRan = runElectronInstallScript();
-		if (!installScriptRan) {
+		let installScriptRan = runElectronInstallScript();
+		if (!verifyElectronInstallation()) {
+			installScriptRan =
+				extractElectronFromCache(resolveElectronDir()) || installScriptRan;
+		}
+		if (!verifyElectronInstallation()) {
 			try {
 				console.log("[postinstall] Running pnpm rebuild electron...");
 				execSync("pnpm rebuild electron", {
@@ -106,6 +183,7 @@ try {
 					shell: isWindows,
 				});
 				runElectronInstallScript();
+				extractElectronFromCache(resolveElectronDir());
 			}
 		}
 		const verified = verifyElectronInstallation();
