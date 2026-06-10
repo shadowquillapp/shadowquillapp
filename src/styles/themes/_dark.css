@@ -40,12 +40,12 @@
 	--surfacea30: #404040;
 	--surfacea40: #525252;
 	--surfacea50: #737373;
-	--surfacetonala0: #0a0a0a;
-	--surfacetonala10: #171717;
-	--surfacetonala20: #262626;
-	--surfacetonala30: #404040;
-	--surfacetonala40: #525252;
-	--surfacetonala50: #737373;
+	--surfacetonala0: var(--surfacea0);
+	--surfacetonala10: var(--surfacea10);
+	--surfacetonala20: var(--surfacea20);
+	--surfacetonala30: var(--surfacea30);
+	--surfacetonala40: var(--surfacea40);
+	--surfacetonala50: var(--surfacea50);
 	--buttonbg: var(--color-primary);
 	--buttontext: var(--color-on-primary);
 	--dropdownbg: #1f1f1f;

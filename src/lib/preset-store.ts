@@ -1,15 +1,10 @@
-import type { GenerationOptions, TaskType } from "@/types";
+import type { PresetLite } from "@/types";
 import { getRaw, setJSON } from "./local-storage";
 import { getPresets, type Preset } from "./presets";
 import { isArrayOf, isString, safeParse } from "./schema";
 import { STORAGE_KEYS } from "./storage-keys";
 
-export interface PresetSummary {
-	id?: string;
-	name: string;
-	taskType: TaskType;
-	options?: GenerationOptions;
-}
+export type PresetSummary = PresetLite;
 
 export const presetKey = (preset: Pick<PresetSummary, "id" | "name">) =>
 	preset.id ?? preset.name;

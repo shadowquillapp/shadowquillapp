@@ -278,15 +278,6 @@ export const storage = {
 	},
 };
 
-export const storageAsync = {
-	getItem: (key: string): Promise<string | null> =>
-		electronStorage.getItem(key),
-	setItem: (key: string, value: string): Promise<void> =>
-		electronStorage.setItem(key, value),
-	removeItem: (key: string): Promise<void> => electronStorage.removeItem(key),
-	clear: (): Promise<void> => electronStorage.clear(),
-};
-
 if (typeof window !== "undefined") {
 	void electronStorage.init();
 }

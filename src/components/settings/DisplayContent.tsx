@@ -1,8 +1,12 @@
 /** @jsxImportSource react */
 "use client";
 import React from "react";
-import { getJSON, setJSON } from "@/lib/local-storage";
-import { STORAGE_KEYS } from "@/lib/storage-keys";
+import {
+	applyThemeToDocument,
+	persistTheme,
+	readThemePreference,
+	type ThemeId,
+} from "@/lib/theme-preference";
 import { Icon, type IconName } from "../Icon";
 
 export default function DisplayContent() {
@@ -16,37 +20,15 @@ export default function DisplayContent() {
 		isMaximized?: boolean;
 		isFullScreen?: boolean;
 	} | null>(null);
-	const [currentTheme, setCurrentTheme] = React.useState<
-		"earth" | "purpledark" | "dark" | "light"
-	>(() => {
-		let savedTheme = getJSON<
-			"earth" | "purpledark" | "dark" | "light" | "default" | null
-		>(STORAGE_KEYS.THEME_PREFERENCE.key, null);
-		if (savedTheme === "default") {
-			savedTheme = "purpledark";
-			setJSON(STORAGE_KEYS.THEME_PREFERENCE.key, "purpledark");
-		}
-		if (
-			savedTheme &&
-			(savedTheme === "earth" ||
-				savedTheme === "purpledark" ||
-				savedTheme === "dark" ||
-				savedTheme === "light")
-		) {
-			return savedTheme;
-		}
-		return "earth";
-	});
+	const [currentTheme, setCurrentTheme] =
+		React.useState<ThemeId>(readThemePreference);
 
 	React.useEffect(() => {
 		const api = window.shadowquill;
 		const hasApi = !!api?.view?.getZoomFactor;
 		setAvailable(hasApi);
 
-		document.documentElement.setAttribute(
-			"data-theme",
-			currentTheme === "earth" ? "" : currentTheme,
-		);
+		applyThemeToDocument(currentTheme);
 
 		const init = async () => {
 			if (!hasApi) return;
@@ -113,15 +95,10 @@ export default function DisplayContent() {
 		void applyZoom(1.0);
 	};
 
-	const handleThemeChange = (
-		theme: "earth" | "purpledark" | "dark" | "light",
-	) => {
+	const handleThemeChange = (theme: ThemeId) => {
 		setCurrentTheme(theme);
-		document.documentElement.setAttribute(
-			"data-theme",
-			theme === "earth" ? "" : theme,
-		);
-		setJSON(STORAGE_KEYS.THEME_PREFERENCE.key, theme);
+		applyThemeToDocument(theme);
+		persistTheme(theme);
 	};
 
 	const percent = Math.round(zoomFactor * 100);

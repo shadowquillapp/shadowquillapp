@@ -1,6 +1,6 @@
 import { Icon } from "@/components/Icon";
+import { getTaskTypeIcon } from "@/lib/task-type-icon";
 import type { PromptPresetSummary } from "../types";
-import { getTaskTypeIcon } from "../utils/taskTypeIcon";
 
 interface PresetInfoRowProps {
 	preset: PromptPresetSummary;

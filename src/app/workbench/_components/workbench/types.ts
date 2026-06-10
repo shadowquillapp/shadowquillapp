@@ -1,13 +1,8 @@
-import type { PresetOptions, TaskType, TestMessage } from "@/types";
+import type { PresetLite, TestMessage } from "@/types";
 
 export type MessageItem = Pick<TestMessage, "id" | "role" | "content">;
 
-export interface PromptPresetSummary {
-	id?: string;
-	name: string;
-	taskType: TaskType;
-	options?: PresetOptions;
-}
+export type PromptPresetSummary = PresetLite;
 
 export interface VersionNodeMetadata {
 	taskType?: string;

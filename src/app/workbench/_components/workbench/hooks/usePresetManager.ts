@@ -3,6 +3,7 @@ import {
 	getLastSelectedPresetKey,
 	mapPresetList,
 	mapPresetToSummary,
+	type PresetSummary,
 	presetKey,
 	pruneRecentPresets,
 	setLastSelectedPresetKey,
@@ -10,7 +11,6 @@ import {
 } from "@/lib/preset-store";
 import { getPresets, type Preset } from "@/lib/presets";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
-import type { GenerationOptions, TaskType } from "@/types";
 import type { useTabManager } from "../useTabManager";
 
 export function usePresetManager(
@@ -19,28 +19,13 @@ export function usePresetManager(
 	setShowPresetPicker: (show: boolean) => void,
 	setPresetPickerForNewTab: (forNewTab: boolean) => void,
 ) {
-	const [presets, setPresets] = useState<
-		Array<{
-			id?: string;
-			name: string;
-			taskType: TaskType;
-			options?: GenerationOptions;
-		}>
-	>([]);
+	const [presets, setPresets] = useState<PresetSummary[]>([]);
 	const [loadingPresets, setLoadingPresets] = useState(false);
 	const [selectedPresetKey, setSelectedPresetKey] = useState("");
 	const hasAutoShownPresetPicker = useRef(false);
 
 	const applyPreset = useCallback(
-		(
-			p: {
-				name: string;
-				taskType: TaskType;
-				options?: GenerationOptions;
-				id?: string;
-			},
-			opts?: { trackRecent?: boolean },
-		) => {
+		(p: PresetSummary, opts?: { trackRecent?: boolean }) => {
 			const trackRecent = opts?.trackRecent ?? true;
 			if (trackRecent) {
 				try {
@@ -51,27 +36,9 @@ export function usePresetManager(
 		[],
 	);
 
-	const presetToSummary = useCallback(
-		(p: {
-			id?: string;
-			name: string;
-			taskType: TaskType;
-			options?: GenerationOptions;
-		}) => mapPresetToSummary(p),
-		[],
-	);
-
 	const loadPreset = useCallback(
-		(
-			preset: {
-				id?: string;
-				name: string;
-				taskType: TaskType;
-				options?: GenerationOptions;
-			},
-			opts?: { trackRecent?: boolean },
-		) => {
-			const summary = presetToSummary(preset);
+		(preset: PresetSummary, opts?: { trackRecent?: boolean }) => {
+			const summary = mapPresetToSummary(preset);
 			const applyOpts =
 				opts?.trackRecent === undefined
 					? undefined
@@ -86,7 +53,7 @@ export function usePresetManager(
 				tabManager.createTab(summary);
 			}
 		},
-		[applyPreset, presetToSummary, tabManager],
+		[applyPreset, tabManager],
 	);
 
 	useEffect(() => {
@@ -163,14 +130,14 @@ export function usePresetManager(
 			if (tab.preset.id) {
 				const updatedPreset = presets.find((p) => p.id === tab.preset.id);
 				if (updatedPreset) {
-					const summary = presetToSummary(updatedPreset);
+					const summary = mapPresetToSummary(updatedPreset);
 					if (JSON.stringify(tab.preset) !== JSON.stringify(summary)) {
 						setPresetForTab(tab.id, summary);
 					}
 				}
 			}
 		});
-	}, [presets, presetToSummary, tabManager]);
+	}, [presets, tabManager]);
 	useEffect(() => {
 		if (loadingPresets || presets.length === 0) return;
 
@@ -204,7 +171,6 @@ export function usePresetManager(
 		selectedPresetKey,
 		setSelectedPresetKey,
 		applyPreset,
-		presetToSummary,
 		loadPreset,
 	};
 }

@@ -138,27 +138,15 @@ const PROMPT_CACHE_OPTIONS: CacheOptions = {
 	ttlMs: 10 * 60 * 1000, // 10 minutes
 };
 
-const TEMPLATE_CACHE_OPTIONS: CacheOptions = {
-	maxEntries: 50,
-	ttlMs: 30 * 60 * 1000, // 30 minutes
-};
-
 let promptCache: LRUCache<string, string> | null = null;
-let templateCache: LRUCache<string, unknown> | null = null;
 
 export function getPromptCache(): LRUCache<string, string> {
 	promptCache ??= new LRUCache<string, string>(PROMPT_CACHE_OPTIONS);
 	return promptCache;
 }
 
-export function getTemplateCache(): LRUCache<string, unknown> {
-	templateCache ??= new LRUCache<string, unknown>(TEMPLATE_CACHE_OPTIONS);
-	return templateCache;
-}
-
 export function clearAllCaches(): void {
 	promptCache?.clear();
-	templateCache?.clear();
 }
 
 const SESSION_CACHE_KEY = STORAGE_KEYS.PROMPT_CACHE.key;
