@@ -2,6 +2,9 @@
 
 import type { ReactNode } from "react";
 import { useCallback } from "react";
+import { MarkdownCodeBlock } from "./components/MarkdownCodeBlock";
+
+const isMarkdownLang = (lang: string) => lang === "markdown" || lang === "md";
 
 interface MessageRendererProps {
 	content: string;
@@ -282,147 +285,8 @@ export function MessageRenderer({
 		return tokens;
 	}, []);
 
-	const highlightMarkdown = useCallback((code: string) => {
-		const inlinePattern =
-			/(!?\[[^\]]*?\]\([^)]+\)|`[^`]+`|\*\*\*[^*]+?\*\*\*|___[^_]+?___|\*\*[^*]+?\*\*|__[^_]+?__|~~[^~]+?~~|\*(?!\s)(?:\\.|[^*])*(?:[^*\s])\*|_(?!\s)(?:\\.|[^_])*(?:[^_\s])_)/g;
-
-		const renderInline = (text: string, keyPrefix: string) => {
-			if (!text) return text;
-			const nodes: ReactNode[] = [];
-			let lastIndex = 0;
-			let tokenIndex = 0;
-			const push = (value: ReactNode, className?: string) => {
-				nodes.push(
-					<span key={`${keyPrefix}-${tokenIndex++}`} className={className}>
-						{value}
-					</span>,
-				);
-			};
-
-			for (
-				let match = inlinePattern.exec(text);
-				match !== null;
-				match = inlinePattern.exec(text)
-			) {
-				if (match.index > lastIndex) {
-					push(text.slice(lastIndex, match.index));
-				}
-				const token = match[0];
-
-				if (/^`/.test(token)) {
-					push("`", "token-md-code-tick");
-					push(token.slice(1, -1), "token-md-code");
-					push("`", "token-md-code-tick");
-				} else if (/^\*\*\*/.test(token) || /^___/.test(token)) {
-					push("**", "token-md-bold");
-					push("*", "token-md-italic");
-					push(token.slice(3, -3), "token-md-bold-text token-md-italic-text");
-					push("*", "token-md-italic");
-					push("**", "token-md-bold");
-				} else if (/^\*\*/.test(token) || /^__/.test(token)) {
-					push("**", "token-md-bold");
-					push(token.slice(2, -2), "token-md-bold-text");
-					push("**", "token-md-bold");
-				} else if (/^\*(?!\*)/.test(token) || /^_(?!_)/.test(token)) {
-					push("*", "token-md-italic");
-					push(token.slice(1, -1), "token-md-italic-text");
-					push("*", "token-md-italic");
-				} else if (/^~~/.test(token)) {
-					push("~~", "token-md-strike");
-					push(token.slice(2, -2), "token-md-strike-text");
-					push("~~", "token-md-strike");
-				} else if (/^\[/.test(token) || /^!\[/.test(token)) {
-					const linkMatch = token.match(/^(!)?\[([^\]]+)]\(([^)]+)\)$/);
-					if (linkMatch) {
-						push(linkMatch[1] ? "![" : "[", "token-md-punctuation");
-						push(linkMatch[2], "token-md-link-text");
-						push("](", "token-md-punctuation");
-						push(linkMatch[3], "token-md-url");
-						push(")", "token-md-punctuation");
-					} else {
-						push(token);
-					}
-				} else {
-					push(token);
-				}
-				lastIndex = match.index + token.length;
-			}
-
-			if (lastIndex < text.length) {
-				push(text.slice(lastIndex));
-			}
-
-			return nodes;
-		};
-
-		const lines = code.split("\n");
-		return lines.map((line, lineIdx) => {
-			const lineKey = `md-line-${lineIdx}`;
-			const newline = lineIdx < lines.length - 1 ? "\n" : "";
-
-			const headerMatch = line.match(/^(#{1,6})(\s+)(.*)$/);
-			if (headerMatch) {
-				return (
-					<span key={lineKey}>
-						<span className="token-md-header">{headerMatch[1] ?? ""}</span>
-						<span>{headerMatch[2] ?? " "}</span>
-						<span className="token-md-header-text">
-							{renderInline(headerMatch[3] ?? "", `${lineKey}-header`)}
-						</span>
-						{newline}
-					</span>
-				);
-			}
-
-			if (/^(\s*)(?:-{3,}|\*{3,}|_{3,})\s*$/.test(line)) {
-				return (
-					<span key={lineKey} className="token-md-hr">
-						{line}
-						{newline}
-					</span>
-				);
-			}
-
-			const blockquoteMatch = line.match(/^(\s*>+\s*)(.*)$/);
-			if (blockquoteMatch) {
-				return (
-					<span key={lineKey}>
-						<span className="token-md-quote-marker">
-							{blockquoteMatch[1] ?? ""}
-						</span>
-						<span className="token-md-quote-text">
-							{renderInline(blockquoteMatch[2] ?? "", `${lineKey}-quote`)}
-						</span>
-						{newline}
-					</span>
-				);
-			}
-
-			const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/);
-			if (listMatch) {
-				return (
-					<span key={lineKey}>
-						<span>{listMatch[1] ?? ""}</span>
-						<span className="token-md-list-marker">{listMatch[2] ?? ""}</span>
-						<span> </span>
-						{renderInline(listMatch[3] ?? "", `${lineKey}-list`)}
-						{newline}
-					</span>
-				);
-			}
-
-			return (
-				<span key={lineKey}>
-					{renderInline(line || " ", `${lineKey}-plain`)}
-					{newline}
-				</span>
-			);
-		});
-	}, []);
-
 	const highlightFor = (lang: string, code: string): string | ReactNode[] => {
 		if (lang === "json") return highlightJSON(code);
-		if (lang === "markdown" || lang === "md") return highlightMarkdown(code);
 		if (lang === "xml" || lang === "html" || lang === "svg")
 			return highlightXML(code);
 		return code;
@@ -434,8 +298,23 @@ export function MessageRenderer({
 		const displayContent = /(?:^|\n)```$/.test(content)
 			? content.replace(/```$/, "")
 			: content;
-		const parts = [];
+		const parts: ReactNode[] = [];
 		let lastIndex = 0;
+
+		const pushFenceBlock = (
+			key: string,
+			label: string,
+			lang: string,
+			code: string,
+		) => {
+			parts.push(
+				isMarkdownLang(lang) ? (
+					<MarkdownCodeBlock key={key} label={label} source={code} />
+				) : (
+					codeBlock(key, label, highlightFor(lang, code))
+				),
+			);
+		};
 
 		const unclosedMatch = unclosedCodeBlockRegex.exec(displayContent);
 		if (unclosedMatch) {
@@ -464,13 +343,7 @@ export function MessageRenderer({
 				} catch {}
 			}
 
-			parts.push(
-				codeBlock(
-					"code-unclosed",
-					languageLabel,
-					highlightFor(lang, cleanedCode),
-				),
-			);
+			pushFenceBlock("code-unclosed", languageLabel, lang, cleanedCode);
 
 			return parts.length > 0 ? (
 				parts
@@ -500,13 +373,7 @@ export function MessageRenderer({
 			const languageLabel = (language || "").trim();
 			const lang = (languageLabel || "code").toLowerCase();
 
-			parts.push(
-				codeBlock(
-					`code-${match.index}`,
-					languageLabel,
-					highlightFor(lang, code || ""),
-				),
-			);
+			pushFenceBlock(`code-${match.index}`, languageLabel, lang, code || "");
 
 			lastIndex = match.index + match[0].length;
 		}
