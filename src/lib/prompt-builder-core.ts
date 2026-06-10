@@ -1,5 +1,4 @@
 import type { GenerationOptions, TaskType } from "@/types";
-import { ValidationError } from "./errors";
 import {
 	buildDirectives,
 	DETAIL_WORD_LIMIT_LABELS,
@@ -64,81 +63,38 @@ function languageFinalSuffix(language: string | undefined): string {
 		: "";
 }
 
-export interface ValidationResult {
-	valid: boolean;
-	error?: ValidationError;
-	message?: string;
+function delimit(
+	format: GenerationOptions["format"] | undefined,
+	tag: string,
+	text: string,
+): string {
+	return format === "xml"
+		? `<${tag}>\n${text}\n</${tag}>`
+		: `---\n${text}\n---`;
 }
+
+const INJECTION_PATTERNS = [
+	/ignore\s+all\s+previous\s+instructions/i,
+	/forget\s+everything\s+above/i,
+	/disregard\s+all\s+previous/i,
+	/\bjailbreak\b/i,
+	/\bDAN\s*mode\b/i,
+];
 
 export function validateBuilderInput(
 	rawUserInput: string,
 	_taskType: TaskType,
 ): string | null {
-	const result = validateBuilderInputTyped(rawUserInput, _taskType);
-	return result.valid ? null : (result.message ?? "Validation failed");
-}
-
-export function validateBuilderInputTyped(
-	rawUserInput: string,
-	taskType: TaskType,
-): ValidationResult {
 	if (rawUserInput.length === 0) {
-		return {
-			valid: false,
-			error: new ValidationError(
-				"Empty input. Please provide content to work with.",
-				{
-					field: "input",
-					value: rawUserInput,
-				},
-			),
-			message: "Empty input. Please provide content to work with.",
-		};
+		return "Empty input. Please provide content to work with.";
 	}
-
-	const injectionPatterns = [
-		/ignore\s+all\s+previous\s+instructions/i,
-		/forget\s+everything\s+above/i,
-		/disregard\s+all\s+previous/i,
-		/\bjailbreak\b/i,
-		/\bDAN\s*mode\b/i,
-	];
-
-	if (injectionPatterns.some((pattern) => pattern.test(rawUserInput))) {
-		return {
-			valid: false,
-			error: new ValidationError(
-				"Input rejected: Please focus on describing the prompt content you want created.",
-				{
-					field: "input",
-					value: rawUserInput,
-					details: { taskType, reason: "injection_detected" },
-				},
-			),
-			message:
-				"Input rejected: Please focus on describing the prompt content you want created.",
-		};
+	if (INJECTION_PATTERNS.some((pattern) => pattern.test(rawUserInput))) {
+		return "Input rejected: Please focus on describing the prompt content you want created.";
 	}
-
 	if (rawUserInput.split(/\s+/).filter(Boolean).length < 2) {
-		return {
-			valid: false,
-			error: new ValidationError(
-				"Input too brief. Please provide more detail about what you want.",
-				{
-					field: "input",
-					value: rawUserInput,
-					details: {
-						wordCount: rawUserInput.split(/\s+/).filter(Boolean).length,
-					},
-				},
-			),
-			message:
-				"Input too brief. Please provide more detail about what you want.",
-		};
+		return "Input too brief. Please provide more detail about what you want.";
 	}
-
-	return { valid: true };
+	return null;
 }
 
 export function buildUnifiedPromptCore(params: {
@@ -188,11 +144,9 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(`Constraints: ${constraints.join(", ")}`);
 	}
 
-	const delimiter =
-		options?.format === "xml"
-			? `<user_input>\n${rawUserInput}\n</user_input>`
-			: `---\n${rawUserInput}\n---`;
-	sections.push(`User Input:\n${delimiter}`);
+	sections.push(
+		`User Input:\n${delimit(options?.format, "user_input", rawUserInput)}`,
+	);
 
 	if (options?.additionalContext?.trim()) {
 		sections.push(`Additional Context:\n${options.additionalContext}`);
@@ -258,17 +212,12 @@ export function buildRefinementPromptCore(params: {
 		sections.push(domainMap);
 	}
 
-	const promptDelimiter =
-		options?.format === "xml"
-			? `<existing_prompt>\n${trimmedPrevious}\n</existing_prompt>`
-			: `---\n${trimmedPrevious}\n---`;
-	sections.push(`Existing Compiled Prompt:\n${promptDelimiter}`);
-
-	const requestDelimiter =
-		options?.format === "xml"
-			? `<refinement_request>\n${trimmedRequest}\n</refinement_request>`
-			: `---\n${trimmedRequest}\n---`;
-	sections.push(`Refinement Request:\n${requestDelimiter}`);
+	sections.push(
+		`Existing Compiled Prompt:\n${delimit(options?.format, "existing_prompt", trimmedPrevious)}`,
+	);
+	sections.push(
+		`Refinement Request:\n${delimit(options?.format, "refinement_request", trimmedRequest)}`,
+	);
 
 	let finalInstruction =
 		"Apply the refinement request to the existing compiled prompt. Output ONLY the refined prompt text — no preamble or meta-commentary.";

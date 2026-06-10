@@ -114,49 +114,47 @@ export default function Titlebar() {
 			.trim();
 	};
 
-	const closeButton = (
+	const makeButton = (
+		key: string,
+		label: string,
+		color: string,
+		icon: "close" | "minus" | "expand",
+		action: () => void,
+	) => (
 		<TitlebarButton
-			key="close"
-			aria-label="Close"
-			color="#FF5F57"
+			key={key}
+			aria-label={label}
+			color={color}
 			onClick={() => {
 				try {
-					window.shadowquill?.window?.close?.();
+					action();
 				} catch {}
 			}}
 		>
-			<Icon name="close" className="h-2 w-2" />
+			<Icon name={icon} className="h-2 w-2" />
 		</TitlebarButton>
 	);
 
-	const minimizeButton = (
-		<TitlebarButton
-			key="minimize"
-			aria-label="Minimize"
-			color="#FFBD2E"
-			onClick={() => {
-				try {
-					window.shadowquill?.window?.minimize?.();
-				} catch {}
-			}}
-		>
-			<Icon name="minus" className="h-2 w-2" />
-		</TitlebarButton>
+	const closeButton = makeButton("close", "Close", "#FF5F57", "close", () => {
+		window.shadowquill?.window?.close?.();
+	});
+	const minimizeButton = makeButton(
+		"minimize",
+		"Minimize",
+		"#FFBD2E",
+		"minus",
+		() => {
+			window.shadowquill?.window?.minimize?.();
+		},
 	);
-
-	const maximizeButton = (
-		<TitlebarButton
-			key="maximize"
-			aria-label="Maximize"
-			color="#28CA42"
-			onClick={() => {
-				try {
-					window.shadowquill?.window?.maximizeToggle?.();
-				} catch {}
-			}}
-		>
-			<Icon name="expand" className="h-2 w-2" />
-		</TitlebarButton>
+	const maximizeButton = makeButton(
+		"maximize",
+		"Maximize",
+		"#28CA42",
+		"expand",
+		() => {
+			window.shadowquill?.window?.maximizeToggle?.();
+		},
 	);
 
 	const buttons = isMac

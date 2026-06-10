@@ -1,7 +1,10 @@
 const path = require("node:path");
 const fs = require("node:fs");
-const { ipcMain, app, session } = require("electron");
+const { ipcMain, app, session, BrowserWindow } = require("electron");
 const { requireValidIpcSender } = require("../utils/ipc-security.cjs");
+const {
+	checkAndOptionallyClearZoneIdentifier,
+} = require("../utils/data-paths.cjs");
 
 let httpServer = null;
 
@@ -15,8 +18,7 @@ function getHttpServer() {
 
 function getStorageFilePath() {
 	try {
-		const userData = app.getPath("userData");
-		const storageDir = path.join(userData, "storage");
+		const storageDir = path.join(app.getPath("userData"), "storage");
 		if (!fs.existsSync(storageDir)) {
 			fs.mkdirSync(storageDir, { recursive: true });
 		}
@@ -30,13 +32,8 @@ function getStorageFilePath() {
 function loadStorageData() {
 	try {
 		const filePath = getStorageFilePath();
-		if (!filePath) return {};
-
-		if (fs.existsSync(filePath)) {
-			const data = fs.readFileSync(filePath, "utf8");
-			return JSON.parse(data);
-		}
-		return {};
+		if (!filePath || !fs.existsSync(filePath)) return {};
+		return JSON.parse(fs.readFileSync(filePath, "utf8"));
 	} catch (e) {
 		console.error("[Storage] Failed to load storage data:", e);
 		return {};
@@ -47,7 +44,7 @@ function saveStorageData(data) {
 	try {
 		const filePath = getStorageFilePath();
 		if (!filePath) return false;
-
+		// Atomic write: temp file + rename so a crash never truncates app-data.json.
 		const tempPath = `${filePath}.tmp`;
 		fs.writeFileSync(tempPath, JSON.stringify(data, null, 2), "utf8");
 		fs.renameSync(tempPath, filePath);
@@ -60,40 +57,24 @@ function saveStorageData(data) {
 
 function registerDataIPCHandlers() {
 	const secureHandle = (channel, handler) => {
+		try {
+			ipcMain.removeHandler(channel);
+		} catch (_) {}
 		ipcMain.handle(channel, (event, ...args) => {
 			requireValidIpcSender(event);
 			return handler(event, ...args);
 		});
 	};
 
-	const handlerNames = [
-		"shadowquill:getDataPaths",
-		"shadowquill:factoryReset",
-		"shadowquill:restartApp",
-		"shadowquill:getEnvSafety",
-		"shadowquill:storage:getItem",
-		"shadowquill:storage:setItem",
-		"shadowquill:storage:removeItem",
-		"shadowquill:storage:clear",
-		"shadowquill:storage:getAll",
-	];
-
-	for (const handlerName of handlerNames) {
-		try {
-			ipcMain.removeHandler(handlerName);
-		} catch (_) {}
-	}
-
 	secureHandle("shadowquill:getDataPaths", () => {
 		try {
 			const userData = app.getPath("userData");
 			const localStorageDir = path.join(userData, "Local Storage");
-			const localStorageLevelDb = path.join(localStorageDir, "leveldb");
 			return {
 				ok: true,
 				userData,
 				localStorageDir,
-				localStorageLevelDb,
+				localStorageLevelDb: path.join(localStorageDir, "leveldb"),
 			};
 		} catch (e) {
 			return { ok: false, error: e?.message || "Failed to resolve data paths" };
@@ -103,9 +84,6 @@ function registerDataIPCHandlers() {
 	secureHandle("shadowquill:factoryReset", async () => {
 		try {
 			console.log("[Factory Reset] Clearing all application data...");
-
-			const userData = app.getPath("userData");
-
 			saveStorageData({});
 
 			const sessions = [
@@ -118,7 +96,10 @@ function registerDataIPCHandlers() {
 			}
 
 			try {
-				const statePath = path.join(userData, "window-state.json");
+				const statePath = path.join(
+					app.getPath("userData"),
+					"window-state.json",
+				);
 				if (fs.existsSync(statePath)) {
 					fs.unlinkSync(statePath);
 				}
@@ -137,7 +118,6 @@ function registerDataIPCHandlers() {
 	secureHandle("shadowquill:restartApp", async () => {
 		try {
 			console.log("[Restart] Initiating app restart...");
-
 			if (httpServer) {
 				console.log("[Restart] Closing production server...");
 				try {
@@ -146,7 +126,6 @@ function registerDataIPCHandlers() {
 				} catch (_) {}
 			}
 
-			const { BrowserWindow } = require("electron");
 			const windows = BrowserWindow.getAllWindows();
 			console.log(`[Restart] Closing ${windows.length} window(s)...`);
 			for (const win of windows) {
@@ -166,7 +145,6 @@ function registerDataIPCHandlers() {
 			console.log("[Restart] Relaunching application...");
 			app.relaunch();
 			app.exit(0);
-
 			return { ok: true };
 		} catch (e) {
 			console.error("[Restart] Failed:", e);
@@ -175,15 +153,11 @@ function registerDataIPCHandlers() {
 	});
 
 	secureHandle("shadowquill:getEnvSafety", () => {
-		const {
-			checkAndOptionallyClearZoneIdentifier,
-		} = require("../utils/data-paths.cjs");
 		const execPath = process.execPath;
-		const inDownloads = /[\\/](Downloads|downloads)[\\/]/.test(execPath);
 		const zone = checkAndOptionallyClearZoneIdentifier();
 		return {
 			execPath,
-			inDownloads,
+			inDownloads: /[\\/](Downloads|downloads)[\\/]/.test(execPath),
 			zoneIdentifierPresent: zone.zoneIdentifierPresent,
 			zoneRemoved: zone.removed,
 		};
@@ -191,8 +165,7 @@ function registerDataIPCHandlers() {
 
 	secureHandle("shadowquill:storage:getItem", (_, key) => {
 		try {
-			const data = loadStorageData();
-			return data[key] ?? null;
+			return loadStorageData()[key] ?? null;
 		} catch (e) {
 			console.error("[Storage] getItem failed:", e);
 			return null;

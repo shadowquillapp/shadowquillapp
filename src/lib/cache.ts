@@ -77,30 +77,6 @@ export class LRUCache<K, V> {
 	get size(): number {
 		return this.cache.size;
 	}
-
-	getStats(): { size: number; maxEntries: number; ttlMs: number } {
-		return {
-			size: this.cache.size,
-			maxEntries: this.maxEntries,
-			ttlMs: this.ttlMs,
-		};
-	}
-
-	prune(): number {
-		if (this.ttlMs <= 0) return 0;
-
-		const now = Date.now();
-		let pruned = 0;
-
-		for (const [key, entry] of this.cache.entries()) {
-			if (now - entry.timestamp > this.ttlMs) {
-				this.cache.delete(key);
-				pruned++;
-			}
-		}
-
-		return pruned;
-	}
 }
 
 export function hashString(str: string): string {
@@ -143,10 +119,6 @@ let promptCache: LRUCache<string, string> | null = null;
 export function getPromptCache(): LRUCache<string, string> {
 	promptCache ??= new LRUCache<string, string>(PROMPT_CACHE_OPTIONS);
 	return promptCache;
-}
-
-export function clearAllCaches(): void {
-	promptCache?.clear();
 }
 
 const SESSION_CACHE_KEY = STORAGE_KEYS.PROMPT_CACHE.key;

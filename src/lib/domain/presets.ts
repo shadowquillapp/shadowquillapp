@@ -15,16 +15,20 @@ export interface Preset extends PresetLite {
 	updatedAt?: number;
 }
 
-const ALLOWED_OPTION_KEYS = [
-	"tone",
-	"detail",
-	"format",
+const STRING_OPTION_KEYS = [
 	"language",
 	"audience",
 	"outputXMLSchema",
 	"identity",
 	"additionalContext",
 	"styleGuidelines",
+] as const satisfies readonly (keyof GenerationOptions)[];
+
+const ALLOWED_OPTION_KEYS = [
+	"tone",
+	"detail",
+	"format",
+	...STRING_OPTION_KEYS,
 ] as const satisfies readonly (keyof GenerationOptions)[];
 
 const ALLOWED_PRESET_KEYS = [
@@ -70,13 +74,8 @@ function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
 			sanitized.detail = value;
 		} else if (key === "format" && isOneOf(value, FORMAT_LEVELS)) {
 			sanitized.format = value;
-		} else if (isString(value)) {
-			if (key === "language") sanitized.language = value;
-			else if (key === "audience") sanitized.audience = value;
-			else if (key === "outputXMLSchema") sanitized.outputXMLSchema = value;
-			else if (key === "identity") sanitized.identity = value;
-			else if (key === "additionalContext") sanitized.additionalContext = value;
-			else if (key === "styleGuidelines") sanitized.styleGuidelines = value;
+		} else if (isString(value) && isOneOf(key, STRING_OPTION_KEYS)) {
+			sanitized[key] = value;
 		}
 	}
 
@@ -129,138 +128,110 @@ export function getPresetById(id: string): Preset | undefined {
 	return getPresets().find((p) => p.id === id);
 }
 
+function seedPreset(
+	id: string,
+	name: string,
+	taskType: TaskType,
+	tone: Tone,
+	format: Format,
+	additionalContext: string,
+): Preset {
+	return {
+		id,
+		name,
+		taskType,
+		options: {
+			tone,
+			detail: "normal",
+			format,
+			language: "English",
+			additionalContext,
+		},
+	};
+}
+
 export function getDefaultPresets(): Preset[] {
 	return [
-		{
-			id: "daily-assistant",
-			name: "Daily Helper",
-			taskType: "intent",
-			options: {
-				tone: "friendly",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				additionalContext:
-					"Compile general everyday intent into brief, actionable execution framing. Preserve the user's goal and voice. Favor scannable structure without over-structuring.",
-			},
-		},
-		{
-			id: "quick-summarizer",
-			name: "Quick Summary",
-			taskType: "intent",
-			options: {
-				tone: "neutral",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				additionalContext:
-					"Compress source intent into concise summary framing. Extract key points and main ideas. Prioritize scannability and minimal unnecessary detail.",
-			},
-		},
-		{
-			id: "code-helper",
-			name: "Code Helper",
-			taskType: "engineering",
-			options: {
-				tone: "technical",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				additionalContext:
-					"Prioritize goal preservation and architectural consistency. Validate interaction contracts (inputs, outputs, side effects). Enforce design-system alignment with stated conventions. Surface gaps as actionable prompt clauses — do not invent technologies.",
-			},
-		},
-		{
-			id: "bug-hunter",
-			name: "Bug Hunter",
-			taskType: "engineering",
-			options: {
-				tone: "technical",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				additionalContext:
-					"Compile diagnostic intent with root-cause focus. Require reproduction steps, failure boundaries, and regression prevention in the output framing. Do not assume stack or environment not stated by the user.",
-			},
-		},
-		{
-			id: "email-drafter",
-			name: "Email Draft",
-			taskType: "narrative",
-			options: {
-				tone: "friendly",
-				detail: "normal",
-				format: "plain",
-				language: "English",
-				additionalContext:
-					"Preserve the user's voice and second-person address. Compile email intent with subject line, greeting, and concise body framing. Do not rewrite personality or tone unless requested.",
-			},
-		},
-		{
-			id: "research-assistant",
-			name: "Research Assistant",
-			taskType: "analysis",
-			options: {
-				tone: "neutral",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				additionalContext:
-					"Define evidence boundaries and scope limits clearly. Require citation framing and balanced perspective. Extract implicit constraints and risk concerns from the user's request.",
-			},
-		},
-		{
-			id: "deep-analyst",
-			name: "Deep Analyst",
-			taskType: "analysis",
-			options: {
-				tone: "formal",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				additionalContext:
-					"Extract tradeoffs, counterarguments, and risk assessment requirements. Compile rigorous analysis framing with executive summary, evidence scope, and recommendation boundaries. Do not over-structure unless detail level requires it.",
-			},
-		},
-		{
-			id: "social-post",
-			name: "Social Post",
-			taskType: "persuasion",
-			options: {
-				tone: "friendly",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				additionalContext:
-					"Preserve audience intent and message core. Compile hook, content, and CTA framing without drift. Align channel conventions to user-stated context.",
-			},
-		},
-		{
-			id: "image-creator",
-			name: "Image Creator",
-			taskType: "visual",
-			options: {
-				tone: "neutral",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				additionalContext:
-					"Compress visual intent into model-parseable descriptors. Lock subject, mood, and composition. Surface spec gaps as concrete visual clauses — do not invent values not stated by the user.",
-			},
-		},
-		{
-			id: "video-creator",
-			name: "Video Creator",
-			taskType: "motion",
-			options: {
-				tone: "neutral",
-				detail: "normal",
-				format: "markdown",
-				language: "English",
-				additionalContext:
-					"Compile temporal visual intent with scene, action, and camera semantics. Validate interaction flow across frames. Surface temporal spec gaps as concrete clauses — do not invent values not stated by the user.",
-			},
-		},
+		seedPreset(
+			"daily-assistant",
+			"Daily Helper",
+			"intent",
+			"friendly",
+			"markdown",
+			"Compile general everyday intent into brief, actionable execution framing. Preserve the user's goal and voice. Favor scannable structure without over-structuring.",
+		),
+		seedPreset(
+			"quick-summarizer",
+			"Quick Summary",
+			"intent",
+			"neutral",
+			"markdown",
+			"Compress source intent into concise summary framing. Extract key points and main ideas. Prioritize scannability and minimal unnecessary detail.",
+		),
+		seedPreset(
+			"code-helper",
+			"Code Helper",
+			"engineering",
+			"technical",
+			"markdown",
+			"Prioritize goal preservation and architectural consistency. Validate interaction contracts (inputs, outputs, side effects). Enforce design-system alignment with stated conventions. Surface gaps as actionable prompt clauses — do not invent technologies.",
+		),
+		seedPreset(
+			"bug-hunter",
+			"Bug Hunter",
+			"engineering",
+			"technical",
+			"markdown",
+			"Compile diagnostic intent with root-cause focus. Require reproduction steps, failure boundaries, and regression prevention in the output framing. Do not assume stack or environment not stated by the user.",
+		),
+		seedPreset(
+			"email-drafter",
+			"Email Draft",
+			"narrative",
+			"friendly",
+			"plain",
+			"Preserve the user's voice and second-person address. Compile email intent with subject line, greeting, and concise body framing. Do not rewrite personality or tone unless requested.",
+		),
+		seedPreset(
+			"research-assistant",
+			"Research Assistant",
+			"analysis",
+			"neutral",
+			"markdown",
+			"Define evidence boundaries and scope limits clearly. Require citation framing and balanced perspective. Extract implicit constraints and risk concerns from the user's request.",
+		),
+		seedPreset(
+			"deep-analyst",
+			"Deep Analyst",
+			"analysis",
+			"formal",
+			"markdown",
+			"Extract tradeoffs, counterarguments, and risk assessment requirements. Compile rigorous analysis framing with executive summary, evidence scope, and recommendation boundaries. Do not over-structure unless detail level requires it.",
+		),
+		seedPreset(
+			"social-post",
+			"Social Post",
+			"persuasion",
+			"friendly",
+			"markdown",
+			"Preserve audience intent and message core. Compile hook, content, and CTA framing without drift. Align channel conventions to user-stated context.",
+		),
+		seedPreset(
+			"image-creator",
+			"Image Creator",
+			"visual",
+			"neutral",
+			"markdown",
+			"Compress visual intent into model-parseable descriptors. Lock subject, mood, and composition. Surface spec gaps as concrete visual clauses — do not invent values not stated by the user.",
+		),
+		seedPreset(
+			"video-creator",
+			"Video Creator",
+			"motion",
+			"neutral",
+			"markdown",
+			"Compile temporal visual intent with scene, action, and camera semantics. Validate interaction flow across frames. Surface temporal spec gaps as concrete clauses — do not invent values not stated by the user.",
+		),
 	];
 }
 
@@ -277,35 +248,44 @@ export function ensureDefaultPreset(): void {
 	);
 }
 
+function generatePresetId(): string {
+	return `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
 export function savePreset(preset: Preset): Preset {
 	const normalizedPreset = sanitizePreset(preset);
 	const list = getPresets();
 	const now = Date.now();
 
+	const persist = (p: Preset, idx?: number): Preset => {
+		if (idx === undefined) list.push(p);
+		else list[idx] = p;
+		writePresets(list);
+		return p;
+	};
+
+	const updateAt = (idx: number): Preset | null => {
+		const existing = list[idx];
+		if (!existing) return null;
+		return persist(
+			{
+				...existing,
+				...normalizedPreset,
+				...(normalizedPreset.id
+					? {}
+					: { id: existing.id ?? generatePresetId() }),
+				createdAt: existing.createdAt ?? now,
+				updatedAt: now,
+			},
+			idx,
+		);
+	};
+
 	if (normalizedPreset.id) {
 		const idx = list.findIndex((p) => p.id === normalizedPreset.id);
-		if (idx !== -1) {
-			const existing = list[idx];
-			if (existing) {
-				const updated: Preset = {
-					...existing,
-					...normalizedPreset,
-					createdAt: existing.createdAt ?? now,
-					updatedAt: now,
-				};
-				list[idx] = updated;
-				writePresets(list);
-				return updated;
-			}
-		}
-		const newPreset: Preset = {
-			...normalizedPreset,
-			createdAt: now,
-			updatedAt: now,
-		};
-		list.push(newPreset);
-		writePresets(list);
-		return newPreset;
+		const updated = idx !== -1 ? updateAt(idx) : null;
+		if (updated) return updated;
+		return persist({ ...normalizedPreset, createdAt: now, updatedAt: now });
 	}
 
 	const normalized = (normalizedPreset.name || "").trim().toLowerCase();
@@ -313,34 +293,16 @@ export function savePreset(preset: Preset): Preset {
 		(p) => (p.name || "").trim().toLowerCase() === normalized,
 	);
 	if (byNameIdx !== -1) {
-		const existing = list[byNameIdx];
-		if (existing) {
-			const id =
-				existing.id ??
-				`preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-			const updated: Preset = {
-				...existing,
-				...normalizedPreset,
-				id,
-				createdAt: existing.createdAt ?? now,
-				updatedAt: now,
-			};
-			list[byNameIdx] = updated;
-			writePresets(list);
-			return updated;
-		}
+		const updated = updateAt(byNameIdx);
+		if (updated) return updated;
 	}
 
-	const id = `preset-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-	const newPreset: Preset = {
+	return persist({
 		...normalizedPreset,
-		id,
+		id: generatePresetId(),
 		createdAt: now,
 		updatedAt: now,
-	};
-	list.push(newPreset);
-	writePresets(list);
-	return newPreset;
+	});
 }
 
 export function deletePresetByIdOrName(id?: string, name?: string): void {

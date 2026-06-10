@@ -66,11 +66,13 @@ export default function SettingsDialog({
 	useEffect(() => {
 		if (!containerRef.current) return;
 
-		const updateHeight = () => {
-			const activeContent = containerRef.current?.querySelector(
+		const getActivePanel = () =>
+			containerRef.current?.querySelector(
 				`[data-tab="${activeTab}"]`,
 			) as HTMLElement;
 
+		const updateHeight = () => {
+			const activeContent = getActivePanel();
 			if (activeContent) {
 				const height = activeContent.offsetHeight;
 				contentHeightRef.current.set(activeTab, height);
@@ -80,13 +82,8 @@ export default function SettingsDialog({
 
 		updateHeight();
 
-		const resizeObserver = new ResizeObserver(() => {
-			updateHeight();
-		});
-
-		const activeContent = containerRef.current?.querySelector(
-			`[data-tab="${activeTab}"]`,
-		) as HTMLElement;
+		const resizeObserver = new ResizeObserver(updateHeight);
+		const activeContent = getActivePanel();
 		if (activeContent) {
 			resizeObserver.observe(activeContent);
 		}

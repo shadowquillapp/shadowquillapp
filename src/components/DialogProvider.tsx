@@ -197,34 +197,15 @@ function renderConfirmButton(
 	options: ConfirmDialogOptions,
 	onClick: () => void,
 ) {
-	const label = options.confirmText || "Confirm";
 	const tone = options.tone || "primary";
-	if (tone === "destructive") {
-		return (
-			<button
-				type="button"
-				className="md-btn"
-				onClick={onClick}
-				style={{ color: "#ef4444" }}
-			>
-				{label}
-			</button>
-		);
-	}
-	if (tone === "primary") {
-		return (
-			<button
-				type="button"
-				className="md-btn md-btn--primary"
-				onClick={onClick}
-			>
-				{label}
-			</button>
-		);
-	}
 	return (
-		<button type="button" className="md-btn" onClick={onClick}>
-			{label}
+		<button
+			type="button"
+			className={tone === "primary" ? "md-btn md-btn--primary" : "md-btn"}
+			onClick={onClick}
+			{...(tone === "destructive" && { style: { color: "#ef4444" } })}
+		>
+			{options.confirmText || "Confirm"}
 		</button>
 	);
 }

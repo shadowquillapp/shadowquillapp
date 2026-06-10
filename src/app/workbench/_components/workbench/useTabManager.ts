@@ -159,32 +159,30 @@ const reducer = (
 			return { ...state, activeTabId: tabId };
 		}
 
-		case "UPDATE_TAB_LABEL": {
-			const { tabId, label } = action.payload;
-			return patchTab(state, tabId, (tab) => ({ ...tab, label }));
-		}
-
-		case "UPDATE_TAB_DRAFT": {
-			const { tabId, draft } = action.payload;
-			return patchTab(state, tabId, (tab) => ({
+		case "UPDATE_TAB_LABEL":
+			return patchTab(state, action.payload.tabId, (tab) => ({
 				...tab,
-				draft,
+				label: action.payload.label,
+			}));
+
+		case "UPDATE_TAB_DRAFT":
+			return patchTab(state, action.payload.tabId, (tab) => ({
+				...tab,
+				draft: action.payload.draft,
 				isDirty: true,
 			}));
-		}
 
-		case "SET_TAB_MESSAGES": {
-			const { tabId, messages } = action.payload;
-			return patchTab(state, tabId, (tab) => ({ ...tab, messages }));
-		}
-
-		case "PUSH_TAB_MESSAGE": {
-			const { tabId, message } = action.payload;
-			return patchTab(state, tabId, (tab) => ({
+		case "SET_TAB_MESSAGES":
+			return patchTab(state, action.payload.tabId, (tab) => ({
 				...tab,
-				messages: [...tab.messages, message],
+				messages: action.payload.messages,
 			}));
-		}
+
+		case "PUSH_TAB_MESSAGE":
+			return patchTab(state, action.payload.tabId, (tab) => ({
+				...tab,
+				messages: [...tab.messages, action.payload.message],
+			}));
 
 		case "UPDATE_TAB_MESSAGE": {
 			const { tabId, messageId, patch } = action.payload;
@@ -196,46 +194,48 @@ const reducer = (
 			}));
 		}
 
-		case "SET_TAB_SENDING": {
-			const { tabId, sending } = action.payload;
-			return patchTab(state, tabId, (tab) => ({ ...tab, sending }));
-		}
-
-		case "SET_TAB_ERROR": {
-			const { tabId, error } = action.payload;
-			return patchTab(state, tabId, (tab) => ({ ...tab, error }));
-		}
-
-		case "ATTACH_TAB_PROJECT": {
-			const { tabId, projectId } = action.payload;
-			return patchTab(state, tabId, (tab) => ({
+		case "SET_TAB_SENDING":
+			return patchTab(state, action.payload.tabId, (tab) => ({
 				...tab,
-				projectId,
+				sending: action.payload.sending,
+			}));
+
+		case "SET_TAB_ERROR":
+			return patchTab(state, action.payload.tabId, (tab) => ({
+				...tab,
+				error: action.payload.error,
+			}));
+
+		case "ATTACH_TAB_PROJECT":
+			return patchTab(state, action.payload.tabId, (tab) => ({
+				...tab,
+				projectId: action.payload.projectId,
 				isDirty: false,
 			}));
-		}
 
-		case "SET_TAB_VERSION_GRAPH": {
-			const { tabId, versionGraph } = action.payload;
-			return patchTab(state, tabId, (tab) => ({ ...tab, versionGraph }));
-		}
+		case "SET_TAB_VERSION_GRAPH":
+			return patchTab(state, action.payload.tabId, (tab) => ({
+				...tab,
+				versionGraph: action.payload.versionGraph,
+			}));
 
-		case "SET_TAB_PRESET": {
-			const { tabId, preset } = action.payload;
-			return patchTab(state, tabId, (tab) => ({ ...tab, preset }));
-		}
+		case "SET_TAB_PRESET":
+			return patchTab(state, action.payload.tabId, (tab) => ({
+				...tab,
+				preset: action.payload.preset,
+			}));
 
-		case "MARK_TAB_DIRTY": {
-			const { tabId, isDirty } = action.payload;
-			return patchTab(state, tabId, (tab) => ({ ...tab, isDirty }));
-		}
+		case "MARK_TAB_DIRTY":
+			return patchTab(state, action.payload.tabId, (tab) => ({
+				...tab,
+				isDirty: action.payload.isDirty,
+			}));
 
-		case "RESTORE_TABS": {
+		case "RESTORE_TABS":
 			return {
 				tabs: action.payload.tabs,
 				activeTabId: action.payload.activeTabId,
 			};
-		}
 
 		case "REORDER_TABS": {
 			const { fromIndex, toIndex } = action.payload;
@@ -371,21 +371,27 @@ export function useTabManager() {
 		return tabId;
 	}, []);
 
-	const closeTab = useCallback((tabId: string) => {
-		dispatch({ type: "CLOSE_TAB", payload: { tabId } });
-	}, []);
+	const closeTab = useCallback(
+		(tabId: string) => dispatch({ type: "CLOSE_TAB", payload: { tabId } }),
+		[],
+	);
 
-	const switchTab = useCallback((tabId: string) => {
-		dispatch({ type: "SWITCH_TAB", payload: { tabId } });
-	}, []);
+	const switchTab = useCallback(
+		(tabId: string) => dispatch({ type: "SWITCH_TAB", payload: { tabId } }),
+		[],
+	);
 
-	const updateTabLabel = useCallback((tabId: string, label: string) => {
-		dispatch({ type: "UPDATE_TAB_LABEL", payload: { tabId, label } });
-	}, []);
+	const updateTabLabel = useCallback(
+		(tabId: string, label: string) =>
+			dispatch({ type: "UPDATE_TAB_LABEL", payload: { tabId, label } }),
+		[],
+	);
 
-	const reorderTabs = useCallback((fromIndex: number, toIndex: number) => {
-		dispatch({ type: "REORDER_TABS", payload: { fromIndex, toIndex } });
-	}, []);
+	const reorderTabs = useCallback(
+		(fromIndex: number, toIndex: number) =>
+			dispatch({ type: "REORDER_TABS", payload: { fromIndex, toIndex } }),
+		[],
+	);
 
 	const updateDraft = useCallback(
 		(draft: string) => {
@@ -498,78 +504,76 @@ export function useTabManager() {
 	);
 
 	const findTabByProjectId = useCallback(
-		(projectId: string): Tab | null => {
-			return state.tabs.find((t) => t.projectId === projectId) ?? null;
-		},
+		(projectId: string): Tab | null =>
+			state.tabs.find((t) => t.projectId === projectId) ?? null,
 		[state.tabs],
 	);
 
-	const updateDraftForTab = useCallback((tabId: string, draft: string) => {
-		dispatch({ type: "UPDATE_TAB_DRAFT", payload: { tabId, draft } });
-	}, []);
+	const updateDraftForTab = useCallback(
+		(tabId: string, draft: string) =>
+			dispatch({ type: "UPDATE_TAB_DRAFT", payload: { tabId, draft } }),
+		[],
+	);
 
 	const setMessagesForTab = useCallback(
-		(tabId: string, messages: MessageItem[]) => {
-			dispatch({ type: "SET_TAB_MESSAGES", payload: { tabId, messages } });
-		},
+		(tabId: string, messages: MessageItem[]) =>
+			dispatch({ type: "SET_TAB_MESSAGES", payload: { tabId, messages } }),
 		[],
 	);
 
 	const pushMessageForTab = useCallback(
-		(tabId: string, message: MessageItem) => {
-			dispatch({ type: "PUSH_TAB_MESSAGE", payload: { tabId, message } });
-		},
+		(tabId: string, message: MessageItem) =>
+			dispatch({ type: "PUSH_TAB_MESSAGE", payload: { tabId, message } }),
 		[],
 	);
 
 	const updateMessageForTab = useCallback(
-		(tabId: string, messageId: string, patch: Partial<MessageItem>) => {
+		(tabId: string, messageId: string, patch: Partial<MessageItem>) =>
 			dispatch({
 				type: "UPDATE_TAB_MESSAGE",
 				payload: { tabId, messageId, patch },
-			});
-		},
+			}),
 		[],
 	);
 
-	const setSendingForTab = useCallback((tabId: string, sending: boolean) => {
-		dispatch({ type: "SET_TAB_SENDING", payload: { tabId, sending } });
-	}, []);
+	const setSendingForTab = useCallback(
+		(tabId: string, sending: boolean) =>
+			dispatch({ type: "SET_TAB_SENDING", payload: { tabId, sending } }),
+		[],
+	);
 
 	const setVersionGraphForTab = useCallback(
-		(tabId: string, versionGraph: VersionGraph) => {
+		(tabId: string, versionGraph: VersionGraph) =>
 			dispatch({
 				type: "SET_TAB_VERSION_GRAPH",
 				payload: { tabId, versionGraph },
-			});
-		},
+			}),
 		[],
 	);
 
 	const attachProjectForTab = useCallback(
-		(tabId: string, projectId: string | null) => {
-			dispatch({ type: "ATTACH_TAB_PROJECT", payload: { tabId, projectId } });
-		},
+		(tabId: string, projectId: string | null) =>
+			dispatch({ type: "ATTACH_TAB_PROJECT", payload: { tabId, projectId } }),
 		[],
 	);
 
-	const setErrorForTab = useCallback((tabId: string, error: string | null) => {
-		dispatch({ type: "SET_TAB_ERROR", payload: { tabId, error } });
-	}, []);
+	const setErrorForTab = useCallback(
+		(tabId: string, error: string | null) =>
+			dispatch({ type: "SET_TAB_ERROR", payload: { tabId, error } }),
+		[],
+	);
 
 	const setPresetForTab = useCallback(
-		(tabId: string, preset: PromptPresetSummary) => {
-			dispatch({
-				type: "SET_TAB_PRESET",
-				payload: { tabId, preset },
-			});
-		},
+		(tabId: string, preset: PromptPresetSummary) =>
+			dispatch({ type: "SET_TAB_PRESET", payload: { tabId, preset } }),
 		[],
 	);
 
-	const markDirtyForTab = useCallback((tabId: string, isDirty: boolean) => {
-		dispatch({ type: "MARK_TAB_DIRTY", payload: { tabId, isDirty } });
-	}, []);
+	const markDirtyForTab = useCallback(
+		(tabId: string, isDirty: boolean) =>
+			dispatch({ type: "MARK_TAB_DIRTY", payload: { tabId, isDirty } }),
+		[],
+	);
 
 	const getTabs = useCallback(() => stateRef.current.tabs, []);
 

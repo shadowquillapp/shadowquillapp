@@ -13,6 +13,20 @@ interface MessageRendererProps {
 const escapeRegExp = (value: string) =>
 	value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
+const codeBlock = (key: string, label: string, body: ReactNode) => (
+	<div
+		key={key}
+		className="my-4 overflow-x-auto whitespace-pre-wrap rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
+	>
+		{label && (
+			<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
+				{label}
+			</div>
+		)}
+		<div className="overflow-x-auto">{body}</div>
+	</div>
+);
+
 export function MessageRenderer({
 	content,
 	messageId: _messageId,
@@ -136,6 +150,13 @@ export function MessageRenderer({
 
 	const highlightXML = useCallback((code: string) => {
 		const tokens: ReactNode[] = [];
+		const push = (key: string, value: ReactNode, className?: string) => {
+			tokens.push(
+				<span key={key} className={className}>
+					{value}
+				</span>,
+			);
+		};
 		let i = 0;
 		const MAX_ITERATIONS = 50000;
 		let iterations = 0;
@@ -146,12 +167,7 @@ export function MessageRenderer({
 			if (code.startsWith("<!--", i)) {
 				const closeIndex = code.indexOf("-->", i);
 				const end = closeIndex === -1 ? code.length : closeIndex + 3;
-				const comment = code.slice(i, end);
-				tokens.push(
-					<span key={`xml-comment-${i}`} className="token-comment">
-						{comment}
-					</span>,
-				);
+				push(`xml-comment-${i}`, code.slice(i, end), "token-comment");
 				i = end;
 				continue;
 			}
@@ -171,17 +187,13 @@ export function MessageRenderer({
 				}
 				const tagName = code.slice(nameStart, j);
 
-				tokens.push(
-					<span key={`xml-tag-open-${tagStart}`} className="token-punctuation">
-						&lt;{isClosing ? "/" : ""}
-					</span>,
+				push(
+					`xml-tag-open-${tagStart}`,
+					`<${isClosing ? "/" : ""}`,
+					"token-punctuation",
 				);
 				if (tagName) {
-					tokens.push(
-						<span key={`xml-tag-name-${nameStart}`} className="token-key">
-							{tagName}
-						</span>,
-					);
+					push(`xml-tag-name-${nameStart}`, tagName, "token-key");
 				}
 
 				i = j;
@@ -191,94 +203,62 @@ export function MessageRenderer({
 					attrIterations++;
 					const whitespaceMatch = code.slice(i).match(/^\s+/);
 					if (whitespaceMatch) {
-						tokens.push(<span key={`xml-ws-${i}`}>{whitespaceMatch[0]}</span>);
+						push(`xml-ws-${i}`, whitespaceMatch[0]);
 						i += whitespaceMatch[0].length;
 						continue;
 					}
 
 					if (code[i] === ">") {
-						tokens.push(
-							<span key={`xml-tag-close-${i}`} className="token-punctuation">
-								&gt;
-							</span>,
-						);
+						push(`xml-tag-close-${i}`, ">", "token-punctuation");
 						i++;
 						break;
 					}
 					if (code.startsWith("/>", i)) {
-						tokens.push(
-							<span key={`xml-tag-close-${i}`} className="token-punctuation">
-								/&gt;
-							</span>,
-						);
+						push(`xml-tag-close-${i}`, "/>", "token-punctuation");
 						i += 2;
 						break;
 					}
 
 					const attrMatch = code.slice(i).match(/^[a-zA-Z0-9_\-:]+/);
 					if (attrMatch) {
-						tokens.push(
-							<span key={`xml-attr-name-${i}`} className="token-attribute">
-								{attrMatch[0]}
-							</span>,
-						);
+						push(`xml-attr-name-${i}`, attrMatch[0], "token-attribute");
 						i += attrMatch[0].length;
 
 						const eqMatch = code.slice(i).match(/^\s*=/);
 						if (eqMatch) {
-							tokens.push(
-								<span key={`xml-eq-${i}`} className="token-punctuation">
-									{eqMatch[0]}
-								</span>,
-							);
+							push(`xml-eq-${i}`, eqMatch[0], "token-punctuation");
 							i += eqMatch[0].length;
 
 							const wsAfterEq = code.slice(i).match(/^\s+/);
 							if (wsAfterEq) {
-								tokens.push(
-									<span key={`xml-ws-val-${i}`}>{wsAfterEq[0]}</span>,
-								);
+								push(`xml-ws-val-${i}`, wsAfterEq[0]);
 								i += wsAfterEq[0].length;
 							}
 
 							if (code[i] === '"' || code[i] === "'") {
 								const quote = code[i];
-								tokens.push(
-									<span key={`xml-quote-${i}`} className="token-string">
-										{quote}
-									</span>,
-								);
+								push(`xml-quote-${i}`, quote, "token-string");
 								i++;
 								const valContentStart = i;
 								while (i < code.length && code[i] !== quote) {
 									i++;
 								}
-								tokens.push(
-									<span
-										key={`xml-attr-val-${valContentStart}`}
-										className="token-string"
-									>
-										{code.slice(valContentStart, i)}
-									</span>,
+								push(
+									`xml-attr-val-${valContentStart}`,
+									code.slice(valContentStart, i),
+									"token-string",
 								);
 								if (i < code.length && code[i] === quote) {
-									tokens.push(
-										<span key={`xml-quote-end-${i}`} className="token-string">
-											{quote}
-										</span>,
-									);
+									push(`xml-quote-end-${i}`, quote, "token-string");
 									i++;
 								}
 							} else {
 								const unquotedMatch = code.slice(i).match(/^[^\s>]+/);
 								if (unquotedMatch) {
-									tokens.push(
-										<span
-											key={`xml-attr-val-unquoted-${i}`}
-											className="token-string"
-										>
-											{unquotedMatch[0]}
-										</span>,
+									push(
+										`xml-attr-val-unquoted-${i}`,
+										unquotedMatch[0],
+										"token-string",
 									);
 									i += unquotedMatch[0].length;
 								}
@@ -287,7 +267,7 @@ export function MessageRenderer({
 						continue;
 					}
 
-					tokens.push(<span key={`xml-unexpected-${i}`}>{code[i]}</span>);
+					push(`xml-unexpected-${i}`, code[i]);
 					i++;
 				}
 				continue;
@@ -295,8 +275,7 @@ export function MessageRenderer({
 
 			const nextTag = code.indexOf("<", i);
 			const textEnd = nextTag === -1 ? code.length : nextTag;
-			const text = code.slice(i, textEnd);
-			tokens.push(<span key={`xml-text-${i}`}>{text}</span>);
+			push(`xml-text-${i}`, code.slice(i, textEnd));
 			i = textEnd;
 		}
 
@@ -312,6 +291,13 @@ export function MessageRenderer({
 			const nodes: ReactNode[] = [];
 			let lastIndex = 0;
 			let tokenIndex = 0;
+			const push = (value: ReactNode, className?: string) => {
+				nodes.push(
+					<span key={`${keyPrefix}-${tokenIndex++}`} className={className}>
+						{value}
+					</span>,
+				);
+			};
 
 			for (
 				let match = inlinePattern.exec(text);
@@ -319,217 +305,51 @@ export function MessageRenderer({
 				match = inlinePattern.exec(text)
 			) {
 				if (match.index > lastIndex) {
-					const plain = text.slice(lastIndex, match.index);
-					nodes.push(
-						<span key={`${keyPrefix}-plain-${tokenIndex++}`}>{plain}</span>,
-					);
+					push(text.slice(lastIndex, match.index));
 				}
 				const token = match[0];
 
 				if (/^`/.test(token)) {
-					nodes.push(
-						<span
-							key={`${keyPrefix}-code-open-${tokenIndex++}`}
-							className="token-md-code-tick"
-						>
-							`
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-code-text-${tokenIndex++}`}
-							className="token-md-code"
-						>
-							{token.slice(1, -1)}
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-code-close-${tokenIndex++}`}
-							className="token-md-code-tick"
-						>
-							`
-						</span>,
-					);
+					push("`", "token-md-code-tick");
+					push(token.slice(1, -1), "token-md-code");
+					push("`", "token-md-code-tick");
 				} else if (/^\*\*\*/.test(token) || /^___/.test(token)) {
-					nodes.push(
-						<span
-							key={`${keyPrefix}-bold-italic-open-${tokenIndex++}`}
-							className="token-md-bold"
-						>
-							**
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-bold-italic-mid-${tokenIndex++}`}
-							className="token-md-italic"
-						>
-							*
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-bold-italic-text-${tokenIndex++}`}
-							className="token-md-bold-text token-md-italic-text"
-						>
-							{token.slice(3, -3)}
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-bold-italic-mid-close-${tokenIndex++}`}
-							className="token-md-italic"
-						>
-							*
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-bold-italic-close-${tokenIndex++}`}
-							className="token-md-bold"
-						>
-							**
-						</span>,
-					);
+					push("**", "token-md-bold");
+					push("*", "token-md-italic");
+					push(token.slice(3, -3), "token-md-bold-text token-md-italic-text");
+					push("*", "token-md-italic");
+					push("**", "token-md-bold");
 				} else if (/^\*\*/.test(token) || /^__/.test(token)) {
-					nodes.push(
-						<span
-							key={`${keyPrefix}-bold-open-${tokenIndex++}`}
-							className="token-md-bold"
-						>
-							**
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-bold-text-${tokenIndex++}`}
-							className="token-md-bold-text"
-						>
-							{token.slice(2, -2)}
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-bold-close-${tokenIndex++}`}
-							className="token-md-bold"
-						>
-							**
-						</span>,
-					);
+					push("**", "token-md-bold");
+					push(token.slice(2, -2), "token-md-bold-text");
+					push("**", "token-md-bold");
 				} else if (/^\*(?!\*)/.test(token) || /^_(?!_)/.test(token)) {
-					nodes.push(
-						<span
-							key={`${keyPrefix}-italic-open-${tokenIndex++}`}
-							className="token-md-italic"
-						>
-							*
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-italic-text-${tokenIndex++}`}
-							className="token-md-italic-text"
-						>
-							{token.slice(1, -1)}
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-italic-close-${tokenIndex++}`}
-							className="token-md-italic"
-						>
-							*
-						</span>,
-					);
+					push("*", "token-md-italic");
+					push(token.slice(1, -1), "token-md-italic-text");
+					push("*", "token-md-italic");
 				} else if (/^~~/.test(token)) {
-					nodes.push(
-						<span
-							key={`${keyPrefix}-strike-open-${tokenIndex++}`}
-							className="token-md-strike"
-						>
-							~~
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-strike-text-${tokenIndex++}`}
-							className="token-md-strike-text"
-						>
-							{token.slice(2, -2)}
-						</span>,
-					);
-					nodes.push(
-						<span
-							key={`${keyPrefix}-strike-close-${tokenIndex++}`}
-							className="token-md-strike"
-						>
-							~~
-						</span>,
-					);
+					push("~~", "token-md-strike");
+					push(token.slice(2, -2), "token-md-strike-text");
+					push("~~", "token-md-strike");
 				} else if (/^\[/.test(token) || /^!\[/.test(token)) {
 					const linkMatch = token.match(/^(!)?\[([^\]]+)]\(([^)]+)\)$/);
 					if (linkMatch) {
-						const isImage = Boolean(linkMatch[1]);
-						nodes.push(
-							<span
-								key={`${keyPrefix}-link-open-${tokenIndex++}`}
-								className="token-md-punctuation"
-							>
-								{isImage ? "![" : "["}
-							</span>,
-						);
-						nodes.push(
-							<span
-								key={`${keyPrefix}-link-text-${tokenIndex++}`}
-								className="token-md-link-text"
-							>
-								{linkMatch[2]}
-							</span>,
-						);
-						nodes.push(
-							<span
-								key={`${keyPrefix}-link-mid-${tokenIndex++}`}
-								className="token-md-punctuation"
-							>
-								](
-							</span>,
-						);
-						nodes.push(
-							<span
-								key={`${keyPrefix}-link-url-${tokenIndex++}`}
-								className="token-md-url"
-							>
-								{linkMatch[3]}
-							</span>,
-						);
-						nodes.push(
-							<span
-								key={`${keyPrefix}-link-close-${tokenIndex++}`}
-								className="token-md-punctuation"
-							>
-								)
-							</span>,
-						);
+						push(linkMatch[1] ? "![" : "[", "token-md-punctuation");
+						push(linkMatch[2], "token-md-link-text");
+						push("](", "token-md-punctuation");
+						push(linkMatch[3], "token-md-url");
+						push(")", "token-md-punctuation");
 					} else {
-						nodes.push(
-							<span key={`${keyPrefix}-unknown-${tokenIndex++}`}>{token}</span>,
-						);
+						push(token);
 					}
 				} else {
-					nodes.push(
-						<span key={`${keyPrefix}-unknown-${tokenIndex++}`}>{token}</span>,
-					);
+					push(token);
 				}
 				lastIndex = match.index + token.length;
 			}
 
 			if (lastIndex < text.length) {
-				nodes.push(
-					<span key={`${keyPrefix}-plain-${tokenIndex++}`}>
-						{text.slice(lastIndex)}
-					</span>,
-				);
+				push(text.slice(lastIndex));
 			}
 
 			return nodes;
@@ -542,15 +362,12 @@ export function MessageRenderer({
 
 			const headerMatch = line.match(/^(#{1,6})(\s+)(.*)$/);
 			if (headerMatch) {
-				const hashSymbols = headerMatch[1] ?? "";
-				const spacing = headerMatch[2] ?? " ";
-				const headingText = headerMatch[3] ?? "";
 				return (
 					<span key={lineKey}>
-						<span className="token-md-header">{hashSymbols}</span>
-						<span>{spacing}</span>
+						<span className="token-md-header">{headerMatch[1] ?? ""}</span>
+						<span>{headerMatch[2] ?? " "}</span>
 						<span className="token-md-header-text">
-							{renderInline(headingText, `${lineKey}-header`)}
+							{renderInline(headerMatch[3] ?? "", `${lineKey}-header`)}
 						</span>
 						{newline}
 					</span>
@@ -568,13 +385,13 @@ export function MessageRenderer({
 
 			const blockquoteMatch = line.match(/^(\s*>+\s*)(.*)$/);
 			if (blockquoteMatch) {
-				const quoteMarker = blockquoteMatch[1] ?? "";
-				const quoteContent = blockquoteMatch[2] ?? "";
 				return (
 					<span key={lineKey}>
-						<span className="token-md-quote-marker">{quoteMarker}</span>
+						<span className="token-md-quote-marker">
+							{blockquoteMatch[1] ?? ""}
+						</span>
 						<span className="token-md-quote-text">
-							{renderInline(quoteContent, `${lineKey}-quote`)}
+							{renderInline(blockquoteMatch[2] ?? "", `${lineKey}-quote`)}
 						</span>
 						{newline}
 					</span>
@@ -583,15 +400,12 @@ export function MessageRenderer({
 
 			const listMatch = line.match(/^(\s*)([-*+]|\d+\.)\s+(.*)$/);
 			if (listMatch) {
-				const listIndent = listMatch[1] ?? "";
-				const listMarker = listMatch[2] ?? "";
-				const listBody = listMatch[3] ?? "";
 				return (
 					<span key={lineKey}>
-						<span>{listIndent}</span>
-						<span className="token-md-list-marker">{listMarker}</span>
+						<span>{listMatch[1] ?? ""}</span>
+						<span className="token-md-list-marker">{listMatch[2] ?? ""}</span>
 						<span> </span>
-						{renderInline(listBody, `${lineKey}-list`)}
+						{renderInline(listMatch[3] ?? "", `${lineKey}-list`)}
 						{newline}
 					</span>
 				);
@@ -605,6 +419,14 @@ export function MessageRenderer({
 			);
 		});
 	}, []);
+
+	const highlightFor = (lang: string, code: string): string | ReactNode[] => {
+		if (lang === "json") return highlightJSON(code);
+		if (lang === "markdown" || lang === "md") return highlightMarkdown(code);
+		if (lang === "xml" || lang === "html" || lang === "svg")
+			return highlightXML(code);
+		return code;
+	};
 
 	const renderMessageContent = () => {
 		const codeBlockRegex = /```([^\n]*)\n?([\s\S]*?)```/g;
@@ -642,29 +464,12 @@ export function MessageRenderer({
 				} catch {}
 			}
 
-			let highlightedCode: string | ReactNode[];
-			if (lang === "json") {
-				highlightedCode = highlightJSON(cleanedCode);
-			} else if (lang === "markdown" || lang === "md") {
-				highlightedCode = highlightMarkdown(cleanedCode);
-			} else if (lang === "xml" || lang === "html" || lang === "svg") {
-				highlightedCode = highlightXML(cleanedCode);
-			} else {
-				highlightedCode = cleanedCode;
-			}
-
 			parts.push(
-				<div
-					key="code-unclosed"
-					className="my-4 overflow-x-auto whitespace-pre-wrap rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
-				>
-					{languageLabel && (
-						<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
-							{languageLabel}
-						</div>
-					)}
-					<div className="overflow-x-auto">{highlightedCode}</div>
-				</div>,
+				codeBlock(
+					"code-unclosed",
+					languageLabel,
+					highlightFor(lang, cleanedCode),
+				),
 			);
 
 			return parts.length > 0 ? (
@@ -695,29 +500,12 @@ export function MessageRenderer({
 			const languageLabel = (language || "").trim();
 			const lang = (languageLabel || "code").toLowerCase();
 
-			let highlightedCode: string | ReactNode[] | undefined;
-			if (lang === "json") {
-				highlightedCode = highlightJSON(code || "");
-			} else if (lang === "markdown" || lang === "md") {
-				highlightedCode = highlightMarkdown(code || "");
-			} else if (lang === "xml" || lang === "html" || lang === "svg") {
-				highlightedCode = highlightXML(code || "");
-			} else {
-				highlightedCode = code;
-			}
-
 			parts.push(
-				<div
-					key={`code-${match.index}`}
-					className="my-4 overflow-x-auto whitespace-pre-wrap rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
-				>
-					{languageLabel && (
-						<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
-							{languageLabel}
-						</div>
-					)}
-					<div className="overflow-x-auto">{highlightedCode}</div>
-				</div>,
+				codeBlock(
+					`code-${match.index}`,
+					languageLabel,
+					highlightFor(lang, code || ""),
+				),
 			);
 
 			lastIndex = match.index + match[0].length;
@@ -734,49 +522,29 @@ export function MessageRenderer({
 
 				if (langMatch?.[1] && langMatch[2]) {
 					const lang = langMatch[1];
-					const codeContent = langMatch[2];
-					const normalizedLang = lang.toLowerCase();
 					const highlighter =
-						normalizedLang === "json" ? highlightJSON : highlightXML;
+						lang.toLowerCase() === "json" ? highlightJSON : highlightXML;
 					parts.push(
-						<div
-							key={`code-${lastIndex}`}
-							className="my-4 overflow-x-auto whitespace-pre-wrap rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
-						>
-							<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
-								{lang.toUpperCase()}
-							</div>
-							<div className="overflow-x-auto">
-								{highlighter(codeContent.trim())}
-							</div>
-						</div>,
+						codeBlock(
+							`code-${lastIndex}`,
+							lang.toUpperCase(),
+							highlighter(langMatch[2].trim()),
+						),
+					);
+				} else if (/^\s*<[\s\S]*>\s*$/.test(remainingText.trim())) {
+					parts.push(
+						codeBlock(
+							`code-${lastIndex}`,
+							"XML",
+							highlightXML(remainingText.trim()),
+						),
 					);
 				} else {
-					const xmlPattern = /^\s*<[\s\S]*>\s*$/;
-					if (xmlPattern.test(remainingText.trim())) {
-						parts.push(
-							<div
-								key={`code-${lastIndex}`}
-								className="my-4 overflow-x-auto whitespace-pre-wrap rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
-							>
-								<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
-									XML
-								</div>
-								<div className="overflow-x-auto">
-									{highlightXML(remainingText.trim())}
-								</div>
-							</div>,
-						);
-					} else {
-						parts.push(
-							<span
-								key={`text-${lastIndex}`}
-								style={{ whiteSpace: "pre-wrap" }}
-							>
-								{remainingText}
-							</span>,
-						);
-					}
+					parts.push(
+						<span key={`text-${lastIndex}`} style={{ whiteSpace: "pre-wrap" }}>
+							{remainingText}
+						</span>,
+					);
 				}
 			}
 		}

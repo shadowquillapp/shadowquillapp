@@ -27,6 +27,32 @@ const resetButtonStyle: React.CSSProperties = {
 	color: "var(--color-on-surface)",
 };
 
+const sectionTabStyle = (active: boolean): React.CSSProperties => ({
+	flex: 1,
+	padding: "8px 12px",
+	fontSize: 13,
+	fontWeight: 600,
+	border: "none",
+	borderRadius: 8,
+	cursor: "pointer",
+	display: "flex",
+	alignItems: "center",
+	justifyContent: "center",
+	gap: 6,
+	transition: "all 0.15s",
+	background: active ? "var(--color-primary)" : "transparent",
+	color: active ? "var(--color-on-primary)" : "var(--color-on-surface-variant)",
+});
+
+const setCardStyle = (
+	e: React.SyntheticEvent<HTMLButtonElement>,
+	boxShadow: string,
+	borderColor: string,
+) => {
+	e.currentTarget.style.boxShadow = boxShadow;
+	e.currentTarget.style.borderColor = borderColor;
+};
+
 interface SavedProject {
 	id: string;
 	title: string | null;
@@ -363,28 +389,7 @@ export function PresetPickerModal({
 							<button
 								type="button"
 								onClick={() => handleTabSwitch("presets")}
-								style={{
-									flex: 1,
-									padding: "8px 12px",
-									fontSize: 13,
-									fontWeight: 600,
-									border: "none",
-									borderRadius: 8,
-									cursor: "pointer",
-									display: "flex",
-									alignItems: "center",
-									justifyContent: "center",
-									gap: 6,
-									transition: "all 0.15s",
-									background:
-										activeSection === "presets"
-											? "var(--color-primary)"
-											: "transparent",
-									color:
-										activeSection === "presets"
-											? "var(--color-on-primary)"
-											: "var(--color-on-surface-variant)",
-								}}
+								style={sectionTabStyle(activeSection === "presets")}
 							>
 								<Icon name="brush" style={{ width: 14, height: 14 }} />
 								Presets
@@ -392,28 +397,7 @@ export function PresetPickerModal({
 							<button
 								type="button"
 								onClick={() => handleTabSwitch("saved")}
-								style={{
-									flex: 1,
-									padding: "8px 12px",
-									fontSize: 13,
-									fontWeight: 600,
-									border: "none",
-									borderRadius: 8,
-									cursor: "pointer",
-									display: "flex",
-									alignItems: "center",
-									justifyContent: "center",
-									gap: 6,
-									transition: "all 0.15s",
-									background:
-										activeSection === "saved"
-											? "var(--color-primary)"
-											: "transparent",
-									color:
-										activeSection === "saved"
-											? "var(--color-on-primary)"
-											: "var(--color-on-surface-variant)",
-								}}
+								style={sectionTabStyle(activeSection === "saved")}
 							>
 								<Icon name="folder-open" style={{ width: 14, height: 14 }} />
 								Saved Tabs
@@ -613,28 +597,26 @@ export function PresetPickerModal({
 													transition: "box-shadow 0.15s, border-color 0.15s",
 													overflow: "hidden",
 												}}
-												onMouseEnter={(e) => {
-													e.currentTarget.style.boxShadow =
-														"0 2px 8px rgba(0,0,0,0.1)";
-													e.currentTarget.style.borderColor =
-														"var(--color-primary)";
-												}}
-												onMouseLeave={(e) => {
-													e.currentTarget.style.boxShadow = "none";
-													e.currentTarget.style.borderColor =
-														"var(--color-outline)";
-												}}
-												onFocus={(e) => {
-													e.currentTarget.style.boxShadow =
-														"0 0 0 2px var(--focus-ring, rgba(99,102,241,0.25))";
-													e.currentTarget.style.borderColor =
-														"var(--color-primary)";
-												}}
-												onBlur={(e) => {
-													e.currentTarget.style.boxShadow = "none";
-													e.currentTarget.style.borderColor =
-														"var(--color-outline)";
-												}}
+												onMouseEnter={(e) =>
+													setCardStyle(
+														e,
+														"0 2px 8px rgba(0,0,0,0.1)",
+														"var(--color-primary)",
+													)
+												}
+												onMouseLeave={(e) =>
+													setCardStyle(e, "none", "var(--color-outline)")
+												}
+												onFocus={(e) =>
+													setCardStyle(
+														e,
+														"0 0 0 2px var(--focus-ring, rgba(99,102,241,0.25))",
+														"var(--color-primary)",
+													)
+												}
+												onBlur={(e) =>
+													setCardStyle(e, "none", "var(--color-outline)")
+												}
 											>
 												<div
 													style={{
@@ -772,27 +754,25 @@ export function PresetPickerModal({
 													}}
 													onMouseEnter={(e) => {
 														if (isDeleting) return;
-														e.currentTarget.style.boxShadow =
-															"0 2px 8px rgba(0,0,0,0.08)";
-														e.currentTarget.style.borderColor =
-															"var(--color-outline-variant)";
+														setCardStyle(
+															e,
+															"0 2px 8px rgba(0,0,0,0.08)",
+															"var(--color-outline-variant)",
+														);
 													}}
-													onMouseLeave={(e) => {
-														e.currentTarget.style.boxShadow = "none";
-														e.currentTarget.style.borderColor =
-															"var(--color-outline)";
-													}}
-													onFocus={(e) => {
-														e.currentTarget.style.boxShadow =
-															"0 0 0 3px var(--focus-ring, rgba(99,102,241,0.25))";
-														e.currentTarget.style.borderColor =
-															"var(--color-primary)";
-													}}
-													onBlur={(e) => {
-														e.currentTarget.style.boxShadow = "none";
-														e.currentTarget.style.borderColor =
-															"var(--color-outline)";
-													}}
+													onMouseLeave={(e) =>
+														setCardStyle(e, "none", "var(--color-outline)")
+													}
+													onFocus={(e) =>
+														setCardStyle(
+															e,
+															"0 0 0 3px var(--focus-ring, rgba(99,102,241,0.25))",
+															"var(--color-primary)",
+														)
+													}
+													onBlur={(e) =>
+														setCardStyle(e, "none", "var(--color-outline)")
+													}
 												>
 													<div
 														style={{
