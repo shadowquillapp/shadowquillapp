@@ -1,3 +1,10 @@
+## [0.11.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.11.0...v0.11.1) (2026-06-10)
+
+
+### Bug Fixes
+
+* build process on windows skips Unix commands (ls/head) ([ad35e7a](https://github.com/shadowquillapp/shadowquillapp/commit/ad35e7ae33a5d81c5d2e12afc858f72adb3691d9))
+
 # [0.11.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.10.3...v0.11.0) (2026-06-10)
 
 
