@@ -1,3 +1,10 @@
+# [0.11.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.10.3...v0.11.0) (2026-06-10)
+
+
+### Features
+
+* markdown render mode added. User can toggle between rendered markdown and source. ([2b37ee2](https://github.com/shadowquillapp/shadowquillapp/commit/2b37ee23afbd4ca0bf4b59a745bc6d542a281921))
+
 ## [0.10.3](https://github.com/shadowquillapp/shadowquillapp/compare/v0.10.2...v0.10.3) (2026-06-10)
 
 ## [0.10.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.10.1...v0.10.2) (2026-06-10)
