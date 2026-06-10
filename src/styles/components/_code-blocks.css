@@ -40,6 +40,101 @@
 
 .message-prose p {
 	max-width: 100%;
+	margin: var(--space-2) 0;
+}
+
+.message-prose :is(h1, h2, h3, h4, h5, h6) {
+	color: var(--color-on-surface);
+	font-weight: 700;
+	line-height: 1.3;
+	margin: var(--space-4) 0 var(--space-2);
+	font-size: 1em;
+}
+
+.message-prose h1 {
+	font-size: 1.5em;
+}
+
+.message-prose h2 {
+	font-size: 1.3em;
+}
+
+.message-prose h3 {
+	font-size: 1.15em;
+}
+
+.message-prose :is(ul, ol) {
+	margin: var(--space-2) 0;
+	padding-left: var(--space-6);
+}
+
+.message-prose ul {
+	list-style: disc;
+}
+
+.message-prose ol {
+	list-style: decimal;
+}
+
+.message-prose li {
+	margin: var(--space-1) 0;
+}
+
+.message-prose blockquote {
+	margin: var(--space-2) 0;
+	padding-left: var(--space-3);
+	border-left: 3px solid var(--color-outline);
+	color: var(--color-on-surface-variant);
+	font-style: italic;
+}
+
+.message-prose a {
+	color: var(--color-primary);
+	text-decoration: underline;
+}
+
+.message-prose hr {
+	border: none;
+	border-top: 1px solid var(--color-outline);
+	margin: var(--space-4) 0;
+}
+
+.message-prose table {
+	border-collapse: collapse;
+	margin: var(--space-2) 0;
+}
+
+.message-prose th,
+.message-prose td {
+	border: 1px solid var(--color-outline);
+	padding: var(--space-1) var(--space-2);
+	text-align: left;
+}
+
+.message-prose th {
+	font-weight: 600;
+	background: var(--color-surface-variant);
+}
+
+.message-prose :not(pre) > code {
+	background: var(--color-surface-variant);
+	border-radius: 3px;
+	padding: 1px 4px;
+	font-family: monospace;
+	font-size: 0.9em;
+}
+
+/* ========================================
+ * CODE BLOCK HEADER
+ * Label row with view toggle (see _mode-toggle.css --compact)
+ * ======================================== */
+
+.code-block-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-2);
+	margin-bottom: var(--space-2);
 }
 
 /* ========================================

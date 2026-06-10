@@ -71,3 +71,73 @@
 	transition: transform 200ms ease;
 	z-index: 1;
 }
+
+/* ========================================
+ * COMPACT VARIANT (.mode-toggle--compact)
+ * Small switch for code block view toggles
+ * ======================================== */
+
+.mode-toggle--compact {
+	width: auto;
+	height: auto;
+	align-items: center;
+	background: color-mix(
+		in srgb,
+		var(--color-surface-variant),
+		var(--color-surface) 40%
+	);
+	border-radius: 999px;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12);
+	cursor: pointer;
+	transition: border-color 150ms ease;
+}
+
+.mode-toggle--compact:hover {
+	border-color: color-mix(
+		in srgb,
+		var(--color-outline),
+		var(--color-primary) 40%
+	);
+}
+
+.mode-toggle--compact .mode-toggle-option {
+	flex: 1 0 0;
+	min-width: 60px;
+	height: 18px;
+	padding: 0 10px;
+	font-size: 9px;
+	font-weight: 600;
+	line-height: 1;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	white-space: nowrap;
+	color: var(--color-on-surface-variant);
+	opacity: 0.7;
+	transition:
+		color 180ms ease,
+		opacity 180ms ease;
+}
+
+.mode-toggle--compact:not(.mode-toggle--source)
+	.mode-toggle-option:nth-child(1),
+.mode-toggle--compact.mode-toggle--source .mode-toggle-option:nth-child(2) {
+	color: var(--color-on-primary);
+	opacity: 1;
+}
+
+.mode-toggle--compact .mode-toggle-slider {
+	border-radius: 999px;
+	box-shadow:
+		0 1px 3px rgba(0, 0, 0, 0.25),
+		inset 0 1px 0 color-mix(in srgb, var(--color-primary), white 20%);
+	transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.mode-toggle--source .mode-toggle-slider {
+	transform: translateX(100%);
+}
+
+.mode-toggle--compact:focus-visible {
+	outline: 2px solid var(--color-primary);
+	outline-offset: 2px;
+}
