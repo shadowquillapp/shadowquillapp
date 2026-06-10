@@ -151,144 +151,8 @@ export function MessageRenderer({
 		});
 	}, []);
 
-	const highlightXML = useCallback((code: string) => {
-		const tokens: ReactNode[] = [];
-		const push = (key: string, value: ReactNode, className?: string) => {
-			tokens.push(
-				<span key={key} className={className}>
-					{value}
-				</span>,
-			);
-		};
-		let i = 0;
-		const MAX_ITERATIONS = 50000;
-		let iterations = 0;
-
-		while (i < code.length && iterations < MAX_ITERATIONS) {
-			iterations++;
-
-			if (code.startsWith("<!--", i)) {
-				const closeIndex = code.indexOf("-->", i);
-				const end = closeIndex === -1 ? code.length : closeIndex + 3;
-				push(`xml-comment-${i}`, code.slice(i, end), "token-comment");
-				i = end;
-				continue;
-			}
-
-			if (code[i] === "<") {
-				const tagStart = i;
-				let j = i + 1;
-				let isClosing = false;
-				if (code[j] === "/") {
-					isClosing = true;
-					j++;
-				}
-
-				const nameStart = j;
-				while (j < code.length && /[a-zA-Z0-9_\-:]/.test(code[j] ?? "")) {
-					j++;
-				}
-				const tagName = code.slice(nameStart, j);
-
-				push(
-					`xml-tag-open-${tagStart}`,
-					`<${isClosing ? "/" : ""}`,
-					"token-punctuation",
-				);
-				if (tagName) {
-					push(`xml-tag-name-${nameStart}`, tagName, "token-key");
-				}
-
-				i = j;
-
-				let attrIterations = 0;
-				while (i < code.length && attrIterations < 1000) {
-					attrIterations++;
-					const whitespaceMatch = code.slice(i).match(/^\s+/);
-					if (whitespaceMatch) {
-						push(`xml-ws-${i}`, whitespaceMatch[0]);
-						i += whitespaceMatch[0].length;
-						continue;
-					}
-
-					if (code[i] === ">") {
-						push(`xml-tag-close-${i}`, ">", "token-punctuation");
-						i++;
-						break;
-					}
-					if (code.startsWith("/>", i)) {
-						push(`xml-tag-close-${i}`, "/>", "token-punctuation");
-						i += 2;
-						break;
-					}
-
-					const attrMatch = code.slice(i).match(/^[a-zA-Z0-9_\-:]+/);
-					if (attrMatch) {
-						push(`xml-attr-name-${i}`, attrMatch[0], "token-attribute");
-						i += attrMatch[0].length;
-
-						const eqMatch = code.slice(i).match(/^\s*=/);
-						if (eqMatch) {
-							push(`xml-eq-${i}`, eqMatch[0], "token-punctuation");
-							i += eqMatch[0].length;
-
-							const wsAfterEq = code.slice(i).match(/^\s+/);
-							if (wsAfterEq) {
-								push(`xml-ws-val-${i}`, wsAfterEq[0]);
-								i += wsAfterEq[0].length;
-							}
-
-							if (code[i] === '"' || code[i] === "'") {
-								const quote = code[i];
-								push(`xml-quote-${i}`, quote, "token-string");
-								i++;
-								const valContentStart = i;
-								while (i < code.length && code[i] !== quote) {
-									i++;
-								}
-								push(
-									`xml-attr-val-${valContentStart}`,
-									code.slice(valContentStart, i),
-									"token-string",
-								);
-								if (i < code.length && code[i] === quote) {
-									push(`xml-quote-end-${i}`, quote, "token-string");
-									i++;
-								}
-							} else {
-								const unquotedMatch = code.slice(i).match(/^[^\s>]+/);
-								if (unquotedMatch) {
-									push(
-										`xml-attr-val-unquoted-${i}`,
-										unquotedMatch[0],
-										"token-string",
-									);
-									i += unquotedMatch[0].length;
-								}
-							}
-						}
-						continue;
-					}
-
-					push(`xml-unexpected-${i}`, code[i]);
-					i++;
-				}
-				continue;
-			}
-
-			const nextTag = code.indexOf("<", i);
-			const textEnd = nextTag === -1 ? code.length : nextTag;
-			push(`xml-text-${i}`, code.slice(i, textEnd));
-			i = textEnd;
-		}
-
-		return tokens;
-	}, []);
-
 	const highlightFor = (lang: string, code: string): string | ReactNode[] => {
 		if (lang === "json") return highlightJSON(code);
-		if (lang === "xml" || lang === "html" || lang === "svg")
-			return highlightXML(code);
 		return code;
 	};
 
@@ -384,26 +248,15 @@ export function MessageRenderer({
 				remainingText = remainingText.replace(/\n?\s*`{3,}\s*$/g, "");
 			}
 			if (remainingText.trim()) {
-				const langWithCodePattern = /^(xml|html|svg|json)\s*\n+([\s\S]+)$/i;
+				const langWithCodePattern = /^(json)\s*\n+([\s\S]+)$/i;
 				const langMatch = langWithCodePattern.exec(remainingText.trim());
 
 				if (langMatch?.[1] && langMatch[2]) {
-					const lang = langMatch[1];
-					const highlighter =
-						lang.toLowerCase() === "json" ? highlightJSON : highlightXML;
 					parts.push(
 						codeBlock(
 							`code-${lastIndex}`,
-							lang.toUpperCase(),
-							highlighter(langMatch[2].trim()),
-						),
-					);
-				} else if (/^\s*<[\s\S]*>\s*$/.test(remainingText.trim())) {
-					parts.push(
-						codeBlock(
-							`code-${lastIndex}`,
-							"XML",
-							highlightXML(remainingText.trim()),
+							langMatch[1].toUpperCase(),
+							highlightJSON(langMatch[2].trim()),
 						),
 					);
 				} else {

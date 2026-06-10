@@ -14,7 +14,7 @@ interface PresetInfoDialogProps {
 }
 
 const CATEGORIES = {
-	general: ["tone", "detail", "format", "language", "outputXMLSchema"],
+	general: ["tone", "detail", "format", "language"],
 	context: ["identity", "additionalContext", "audience", "styleGuidelines"],
 };
 

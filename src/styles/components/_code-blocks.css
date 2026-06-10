@@ -239,15 +239,6 @@
 	color: #abb2bf;
 }
 
-.token-attribute {
-	color: #d19a66;
-}
-
-.token-comment {
-	color: #5c6370;
-	font-style: italic;
-}
-
 /* ========================================
  * MARKDOWN TOKENS - DEFAULT
  * ======================================== */
@@ -433,14 +424,6 @@
 	color: #b8a882;
 }
 
-:root:is([data-theme=""], :not([data-theme])) .token-attribute {
-	color: #d4a574;
-}
-
-:root:is([data-theme=""], :not([data-theme])) .token-comment {
-	color: #65737e;
-}
-
 /* ========================================
  * SYNTAX TOKENS - DARK THEME (overrides only)
  * ======================================== */
@@ -560,12 +543,4 @@
 
 [data-theme="light"] .token-md-strike-text {
 	color: #696c77;
-}
-
-[data-theme="light"] .token-attribute {
-	color: #c18401;
-}
-
-[data-theme="light"] .token-comment {
-	color: #a0a1a7;
 }

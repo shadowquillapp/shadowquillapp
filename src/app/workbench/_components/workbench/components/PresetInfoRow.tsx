@@ -11,9 +11,7 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 	const formatLabel = preset.options?.format
 		? preset.options.format === "plain"
 			? "Plain"
-			: preset.options.format === "markdown"
-				? "MD"
-				: preset.options.format.toUpperCase()
+			: "MD"
 		: null;
 
 	const meta: Array<string> = [];
