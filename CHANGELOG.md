@@ -1,3 +1,10 @@
+## [0.10.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.10.0...v0.10.1) (2026-06-09)
+
+
+### Bug Fixes
+
+* biome linting fix with pnpm run check:write ([dcc286c](https://github.com/shadowquillapp/shadowquillapp/commit/dcc286c52cb0b490fabc5c12c3f6ee3e8642f1e7))
+
 # [0.10.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.9.9...v0.10.0) (2026-06-05)
 
 
