@@ -1,3 +1,10 @@
+## [0.10.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.10.1...v0.10.2) (2026-06-10)
+
+
+### Bug Fixes
+
+* Deslop renderer helpers ([#19](https://github.com/shadowquillapp/shadowquillapp/issues/19)) ([b20dccb](https://github.com/shadowquillapp/shadowquillapp/commit/b20dccb860d6fb290c4f54adfb0bff3f335db9ba))
+
 ## [0.10.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.10.0...v0.10.1) (2026-06-09)
 
 
