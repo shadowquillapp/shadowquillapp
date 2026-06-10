@@ -1,3 +1,10 @@
+## [0.11.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.11.1...v0.11.2) (2026-06-10)
+
+
+### Bug Fixes
+
+* stabilize linux build process ([bf4b76e](https://github.com/shadowquillapp/shadowquillapp/commit/bf4b76e54d6f880bcd7b06b11b8448bd2b03dcbf))
+
 ## [0.11.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.11.0...v0.11.1) (2026-06-10)
 
 
