@@ -7,7 +7,7 @@ settings:
 overrides:
   glob: ^11.0.4
   baseline-browser-mapping: '*'
-  tmp: '>=0.2.4'
+  tmp: ^0.2.7
 
 importers:
 
