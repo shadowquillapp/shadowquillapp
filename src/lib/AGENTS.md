@@ -22,7 +22,7 @@
 | `prompt-builder-client.ts` | Browser-side wrapper wiring `prompt-builder-core` to React/UI. |
 | `version.ts` | App version string constant. |
 | `local-db.ts` | 1-line re-export of `./domain/projects` (convenience alias; not a real DB). |
-| `prompt-directives/index.ts` | **Barrel** — `buildDirectives(taskType, options)` delegates to `base.ts`. |
+| `prompt-directives/index.ts` | **Barrel** — `buildDirectives(options)` delegates to `base.ts`. |
 | `prompt-directives/base.ts` | All directive fragments (`buildBaseDirectives`, `buildFormatDirectives`). |
 
 ## Conventions (delta from root)

@@ -16,7 +16,7 @@ export type Tone =
 
 export type Detail = "normal" | "detailed";
 
-export type Format = "plain" | "markdown" | "xml";
+export type Format = "plain" | "markdown";
 
 export interface GenerationOptions {
 	tone?: Tone;
@@ -24,7 +24,6 @@ export interface GenerationOptions {
 	format?: Format;
 	language?: string;
 	audience?: string;
-	outputXMLSchema?: string;
 	identity?: string;
 	additionalContext?: string;
 	styleGuidelines?: string;

@@ -1,4 +1,4 @@
-import type { GenerationOptions, TaskType } from "@/types";
+import type { GenerationOptions } from "@/types";
 
 export const DETAIL_WORD_LIMIT_DESCRIPTIONS: Record<
 	string,
@@ -59,37 +59,11 @@ export function buildBaseDirectives(options: GenerationOptions): string[] {
 	return directives;
 }
 
-export function buildFormatDirectives(
-	taskType: TaskType,
-	options: GenerationOptions,
-): string[] {
+export function buildFormatDirectives(options: GenerationOptions): string[] {
 	const directives: string[] = [];
 
 	if (options.format === "markdown") {
 		directives.push("Format: Use markdown (bullets, emphasis, headings).");
-	} else if (options.format === "xml") {
-		if (options.outputXMLSchema) {
-			directives.push(
-				`XML Schema: Follow this structure:\n${options.outputXMLSchema}`,
-			);
-		} else {
-			const defaultSchemas: Record<TaskType, string> = {
-				visual:
-					"XML: <image_prompt> with <subject>, <environment>, <composition>, <visual_style>",
-				motion:
-					"XML: <video_prompt> with <subject>, <action>, <environment>, <visual_style>, <camera_motion>",
-				engineering:
-					"XML: <engineering_task> with <objective>, <requirements>, <constraints>",
-				narrative:
-					"XML: <narrative_prompt> with <topic>, <audience>, <style_guide>, <structure>, <key_points>",
-				analysis:
-					"XML: <analysis_task> with <core_question>, <scope>, <methodology>, <source_requirements>, <deliverables>",
-				persuasion:
-					"XML: <persuasion_content> with <target_audience>, <core_message>, <value_props>, <call_to_action>",
-				intent: "XML: <prompt> with <goal>, <context>, <requirements>, <style>",
-			};
-			directives.push(defaultSchemas[taskType] ?? defaultSchemas.intent);
-		}
 	} else if (options.format === "plain") {
 		directives.push("Format: Plain text only, no markdown or special syntax.");
 	}
@@ -97,13 +71,10 @@ export function buildFormatDirectives(
 	return directives;
 }
 
-export function buildDirectives(
-	taskType: TaskType,
-	options?: GenerationOptions,
-): string[] {
+export function buildDirectives(options?: GenerationOptions): string[] {
 	if (!options) return [];
 	return [
 		...buildBaseDirectives(options),
-		...buildFormatDirectives(taskType, options),
+		...buildFormatDirectives(options),
 	].filter((d) => d.length > 0);
 }

@@ -77,7 +77,6 @@ export default function BasicSettings({
 						options={[
 							{ value: "plain", label: "Plain Text" },
 							{ value: "markdown", label: "Markdown" },
-							{ value: "xml", label: "XML" },
 						]}
 					/>
 				</div>

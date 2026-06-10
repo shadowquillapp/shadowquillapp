@@ -118,14 +118,6 @@ export async function callLocalModelClient(
 			return `\`\`\`markdown\n${content}\n\`\`\``;
 		}
 
-		if (requestedFormat === "xml") {
-			let candidate = rawText.trim();
-			const unwrapped = unwrapOuterFence(candidate);
-			if (unwrapped.stripped) candidate = unwrapped.inner.trim();
-			candidate = stripMetaWordCount(candidate);
-			return `\`\`\`xml\n${candidate}\n\`\`\``;
-		}
-
 		return stripMetaWordCount(rawText);
 	} finally {
 		clearTimeout(to);
