@@ -7,6 +7,18 @@ export type PromptErrorCode =
 	| "NETWORK_ERROR"
 	| "PRESET_ERROR";
 
+interface BaseErrorOptions {
+	details?: Record<string, unknown>;
+	cause?: Error;
+}
+
+function baseOptions(options?: BaseErrorOptions): BaseErrorOptions {
+	return {
+		...(options?.details && { details: options.details }),
+		...(options?.cause && { cause: options.cause }),
+	};
+}
+
 export class ShadowQuillError extends Error {
 	readonly code: PromptErrorCode;
 	readonly timestamp: Date;
@@ -70,9 +82,7 @@ export class ValidationError extends ShadowQuillError {
 			details?: Record<string, unknown>;
 		},
 	) {
-		super("VALIDATION_ERROR", message, {
-			...(options?.details && { details: options.details }),
-		});
+		super("VALIDATION_ERROR", message, baseOptions(options));
 		this.name = "ValidationError";
 		this.field = options?.field;
 		this.value = options?.value;
@@ -92,10 +102,7 @@ export class GenerationError extends ShadowQuillError {
 			cause?: Error;
 		},
 	) {
-		super("GENERATION_ERROR", message, {
-			...(options?.details && { details: options.details }),
-			...(options?.cause && { cause: options.cause }),
-		});
+		super("GENERATION_ERROR", message, baseOptions(options));
 		this.name = "GenerationError";
 		this.taskType = options?.taskType;
 		this.inputLength = options?.inputLength;
@@ -115,10 +122,7 @@ export class StorageError extends ShadowQuillError {
 			cause?: Error;
 		},
 	) {
-		super("STORAGE_ERROR", message, {
-			...(options?.details && { details: options.details }),
-			...(options?.cause && { cause: options.cause }),
-		});
+		super("STORAGE_ERROR", message, baseOptions(options));
 		this.name = "StorageError";
 		this.operation = options?.operation;
 		this.key = options?.key;
@@ -140,10 +144,7 @@ export class ModelError extends ShadowQuillError {
 			cause?: Error;
 		},
 	) {
-		super("MODEL_ERROR", message, {
-			...(options?.details && { details: options.details }),
-			...(options?.cause && { cause: options.cause }),
-		});
+		super("MODEL_ERROR", message, baseOptions(options));
 		this.name = "ModelError";
 		this.modelId = options?.modelId;
 		this.statusCode = options?.statusCode;
@@ -162,10 +163,7 @@ export class CacheError extends ShadowQuillError {
 			cause?: Error;
 		},
 	) {
-		super("CACHE_ERROR", message, {
-			...(options?.details && { details: options.details }),
-			...(options?.cause && { cause: options.cause }),
-		});
+		super("CACHE_ERROR", message, baseOptions(options));
 		this.name = "CacheError";
 		this.cacheType = options?.cacheType;
 	}
@@ -186,10 +184,7 @@ export class NetworkError extends ShadowQuillError {
 			cause?: Error;
 		},
 	) {
-		super("NETWORK_ERROR", message, {
-			...(options?.details && { details: options.details }),
-			...(options?.cause && { cause: options.cause }),
-		});
+		super("NETWORK_ERROR", message, baseOptions(options));
 		this.name = "NetworkError";
 		this.endpoint = options?.endpoint;
 		this.statusCode = options?.statusCode;
@@ -212,10 +207,7 @@ export class PresetError extends ShadowQuillError {
 			cause?: Error;
 		},
 	) {
-		super("PRESET_ERROR", message, {
-			...(options?.details && { details: options.details }),
-			...(options?.cause && { cause: options.cause }),
-		});
+		super("PRESET_ERROR", message, baseOptions(options));
 		this.name = "PresetError";
 		this.presetId = options?.presetId;
 		this.presetName = options?.presetName;

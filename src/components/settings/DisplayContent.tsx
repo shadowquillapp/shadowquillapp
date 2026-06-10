@@ -9,6 +9,20 @@ import {
 } from "@/lib/theme-preference";
 import { Icon, type IconName } from "../Icon";
 
+const FIELD_LABEL_STYLE: React.CSSProperties = {
+	marginBottom: "10px",
+	fontSize: "13px",
+	fontWeight: 600,
+};
+
+const ZOOM_BTN_STYLE: React.CSSProperties = {
+	width: "36px",
+	height: "36px",
+	padding: "0",
+	fontSize: "18px",
+	borderRadius: "8px",
+};
+
 export default function DisplayContent() {
 	const [available, setAvailable] = React.useState(false);
 	const [error, setError] = React.useState<string | null>(null);
@@ -30,6 +44,13 @@ export default function DisplayContent() {
 
 		applyThemeToDocument(currentTheme);
 
+		const refreshWindowInfo = async () => {
+			try {
+				const s = await api?.window?.getSize?.();
+				if (s?.ok) setWindowInfo(s);
+			} catch {}
+		};
+
 		const init = async () => {
 			if (!hasApi) return;
 			try {
@@ -40,23 +61,11 @@ export default function DisplayContent() {
 				const err = e as Error;
 				setError(err?.message || "Failed to read zoom level");
 			}
-			try {
-				const s = await api?.window?.getSize?.();
-				if (s?.ok) setWindowInfo(s);
-			} catch {
-				/* noop */
-			}
+			await refreshWindowInfo();
 		};
 		void init();
 
-		const onResize = async () => {
-			try {
-				const s = await api?.window?.getSize?.();
-				if (s?.ok) setWindowInfo(s);
-			} catch {
-				/* noop */
-			}
-		};
+		const onResize = () => void refreshWindowInfo();
 		window.addEventListener("resize", onResize);
 		return () => window.removeEventListener("resize", onResize);
 	}, [currentTheme]);
@@ -87,12 +96,7 @@ export default function DisplayContent() {
 	};
 
 	const changeBy = (deltaPercent: number) => {
-		const next = (Math.round(zoomFactor * 100) + deltaPercent) / 100;
-		void applyZoom(next);
-	};
-
-	const resetZoom = () => {
-		void applyZoom(1.0);
+		void applyZoom((Math.round(zoomFactor * 100) + deltaPercent) / 100);
 	};
 
 	const handleThemeChange = (theme: ThemeId) => {
@@ -146,14 +150,7 @@ export default function DisplayContent() {
 					)}
 
 					<div className="shadowquill-field" style={{ marginBottom: "24px" }}>
-						<div
-							className="shadowquill-label"
-							style={{
-								marginBottom: "10px",
-								fontSize: "13px",
-								fontWeight: 600,
-							}}
-						>
+						<div className="shadowquill-label" style={FIELD_LABEL_STYLE}>
 							Theme
 						</div>
 						<div className="grid grid-cols-4 gap-2">
@@ -202,14 +199,7 @@ export default function DisplayContent() {
 					</div>
 
 					<div className="shadowquill-field" style={{ marginBottom: "24px" }}>
-						<div
-							className="shadowquill-label"
-							style={{
-								marginBottom: "10px",
-								fontSize: "13px",
-								fontWeight: 600,
-							}}
-						>
+						<div className="shadowquill-label" style={FIELD_LABEL_STYLE}>
 							Zoom
 						</div>
 						<div className="flex items-center gap-2">
@@ -220,13 +210,7 @@ export default function DisplayContent() {
 								disabled={!available}
 								aria-label="Zoom out"
 								title="Zoom out"
-								style={{
-									width: "36px",
-									height: "36px",
-									padding: "0",
-									fontSize: "18px",
-									borderRadius: "8px",
-								}}
+								style={ZOOM_BTN_STYLE}
 							>
 								−
 							</button>
@@ -252,20 +236,14 @@ export default function DisplayContent() {
 								disabled={!available}
 								aria-label="Zoom in"
 								title="Zoom in"
-								style={{
-									width: "36px",
-									height: "36px",
-									padding: "0",
-									fontSize: "18px",
-									borderRadius: "8px",
-								}}
+								style={ZOOM_BTN_STYLE}
 							>
 								+
 							</button>
 							<button
 								type="button"
 								className="md-input"
-								onClick={resetZoom}
+								onClick={() => void applyZoom(1.0)}
 								disabled={!available}
 								aria-label="Reset zoom"
 								title="Click to reset to 100%"
@@ -286,14 +264,7 @@ export default function DisplayContent() {
 					</div>
 
 					<div className="shadowquill-field" style={{ marginBottom: "0" }}>
-						<div
-							className="shadowquill-label"
-							style={{
-								marginBottom: "10px",
-								fontSize: "13px",
-								fontWeight: 600,
-							}}
-						>
+						<div className="shadowquill-label" style={FIELD_LABEL_STYLE}>
 							Display Stats
 						</div>
 						<div className="grid grid-cols-2 gap-2">

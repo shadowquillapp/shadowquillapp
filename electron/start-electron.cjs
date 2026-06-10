@@ -2,22 +2,14 @@
 // @ts-nocheck
 const { spawn, spawnSync } = require("node:child_process");
 const path = require("node:path");
+const http = require("node:http");
 const { URL } = require("node:url");
 const isProd = process.argv.includes("--prod");
 let nextDevServer = null;
 let prodServer = null;
 
-/**
- * Helper to check if dev server is ready
- * @param {any} http
- * @param {number} start
- * @param {number} timeoutMs
- * @param {() => void} resolve
- * @param {(err: Error) => void} reject
- */
-function checkDevServerReady(http, start, timeoutMs, resolve, reject) {
-	const url = new URL("http://localhost:31415");
-	const req = http.get(url, (res) => {
+function checkDevServerReady(start, timeoutMs, resolve, reject) {
+	const req = http.get(new URL("http://localhost:31415"), (res) => {
 		res.destroy();
 		resolve();
 	});
@@ -26,14 +18,13 @@ function checkDevServerReady(http, start, timeoutMs, resolve, reject) {
 			return reject(new Error("Dev server did not start within timeout"));
 		}
 		setTimeout(
-			() => checkDevServerReady(http, start, timeoutMs, resolve, reject),
+			() => checkDevServerReady(start, timeoutMs, resolve, reject),
 			600,
 		);
 	});
 }
 
 /** Start Next.js (dev or prod) without relying on spawning npm directly. */
-/** @returns {Promise<void>} */
 function startNext() {
 	return new Promise((resolve, reject) => {
 		const env = {
@@ -47,24 +38,18 @@ function startNext() {
 			try {
 				nextBin = require.resolve("next/dist/bin/next");
 			} catch (e) {
-				const err = /** @type {any} */ (e);
-				return reject(new Error(`Cannot resolve next binary: ${err.message}`));
+				return reject(new Error(`Cannot resolve next binary: ${e.message}`));
 			}
 			nextDevServer = spawn(
 				process.execPath,
 				[nextBin, "dev", "--turbo", "-H", "localhost", "-p", "31415"],
-				{
-					stdio: "inherit",
-					env,
-				},
+				{ stdio: "inherit", env },
 			);
 			nextDevServer.on("error", reject);
-			const http = require("node:http");
 			const start = Date.now();
-			const timeoutMs = 25000;
 			nextDevServer.once("spawn", () => {
 				setTimeout(
-					() => checkDevServerReady(http, start, timeoutMs, resolve, reject),
+					() => checkDevServerReady(start, 25000, resolve, reject),
 					1200,
 				);
 			});
@@ -86,17 +71,13 @@ function startNext() {
 						return reject(new Error("Next.js factory is not a function"));
 					}
 
-					const appDir = path.join(__dirname, "..");
 					const nextApp = nextFactory({
 						dev: false,
-						dir: appDir,
+						dir: path.join(__dirname, ".."),
 						hostname: "localhost",
 						port: 31415,
 					});
-
 					await nextApp.prepare();
-
-					const http = require("node:http");
 					const handle = nextApp.getRequestHandler();
 
 					prodServer = http.createServer((req, res) => {
@@ -126,7 +107,6 @@ function startNext() {
 	});
 }
 
-/** Cleanup function to kill all child processes and servers */
 function cleanup() {
 	console.log("[start-electron] Cleaning up...");
 
@@ -195,14 +175,12 @@ function cleanup() {
 			cleanup();
 			process.exit(code ?? 0);
 		});
-		process.on("SIGINT", () => {
+		const exitOnSignal = () => {
 			cleanup();
 			process.exit(0);
-		});
-		process.on("SIGTERM", () => {
-			cleanup();
-			process.exit(0);
-		});
+		};
+		process.on("SIGINT", exitOnSignal);
+		process.on("SIGTERM", exitOnSignal);
 		process.on("exit", () => {
 			if (nextDevServer && !nextDevServer.killed) {
 				nextDevServer.kill("SIGKILL");

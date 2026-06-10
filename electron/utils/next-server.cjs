@@ -6,6 +6,31 @@ const { dialog, app } = require("electron");
 let nextServerPort = null;
 let httpServer = null;
 
+async function listenOnEphemeralPort(server, label) {
+	await new Promise((resolve) =>
+		server.listen(0, "127.0.0.1", () => resolve(undefined)),
+	);
+	const addr = server.address();
+	if (
+		!addr ||
+		typeof addr !== "object" ||
+		typeof addr.port !== "number" ||
+		!Number.isFinite(addr.port) ||
+		!addr.port
+	) {
+		throw new Error(`${label} address is invalid: ${JSON.stringify(addr)}`);
+	}
+	return addr;
+}
+
+function resolveNextFactory(mod) {
+	return typeof mod === "function"
+		? mod
+		: typeof mod.default === "function"
+			? mod.default
+			: mod.next || mod.default?.next;
+}
+
 async function startNextServer() {
 	process.env.ELECTRON = "1";
 	process.env.NODE_ENV = "production";
@@ -25,12 +50,10 @@ async function startNextServer() {
 			process.versions.electron,
 		);
 
-		const resourcesDir =
-			process.resourcesPath || path.join(__dirname, "..", "..");
+		const resourcesDir = process.resourcesPath || appDir;
 		const unpackedDir = path.join(resourcesDir, "app.asar.unpacked");
-		const candidateDirs = [unpackedDir, appDir];
 		nextAppDir =
-			candidateDirs.find((d) => {
+			[unpackedDir, appDir].find((d) => {
 				try {
 					return fs.existsSync(path.join(d, ".next"));
 				} catch (_) {
@@ -55,40 +78,15 @@ async function startNextServer() {
 		} catch (_) {}
 
 		let nextFactory = null;
-		const nextCandidates = [
-			path.join(
-				unpackedDir,
-				"node_modules",
-				"next",
-				"dist",
-				"server",
-				"next.js",
-			),
-			path.join(
-				nextAppDir,
-				"node_modules",
-				"next",
-				"dist",
-				"server",
-				"next.js",
-			),
-		];
-
-		for (const p of nextCandidates) {
+		const distPath = ["node_modules", "next", "dist", "server", "next.js"];
+		for (const dir of [unpackedDir, nextAppDir]) {
+			const p = path.join(dir, ...distPath);
 			try {
 				if (fs.existsSync(p)) {
-					const mod = require(p);
-					nextFactory =
-						typeof mod === "function"
-							? mod
-							: typeof mod.default === "function"
-								? mod.default
-								: mod.next || mod.default?.next;
+					nextFactory = resolveNextFactory(require(p));
 					break;
 				}
-			} catch (_) {
-				/* ignore */
-			}
+			} catch (_) {}
 		}
 
 		if (!nextFactory) {
@@ -100,13 +98,7 @@ async function startNextServer() {
 					eReq?.stack || eReq,
 				);
 				try {
-					const alt = require("next/dist/server/next");
-					nextFactory =
-						typeof alt === "function"
-							? alt
-							: typeof alt.default === "function"
-								? alt.default
-								: alt.next || alt.default?.next;
+					nextFactory = resolveNextFactory(require("next/dist/server/next"));
 				} catch (eAlt) {
 					console.error(
 						"[Electron] Secondary require attempt failed",
@@ -128,26 +120,9 @@ async function startNextServer() {
 		console.log("[Electron] Next.js prepared. Creating production server...");
 		const handle = nextApp.getRequestHandler();
 		httpServer = http.createServer((req, res) => handle(req, res));
-		await new Promise((resolve) =>
-			httpServer.listen(0, "127.0.0.1", () => resolve(undefined)),
-		);
-		const addr = httpServer.address();
+		const addr = await listenOnEphemeralPort(httpServer, "Server");
 		console.log("[Electron] Server listening on", addr);
-		if (
-			addr &&
-			typeof addr === "object" &&
-			typeof addr.port === "number" &&
-			Number.isFinite(addr.port)
-		) {
-			nextServerPort = addr.port;
-		} else {
-			throw new Error(`Server address is invalid: ${JSON.stringify(addr)}`);
-		}
-
-		if (!nextServerPort) {
-			throw new Error("Failed to determine server port after startup");
-		}
-
+		nextServerPort = addr.port;
 		return { port: nextServerPort, server: httpServer };
 	} catch (e) {
 		console.error("Failed to start embedded Next.js server", e?.stack || e);
@@ -157,9 +132,7 @@ async function startNextServer() {
 			fs.mkdirSync(app.getPath("userData"), { recursive: true });
 			fs.writeFileSync(errPath, `Error starting server:\n${e?.stack || e}`);
 			wrote = true;
-		} catch (_) {
-			/* ignore */
-		}
+		} catch (_) {}
 
 		try {
 			const htmlCandidates = [
@@ -185,29 +158,8 @@ async function startNextServer() {
 				httpServer = http.createServer((_req, res) => {
 					fs.createReadStream(fallbackHtml).pipe(res);
 				});
-				await new Promise((r) =>
-					httpServer.listen(0, "127.0.0.1", () => r(undefined)),
-				);
-				const addr = httpServer.address();
-				if (
-					addr &&
-					typeof addr === "object" &&
-					typeof addr.port === "number" &&
-					Number.isFinite(addr.port)
-				) {
-					nextServerPort = addr.port;
-				} else {
-					throw new Error(
-						`Fallback server address is invalid: ${JSON.stringify(addr)}`,
-					);
-				}
-
-				if (!nextServerPort) {
-					throw new Error(
-						"Failed to determine fallback server port after startup",
-					);
-				}
-
+				const addr = await listenOnEphemeralPort(httpServer, "Fallback server");
+				nextServerPort = addr.port;
 				return { port: nextServerPort, server: httpServer };
 			}
 		} catch (e2) {

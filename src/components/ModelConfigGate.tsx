@@ -23,17 +23,55 @@ interface Props {
 }
 
 function isElectronRuntime(): boolean {
-	if (typeof process !== "undefined") {
-		if (
-			(process as NodeJS.Process & { versions?: { electron?: string } })
-				?.versions?.electron
-		)
-			return true;
+	if (
+		typeof process !== "undefined" &&
+		(process as NodeJS.Process & { versions?: { electron?: string } })?.versions
+			?.electron
+	) {
+		return true;
 	}
 	if (typeof navigator !== "undefined") {
 		return /Electron/i.test(navigator.userAgent);
 	}
 	return false;
+}
+
+function useWindowEvent(eventName: string, onFire: () => void) {
+	useEffect(() => {
+		const handler = () => onFire();
+		window.addEventListener(eventName, handler);
+		return () => window.removeEventListener(eventName, handler);
+	}, [eventName, onFire]);
+}
+
+function CloseButton({ onClick }: { onClick: () => void }) {
+	return (
+		<button
+			type="button"
+			onClick={onClick}
+			className="md-close-btn"
+			aria-label="Close"
+			title="Close"
+		>
+			<XMarkIcon className="h-4 w-4" />
+		</button>
+	);
+}
+
+function BackdropCloseButton({ onClose }: { onClose: () => void }) {
+	return (
+		<button
+			type="button"
+			className="modal-backdrop-blur"
+			onClick={onClose}
+			onKeyDown={(e) => {
+				if (e.key === "Escape") {
+					onClose();
+				}
+			}}
+			aria-label="Close modal"
+		/>
+	);
 }
 
 export default function ModelConfigGate({ children }: Props) {
@@ -199,12 +237,15 @@ export default function ModelConfigGate({ children }: Props) {
 		setOllamaCheckPerformed(true);
 	};
 
+	const openProviderSelection = useCallback(
+		() => setShowProviderSelection(true),
+		[],
+	);
+	useWindowEvent("open-provider-selection", openProviderSelection);
+
 	return (
 		<SystemPromptEditorWrapper>
 			<DataLocationModalWrapper />
-			<OpenProviderSelectionListener
-				onOpen={() => setShowProviderSelection(true)}
-			/>
 			<div
 				className="relative h-full w-full"
 				data-model-gate={
@@ -349,22 +390,19 @@ function SystemPromptEditorWrapper({
 	const [error, setError] = useState<string | null>(null);
 	const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
+	const openEditor = useCallback(() => setOpen(true), []);
+	useWindowEvent("open-system-prompts", openEditor);
+
 	useEffect(() => {
 		if (!open) return;
-		const load = async () => {
-			setLoading(true);
-			try {
-				try {
-					const value = ensureSystemPromptBuild();
-					setPrompt(value);
-				} catch {
-					setPrompt("");
-				}
-			} finally {
-				setLoading(false);
-			}
-		};
-		void load();
+		setLoading(true);
+		try {
+			setPrompt(ensureSystemPromptBuild());
+		} catch {
+			setPrompt("");
+		} finally {
+			setLoading(false);
+		}
 	}, [open]);
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: intentional - resize when prompt content changes or dialog opens
@@ -383,21 +421,10 @@ function SystemPromptEditorWrapper({
 
 	return (
 		<>
-			<OpenSystemPromptsListener onOpen={() => setOpen(true)} />
 			{children}
 			{open && (
 				<div className="modal-container">
-					<button
-						type="button"
-						className="modal-backdrop-blur"
-						onClick={() => setOpen(false)}
-						onKeyDown={(e) => {
-							if (e.key === "Escape") {
-								setOpen(false);
-							}
-						}}
-						aria-label="Close modal"
-					/>
+					<BackdropCloseButton onClose={() => setOpen(false)} />
 					<div
 						className="modal-content modal-content--large"
 						onClick={(e) => e.stopPropagation()}
@@ -406,15 +433,7 @@ function SystemPromptEditorWrapper({
 					>
 						<div className="modal-header">
 							<div className="modal-title">Edit System Prompt</div>
-							<button
-								type="button"
-								onClick={() => setOpen(false)}
-								className="md-close-btn"
-								aria-label="Close"
-								title="Close"
-							>
-								<XMarkIcon className="h-4 w-4" />
-							</button>
+							<CloseButton onClick={() => setOpen(false)} />
 						</div>
 						<div className="modal-body">
 							<div className="system-prompts-container">
@@ -515,24 +534,6 @@ function SystemPromptEditorWrapper({
 	);
 }
 
-function OpenSystemPromptsListener({ onOpen }: { onOpen: () => void }) {
-	useEffect(() => {
-		const handler = () => onOpen();
-		window.addEventListener("open-system-prompts", handler);
-		return () => window.removeEventListener("open-system-prompts", handler);
-	}, [onOpen]);
-	return null;
-}
-
-function OpenProviderSelectionListener({ onOpen }: { onOpen: () => void }) {
-	useEffect(() => {
-		const handler = () => onOpen();
-		window.addEventListener("open-provider-selection", handler);
-		return () => window.removeEventListener("open-provider-selection", handler);
-	}, [onOpen]);
-	return null;
-}
-
 function DataLocationModalWrapper() {
 	const { confirm } = useDialog();
 	const [open, setOpen] = useState(false);
@@ -544,11 +545,8 @@ function DataLocationModalWrapper() {
 		localStorageLevelDb?: string;
 	}>(null);
 
-	useEffect(() => {
-		const handler = () => setOpen(true);
-		window.addEventListener("open-data-location", handler);
-		return () => window.removeEventListener("open-data-location", handler);
-	}, []);
+	const openModal = useCallback(() => setOpen(true), []);
+	useWindowEvent("open-data-location", openModal);
 
 	useEffect(() => {
 		if (!open) return;
@@ -576,17 +574,7 @@ function DataLocationModalWrapper() {
 		<>
 			{open && (
 				<div className="modal-container">
-					<button
-						type="button"
-						className="modal-backdrop-blur"
-						onClick={() => setOpen(false)}
-						onKeyDown={(e) => {
-							if (e.key === "Escape") {
-								setOpen(false);
-							}
-						}}
-						aria-label="Close modal"
-					/>
+					<BackdropCloseButton onClose={() => setOpen(false)} />
 					<div
 						className="modal-content"
 						onClick={(e) => e.stopPropagation()}
@@ -595,15 +583,7 @@ function DataLocationModalWrapper() {
 					>
 						<div className="modal-header">
 							<div className="modal-title">Local Data Management</div>
-							<button
-								type="button"
-								onClick={() => setOpen(false)}
-								className="md-close-btn"
-								aria-label="Close"
-								title="Close"
-							>
-								<XMarkIcon className="h-4 w-4" />
-							</button>
+							<CloseButton onClick={() => setOpen(false)} />
 						</div>
 						<div className="modal-body">
 							{loading ? (

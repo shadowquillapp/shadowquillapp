@@ -147,15 +147,11 @@ export async function appendMessagesWithCap(
 	const projectMessages = Object.values(messagesMap)
 		.filter((m) => m.projectId === projectId)
 		.sort((a, b) => a.createdAt - b.createdAt);
-	const over = projectMessages.length - cap;
+	const over = Math.max(0, projectMessages.length - cap);
 	const deletedIds: string[] = [];
-	if (over > 0) {
-		for (let i = 0; i < over; i++) {
-			const toDelete = projectMessages[i];
-			if (!toDelete) continue;
-			delete messagesMap[toDelete.id];
-			deletedIds.push(toDelete.id);
-		}
+	for (const toDelete of projectMessages.slice(0, over)) {
+		delete messagesMap[toDelete.id];
+		deletedIds.push(toDelete.id);
 	}
 	const projects = readProjects();
 	const project = projects[projectId];

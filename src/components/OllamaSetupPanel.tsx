@@ -292,17 +292,12 @@ export function OllamaSetupPanel({
 						</div>
 					)}
 
-					{variant === "gate" &&
+					{((variant === "gate" &&
 						!localTestResult &&
-						availableModels.length === 0 && (
-							<div className="shadowquill-availability" aria-live="polite">
-								No compatible Gemma models detected yet. After installing
-								Ollama, run <code>ollama pull gemma4</code> (or your preferred
-								tag) and retest.
-							</div>
-						)}
-
-					{variant === "settings" && !hasModels && statusTone === "success" && (
+						availableModels.length === 0) ||
+						(variant === "settings" &&
+							!hasModels &&
+							statusTone === "success")) && (
 						<div className="shadowquill-availability" aria-live="polite">
 							No compatible Gemma models detected yet. After installing Ollama,
 							run <code>ollama pull gemma4</code> (or your preferred tag) and
