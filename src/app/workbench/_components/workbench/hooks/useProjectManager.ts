@@ -149,7 +149,6 @@ export function useProjectManager(
 					data.versionGraph &&
 					typeof (data.versionGraph as VersionGraph).nodes === "object"
 				) {
-					// Migrate version graph for backward compatibility
 					graph = migrateVersionGraph(
 						data.versionGraph as VersionGraph,
 						loaded,

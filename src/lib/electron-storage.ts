@@ -106,6 +106,28 @@ class ElectronStorage {
 		return this.writeQueue;
 	}
 
+	private enqueueIpcWrite(
+		label: string,
+		ipc: () => Promise<unknown> | undefined,
+		local: () => void,
+	): Promise<void> {
+		return this.enqueueWrite(async () => {
+			if (isElectronStorageAvailable()) {
+				try {
+					await ipc();
+					return;
+				} catch (e) {
+					console.error(`[ElectronStorage] ${label} failed:`, e);
+				}
+			}
+			try {
+				local();
+			} catch (e) {
+				console.error("[ElectronStorage] localStorage fallback failed:", e);
+			}
+		});
+	}
+
 	async getItem(key: string): Promise<string | null> {
 		await this.init();
 
@@ -135,65 +157,53 @@ class ElectronStorage {
 	async setItem(key: string, value: string): Promise<void> {
 		await this.init();
 		this.cache.set(key, value);
-		await this.enqueueWrite(async () => {
-			if (isElectronStorageAvailable()) {
-				try {
-					await window.shadowquill?.storage?.setItem(key, value);
-					return;
-				} catch (e) {
-					console.error("[ElectronStorage] setItem failed:", e);
-				}
-			}
-			try {
-				localStorage.setItem(key, value);
-			} catch (e) {
-				console.error("[ElectronStorage] localStorage fallback failed:", e);
-			}
-		});
+		await this.enqueueIpcWrite(
+			"setItem",
+			() => window.shadowquill?.storage?.setItem(key, value),
+			() => localStorage.setItem(key, value),
+		);
 	}
 
 	async removeItem(key: string): Promise<void> {
 		await this.init();
 		this.cache.delete(key);
-		await this.enqueueWrite(async () => {
-			if (isElectronStorageAvailable()) {
-				try {
-					await window.shadowquill?.storage?.removeItem(key);
-					return;
-				} catch (e) {
-					console.error("[ElectronStorage] removeItem failed:", e);
-				}
-			}
-			try {
-				localStorage.removeItem(key);
-			} catch (e) {
-				console.error("[ElectronStorage] localStorage fallback failed:", e);
-			}
-		});
+		await this.enqueueIpcWrite(
+			"removeItem",
+			() => window.shadowquill?.storage?.removeItem(key),
+			() => localStorage.removeItem(key),
+		);
 	}
 
 	async clear(): Promise<void> {
 		await this.init();
 		this.cache.clear();
-		await this.enqueueWrite(async () => {
-			if (isElectronStorageAvailable()) {
-				try {
-					await window.shadowquill?.storage?.clear();
-					return;
-				} catch (e) {
-					console.error("[ElectronStorage] clear failed:", e);
-				}
-			}
-			try {
-				localStorage.clear();
-			} catch (e) {
-				console.error("[ElectronStorage] localStorage fallback failed:", e);
-			}
-		});
+		await this.enqueueIpcWrite(
+			"clear",
+			() => window.shadowquill?.storage?.clear(),
+			() => localStorage.clear(),
+		);
 	}
 }
 
 const electronStorage = new ElectronStorage();
+
+function syncWrite(
+	local: () => void,
+	cached: () => void,
+	queued: () => Promise<void>,
+): void {
+	if (!isElectronStorageAvailable()) {
+		try {
+			local();
+		} catch {}
+		return;
+	}
+	cached();
+	try {
+		local();
+	} catch {}
+	void queued();
+}
 
 export const storage = {
 	getItem: (key: string): string | null => {
@@ -220,62 +230,26 @@ export const storage = {
 		return null;
 	},
 
-	setItem: (key: string, value: string): void => {
-		if (!isElectronStorageAvailable()) {
-			try {
-				localStorage.setItem(key, value);
-				return;
-			} catch {
-				return;
-			}
-		}
+	setItem: (key: string, value: string): void =>
+		syncWrite(
+			() => localStorage.setItem(key, value),
+			() => electronStorage.setCached(key, value),
+			() => electronStorage.setItem(key, value),
+		),
 
-		electronStorage.setCached(key, value);
+	removeItem: (key: string): void =>
+		syncWrite(
+			() => localStorage.removeItem(key),
+			() => electronStorage.deleteCached(key),
+			() => electronStorage.removeItem(key),
+		),
 
-		try {
-			localStorage.setItem(key, value);
-		} catch {}
-
-		void electronStorage.setItem(key, value);
-	},
-
-	removeItem: (key: string): void => {
-		if (!isElectronStorageAvailable()) {
-			try {
-				localStorage.removeItem(key);
-				return;
-			} catch {
-				return;
-			}
-		}
-
-		electronStorage.deleteCached(key);
-
-		try {
-			localStorage.removeItem(key);
-		} catch {}
-
-		void electronStorage.removeItem(key);
-	},
-
-	clear: (): void => {
-		if (!isElectronStorageAvailable()) {
-			try {
-				localStorage.clear();
-				return;
-			} catch {
-				return;
-			}
-		}
-
-		electronStorage.clearCached();
-
-		try {
-			localStorage.clear();
-		} catch {}
-
-		void electronStorage.clear();
-	},
+	clear: (): void =>
+		syncWrite(
+			() => localStorage.clear(),
+			() => electronStorage.clearCached(),
+			() => electronStorage.clear(),
+		),
 };
 
 if (typeof window !== "undefined") {

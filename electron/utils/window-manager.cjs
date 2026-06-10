@@ -4,6 +4,11 @@ const { openExternalUrl } = require("./external-url.cjs");
 const { addAllowedAppOrigin, isAllowedAppUrl } = require("./ipc-security.cjs");
 const { loadWindowState, saveWindowState } = require("./window-state.cjs");
 
+function setZoom(win, factor) {
+	win.webContents.setZoomFactor(factor);
+	win.webContents.send("shadowquill:zoom:changed", factor);
+}
+
 function createWindow(isDev) {
 	const windowState = loadWindowState();
 
@@ -28,9 +33,7 @@ function createWindow(isDev) {
 		title: "",
 	});
 
-	if (windowState.isMaximized) {
-		win.maximize();
-	}
+	if (windowState.isMaximized) win.maximize();
 
 	win._lastNormalBounds = win.getBounds();
 
@@ -59,10 +62,9 @@ function createWindow(isDev) {
 		debouncedSaveState();
 	});
 
-	win.on("close", (_event) => {
+	win.on("close", () => {
 		if (saveStateTimeout) clearTimeout(saveStateTimeout);
 		saveWindowState(win);
-
 		try {
 			win.webContents.session.flushStorageData();
 			console.log("[Window] Storage flushed on close");
@@ -74,6 +76,7 @@ function createWindow(isDev) {
 	win.webContents.once("did-finish-load", () => {
 		win.webContents.setZoomFactor(1.0);
 
+		// Suppress noisy Chromium Autofill devtools errors in the renderer console.
 		win.webContents.executeJavaScript(`
       (function() {
         const originalError = console.error;
@@ -96,23 +99,16 @@ function createWindow(isDev) {
 			}
 		}, 30000);
 
-		win.once("closed", () => {
-			clearInterval(flushInterval);
-		});
+		win.once("closed", () => clearInterval(flushInterval));
 	});
 
 	try {
-		const langs = ["en-US"];
-		win.webContents.session.setSpellCheckerLanguages(langs);
-	} catch (_e) {
-		/* ignore */
-	}
+		win.webContents.session.setSpellCheckerLanguages(["en-US"]);
+	} catch (_e) {}
 
 	win.webContents.on("before-input-event", (event, input) => {
-		if (input.type !== "keyDown") return;
-		const isModified = input.control || input.meta;
-		if (!isModified) return;
-
+		if (input.type !== "keyDown" || !(input.control || input.meta)) return;
+		const current = win.webContents.getZoomFactor();
 		if (
 			input.key === "+" ||
 			input.key === "=" ||
@@ -120,27 +116,13 @@ function createWindow(isDev) {
 			(input.shift && input.key === "=")
 		) {
 			event.preventDefault();
-			const current = win.webContents.getZoomFactor();
-			const newZoom = Math.min(1.5, current + 0.1);
-			win.webContents.setZoomFactor(newZoom);
-			win.webContents.send("shadowquill:zoom:changed", newZoom);
-			return;
-		}
-
-		if (input.key === "-" || input.key === "Subtract") {
+			setZoom(win, Math.min(1.5, current + 0.1));
+		} else if (input.key === "-" || input.key === "Subtract") {
 			event.preventDefault();
-			const current = win.webContents.getZoomFactor();
-			const newZoom = Math.max(0.8, current - 0.1);
-			win.webContents.setZoomFactor(newZoom);
-			win.webContents.send("shadowquill:zoom:changed", newZoom);
-			return;
-		}
-
-		if (input.key === "0") {
+			setZoom(win, Math.max(0.8, current - 0.1));
+		} else if (input.key === "0") {
 			event.preventDefault();
-			win.webContents.setZoomFactor(1.0);
-			win.webContents.send("shadowquill:zoom:changed", 1.0);
-			return;
+			setZoom(win, 1.0);
 		}
 	});
 
@@ -154,9 +136,7 @@ function createWindow(isDev) {
 					} 
 				}));
 			`);
-		} catch (_) {
-			/* ignore */
-		}
+		} catch (_) {}
 	});
 
 	let spellcheckEnabled = true;
@@ -164,6 +144,11 @@ function createWindow(isDev) {
 	win.webContents.on("context-menu", (_event, params) => {
 		/** @type {import('electron').MenuItemConstructorOptions[]} */
 		const template = [];
+		const swallow = (fn) => () => {
+			try {
+				fn();
+			} catch (_) {}
+		};
 
 		if (params.misspelledWord) {
 			const suggestions = (params.dictionarySuggestions || []).slice(0, 6);
@@ -171,28 +156,24 @@ function createWindow(isDev) {
 				for (const s of suggestions) {
 					template.push({
 						label: s,
-						click: () => {
-							try {
-								win.webContents.replaceMisspelling(s);
-							} catch (_) {}
-						},
+						click: swallow(() => win.webContents.replaceMisspelling(s)),
 					});
 				}
 			} else {
 				template.push({ label: "No Suggestions", enabled: false });
 			}
-			template.push({ type: "separator" });
-			template.push({
-				label: `Add to Dictionary: "${params.misspelledWord}"`,
-				click: () => {
-					try {
+			template.push(
+				{ type: "separator" },
+				{
+					label: `Add to Dictionary: "${params.misspelledWord}"`,
+					click: swallow(() =>
 						win.webContents.session.addWordToSpellCheckerDictionary(
 							params.misspelledWord,
-						);
-					} catch (_) {}
+						),
+					),
 				},
-			});
-			template.push({ type: "separator" });
+				{ type: "separator" },
+			);
 		}
 
 		template.push(
@@ -209,51 +190,45 @@ function createWindow(isDev) {
 				enabled: params.editFlags.canSelectAll,
 			},
 			{ type: "separator" },
+			{
+				label: "Spelling",
+				submenu: [
+					{
+						label: "Check Spelling While Typing",
+						type: "checkbox",
+						checked: spellcheckEnabled,
+						click: () => {
+							spellcheckEnabled = !spellcheckEnabled;
+							swallow(() =>
+								win.webContents.session.setSpellCheckerLanguages(
+									spellcheckEnabled ? ["en-US"] : [],
+								),
+							)();
+						},
+					},
+				],
+			},
 		);
 
-		template.push({
-			label: "Spelling",
-			submenu: [
-				{
-					label: "Check Spelling While Typing",
-					type: "checkbox",
-					checked: spellcheckEnabled,
-					click: () => {
-						spellcheckEnabled = !spellcheckEnabled;
-						try {
-							if (spellcheckEnabled) {
-								win.webContents.session.setSpellCheckerLanguages(["en-US"]);
-							} else {
-								win.webContents.session.setSpellCheckerLanguages([]);
-							}
-						} catch (_) {}
-					},
-				},
-			],
-		});
-
 		if (isDev) {
-			template.push({ type: "separator" });
-			template.push({
-				label: "Inspect Element",
-				click: () => {
-					try {
-						win.webContents.inspectElement(params.x, params.y);
-					} catch (_) {}
+			template.push(
+				{ type: "separator" },
+				{
+					label: "Inspect Element",
+					click: swallow(() =>
+						win.webContents.inspectElement(params.x, params.y),
+					),
 				},
-			});
-			template.push({
-				label: "Open DevTools",
-				click: () => {
-					try {
-						win.webContents.openDevTools({ mode: "detach" });
-					} catch (_) {}
+				{
+					label: "Open DevTools",
+					click: swallow(() =>
+						win.webContents.openDevTools({ mode: "detach" }),
+					),
 				},
-			});
+			);
 		}
 
-		const contextMenu = Menu.buildFromTemplate(template);
-		contextMenu.popup();
+		Menu.buildFromTemplate(template).popup();
 	});
 
 	win.webContents.on("will-navigate", (event, navigationUrl) => {
@@ -284,6 +259,7 @@ function createWindow(isDev) {
 		},
 	);
 
+	// Security: new windows are always denied; URLs route through the external allow-list.
 	win.webContents.setWindowOpenHandler((details) => {
 		openExternalUrl(shell, details.url).catch((err) => {
 			console.warn("[Window] Blocked external URL:", err.message);

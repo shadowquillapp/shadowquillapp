@@ -1,5 +1,17 @@
-// Application menu creation
 const { app, Menu, BrowserWindow } = require("electron");
+
+function sendToFocused(channel, ...args) {
+	const win = BrowserWindow.getFocusedWindow();
+	if (win) win.webContents.send(channel, ...args);
+}
+
+function zoomFocused(compute) {
+	const win = BrowserWindow.getFocusedWindow();
+	if (!win) return;
+	const factor = compute(win.webContents.getZoomFactor());
+	win.webContents.setZoomFactor(factor);
+	win.webContents.send("shadowquill:zoom:changed", factor);
+}
 
 function createApplicationMenu() {
 	const isMac = process.platform === "darwin";
@@ -44,32 +56,17 @@ function createApplicationMenu() {
 				{
 					label: "Find",
 					accelerator: "CmdOrCtrl+F",
-					click: () => {
-						const win = BrowserWindow.getFocusedWindow();
-						if (win) {
-							win.webContents.send("shadowquill:find:show");
-						}
-					},
+					click: () => sendToFocused("shadowquill:find:show"),
 				},
 				{
 					label: "Find Next",
 					accelerator: "CmdOrCtrl+G",
-					click: () => {
-						const win = BrowserWindow.getFocusedWindow();
-						if (win) {
-							win.webContents.send("shadowquill:find:next");
-						}
-					},
+					click: () => sendToFocused("shadowquill:find:next"),
 				},
 				{
 					label: "Find Previous",
 					accelerator: "Shift+CmdOrCtrl+G",
-					click: () => {
-						const win = BrowserWindow.getFocusedWindow();
-						if (win) {
-							win.webContents.send("shadowquill:find:previous");
-						}
-					},
+					click: () => sendToFocused("shadowquill:find:previous"),
 				},
 			],
 		},
@@ -82,39 +79,17 @@ function createApplicationMenu() {
 				{
 					label: "Reset Zoom",
 					accelerator: "CmdOrCtrl+0",
-					click: () => {
-						const w = BrowserWindow.getFocusedWindow();
-						if (w) {
-							w.webContents.setZoomFactor(1.0);
-							w.webContents.send("shadowquill:zoom:changed", 1.0);
-						}
-					},
+					click: () => zoomFocused(() => 1.0),
 				},
 				{
 					label: "Zoom In",
 					accelerator: "CmdOrCtrl+=",
-					click: () => {
-						const w = BrowserWindow.getFocusedWindow();
-						if (w) {
-							const current = w.webContents.getZoomFactor();
-							const newZoom = Math.min(1.5, current + 0.1);
-							w.webContents.setZoomFactor(newZoom);
-							w.webContents.send("shadowquill:zoom:changed", newZoom);
-						}
-					},
+					click: () => zoomFocused((current) => Math.min(1.5, current + 0.1)),
 				},
 				{
 					label: "Zoom Out",
 					accelerator: "CmdOrCtrl+-",
-					click: () => {
-						const w = BrowserWindow.getFocusedWindow();
-						if (w) {
-							const current = w.webContents.getZoomFactor();
-							const newZoom = Math.max(0.8, current - 0.1);
-							w.webContents.setZoomFactor(newZoom);
-							w.webContents.send("shadowquill:zoom:changed", newZoom);
-						}
-					},
+					click: () => zoomFocused((current) => Math.max(0.8, current - 0.1)),
 				},
 				{ type: "separator" },
 				{ role: "togglefullscreen" },
@@ -122,8 +97,7 @@ function createApplicationMenu() {
 		},
 	);
 
-	const menu = Menu.buildFromTemplate(template);
-	Menu.setApplicationMenu(menu);
+	Menu.setApplicationMenu(Menu.buildFromTemplate(template));
 }
 
 module.exports = { createApplicationMenu };

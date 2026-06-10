@@ -1,5 +1,8 @@
 // @ts-nocheck
-const { app, BrowserWindow } = require("electron");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const { app, BrowserWindow, dialog, session } = require("electron");
 
 const {
 	setupDataPaths,
@@ -17,12 +20,9 @@ if (process.argv.includes("--factory-reset")) {
 try {
 	const envPaths = resolveLocalOnlyDataRootsFromEnv();
 	if (envPaths) {
-		const fs = require("node:fs");
 		try {
 			fs.mkdirSync(envPaths.userDataDir, { recursive: true });
-		} catch (_) {
-			/* ignore */
-		}
+		} catch (_) {}
 		app.setPath("appData", envPaths.appDataRoot);
 		app.setPath("userData", envPaths.userDataDir);
 		process.env.SHADOWQUILL_USER_DATA = envPaths.userDataDir;
@@ -37,31 +37,25 @@ if (isDev) {
 	process.env.ELECTRON_DISABLE_SECURITY_WARNINGS = "true";
 }
 
-app.commandLine.appendSwitch("--disable-cache");
-app.commandLine.appendSwitch("--disable-http-cache");
-app.commandLine.appendSwitch("--disable-background-networking");
-app.commandLine.appendSwitch("--disable-disk-cache");
-app.commandLine.appendSwitch("--disable-back-forward-cache");
-app.commandLine.appendSwitch("--disable-prompt-on-repost");
-app.commandLine.appendSwitch(
+for (const flag of [
+	"--disable-cache",
+	"--disable-http-cache",
+	"--disable-background-networking",
+	"--disable-disk-cache",
+	"--disable-back-forward-cache",
+	"--disable-prompt-on-repost",
 	"--disable-component-extensions-with-background-pages",
-);
-app.commandLine.appendSwitch("--disable-shared-dictionary");
-app.commandLine.appendSwitch(
+	"--disable-shared-dictionary",
 	"--disable-features=CompressionDictionaryTransportBackend",
-);
-app.commandLine.appendSwitch(
 	"--disable-features=VizDisplayCompositor,VizHitTestSurfaceLayer",
-);
-app.commandLine.appendSwitch("--disable-features=TranslateUI");
+	"--disable-features=TranslateUI",
+]) {
+	app.commandLine.appendSwitch(flag);
+}
 
-const os = require("node:os");
-const tempCachePath = require("node:path").join(
-	os.tmpdir(),
-	`shadowquill-cache-${Date.now()}`,
-);
+const tempCachePath = path.join(os.tmpdir(), `shadowquill-cache-${Date.now()}`);
 try {
-	require("node:fs").mkdirSync(tempCachePath, { recursive: true });
+	fs.mkdirSync(tempCachePath, { recursive: true });
 	app.setPath("userCache", tempCachePath);
 } catch (e) {
 	console.warn("[Electron] Failed to create temp cache directory:", e);
@@ -75,12 +69,24 @@ require("./ipc/system-handlers.cjs");
 const {
 	registerDataIPCHandlers,
 	setHttpServer,
+	getHttpServer,
 } = require("./ipc/data-handlers.cjs");
 const { createWindow } = require("./utils/window-manager.cjs");
 const { createApplicationMenu } = require("./utils/menu.cjs");
 const { setupSecurity } = require("./utils/security.cjs");
 const { addAllowedAppOrigin } = require("./utils/ipc-security.cjs");
 const { startNextServer, getServerPort } = require("./utils/next-server.cjs");
+
+function loadServerUrl(win, port, context) {
+	addAllowedAppOrigin(`http://127.0.0.1:${port}`);
+	win.loadURL(`http://127.0.0.1:${port}`).catch((err) => {
+		console.error(`Failed to load server URL${context}`, err);
+		dialog.showErrorBox(
+			"Failed to Load Application",
+			`Could not connect to local server on port ${port}. ${err?.message || "Unknown error"}`,
+		);
+	});
+}
 
 app.whenReady().then(async () => {
 	setupDataPaths();
@@ -98,26 +104,16 @@ app.whenReady().then(async () => {
 	setupSecurity(isDev);
 
 	if (isDev) {
-		const _win = createWindow(isDev);
+		createWindow(isDev);
 	} else {
 		const serverResult = await startNextServer();
 		if (serverResult?.port) {
 			setHttpServer(serverResult.server);
-			addAllowedAppOrigin(`http://127.0.0.1:${serverResult.port}`);
-			const win = createWindow(isDev);
-			win.loadURL(`http://127.0.0.1:${serverResult.port}`).catch((err) => {
-				console.error("Failed to load server URL", err);
-				const { dialog } = require("electron");
-				dialog.showErrorBox(
-					"Failed to Load Application",
-					`Could not connect to local server on port ${serverResult.port}. ${err?.message || "Unknown error"}`,
-				);
-			});
+			loadServerUrl(createWindow(isDev), serverResult.port, "");
 		} else if (serverResult === null) {
 			console.error("[Electron] Server startup failed - error already handled");
 		} else {
 			console.error("[Electron] Server started but no valid port was returned");
-			const { dialog } = require("electron");
 			dialog.showErrorBox(
 				"Startup Error",
 				"Failed to start internal server. The application will now exit.",
@@ -132,18 +128,9 @@ app.whenReady().then(async () => {
 			if (!isDev) {
 				const port = getServerPort();
 				if (port) {
-					addAllowedAppOrigin(`http://127.0.0.1:${port}`);
-					win.loadURL(`http://127.0.0.1:${port}`).catch((err) => {
-						console.error("Failed to load server URL on activate", err);
-						const { dialog } = require("electron");
-						dialog.showErrorBox(
-							"Failed to Load Application",
-							`Could not connect to local server on port ${port}. ${err?.message || "Unknown error"}`,
-						);
-					});
+					loadServerUrl(win, port, " on activate");
 				} else {
 					console.error("[Electron] No server port available on activate");
-					const { dialog } = require("electron");
 					dialog.showErrorBox(
 						"Startup Error",
 						"Internal server is not running. The application will now exit.",
@@ -164,10 +151,8 @@ let isQuitting = false;
 app.on("before-quit", (event) => {
 	if (isQuitting) return;
 	isQuitting = true;
-
 	event.preventDefault();
 
-	const { session } = require("electron");
 	try {
 		session.defaultSession.flushStorageData();
 		console.log("[Electron] Default session storage flushed");
@@ -176,8 +161,7 @@ app.on("before-quit", (event) => {
 	}
 
 	try {
-		const persistentSession = session.fromPartition("persist:main");
-		persistentSession.flushStorageData();
+		session.fromPartition("persist:main").flushStorageData();
 		console.log("[Electron] Persistent partition storage flushed");
 	} catch (_e) {
 		console.log(
@@ -186,7 +170,6 @@ app.on("before-quit", (event) => {
 	}
 
 	try {
-		const { getHttpServer } = require("./ipc/data-handlers.cjs");
 		const httpServer = getHttpServer();
 		if (httpServer) {
 			console.log("[Electron] Closing production server...");

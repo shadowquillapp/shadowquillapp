@@ -1,9 +1,30 @@
 "use client";
 
+import type { CSSProperties } from "react";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { getTaskTypeIcon } from "@/lib/task-type-icon";
 import type { PromptPresetSummary } from "./types";
+
+const dropZoneStyle: CSSProperties = {
+	width: 24,
+	height: 32,
+	flexShrink: 0,
+	borderRadius: "4px",
+	border: "1px dashed transparent",
+	transition: "all 0.15s ease",
+	display: "flex",
+	alignItems: "center",
+	justifyContent: "center",
+};
+
+const scrollButtonStyle: CSSProperties = {
+	width: 28,
+	height: 28,
+	padding: 0,
+	flexShrink: 0,
+	background: "var(--color-surface-variant)",
+};
 
 export interface TabInfo {
 	id: string;
@@ -119,13 +140,7 @@ export function TabBar({
 					type="button"
 					className="md-btn"
 					onClick={scrollLeft}
-					style={{
-						width: 28,
-						height: 28,
-						padding: 0,
-						flexShrink: 0,
-						background: "var(--color-surface-variant)",
-					}}
+					style={scrollButtonStyle}
 					title="Scroll left"
 				>
 					<Icon name="chevron-left" style={{ width: 14, height: 14 }} />
@@ -187,17 +202,7 @@ export function TabBar({
 											setDraggedIndex(null);
 											setDragOverIndex(null);
 										}}
-										style={{
-											width: 24,
-											height: 32,
-											flexShrink: 0,
-											borderRadius: "4px",
-											border: "1px dashed transparent",
-											transition: "all 0.15s ease",
-											display: "flex",
-											alignItems: "center",
-											justifyContent: "center",
-										}}
+										style={dropZoneStyle}
 									></button>
 								)}
 
@@ -390,17 +395,7 @@ export function TabBar({
 							setDraggedIndex(null);
 							setDragOverIndex(null);
 						}}
-						style={{
-							width: 24,
-							height: 32,
-							flexShrink: 0,
-							borderRadius: "4px",
-							border: "1px dashed transparent",
-							transition: "all 0.15s ease",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-						}}
+						style={dropZoneStyle}
 					></button>
 				)}
 
@@ -468,13 +463,7 @@ export function TabBar({
 					type="button"
 					className="md-btn"
 					onClick={scrollRight}
-					style={{
-						width: 28,
-						height: 28,
-						padding: 0,
-						flexShrink: 0,
-						background: "var(--color-surface-variant)",
-					}}
+					style={scrollButtonStyle}
 					title="Scroll right"
 				>
 					<Icon name="chevron-right" style={{ width: 14, height: 14 }} />

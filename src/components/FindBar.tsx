@@ -156,31 +156,31 @@ export default function FindBar() {
 		[clearHighlights, activateMatch],
 	);
 
-	const goToNext = useCallback(() => {
-		if (highlightsRef.current.length === 0) {
-			if (searchText.trim()) {
-				performSearch(searchText);
+	const goTo = useCallback(
+		(direction: 1 | -1) => {
+			if (highlightsRef.current.length === 0) {
+				if (searchText.trim()) {
+					performSearch(searchText);
+				}
+				return;
 			}
-			return;
-		}
 
-		const newIndex = currentMatch >= matchCount ? 1 : currentMatch + 1;
-		setCurrentMatch(newIndex);
-		activateMatch(highlightsRef.current, newIndex - 1);
-	}, [currentMatch, matchCount, searchText, performSearch, activateMatch]);
+			const newIndex =
+				direction === 1
+					? currentMatch >= matchCount
+						? 1
+						: currentMatch + 1
+					: currentMatch <= 1
+						? matchCount
+						: currentMatch - 1;
+			setCurrentMatch(newIndex);
+			activateMatch(highlightsRef.current, newIndex - 1);
+		},
+		[currentMatch, matchCount, searchText, performSearch, activateMatch],
+	);
 
-	const goToPrevious = useCallback(() => {
-		if (highlightsRef.current.length === 0) {
-			if (searchText.trim()) {
-				performSearch(searchText);
-			}
-			return;
-		}
-
-		const newIndex = currentMatch <= 1 ? matchCount : currentMatch - 1;
-		setCurrentMatch(newIndex);
-		activateMatch(highlightsRef.current, newIndex - 1);
-	}, [currentMatch, matchCount, searchText, performSearch, activateMatch]);
+	const goToNext = useCallback(() => goTo(1), [goTo]);
+	const goToPrevious = useCallback(() => goTo(-1), [goTo]);
 
 	const closeFindBar = useCallback(() => {
 		setIsVisible(false);
