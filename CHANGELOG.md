@@ -1,3 +1,10 @@
+# [0.12.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.11.2...v0.12.0) (2026-06-11)
+
+
+### Features
+
+* **workbench:** polish UX and dedupe renderer/electron logic ([#22](https://github.com/shadowquillapp/shadowquillapp/issues/22)) ([ae78b1a](https://github.com/shadowquillapp/shadowquillapp/commit/ae78b1a92194d271ad01debb46f4ee4fc04dc340))
+
 ## [0.11.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.11.1...v0.11.2) (2026-06-10)
 
 
