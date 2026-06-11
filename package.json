@@ -67,7 +67,7 @@
 		"@types/eslint": "^9.6.1",
 		"@types/eslint-scope": "^8.4.0",
 		"@types/estree": "^1.0.9",
-		"@types/node": "^24.13.1",
+		"@types/node": "^24.13.2",
 		"@types/react": "^19.2.17",
 		"@types/react-dom": "^19.2.3",
 		"@vitest/coverage-v8": "^4.1.8",
@@ -162,13 +162,6 @@
 			"allowToChangeInstallationDirectory": true
 		}
 	},
-	"pnpm": {
-		"overrides": {
-			"glob": "^11.0.4",
-			"baseline-browser-mapping": "*",
-			"tmp": "^0.2.7"
-		}
-	},
 	"postcss": {
 		"plugins": {
 			"@tailwindcss/postcss": {}
@@ -176,6 +169,6 @@
 	},
 	"packageManager": "pnpm@10.25.0",
 	"engines": {
-		"node": ">=25.2.1"
+		"node": ">=26.0.0"
 	}
 }
