@@ -33,50 +33,27 @@
 
 @keyframes version-pulse {
 	0%,
-	50%,
 	100% {
 		transform: scale(1);
 		box-shadow: none;
+	}
+	50% {
+		transform: scale(1.12);
+		box-shadow: 0 0 0 4px
+			color-mix(in srgb, var(--color-primary) 18%, transparent);
 	}
 }
 
 @keyframes badge-pulse {
 	0%,
 	100% {
-		transform: scale(1);
-		box-shadow: none;
-	}
-	50% {
-		transform: scale(1);
-		box-shadow: none;
-	}
-}
-
-@keyframes status-pulse {
-	0%,
-	100% {
 		opacity: 1;
 		transform: scale(1);
 	}
 	50% {
-		opacity: 0.5;
-		transform: scale(0.8);
+		opacity: 0.55;
+		transform: scale(0.94);
 	}
-}
-
-@keyframes version-created {
-	0% {
-		opacity: 0;
-		transform: translateY(-10px) scale(0.95);
-	}
-	100% {
-		opacity: 1;
-		transform: translateY(0) scale(1);
-	}
-}
-
-.version-just-created {
-	animation: version-created 400ms ease-out;
 }
 
 @keyframes output-fade-in {
@@ -92,21 +69,6 @@
 
 .output-animate-in {
 	animation: output-fade-in 300ms ease-out;
-}
-
-@keyframes version-switch {
-	0% {
-		opacity: 0.5;
-		transform: scale(0.98);
-	}
-	100% {
-		opacity: 1;
-		transform: scale(1);
-	}
-}
-
-.version-switching {
-	animation: version-switch 200ms ease-out;
 }
 
 /* ========================================
@@ -189,24 +151,6 @@
  * FADE ANIMATIONS
  * ======================================== */
 
-@keyframes fade-in {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
-@keyframes fade-out {
-	from {
-		opacity: 1;
-	}
-	to {
-		opacity: 0;
-	}
-}
-
 @keyframes fade-in-up {
 	from {
 		opacity: 0;
@@ -238,14 +182,6 @@
 		opacity: 1;
 		transform: scale(1);
 	}
-}
-
-.fade-in {
-	animation: fade-in 240ms ease-out;
-}
-
-.fade-out {
-	animation: fade-out 200ms ease-in forwards;
 }
 
 .fade-in-up {
@@ -291,15 +227,14 @@
 	}
 
 	.md-spin,
-	.version-just-created,
 	.output-animate-in,
-	.fade-in,
-	.fade-out,
 	.fade-in-up,
 	.fade-in-down,
 	.fade-in-scale,
-	.version-switching,
+	.workbench--generating .prompt-input-pane .run-button-container,
 	.output-generating,
+	.version-nav-vertical--pulse .version-nav-vertical__badge,
+	.version-nav-vertical__badge--generating,
 	.simple-workbench,
 	.page-animate {
 		animation: none;
