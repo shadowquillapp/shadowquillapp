@@ -38,9 +38,7 @@ export default function PromptWorkbench() {
 	const [showVersionDropdown, setShowVersionDropdown] = useState(false);
 	const versionDropdownRef = useRef<HTMLButtonElement | null>(null);
 	const [outputAnimateKey, setOutputAnimateKey] = useState(0);
-	const [leftPanelWidth, setLeftPanelWidth] = useState(() =>
-		getJSON<number>(STORAGE_KEYS.PANEL_WIDTH.key, 50),
-	);
+	const [leftPanelWidth, setLeftPanelWidth] = useState(50);
 	const [isResizing, setIsResizing] = useState(false);
 	const panelsRef = useRef<HTMLDivElement | null>(null);
 	const { copyMessage, copiedMessageId } = useCopyMessage();
@@ -71,6 +69,10 @@ export default function PromptWorkbench() {
 
 	useEffect(() => {
 		applyStoredThemeToDocument();
+	}, []);
+
+	useEffect(() => {
+		setLeftPanelWidth(getJSON<number>(STORAGE_KEYS.PANEL_WIDTH.key, 50));
 	}, []);
 
 	useEffect(() => {
