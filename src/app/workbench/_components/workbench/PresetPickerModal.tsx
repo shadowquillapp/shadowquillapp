@@ -46,10 +46,8 @@ const sectionTabStyle = (active: boolean): React.CSSProperties => ({
 
 const setCardStyle = (
 	e: React.SyntheticEvent<HTMLButtonElement>,
-	boxShadow: string,
 	borderColor: string,
 ) => {
-	e.currentTarget.style.boxShadow = boxShadow;
 	e.currentTarget.style.borderColor = borderColor;
 };
 
@@ -594,29 +592,16 @@ export function PresetPickerModal({
 													background: "var(--color-surface-variant)",
 													border: "1px solid var(--color-outline)",
 													borderRadius: 10,
-													transition: "box-shadow 0.15s, border-color 0.15s",
 													overflow: "hidden",
 												}}
 												onMouseEnter={(e) =>
-													setCardStyle(
-														e,
-														"0 2px 8px rgba(0,0,0,0.1)",
-														"var(--color-primary)",
-													)
+													setCardStyle(e, "var(--color-primary)")
 												}
 												onMouseLeave={(e) =>
-													setCardStyle(e, "none", "var(--color-outline)")
+													setCardStyle(e, "var(--color-outline)")
 												}
-												onFocus={(e) =>
-													setCardStyle(
-														e,
-														"0 0 0 2px var(--focus-ring, rgba(99,102,241,0.25))",
-														"var(--color-primary)",
-													)
-												}
-												onBlur={(e) =>
-													setCardStyle(e, "none", "var(--color-outline)")
-												}
+												onFocus={(e) => setCardStyle(e, "var(--color-primary)")}
+												onBlur={(e) => setCardStyle(e, "var(--color-outline)")}
 											>
 												<div
 													style={{
@@ -748,30 +733,21 @@ export function PresetPickerModal({
 														background: "var(--color-surface-variant)",
 														border: "1px solid var(--color-outline)",
 														borderRadius: 8,
-														transition: "box-shadow 0.15s, border-color 0.15s",
 														flex: 1,
 														height: 44,
 													}}
 													onMouseEnter={(e) => {
 														if (isDeleting) return;
-														setCardStyle(
-															e,
-															"0 2px 8px rgba(0,0,0,0.08)",
-															"var(--color-outline-variant)",
-														);
+														setCardStyle(e, "var(--color-outline-variant)");
 													}}
 													onMouseLeave={(e) =>
-														setCardStyle(e, "none", "var(--color-outline)")
+														setCardStyle(e, "var(--color-outline)")
 													}
 													onFocus={(e) =>
-														setCardStyle(
-															e,
-															"0 0 0 3px var(--focus-ring, rgba(99,102,241,0.25))",
-															"var(--color-primary)",
-														)
+														setCardStyle(e, "var(--color-primary)")
 													}
 													onBlur={(e) =>
-														setCardStyle(e, "none", "var(--color-outline)")
+														setCardStyle(e, "var(--color-outline)")
 													}
 												>
 													<div

@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { Logo } from "@/components/Logo";
-import SettingsDialog from "@/components/SettingsDialog";
+import SettingsDialog, { type SettingsTab } from "@/components/SettingsDialog";
 
 interface StudioHeaderProps {
 	isSmallScreen?: boolean;
@@ -17,9 +17,8 @@ export default function StudioHeader({
 }: StudioHeaderProps) {
 	const router = useRouter();
 	const [settingsOpen, setSettingsOpen] = useState(false);
-	const [settingsInitialTab, setSettingsInitialTab] = useState<
-		"system" | "ollama" | "data" | "display" | "version"
-	>("version");
+	const [settingsInitialTab, setSettingsInitialTab] =
+		useState<SettingsTab>("version");
 
 	useEffect(() => {
 		const handler = (e: Event) => {

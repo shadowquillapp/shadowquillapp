@@ -48,7 +48,7 @@ Output rules:
 - Start immediately with the compiled prompt content
 - Do not over-structure output
 - Do not introduce verbose schemas unless the user or preset explicitly requires them
-- Match the requested format (plain text, markdown, or XML)
+- Match the requested format (plain text or markdown)
 - If a specific language is requested, write your ENTIRE output in that language`;
 
 function readRawPrompt(): string {

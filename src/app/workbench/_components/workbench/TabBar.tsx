@@ -475,10 +475,6 @@ export function TabBar({
 					display: none;
 				}
 				
-				.tab-item {
-					transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-				}
-				
 				.tab-item:active {
 					cursor: grabbing !important;
 				}
@@ -510,7 +506,6 @@ export function TabBar({
 				.drop-zone.drop-target::before {
 					width: 4px;
 					background: var(--color-primary);
-					box-shadow: 0 0 8px rgba(var(--color-primary-rgb, 99, 102, 241), 0.6);
 				}
 				
 				

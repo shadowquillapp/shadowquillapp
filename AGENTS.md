@@ -9,13 +9,13 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 | Path | Role |
 |---|---|
 | `src/app/` | App Router routes. `layout.tsx` (root), `page.tsx` (redirects to `/workbench`), `workbench/`, `studio/`. No nested layouts. |
-| `src/components/` | Cross-cutting UI: `Titlebar`, `ErrorBoundary`, `DialogProvider`, `SettingsDialog`, etc. `settings/` = tab content for `SettingsDialog`. |
+| `src/components/` | Cross-cutting UI: `Titlebar`, `ErrorBoundary`, `DialogProvider`, `SettingsDialog`, `ModelConfigGate`, etc. `settings/` = tab content for `SettingsDialog`. |
 | `src/lib/` | All persistence, prompt assembly, model client, presets. Browser-only — assumes `window`. |
-| `src/styles/` | CSS architecture: `index.css` → variables → themes → base → components → features → animations. |
+| `src/styles/` | CSS architecture: `index.css` → variables → base → components → features → animations. |
 | `src/__tests__/` | Vitest specs (`.test.ts(x)`). Colocated with module names. |
 | `src/types/` | One shared `index.ts`. |
 | `electron/` | Main process: `main.cjs`, `preload.cjs`, `start-electron.cjs`, `build-electron.cjs`, `ipc/`, `utils/`. |
-| `public/` | Static assets + `theme-init.js` (FOUC-prevention for `data-theme`). |
+| `public/` | Static assets. |
 | `config/vitest.config.ts` | Test config (jsdom, `@` → `src/`). |
 | `scripts/` | `postinstall.js`, `update-version.js`. |
 
@@ -26,7 +26,7 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 - `src/components/AGENTS.md` — cross-cutting UI + settings tabs.
 - `src/app/workbench/AGENTS.md` — main prompt workbench (the primary surface).
 - `src/app/studio/AGENTS.md` — preset authoring studio.
-- `src/styles/AGENTS.md` — design tokens, themes, CSS architecture.
+- `src/styles/AGENTS.md` — design tokens, CSS architecture.
 - `electron/AGENTS.md` — main process, IPC contract, security boundaries.
 
 ## Code map (highest fan-in / most central)
@@ -43,7 +43,6 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 | `src/lib/errors.ts` | Typed error hierarchy (`ShadowQuillError`, `ValidationError`, `ModelError`, …). |
 | `src/lib/prompt-builder-core.ts` | Semantic-intent prompt compiler with `VALIDATION_PIPELINE` + per-`TaskType` domain maps. |
 | `src/lib/domain/presets.ts` (~362 lines) | Preset CRUD; ships 10 seeded presets; no versioning API. |
-| `src/lib/theme-preference.ts` (3) | `readThemePreference`, `applyThemeToDocument` — shared by workbench, studio, settings. |
 | `src/lib/system-prompts.ts` (2) | Customizable system-prompt template. |
 | `electron/preload.cjs` | Single `contextBridge` surface (`window.shadowquill.*`). |
 
@@ -70,7 +69,7 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 - **Persistence = localStorage + sessionStorage + Electron IPC file KV.** No IndexedDB, no Cookies. All keys must be declared in `storage-keys.ts`.
 - **Semantic-intent prompt compiler** — `prompt-builder-core.ts` + `prompt-directives/base.ts` assemble prompts by task type (`intent`, `engineering`, `visual`, `analysis`, `narrative`, `persuasion`, `motion`). No per-task directive files.
 - **Temperature is not user-configurable** — fixed at `0.2` in `model-client.ts` (`MODEL_TEMPERATURE`).
-- **Tailwind v4 CSS-first config.** No `tailwind.config.js`. Single `@import "tailwindcss";` in `src/styles/index.css`. No `@theme` block — design tokens are plain `:root` CSS variables, consumed via `var(--color-*)`. Theme switching is `[data-theme="…"]` attribute selectors.
+- **Tailwind v4 CSS-first config.** No `tailwind.config.js`. Single `@import "tailwindcss";` in `src/styles/index.css`. No `@theme` block — design tokens are plain `:root` CSS variables, consumed via `var(--color-*)`. Single fixed dark palette (black, gray, white); no theme switching.
 - **Biome is the only linter/formatter.** Do not introduce ESLint, Prettier, or Husky configs. `biome-ignore` comments are the only suppression mechanism (4 sites in `src/` — see workbench + components `AGENTS.md`).
 - **Use Heroicons only** (`@heroicons/react/24/solid` or `outline`). Wrap with `src/components/Icon.tsx`.
 - **Vitest with jsdom**, `globals: true`. Mocks for `localStorage`, `sessionStorage`, `matchMedia`, `ResizeObserver`, `IntersectionObserver`, `fetch` live in `src/__tests__/setup.ts`. URL is `http://localhost:31415` (matches Electron dev port).
@@ -95,4 +94,3 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 - **Electron main**: `electron/main.cjs` (prod) / `electron/start-electron.cjs` (dev, port 31415).
 - **Next server**: ephemeral in prod (`electron/utils/next-server.cjs`), `localhost:31415` in dev.
 - **Renderer entry**: `src/app/layout.tsx` → `src/app/page.tsx` (redirects to `/workbench`).
-- **Theme bootstrap**: `public/theme-init.js` runs synchronously in `<head>` to set `data-theme` before paint.

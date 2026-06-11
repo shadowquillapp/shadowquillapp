@@ -18,8 +18,6 @@ export interface Preset extends PresetLite {
 const STRING_OPTION_KEYS = [
 	"language",
 	"audience",
-	"outputXMLSchema",
-	"identity",
 	"additionalContext",
 	"styleGuidelines",
 ] as const satisfies readonly (keyof GenerationOptions)[];
@@ -58,7 +56,7 @@ const TONE_LEVELS: readonly Tone[] = [
 	"technical",
 	"persuasive",
 ];
-const FORMAT_LEVELS: readonly Format[] = ["plain", "markdown", "xml"];
+const FORMAT_LEVELS: readonly Format[] = ["plain", "markdown"];
 
 function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
 	const raw = options as Record<string, unknown>;

@@ -62,44 +62,6 @@ export default function PresetEditor({
 
 						<section className="space-y-4">
 							<SectionHeading>Context</SectionHeading>
-							{preset.options?.format === "xml" && (
-								<div>
-									<label
-										htmlFor="xml-schema"
-										className="mb-1 block font-medium text-secondary text-xs"
-									>
-										XML Output Schema / Tags
-									</label>
-									<textarea
-										id="xml-schema"
-										value={preset.options?.outputXMLSchema || ""}
-										onChange={(e) =>
-											onFieldChange("outputXMLSchema", e.target.value)
-										}
-										placeholder="<root><title/><summary/><tags><tag/></tags></root>"
-										className="md-input w-full resize-none px-3 py-2 text-sm"
-										rows={3}
-									/>
-								</div>
-							)}
-
-							<div>
-								<label
-									htmlFor="identity"
-									className="mb-1 block font-medium text-secondary text-xs"
-								>
-									Identity
-								</label>
-								<input
-									id="identity"
-									type="text"
-									value={preset.options?.identity || ""}
-									onChange={(e) => onFieldChange("identity", e.target.value)}
-									placeholder="e.g., You are an expert programmer..."
-									className="md-input w-full px-3 py-2 text-sm"
-								/>
-							</div>
-
 							<div>
 								<label
 									htmlFor="additional-context"

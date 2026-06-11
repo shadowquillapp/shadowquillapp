@@ -38,9 +38,6 @@
 	background: transparent;
 	color: var(--color-on-surface-variant);
 	cursor: pointer;
-	transition:
-		color 150ms ease,
-		opacity 150ms ease;
 	opacity: 0.5;
 }
 
@@ -198,5 +195,4 @@
 .panel-resize-container:hover .panel-resize-line,
 .panel-resize-container--active .panel-resize-line {
 	background: var(--color-primary);
-	box-shadow: 0 0 8px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }

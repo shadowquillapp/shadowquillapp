@@ -35,12 +35,17 @@ try {
 		env,
 		cwd: process.cwd(),
 	});
-	console.log(
-		"Next.js build finished. Listing .next root contents for diagnostics:",
-	);
-	try {
-		execSync("ls -1 .next | head -n 40", { stdio: "inherit" });
-	} catch {}
+	if (process.platform !== "win32") {
+		console.log(
+			"Next.js build finished. Listing .next root contents for diagnostics:",
+		);
+		try {
+			execSync("ls -1 .next | head -n 40", { stdio: "inherit" });
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			console.warn("Could not list .next contents:", message);
+		}
+	}
 
 	console.log("Build completed successfully!");
 } catch (error) {

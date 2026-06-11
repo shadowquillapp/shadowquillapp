@@ -4,11 +4,10 @@ import { Cog6ToothIcon, PaintBrushIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
-import SettingsDialog from "@/components/SettingsDialog";
+import SettingsDialog, { type SettingsTab } from "@/components/SettingsDialog";
 import { getJSON } from "@/lib/local-storage";
 import { setLastSelectedPresetKey } from "@/lib/preset-store";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
-import { applyStoredThemeToDocument } from "@/lib/theme-preference";
 import { InputPanel } from "./workbench/components/InputPanel";
 import { OutputPanel } from "./workbench/components/OutputPanel";
 import { useCopyMessage } from "./workbench/hooks/useCopyMessage";
@@ -38,27 +37,19 @@ export default function PromptWorkbench() {
 	const [showVersionDropdown, setShowVersionDropdown] = useState(false);
 	const versionDropdownRef = useRef<HTMLButtonElement | null>(null);
 	const [outputAnimateKey, setOutputAnimateKey] = useState(0);
-	const [leftPanelWidth, setLeftPanelWidth] = useState(() =>
-		getJSON<number>(STORAGE_KEYS.PANEL_WIDTH.key, 50),
-	);
+	const [leftPanelWidth, setLeftPanelWidth] = useState(50);
 	const [isResizing, setIsResizing] = useState(false);
 	const panelsRef = useRef<HTMLDivElement | null>(null);
 	const { copyMessage, copiedMessageId } = useCopyMessage();
 	const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 	const [settingsOpen, setSettingsOpen] = useState(false);
-	const [settingsInitialTab, setSettingsInitialTab] = useState<
-		"system" | "ollama" | "data" | "display" | "version"
-	>("version");
+	const [settingsInitialTab, setSettingsInitialTab] =
+		useState<SettingsTab>("version");
 	const textareaContainerRef = useRef<HTMLDivElement | null>(null);
 	const tabManager = useTabManager();
 	const [showPresetPicker, setShowPresetPicker] = useState(false);
 	const [presetPickerForNewTab, setPresetPickerForNewTab] = useState(false);
-	const { presets, applyPreset } = usePresetManager(
-		tabManager,
-		showPresetPicker,
-		setShowPresetPicker,
-		setPresetPickerForNewTab,
-	);
+	const { presets, applyPreset } = usePresetManager(tabManager);
 
 	const {
 		recentProjects,
@@ -70,7 +61,7 @@ export default function PromptWorkbench() {
 	} = useProjectManager(tabManager, presets, applyPreset, showInfo);
 
 	useEffect(() => {
-		applyStoredThemeToDocument();
+		setLeftPanelWidth(getJSON<number>(STORAGE_KEYS.PANEL_WIDTH.key, 50));
 	}, []);
 
 	useEffect(() => {

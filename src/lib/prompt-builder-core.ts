@@ -63,14 +63,8 @@ function languageFinalSuffix(language: string | undefined): string {
 		: "";
 }
 
-function delimit(
-	format: GenerationOptions["format"] | undefined,
-	tag: string,
-	text: string,
-): string {
-	return format === "xml"
-		? `<${tag}>\n${text}\n</${tag}>`
-		: `---\n${text}\n---`;
+function delimit(text: string): string {
+	return `---\n${text}\n---`;
 }
 
 const INJECTION_PATTERNS = [
@@ -115,10 +109,6 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(systemPrompt);
 	}
 
-	if (options?.identity?.trim()) {
-		sections.push(`Act as ${options.identity.trim()}.`);
-	}
-
 	pushLanguageReminder(sections, language, "unified");
 
 	sections.push(CORE_GUIDELINES);
@@ -129,7 +119,7 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(domainMap);
 	}
 
-	const directives = buildDirectives(taskType, options);
+	const directives = buildDirectives(options);
 	if (directives.length > 0) {
 		sections.push(`Directives:\n${directives.map((d) => `- ${d}`).join("\n")}`);
 	}
@@ -144,9 +134,7 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(`Constraints: ${constraints.join(", ")}`);
 	}
 
-	sections.push(
-		`User Input:\n${delimit(options?.format, "user_input", rawUserInput)}`,
-	);
+	sections.push(`User Input:\n${delimit(rawUserInput)}`);
 
 	if (options?.additionalContext?.trim()) {
 		sections.push(`Additional Context:\n${options.additionalContext}`);
@@ -212,12 +200,8 @@ export function buildRefinementPromptCore(params: {
 		sections.push(domainMap);
 	}
 
-	sections.push(
-		`Existing Compiled Prompt:\n${delimit(options?.format, "existing_prompt", trimmedPrevious)}`,
-	);
-	sections.push(
-		`Refinement Request:\n${delimit(options?.format, "refinement_request", trimmedRequest)}`,
-	);
+	sections.push(`Existing Compiled Prompt:\n${delimit(trimmedPrevious)}`);
+	sections.push(`Refinement Request:\n${delimit(trimmedRequest)}`);
 
 	let finalInstruction =
 		"Apply the refinement request to the existing compiled prompt. Output ONLY the refined prompt text — no preamble or meta-commentary.";

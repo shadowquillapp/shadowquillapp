@@ -93,13 +93,6 @@ export function useGeneration(
 				...(tabOptions.audience?.trim() && {
 					audience: tabOptions.audience.trim(),
 				}),
-				...(tabOptions.format === "xml" &&
-					tabOptions.outputXMLSchema && {
-						outputXMLSchema: tabOptions.outputXMLSchema,
-					}),
-				...(tabOptions.identity?.trim() && {
-					identity: tabOptions.identity.trim(),
-				}),
 				...(tabOptions.styleGuidelines?.trim() && {
 					styleGuidelines: tabOptions.styleGuidelines.trim(),
 				}),

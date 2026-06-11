@@ -21,14 +21,13 @@ studio/
 | `StudioHeader.tsx` | Page header (sidebar toggle). |
 | `PresetLibrary.tsx` | Searchable sidebar list. |
 | `PresetCard.tsx` | Preset card item. |
-| `PresetEditor.tsx` | Single-page scrollable editor: `BasicSettings` + inline Context fields (identity, XML schema, additional context). |
+| `PresetEditor.tsx` | Single-page scrollable editor: `BasicSettings` + inline Context field (additional context). |
 | `BasicSettings.tsx` | Core preset fields. |
 
 ## Conventions (delta from root)
 
 - **`PresetStudioPage` is the page-level state owner** — selected preset, editing preset, dirty flag, sidebar open, small-screen flag. Pull everything through `usePresetManager()`.
 - **Auto-selects last-used preset on mount**; warns on `beforeunload` if dirty.
-- **Theme on mount** via `applyStoredThemeToDocument()` from `@/lib/theme-preference` (shared with workbench).
 - **Persistence via `@/lib/presets` barrel** through the studio's `usePresetManager` (not direct `@/lib/domain/presets` imports in components).
 - **`usePresetManager` is the only preset-authoring API** — load, save, delete, duplicate only.
 

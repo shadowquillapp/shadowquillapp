@@ -1,7 +1,6 @@
 import "@/styles/index.css";
 
 import type { Metadata } from "next";
-import Script from "next/script";
 
 import { DialogProvider } from "@/components/DialogProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -19,11 +18,8 @@ export default function RootLayout({
 	children,
 }: Readonly<{ children: React.ReactNode }>) {
 	return (
-		<html lang="en" suppressHydrationWarning>
-			<head>
-				{/* No external CDN links to allow full offline operation */}
-				<Script src="/theme-init.js" strategy="beforeInteractive" />
-			</head>
+		<html lang="en">
+			{/* No external CDN links to allow full offline operation */}
 			<body className="flex h-screen flex-col overflow-hidden">
 				<DialogProvider>
 					<Titlebar />

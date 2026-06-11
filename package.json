@@ -1,6 +1,6 @@
 {
 	"name": "shadowquillapp",
-	"version": "0.10.2",
+	"version": "0.12.0",
 	"author": "ShadowQuill <info@shadowquill.org>",
 	"homepage": "https://shadowquill.org",
 	"description": "ShadowQuill",
@@ -43,9 +43,11 @@
 		"@heroicons/react": "^2.2.0",
 		"@tailwindcss/postcss": "^4.3.0",
 		"cross-env": "^10.1.0",
-		"next": "^16.2.7",
+		"next": "^16.2.9",
 		"react": "^19.2.7",
 		"react-dom": "^19.2.7",
+		"react-markdown": "^10.1.0",
+		"remark-gfm": "^4.0.1",
 		"systeminformation": "^5.31.7",
 		"tailwindcss": "^4.3.0",
 		"tmp": "^0.2.7"
@@ -65,15 +67,15 @@
 		"@types/eslint": "^9.6.1",
 		"@types/eslint-scope": "^8.4.0",
 		"@types/estree": "^1.0.9",
-		"@types/node": "^24.13.0",
-		"@types/react": "^19.2.16",
+		"@types/node": "^24.13.2",
+		"@types/react": "^19.2.17",
 		"@types/react-dom": "^19.2.3",
 		"@vitest/coverage-v8": "^4.1.8",
 		"conventional-changelog-conventionalcommits": "^9.3.1",
 		"electron": "^39.8.10",
-		"electron-builder": "^26.8.1",
+		"electron-builder": "^26.15.2",
 		"jsdom": "^27.4.0",
-		"semantic-release": "^25.0.3",
+		"semantic-release": "^25.0.5",
 		"tsx": "^4.22.4",
 		"typescript": "^5.9.3",
 		"vitest": "^4.1.8"
@@ -160,13 +162,6 @@
 			"allowToChangeInstallationDirectory": true
 		}
 	},
-	"pnpm": {
-		"overrides": {
-			"glob": "^11.0.4",
-			"baseline-browser-mapping": "*",
-			"tmp": ">=0.2.4"
-		}
-	},
 	"postcss": {
 		"plugins": {
 			"@tailwindcss/postcss": {}
@@ -174,6 +169,6 @@
 	},
 	"packageManager": "pnpm@10.25.0",
 	"engines": {
-		"node": ">=25.2.1"
+		"node": ">=26.0.0"
 	}
 }

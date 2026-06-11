@@ -20,9 +20,9 @@
 | `cache.ts` | Generic `LRUCache` with TTL; `getPromptCache`, `getTemplateCache`, session helpers — consulted before generation. |
 | `prompt-builder-core.ts` | Semantic-intent prompt compiler. `VALIDATION_PIPELINE`, per-`TaskType` domain maps; throws `ValidationError`. Pure/testable. |
 | `prompt-builder-client.ts` | Browser-side wrapper wiring `prompt-builder-core` to React/UI. |
-| `theme-preference.ts` | `readThemePreference`, `applyThemeToDocument`, `applyStoredThemeToDocument` — `data-theme` + 300ms transition class. |
 | `version.ts` | App version string constant. |
-| `prompt-directives/index.ts` | **Barrel** — `buildDirectives(taskType, options)` delegates to `base.ts`. |
+| `local-db.ts` | 1-line re-export of `./domain/projects` (convenience alias; not a real DB). |
+| `prompt-directives/index.ts` | **Barrel** — `buildDirectives(options)` delegates to `base.ts`. |
 | `prompt-directives/base.ts` | All directive fragments (`buildBaseDirectives`, `buildFormatDirectives`). |
 
 ## Conventions (delta from root)
@@ -38,6 +38,7 @@
 - ❌ **Do not add a new storage key without declaring it in `storage-keys.ts`.**
 - ❌ **Do not throw in `safeParse`** — the whole point is no-throw default-on-fail.
 - ❌ **Do not introduce Zod/Valibot** — `schema.ts` is the deliberate zero-dep replacement.
+- ❌ **Do not add a real DB** to `local-db.ts` — it's a convenience re-export; remove the stub if you don't need it.
 - ❌ **Do not import React** from any file in this folder — this is data/logic only.
 
 ## Subtree context
