@@ -16,7 +16,6 @@ export interface Tab {
 	versionGraph: VersionGraph;
 	sending: boolean;
 	error: string | null;
-	isDirty: boolean;
 }
 
 interface TabManagerState {
@@ -63,7 +62,6 @@ type TabAction =
 			type: "SET_TAB_PRESET";
 			payload: { tabId: string; preset: PromptPresetSummary };
 	  }
-	| { type: "MARK_TAB_DIRTY"; payload: { tabId: string; isDirty: boolean } }
 	| {
 			type: "RESTORE_TABS";
 			payload: { tabs: Tab[]; activeTabId: string | null };
@@ -121,7 +119,6 @@ const reducer = (
 				versionGraph: createVersionGraph("", "Start"),
 				sending: false,
 				error: null,
-				isDirty: false,
 			};
 			return {
 				tabs: [...state.tabs, newTab],
@@ -169,7 +166,6 @@ const reducer = (
 			return patchTab(state, action.payload.tabId, (tab) => ({
 				...tab,
 				draft: action.payload.draft,
-				isDirty: true,
 			}));
 
 		case "SET_TAB_MESSAGES":
@@ -210,7 +206,6 @@ const reducer = (
 			return patchTab(state, action.payload.tabId, (tab) => ({
 				...tab,
 				projectId: action.payload.projectId,
-				isDirty: false,
 			}));
 
 		case "SET_TAB_VERSION_GRAPH":
@@ -223,12 +218,6 @@ const reducer = (
 			return patchTab(state, action.payload.tabId, (tab) => ({
 				...tab,
 				preset: action.payload.preset,
-			}));
-
-		case "MARK_TAB_DIRTY":
-			return patchTab(state, action.payload.tabId, (tab) => ({
-				...tab,
-				isDirty: action.payload.isDirty,
 			}));
 
 		case "RESTORE_TABS":
@@ -336,7 +325,6 @@ export function useTabManager() {
 					versionGraph: tab.versionGraph ?? createVersionGraph("", "Start"),
 					sending: false,
 					error: null,
-					isDirty: false,
 				}));
 
 				if (restoredTabs.length > 0) {
@@ -492,17 +480,6 @@ export function useTabManager() {
 		[activeTabId],
 	);
 
-	const markDirty = useCallback(
-		(isDirty: boolean) => {
-			if (!activeTabId) return;
-			dispatch({
-				type: "MARK_TAB_DIRTY",
-				payload: { tabId: activeTabId, isDirty },
-			});
-		},
-		[activeTabId],
-	);
-
 	const findTabByProjectId = useCallback(
 		(projectId: string): Tab | null =>
 			state.tabs.find((t) => t.projectId === projectId) ?? null,
@@ -569,12 +546,6 @@ export function useTabManager() {
 		[],
 	);
 
-	const markDirtyForTab = useCallback(
-		(tabId: string, isDirty: boolean) =>
-			dispatch({ type: "MARK_TAB_DIRTY", payload: { tabId, isDirty } }),
-		[],
-	);
-
 	const getTabs = useCallback(() => stateRef.current.tabs, []);
 
 	return {
@@ -600,7 +571,6 @@ export function useTabManager() {
 		attachProject,
 		setVersionGraph,
 		setPreset,
-		markDirty,
 
 		updateDraftForTab,
 		setMessagesForTab,
@@ -611,7 +581,6 @@ export function useTabManager() {
 		attachProjectForTab,
 		setErrorForTab,
 		setPresetForTab,
-		markDirtyForTab,
 		getTabs,
 	};
 }

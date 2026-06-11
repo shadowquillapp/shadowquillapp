@@ -1,46 +1,12 @@
 import { useCallback } from "react";
 import type { useTabManager } from "../useTabManager";
-import { redoVersion, undoVersion } from "../version-graph";
+import { jumpToVersion as activateVersionInGraph } from "../version-graph";
 
 export function useVersionNavigation(
 	tabManager: ReturnType<typeof useTabManager>,
 	setOutputAnimateKey: React.Dispatch<React.SetStateAction<number>>,
 	setShowVersionDropdown?: React.Dispatch<React.SetStateAction<boolean>>,
 ) {
-	const goToPreviousVersion = useCallback(() => {
-		const tab = tabManager.activeTab;
-		if (!tab) return;
-		const prevGraph = undoVersion(tab.versionGraph);
-		if (prevGraph) {
-			const prevNode = prevGraph.nodes[prevGraph.activeId];
-			if (prevNode && !prevNode.outputMessageId) {
-				tabManager.updateDraft(prevNode.originalInput || prevNode.content);
-			} else {
-				tabManager.updateDraft("");
-			}
-			tabManager.setVersionGraph(prevGraph);
-			tabManager.markDirty(false);
-			setOutputAnimateKey((prev) => prev + 1);
-		}
-	}, [tabManager, setOutputAnimateKey]);
-
-	const goToNextVersion = useCallback(() => {
-		const tab = tabManager.activeTab;
-		if (!tab) return;
-		const nextGraph = redoVersion(tab.versionGraph);
-		if (nextGraph) {
-			const nextNode = nextGraph.nodes[nextGraph.activeId];
-			if (nextNode && !nextNode.outputMessageId) {
-				tabManager.updateDraft(nextNode.originalInput || nextNode.content);
-			} else {
-				tabManager.updateDraft("");
-			}
-			tabManager.setVersionGraph(nextGraph);
-			tabManager.markDirty(false);
-			setOutputAnimateKey((prev) => prev + 1);
-		}
-	}, [tabManager, setOutputAnimateKey]);
-
 	const jumpToVersion = useCallback(
 		(versionId: string) => {
 			const tab = tabManager.activeTab;
@@ -55,12 +21,8 @@ export function useVersionNavigation(
 			} else {
 				tabManager.updateDraft("");
 			}
-			const updatedGraph = {
-				...tab.versionGraph,
-				activeId: versionId,
-			};
+			const updatedGraph = activateVersionInGraph(tab.versionGraph, versionId);
 			tabManager.setVersionGraph(updatedGraph);
-			tabManager.markDirty(false);
 			setOutputAnimateKey((prev) => prev + 1);
 			if (setShowVersionDropdown) {
 				setShowVersionDropdown(false);
@@ -69,5 +31,5 @@ export function useVersionNavigation(
 		[tabManager, setOutputAnimateKey, setShowVersionDropdown],
 	);
 
-	return { goToPreviousVersion, goToNextVersion, jumpToVersion };
+	return { jumpToVersion };
 }

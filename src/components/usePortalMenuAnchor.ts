@@ -14,6 +14,8 @@ interface PortalMenuAnchorOptions {
 	menuRef: React.RefObject<HTMLElement | null>;
 	itemCount: number;
 	rowHeight?: number;
+	align?: "start" | "end";
+	menuWidth?: number;
 }
 
 export function usePortalMenuAnchor({
@@ -23,6 +25,8 @@ export function usePortalMenuAnchor({
 	menuRef,
 	itemCount,
 	rowHeight,
+	align,
+	menuWidth,
 }: PortalMenuAnchorOptions): MenuPosition | null {
 	const [position, setPosition] = useState<MenuPosition | null>(null);
 
@@ -31,9 +35,13 @@ export function usePortalMenuAnchor({
 		return computeMenuPosition(
 			triggerRef.current.getBoundingClientRect(),
 			itemCount,
-			rowHeight === undefined ? undefined : { rowHeight },
+			{
+				...(rowHeight === undefined ? {} : { rowHeight }),
+				...(align === undefined ? {} : { align }),
+				...(menuWidth === undefined ? {} : { menuWidth }),
+			},
 		);
-	}, [triggerRef, itemCount, rowHeight]);
+	}, [triggerRef, itemCount, rowHeight, align, menuWidth]);
 
 	useLayoutEffect(() => {
 		if (!open) {

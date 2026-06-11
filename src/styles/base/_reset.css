@@ -29,22 +29,22 @@ button,
 input,
 textarea,
 select {
-	line-height: 24px;
+	line-height: 26px;
 }
 
 h1 {
-	line-height: 40px;
+	line-height: 44px;
 }
 
 h2 {
-	line-height: 32px;
+	line-height: 36px;
 }
 
 h3,
 h4,
 h5,
 h6 {
-	line-height: 28px;
+	line-height: 30px;
 }
 
 /* ========================================

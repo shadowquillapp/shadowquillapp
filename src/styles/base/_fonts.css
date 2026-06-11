@@ -1,0 +1,147 @@
+/**
+ * Söhne (sans) and Söhne Mono — self-hosted from src/lib/sohne-font-family
+ */
+
+@font-face {
+	font-family: "Söhne";
+	src: url("../../lib/sohne-font-family/TestSohne-Buch-BF663d89cd32e6a.otf")
+		format("opentype");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne";
+	src: url("../../lib/sohne-font-family/TestSohne-BuchKursiv-BF663d89cd3e887.otf")
+		format("opentype");
+	font-weight: 400;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne";
+	src: url("../../lib/sohne-font-family/TestSohne-Kraftig-BF663d89cd37e26.otf")
+		format("opentype");
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne";
+	src: url("../../lib/sohne-font-family/TestSohne-KraftigKursiv-BF663d89cd2bd4b.otf")
+		format("opentype");
+	font-weight: 500;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne";
+	src: url("../../lib/sohne-font-family/TestSohne-Halbfett-BF663d89cd2d67b.otf")
+		format("opentype");
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne";
+	src: url("../../lib/sohne-font-family/TestSohne-HalbfettKursiv-BF663d89cd41624.otf")
+		format("opentype");
+	font-weight: 600;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne";
+	src: url("../../lib/sohne-font-family/TestSohne-Dreiviertelfett-BF663d89ccc5f66.otf")
+		format("opentype");
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne";
+	src: url("../../lib/sohne-font-family/TestSohne-DreiviertelfettKursiv-BF663d89cd2f687.otf")
+		format("opentype");
+	font-weight: 700;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne Mono";
+	src: url("../../lib/sohne-font-family/TestSohneMono-Buch-BF663d89cbcec64.otf")
+		format("opentype");
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne Mono";
+	src: url("../../lib/sohne-font-family/TestSohneMono-BuchKursiv-BF663d89cc8d4c3.otf")
+		format("opentype");
+	font-weight: 400;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne Mono";
+	src: url("../../lib/sohne-font-family/TestSohneMono-Kraftig-BF663d89cd2bd2d.otf")
+		format("opentype");
+	font-weight: 500;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne Mono";
+	src: url("../../lib/sohne-font-family/TestSohneMono-KraftigKursiv-BF663d89ccea359.otf")
+		format("opentype");
+	font-weight: 500;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne Mono";
+	src: url("../../lib/sohne-font-family/TestSohneMono-Halbfett-BF663d89cc69f9d.otf")
+		format("opentype");
+	font-weight: 600;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne Mono";
+	src: url("../../lib/sohne-font-family/TestSohneMono-HalbfettKursiv-BF663d89cc6d0d0.otf")
+		format("opentype");
+	font-weight: 600;
+	font-style: italic;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne Mono";
+	src: url("../../lib/sohne-font-family/TestSohneMono-Dreiviertelfett-BF663d89cc62070.otf")
+		format("opentype");
+	font-weight: 700;
+	font-style: normal;
+	font-display: swap;
+}
+
+@font-face {
+	font-family: "Söhne Mono";
+	src: url("../../lib/sohne-font-family/TestSohneMono-DreiviertelfettKursiv-BF663d89cc69249.otf")
+		format("opentype");
+	font-weight: 700;
+	font-style: italic;
+	font-display: swap;
+}

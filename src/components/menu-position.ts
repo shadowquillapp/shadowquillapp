@@ -11,6 +11,8 @@ interface ComputeMenuPositionOptions {
 	padding?: number;
 	maxHeightCap?: number;
 	gap?: number;
+	align?: "start" | "end";
+	menuWidth?: number;
 }
 
 export function computeMenuPosition(
@@ -21,6 +23,8 @@ export function computeMenuPosition(
 		padding = 16,
 		maxHeightCap = 300,
 		gap = 4,
+		align = "start",
+		menuWidth,
 	}: ComputeMenuPositionOptions = {},
 ): MenuPosition {
 	const viewportHeight = window.innerHeight;
@@ -40,9 +44,13 @@ export function computeMenuPosition(
 		Math.min(estimatedDropdownHeight, availableSpace, maxHeightCap),
 	);
 
-	const dropdownWidth = triggerRect.width;
-	const maxLeft = Math.max(8, viewportWidth - dropdownWidth - 8);
-	const left = Math.max(8, Math.min(triggerRect.left, maxLeft));
+	const dropdownWidth = menuWidth ?? triggerRect.width;
+	const minLeft = 8;
+	const maxLeft = Math.max(minLeft, viewportWidth - dropdownWidth - 8);
+	const left =
+		align === "end"
+			? Math.max(minLeft, Math.min(triggerRect.right - dropdownWidth, maxLeft))
+			: Math.max(minLeft, Math.min(triggerRect.left, maxLeft));
 
 	return {
 		top: openUpward

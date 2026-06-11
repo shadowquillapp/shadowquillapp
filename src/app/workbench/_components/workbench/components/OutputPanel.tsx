@@ -1,12 +1,45 @@
+"use client";
+
+import { useState } from "react";
 import FeatherLoader from "@/components/FeatherLoader";
 import { Icon } from "@/components/Icon";
-import { Logo } from "@/components/Logo";
 import { MessageRenderer } from "../MessageRenderer";
 import type { MessageItem } from "../types";
 import type { useTabManager } from "../useTabManager";
 import { getOutputMessageId } from "../version-graph";
 import { TextStats } from "./TextStats";
 import { VersionDropdown } from "./VersionDropdown";
+
+interface ActiveOutputViewProps {
+	output: MessageItem;
+	copyMessage: (messageId: string, content: string) => Promise<void>;
+	copiedMessageId: string | null;
+}
+
+function ActiveOutputView({
+	output,
+	copyMessage,
+	copiedMessageId,
+}: ActiveOutputViewProps) {
+	const [isMarkdownRendered, setIsMarkdownRendered] = useState(true);
+
+	return (
+		<div className="max-w-none break-words font-mono text-[length:var(--text-xs)] text-on-surface leading-relaxed">
+			<MessageRenderer
+				content={output.content}
+				markdownRendered={isMarkdownRendered}
+				onToggleMarkdownView={() => setIsMarkdownRendered((value) => !value)}
+				onCopy={() => {
+					if (output.content) {
+						void copyMessage(output.id, output.content);
+					}
+				}}
+				copyDisabled={!output.content}
+				copied={copiedMessageId === output.id}
+			/>
+		</div>
+	);
+}
 
 interface OutputPanelProps {
 	tabManager: ReturnType<typeof useTabManager>;
@@ -50,157 +83,69 @@ export function OutputPanel({
 	endRef,
 }: OutputPanelProps) {
 	const hasMessages = activeMessages.length > 0;
-	const lastAssistantMessage = activeMessages
-		.filter((m) => m.role === "assistant")
-		.slice(-1)[0];
+	const activeOutputId = activeTab
+		? getOutputMessageId(
+				activeTab.versionGraph,
+				activeTab.versionGraph.activeId,
+			)
+		: null;
+	const activeOutput = activeOutputId
+		? activeMessages.find(
+				(m) => m.id === activeOutputId && m.role === "assistant",
+			)
+		: null;
 
 	return (
 		<section
 			className="prompt-output-pane relative flex h-full flex-col overflow-hidden"
 			style={{
 				flex: 1,
-				minWidth: 480,
+				minWidth: 0,
 				opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
 				pointerEvents: tabManager.tabs.length === 0 ? "none" : "auto",
 				transition: isResizing ? "none" : "opacity 0.3s ease",
 				filter: tabManager.tabs.length === 0 ? "grayscale(0.3)" : "none",
-				gap: "var(--space-4)",
-				padding: "var(--space-6)",
 			}}
 		>
 			<div
-				className={`group relative flex flex-col rounded-2xl ${activeTab?.sending ? "output-generating" : ""}`}
-				style={{
-					background: "var(--color-output-panel, var(--color-surface-variant))",
-					border: "1px solid var(--color-outline)",
-					borderTop:
-						"1px solid color-mix(in srgb, var(--color-outline), rgba(255,255,255,0.1))",
-					boxShadow: "0 6px 12px rgba(0,0,0,0.18)",
-					flex: 1,
-					minHeight: 0,
-				}}
+				className={`panel group relative min-h-0 flex-1 ${activeTab?.sending ? "output-generating" : ""}`}
 			>
-				<div
-					className="flex shrink-0 items-center justify-between rounded-t-2xl"
-					style={{
-						background:
-							"var(--color-output-panel, var(--color-surface-variant))",
-						borderBottom:
-							"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
-						gap: "var(--space-3)",
-						padding:
-							"var(--space-3) var(--space-3) var(--space-3) var(--space-3)",
-					}}
-				>
-					<div
-						className="flex min-w-0 items-center"
-						style={{ gap: "var(--space-3)" }}
-					>
-						<VersionDropdown
-							versionDropdownRef={versionDropdownRef}
-							showVersionDropdown={showVersionDropdown}
-							setShowVersionDropdown={setShowVersionDropdown}
-							versions={versions}
-							activeTab={activeTab}
-							jumpToVersion={jumpToVersion}
-						/>
-						<TextStats
-							wordCount={outputWordCount}
-							charCount={outputCharCount}
-						/>
-					</div>
-
-					<div className="flex items-center" style={{ gap: "var(--space-1)" }}>
-						<button
-							type="button"
-							onClick={() => {
-								if (lastAssistantMessage?.content) {
-									copyMessage(
-										lastAssistantMessage.id,
-										lastAssistantMessage.content,
-									);
-								}
-							}}
-							disabled={!lastAssistantMessage}
-							className="flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
-							title="Copy response"
-							aria-label="Copy response"
-							style={{
-								width: 28,
-								height: 28,
-								borderRadius: "var(--radius-sm)",
-								background:
-									copiedMessageId === lastAssistantMessage?.id
-										? "var(--color-save)"
-										: "var(--color-surface)",
-								border:
-									copiedMessageId === lastAssistantMessage?.id
-										? "1px solid var(--color-save)"
-										: "1px solid var(--color-outline)",
-								color:
-									copiedMessageId === lastAssistantMessage?.id
-										? "var(--color-on-save)"
-										: "var(--color-on-surface-variant)",
-							}}
-						>
-							<Icon
-								name={
-									copiedMessageId === lastAssistantMessage?.id
-										? "check"
-										: "copy"
-								}
-								style={{ width: 13, height: 13 }}
-							/>
-						</button>
-					</div>
+				<div className="panel__head">
+					<span className="panel__title">Output</span>
+					<span className="panel__head-spacer" />
+					<TextStats wordCount={outputWordCount} charCount={outputCharCount} />
+					<VersionDropdown
+						versionDropdownRef={versionDropdownRef}
+						showVersionDropdown={showVersionDropdown}
+						setShowVersionDropdown={setShowVersionDropdown}
+						versions={versions}
+						activeTab={activeTab}
+						jumpToVersion={jumpToVersion}
+					/>
 				</div>
 
 				<div
 					ref={scrollContainerRef}
-					className="custom-scrollbar relative overflow-y-auto"
+					className="custom-scrollbar relative min-w-0 overflow-x-auto overflow-y-auto"
 					style={{
-						paddingLeft: "var(--space-6)",
-						paddingRight: "var(--space-6)",
-						paddingTop: "var(--space-4)",
-						paddingBottom: "var(--space-4)",
+						paddingLeft: "var(--space-4)",
+						paddingRight: "var(--space-4)",
+						paddingTop: "var(--space-3)",
+						paddingBottom: "var(--space-3)",
 						flex: 1,
 						minHeight: 0,
 					}}
 				>
 					{!hasMessages ? (
-						<div
-							className="flex h-full flex-col items-center justify-center pt-15 pb-15 text-center opacity-60"
-							style={{ gap: "var(--space-4)" }}
-						>
-							<div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[var(--color-outline)] bg-surface">
-								<Logo className="h-8 w-8 opacity-50 grayscale" />
-							</div>
-							<div className="max-w-[240px]">
-								<p className="font-medium text-on-surface text-sm">
-									Ready to Generate
-								</p>
-								<p
-									className="text-on-surface-variant text-xs"
-									style={{ marginTop: "var(--space-1)" }}
-								>
-									Run your prompt to see the results appear here.
-								</p>
-							</div>
+						<div className="workbench-empty">
+							<Icon name="terminal" className="workbench-empty__icon" />
+							<p className="workbench-empty__title">Ready to generate</p>
+							<p className="workbench-empty__hint">
+								Run your prompt to see results here.
+							</p>
 						</div>
 					) : (
 						(() => {
-							const activeOutputId = activeTab
-								? getOutputMessageId(
-										activeTab.versionGraph,
-										activeTab.versionGraph.activeId,
-									)
-								: null;
-							const activeOutput = activeOutputId
-								? activeMessages.find(
-										(m) => m.id === activeOutputId && m.role === "assistant",
-									)
-								: null;
-
 							return (
 								<div
 									key={outputAnimateKey}
@@ -218,43 +163,25 @@ export function OutputPanel({
 											<FeatherLoader />
 										</div>
 									) : activeOutput ? (
-										<div
-											className="group relative flex flex-col"
-											style={{ gap: "var(--space-3)" }}
-										>
-											<div className="max-w-none font-mono text-[11px] text-on-surface leading-relaxed">
-												<MessageRenderer
-													content={activeOutput.content}
-													messageId={activeOutput.id}
-													copiedMessageId={copiedMessageId}
-													onCopy={copyMessage}
-												/>
-											</div>
-										</div>
+										<ActiveOutputView
+											key={`${activeOutput.id}-${outputAnimateKey}`}
+											output={activeOutput}
+											copyMessage={copyMessage}
+											copiedMessageId={copiedMessageId}
+										/>
 									) : (
-										<div
-											className="flex flex-col items-center justify-center text-center opacity-60"
-											style={{
-												gap: "var(--space-3)",
-												paddingTop: "var(--space-8)",
-												paddingBottom: "var(--space-8)",
-											}}
-										>
-											<div className="flex h-12 w-12 items-center justify-center rounded-xl border border-[var(--color-outline)] bg-surface">
-												<Icon name="file-text" className="h-6 w-6 opacity-50" />
-											</div>
-											<div className="max-w-[280px]">
-												<p className="font-medium text-on-surface text-sm">
-													No Output for This Version
-												</p>
-												<p
-													className="text-on-surface-variant text-xs"
-													style={{ marginTop: "var(--space-1)" }}
-												>
-													This version is a manual save. Run the prompt to
-													generate output.
-												</p>
-											</div>
+										<div className="workbench-empty">
+											<Icon
+												name="file-text"
+												className="workbench-empty__icon"
+											/>
+											<p className="workbench-empty__title">
+												No Output for This Version
+											</p>
+											<p className="workbench-empty__hint">
+												This version is a manual save. Run the prompt to
+												generate output.
+											</p>
 										</div>
 									)}
 									<div ref={endRef} />
@@ -267,21 +194,24 @@ export function OutputPanel({
 
 			{activeTab?.error && (
 				<div
-					className="fade-in-up absolute flex items-center rounded-lg border border-attention/10 bg-attention/10 text-attention shadow-lg"
+					className="fade-in-up absolute flex items-center rounded-[var(--radius-sm)] border border-[var(--color-outline)] bg-[var(--color-surface-variant)] text-attention"
+					role="alert"
 					style={{
-						right: "var(--space-6)",
-						bottom: "var(--space-6)",
-						left: "var(--space-6)",
+						right: "var(--space-4)",
+						bottom: "var(--space-4)",
+						left: "var(--space-4)",
 						gap: "var(--space-3)",
-						padding: "var(--space-4)",
+						padding: "var(--space-3)",
+						boxShadow: "inset 2px 0 0 var(--color-attention)",
 					}}
 				>
 					<Icon name="warning" className="h-5 w-5 shrink-0" />
 					<p className="font-medium text-sm">{activeTab.error}</p>
 					<button
 						type="button"
-						className="ml-auto rounded p-1 hover:bg-attention/10"
+						className="md-icon-btn ml-auto disabled:cursor-not-allowed disabled:opacity-40"
 						onClick={() => tabManager.setError(null)}
+						aria-label="Dismiss error"
 					>
 						<Icon name="close" className="h-4 w-4" />
 					</button>

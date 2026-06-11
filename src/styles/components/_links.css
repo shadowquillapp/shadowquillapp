@@ -19,15 +19,12 @@
 	color: var(--color-on-surface-variant);
 	text-decoration: underline;
 	text-underline-offset: 2px;
-	transition:
-		color 120ms ease,
-		background-color 120ms ease;
-	border-radius: 4px;
+	transition: color 120ms linear;
+	border-radius: var(--radius-sm);
 	padding: 2px 4px;
 }
 
 .md-link:hover {
-	color: var(--color-on-primary);
-	background: var(--color-primary);
-	text-decoration: none;
+	color: var(--color-on-surface);
+	text-decoration-color: var(--color-accent);
 }

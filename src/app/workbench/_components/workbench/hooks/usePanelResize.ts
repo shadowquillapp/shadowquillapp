@@ -38,8 +38,11 @@ export function usePanelResize(
 			const adjustedX = e.clientX - grabOffsetRef.current;
 			const newWidth = ((adjustedX - rect.left) / rect.width) * 100;
 
-			const MIN_PANE_WIDTH_PX = 480;
-			const minPercentage = (MIN_PANE_WIDTH_PX / rect.width) * 100;
+			const MIN_PANE_WIDTH_PX = 320;
+			const minPercentage =
+				rect.width < MIN_PANE_WIDTH_PX * 2
+					? 20
+					: (MIN_PANE_WIDTH_PX / rect.width) * 100;
 			const maxPercentage = 100 - minPercentage;
 
 			setLeftPanelWidth(

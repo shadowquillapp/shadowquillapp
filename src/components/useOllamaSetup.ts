@@ -134,6 +134,11 @@ export function useOllamaSetup() {
 				if (vjson.ok) {
 					setConnectionError(null);
 					try {
+						window.dispatchEvent(
+							new CustomEvent("sq-model-changed", {
+								detail: { modelId: payload.model },
+							}),
+						);
 						window.dispatchEvent(new Event("MODEL_CHANGED"));
 					} catch {}
 					return { ok: true, payload };

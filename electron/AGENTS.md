@@ -22,7 +22,7 @@
 | `ollama-handlers.cjs` | Detects/launches Ollama per-OS (mdfind on mac, fs check on win, `which`/`command -v`/systemctl on linux). |
 | `window-handlers.cjs` | Minimize, maxToggle, close=app.quit; zoom factor get/set/reset; window size query. |
 | `find-handlers.cjs` | Wraps `webContents.findInPage` / `stopFindInPage` (matchCase, forward, findNext). |
-| `system-handlers.cjs` | Platform string, system specs (systeminformation: cpu/ram/gpu), GitHub release update check, `shell.openExternal`. |
+| `system-handlers.cjs` | Platform string, GitHub release update check, `shell.openExternal`. |
 
 ### Utils (`utils/`)
 
@@ -48,7 +48,7 @@ All channels prefixed `shadowquill:` (invoke/handle, main returns Promise).
 **Renderer → Main (`ipcRenderer.invoke`):**
 - `shadowquill:getEnvSafety` · `shadowquill:restartApp` · `shadowquill:getDataPaths` · `shadowquill:factoryReset`
 - `shadowquill:checkOllamaInstalled` · `shadowquill:openOllama`
-- `shadowquill:getPlatform` · `shadowquill:getSystemSpecs` · `shadowquill:checkForUpdates` · `shadowquill:openExternalUrl`
+- `shadowquill:getPlatform` · `shadowquill:checkForUpdates` · `shadowquill:openExternalUrl`
 - `shadowquill:storage:getItem|setItem|removeItem|clear|getAll` — JSON-file KV
 - `shadowquill:window:minimize|maximizeToggle|close|getSize`
 - `shadowquill:view:getZoomFactor|setZoomFactor|resetZoom`

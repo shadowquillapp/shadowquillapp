@@ -31,83 +31,43 @@
  * VERSION/OUTPUT ANIMATIONS
  * ======================================== */
 
-@keyframes version-pulse {
-	0%,
-	100% {
-		transform: scale(1);
-		box-shadow: none;
-	}
-	50% {
-		transform: scale(1.12);
-		box-shadow: 0 0 0 4px
-			color-mix(in srgb, var(--color-primary) 18%, transparent);
-	}
-}
-
 @keyframes output-fade-in {
 	0% {
 		opacity: 0;
-		transform: translateY(8px);
 	}
 	100% {
 		opacity: 1;
-		transform: translateY(0);
 	}
 }
 
 .output-animate-in {
-	animation: output-fade-in 300ms ease-out;
+	animation: output-fade-in 120ms linear;
 }
 
 /* ========================================
  * GENERATION STATE ANIMATIONS
  * ======================================== */
 
-@keyframes generating-border-shimmer {
-	0%,
-	100% {
-		border-color: var(--color-outline);
-	}
-	50% {
-		border-color: color-mix(
-			in srgb,
-			var(--color-primary) 50%,
-			var(--color-outline)
-		);
-	}
-}
-
 /* ----------------------------------------
  * Workbench Generating State
- * Elegant dimming with smooth transitions
+ * Simple opacity dimming, no filters
  * ---------------------------------------- */
 
 /* Restore normal state when not generating */
 .simple-workbench__header,
-.prompt-input-pane,
-.panel-resize-container {
-	transition:
-		opacity 0.3s ease,
-		filter 0.3s ease;
+.prompt-input-pane {
+	transition: opacity 0.3s ease;
 }
 
 /* Header dims during generation */
 .workbench--generating .simple-workbench__header {
 	opacity: 0.35;
 	pointer-events: none;
-	filter: saturate(0.7);
-	transition:
-		opacity 0.4s ease,
-		filter 0.4s ease;
 }
 
 /* Input pane dims but remains visible */
 .workbench--generating .prompt-input-pane {
 	opacity: 0.45;
-	filter: saturate(0.8);
-	transition:
-		opacity 0.4s ease,
-		filter 0.4s ease;
 }
 
 /* Disable interactions on input pane content during generation */
@@ -120,19 +80,6 @@
 .workbench--generating .prompt-input-pane .run-button-container {
 	opacity: 1;
 	pointer-events: auto;
-	filter: none;
-}
-
-/* Output panel stays fully visible with subtle activity indicator */
-.output-generating {
-	animation: generating-border-shimmer 2.5s ease-in-out infinite;
-}
-
-/* Resize handle dims during generation */
-.workbench--generating .panel-resize-container {
-	opacity: 0.3;
-	pointer-events: none;
-	transition: opacity 0.3s ease;
 }
 
 /* ========================================
@@ -142,66 +89,50 @@
 @keyframes fade-in-up {
 	from {
 		opacity: 0;
-		transform: translateY(8px);
 	}
 	to {
 		opacity: 1;
-		transform: translateY(0);
 	}
 }
 
 @keyframes fade-in-down {
 	from {
 		opacity: 0;
-		transform: translateY(-8px);
 	}
 	to {
 		opacity: 1;
-		transform: translateY(0);
 	}
 }
 
 @keyframes fade-in-scale {
 	from {
 		opacity: 0;
-		transform: scale(0.96);
 	}
 	to {
 		opacity: 1;
-		transform: scale(1);
 	}
 }
 
 .fade-in-up {
-	animation: fade-in-up 280ms cubic-bezier(0.16, 1, 0.3, 1);
+	animation: fade-in-up 120ms linear;
 }
 
 .fade-in-down {
-	animation: fade-in-down 280ms cubic-bezier(0.16, 1, 0.3, 1);
+	animation: fade-in-down 120ms linear;
 }
 
 .fade-in-scale {
-	animation: fade-in-scale 220ms cubic-bezier(0.16, 1, 0.3, 1);
+	animation: fade-in-scale 120ms linear;
 }
 
 /* ========================================
  * PAGE ANIMATIONS
+ * Console surfaces render immediately — no page entrance motion.
  * ======================================== */
-
-@keyframes page-fade-in {
-	0% {
-		opacity: 0;
-		transform: translateY(12px);
-	}
-	100% {
-		opacity: 1;
-		transform: translateY(0);
-	}
-}
 
 .simple-workbench,
 .page-animate {
-	animation: page-fade-in 240ms cubic-bezier(0.16, 1, 0.3, 1);
+	animation: none;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -219,8 +150,6 @@
 	.fade-in-up,
 	.fade-in-down,
 	.fade-in-scale,
-	.output-generating,
-	.version-nav-vertical--pulse .version-nav-vertical__center,
 	.simple-workbench,
 	.page-animate {
 		animation: none;
