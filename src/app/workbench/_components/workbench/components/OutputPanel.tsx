@@ -107,9 +107,7 @@ export function OutputPanel({
 				filter: tabManager.tabs.length === 0 ? "grayscale(0.3)" : "none",
 			}}
 		>
-			<div
-				className={`panel group relative min-h-0 flex-1 ${activeTab?.sending ? "output-generating" : ""}`}
-			>
+			<div className="panel group relative min-h-0 flex-1">
 				<div className="panel__head">
 					<span className="panel__title">Output</span>
 					<span className="panel__head-spacer" />
