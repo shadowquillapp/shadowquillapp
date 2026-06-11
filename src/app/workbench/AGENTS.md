@@ -1,7 +1,7 @@
 # `src/app/workbench/` — AGENTS.md
 
 **Parent:** [`/AGENTS.md`](../../AGENTS.md)
-**Scope:** the primary surface — the prompt workbench. `page.tsx` is a thin server shell that renders `<PromptWorkbench />` only (no `ModelConfigGate` wrapper).
+**Scope:** the primary surface — the prompt workbench. `page.tsx` is a thin server shell that renders `<PromptWorkbench />` only.
 
 ## Layout (deeply nested co-location)
 
@@ -52,4 +52,4 @@ workbench/
 - ❌ **Do not import `useDialog` from a server component** — it only works in `PromptWorkbench` and below.
 - ❌ **Do not reach into another feature's hooks folder** — they are workbench-internal.
 - ❌ **Do not bypass `useGeneration`** for ad-hoc prompt sends — all output flows through the version graph.
-- ⚠️ `biome-ignore` in workbench tree (3 of 4 repo-wide): `PromptWorkbench.tsx:107` (`useExhaustiveDependencies`), `:341` (a11y resize handle), `PresetPickerModal.tsx:333` (stop propagation). 4th: `ModelConfigGate.tsx:408` in components `AGENTS.md`.
+- ⚠️ `biome-ignore` in workbench tree (3 of 3 repo-wide): `PromptWorkbench.tsx:107` (`useExhaustiveDependencies`), `:324` (a11y resize handle), `PresetPickerModal.tsx:333` (stop propagation).

@@ -9,7 +9,7 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 | Path | Role |
 |---|---|
 | `src/app/` | App Router routes. `layout.tsx` (root), `page.tsx` (redirects to `/workbench`), `workbench/`, `studio/`. No nested layouts. |
-| `src/components/` | Cross-cutting UI: `Titlebar`, `ErrorBoundary`, `DialogProvider`, `SettingsDialog`, `ModelConfigGate`, etc. `settings/` = tab content for `SettingsDialog`. |
+| `src/components/` | Cross-cutting UI: `Titlebar`, `ErrorBoundary`, `DialogProvider`, `SettingsDialog`, etc. `settings/` = tab content for `SettingsDialog`. |
 | `src/lib/` | All persistence, prompt assembly, model client, presets. Browser-only — assumes `window`. |
 | `src/styles/` | CSS architecture: `index.css` → variables → themes → base → components → features → animations. |
 | `src/__tests__/` | Vitest specs (`.test.ts(x)`). Colocated with module names. |

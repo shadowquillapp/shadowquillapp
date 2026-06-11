@@ -19,7 +19,7 @@ Cascade authority comes from import **order**, not `@layer`. Each subfolder has 
 | `components/` (13) | `_buttons.css`, `_inputs.css`, `_chips.css`, `_cards.css`, `_modals.css`, `_menus.css`, `_links.css`, `_loaders.css`, `_code-blocks.css`, `_toasts.css`, `_mode-toggle.css`, `_message-bubble.css`, `_index.css` | Reusable UI primitives; one CSS file per widget type. `_buttons.css` includes `.preset-studio-btn` for studio save/action buttons. |
 | `features/` (6) | `_ollama.css`, `_workbench.css`, `_version-history.css` (largest, ~20k), `_refine-panel.css`, `_find-highlight.css`, `_index.css` | Page/feature-scoped composite UI. |
 | `utilities/` (1) | `_spacing.css` | Helper classes. |
-| `animations/` (1) | `_index.css` | `@keyframes` (md-spin, version-pulse, status-pulse, version-created, output-fade-in, version-switch, generating-border-shimmer, generating-soft-glow, generating-stop-pulse, page-fade-in) + `.theme-transitioning` cascade (pairs with `theme-preference.ts`). |
+| `animations/` (1) | `_index.css` | `@keyframes` (md-spin, version-pulse, badge-pulse, output-fade-in, fade-in-up/down/scale, generating-border-shimmer, generating-soft-glow, generating-stop-pulse, page-fade-in) + `.theme-transitioning` cascade (pairs with `theme-preference.ts`). |
 
 ## Conventions (delta from root)
 
