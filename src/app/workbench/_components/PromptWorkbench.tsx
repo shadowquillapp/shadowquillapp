@@ -122,15 +122,6 @@ export default function PromptWorkbench() {
 	const activeVersion = activeVersionId
 		? activeTab?.versionGraph.nodes[activeVersionId]
 		: null;
-	const activeVersionIndex = versions.findIndex(
-		(v) => v.id === activeVersionId,
-	);
-	const activeVersionNumber =
-		activeVersionIndex >= 0 ? activeVersionIndex + 1 : 0;
-
-	const activeVersionIsRefinement =
-		activeVersion?.metadata?.isRefinement === true;
-
 	const outputToRefine = activeVersion?.outputMessageId
 		? activeMessages.find(
 				(m) => m.id === activeVersion.outputMessageId && m.role === "assistant",
@@ -213,26 +204,24 @@ export default function PromptWorkbench() {
 			<div
 				className={`simple-workbench ${isGenerating ? "workbench--generating" : ""}`}
 			>
-				<header className="simple-workbench__header">
-					<div className="simple-workbench__header-left">
-						<TabBar
-							embedded
-							tabs={tabManager.tabs.map((tab) => ({
-								id: tab.id,
-								label: tab.label,
-								preset: tab.preset,
-							}))}
-							activeTabId={tabManager.activeTabId}
-							maxTabs={tabManager.maxTabs}
-							onSwitchTab={tabManager.switchTab}
-							onCloseTab={tabManager.closeTab}
-							onReorderTabs={tabManager.reorderTabs}
-							onNewTab={() => {
-								setShowPresetPicker(true);
-								setPresetPickerForNewTab(true);
-							}}
-						/>
-					</div>
+				<header className="simple-workbench__header simple-workbench__header--tabs">
+					<TabBar
+						embedded
+						tabs={tabManager.tabs.map((tab) => ({
+							id: tab.id,
+							label: tab.label,
+							preset: tab.preset,
+						}))}
+						activeTabId={tabManager.activeTabId}
+						maxTabs={tabManager.maxTabs}
+						onSwitchTab={tabManager.switchTab}
+						onCloseTab={tabManager.closeTab}
+						onReorderTabs={tabManager.reorderTabs}
+						onNewTab={() => {
+							setShowPresetPicker(true);
+							setPresetPickerForNewTab(true);
+						}}
+					/>
 				</header>
 
 				<div ref={panelsRef} className="simple-workbench__panels">
@@ -252,8 +241,6 @@ export default function PromptWorkbench() {
 							setShowRefinementContext={setShowRefinementContext}
 							versions={versions}
 							activeVersionId={activeVersionId}
-							activeVersionNumber={activeVersionNumber}
-							activeVersionIsRefinement={activeVersionIsRefinement}
 							outputToRefine={outputToRefine}
 							textareaContainerRef={textareaContainerRef}
 							activeTab={activeTab}

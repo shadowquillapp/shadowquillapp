@@ -53,7 +53,7 @@ export function TabBar({
 	const recalcSizes = useCallback(() => {
 		const container = tabsContainerRef.current;
 		if (!container) return;
-		const addBtn = 28;
+		const addBtn = 32;
 		const scrollReserve =
 			(showLeftScroll ? 28 : 0) + (showRightScroll ? 28 : 0);
 		const safety = 4;
@@ -310,18 +310,13 @@ export function TabBar({
 
 				<button
 					type="button"
-					className={`workbench-tab-new ${embedded ? "" : "workbench-tab-new--standalone"}`}
+					className={`workbench-tab-new ${embedded ? "workbench-tab-new--embedded" : "workbench-tab-new--standalone"} ${noTabs ? "workbench-tab-new--solo" : ""}`}
 					onClick={onNewTab}
 					disabled={!canAddTab}
 					aria-label="New tab"
 					title={canAddTab ? "New tab" : `Maximum ${maxTabs} tabs reached`}
-					style={
-						noTabs
-							? { position: "relative", zIndex: 10, overflow: "visible" }
-							: undefined
-					}
 				>
-					<Icon name="plus" style={{ width: 12, height: 12 }} />
+					<Icon name="plus" className="workbench-tab-new__icon" />
 				</button>
 			</div>
 

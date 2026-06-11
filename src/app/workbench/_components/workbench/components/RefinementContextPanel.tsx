@@ -4,7 +4,6 @@ import type { useTabManager } from "../useTabManager";
 
 interface RefinementContextPanelProps {
 	showRefinementContext: boolean;
-	setShowRefinementContext: (show: boolean) => void;
 	versions: Array<{
 		id: string;
 		label: string;
@@ -14,8 +13,6 @@ interface RefinementContextPanelProps {
 		metadata?: { isRefinement?: boolean };
 	}>;
 	activeVersionId: string | undefined;
-	activeVersionNumber: number;
-	activeVersionIsRefinement: boolean;
 	activeTab: ReturnType<typeof useTabManager>["activeTab"];
 	tabManager: ReturnType<typeof useTabManager>;
 	copyMessage: (messageId: string, content: string) => Promise<void>;
@@ -24,11 +21,8 @@ interface RefinementContextPanelProps {
 
 export function RefinementContextPanel({
 	showRefinementContext,
-	setShowRefinementContext,
 	versions,
 	activeVersionId,
-	activeVersionNumber,
-	activeVersionIsRefinement,
 	activeTab,
 	tabManager,
 	copyMessage,
@@ -38,33 +32,6 @@ export function RefinementContextPanel({
 		<div
 			className={`refine-panel ${showRefinementContext ? "refine-panel--expanded" : ""}`}
 		>
-			<button
-				type="button"
-				onClick={() => setShowRefinementContext(!showRefinementContext)}
-				className="refine-panel__header"
-			>
-				<div className="refine-panel__left">
-					<div className="refine-panel__badge">
-						<Icon name="refresh" className="refine-panel__badge-icon" />
-						<span className="refine-panel__badge-text">
-							v{activeVersionNumber}{" "}
-							{activeVersionIsRefinement ? "Refinement" : "Base"}
-						</span>
-					</div>
-					<span className="refine-count" title={`${versions.length} versions`}>
-						<Icon
-							name="layout"
-							style={{ width: 11, height: 11, opacity: 0.85 }}
-						/>
-						{versions.length}
-					</span>
-				</div>
-				<div className="refine-panel__toggle">
-					<span>{showRefinementContext ? "Hide" : "History"}</span>
-					<Icon name="chevron-down" className="refine-panel__toggle-icon" />
-				</div>
-			</button>
-
 			<div className="refine-panel__content-wrapper">
 				<div className="refine-panel__content-inner">
 					<div className="refine-timeline">

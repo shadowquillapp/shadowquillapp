@@ -10,8 +10,30 @@
  * - .console-nav__item: Rail nav button (icon only, tooltip label)
  * - .console-nav__settings-btn: Bottom settings icon (no border)
  * - .console-status-bar: Bottom status strip
+ * - .titlebar-window-btn: Window controls (close/minimize/maximize)
  * ==========================================================================
  */
+
+/* ========================================
+ * TITLEBAR WINDOW CONTROLS
+ * ======================================== */
+
+.titlebar-window-btn {
+	appearance: none;
+	-webkit-appearance: none;
+	border: none;
+	padding: 0;
+	cursor: pointer;
+	background-color: color-mix(
+		in srgb,
+		var(--titlebar-btn-color) 80%,
+		transparent
+	);
+}
+
+.titlebar-window-btn:hover {
+	background-color: var(--titlebar-btn-color);
+}
 
 /* ========================================
  * LEFT NAVIGATION RAIL (.console-nav)

@@ -116,6 +116,21 @@
 	cursor: not-allowed;
 }
 
+.panel__head--tall {
+	min-height: 40px;
+}
+
+.panel__head-divider {
+	width: 1px;
+	height: 16px;
+	background: var(--color-outline);
+	flex-shrink: 0;
+}
+
+.panel__head-history--active {
+	color: var(--color-on-surface);
+}
+
 .panel__body {
 	flex: 1;
 	min-height: 0;

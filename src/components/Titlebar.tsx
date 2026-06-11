@@ -2,41 +2,20 @@
 
 import type React from "react";
 import { useEffect, useState } from "react";
-import { Icon } from "./Icon";
 
 const TitlebarButton: React.FC<{
-	children: React.ReactNode;
 	color: string;
 	onClick: () => void;
 	"aria-label": string;
-}> = ({ children, color, onClick, "aria-label": ariaLabel }) => {
-	const [isHovered, setIsHovered] = useState(false);
-
-	return (
-		<button
-			type="button"
-			aria-label={ariaLabel}
-			onClick={onClick}
-			className="relative flex h-4 w-4 items-center justify-center overflow-hidden rounded-full"
-			style={{
-				backgroundColor: isHovered ? color : `${color}CC`,
-			}}
-			onMouseEnter={() => setIsHovered(true)}
-			onMouseLeave={() => setIsHovered(false)}
-		>
-			<div className="absolute inset-0 flex items-center justify-center">
-				<div
-					className="text-black"
-					style={{
-						opacity: isHovered ? 1 : 0,
-					}}
-				>
-					{children}
-				</div>
-			</div>
-		</button>
-	);
-};
+}> = ({ color, onClick, "aria-label": ariaLabel }) => (
+	<button
+		type="button"
+		aria-label={ariaLabel}
+		onClick={onClick}
+		className="titlebar-window-btn h-4 w-4 rounded-full"
+		style={{ "--titlebar-btn-color": color } as React.CSSProperties}
+	/>
+);
 
 export default function Titlebar() {
 	const [platform, setPlatform] = useState<string | null>(null);
@@ -65,7 +44,6 @@ export default function Titlebar() {
 		key: string,
 		label: string,
 		color: string,
-		icon: "close" | "minus" | "expand",
 		action: () => void,
 	) => (
 		<TitlebarButton
@@ -77,32 +55,18 @@ export default function Titlebar() {
 					action();
 				} catch {}
 			}}
-		>
-			<Icon name={icon} className="h-2 w-2" />
-		</TitlebarButton>
+		/>
 	);
 
-	const closeButton = makeButton("close", "Close", "#FF5F57", "close", () => {
+	const closeButton = makeButton("close", "Close", "#FF5F57", () => {
 		window.shadowquill?.window?.close?.();
 	});
-	const minimizeButton = makeButton(
-		"minimize",
-		"Minimize",
-		"#FFBD2E",
-		"minus",
-		() => {
-			window.shadowquill?.window?.minimize?.();
-		},
-	);
-	const maximizeButton = makeButton(
-		"maximize",
-		"Maximize",
-		"#28CA42",
-		"expand",
-		() => {
-			window.shadowquill?.window?.maximizeToggle?.();
-		},
-	);
+	const minimizeButton = makeButton("minimize", "Minimize", "#FFBD2E", () => {
+		window.shadowquill?.window?.minimize?.();
+	});
+	const maximizeButton = makeButton("maximize", "Maximize", "#28CA42", () => {
+		window.shadowquill?.window?.maximizeToggle?.();
+	});
 
 	const buttons = isMac
 		? [closeButton, minimizeButton, maximizeButton]
