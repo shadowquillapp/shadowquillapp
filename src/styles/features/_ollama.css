@@ -94,18 +94,15 @@
 /* Animated logo in CTA button */
 .shadowquill-cta-logo {
 	animation: shadowquill-logo-float 2.5s ease-in-out infinite;
-	filter: drop-shadow(0 0 3px currentColor);
 }
 
 @keyframes shadowquill-logo-float {
 	0%,
 	100% {
 		transform: translateY(0) rotate(-3deg);
-		filter: drop-shadow(0 0 3px currentColor);
 	}
 	50% {
 		transform: translateY(-2px) rotate(3deg);
-		filter: drop-shadow(0 2px 6px currentColor);
 	}
 }
 
@@ -499,37 +496,6 @@
 
 .shadowquill-guide ol {
 	list-style: decimal;
-}
-
-/* ========================================
- * PULSE GLOW ANIMATION
- * ======================================== */
-
-.pulse-glow {
-	position: relative;
-	overflow: visible;
-}
-
-.pulse-glow::after {
-	content: "";
-	position: absolute;
-	inset: 0;
-	border-radius: inherit;
-	animation: pulse-glow 2s infinite;
-	z-index: 1;
-	pointer-events: none;
-}
-
-@keyframes pulse-glow {
-	0% {
-		box-shadow: 0 0 0 0 var(--color-primary);
-	}
-	70% {
-		box-shadow: 0 0 0 6px transparent;
-	}
-	100% {
-		box-shadow: 0 0 0 0 transparent;
-	}
 }
 
 /* ========================================

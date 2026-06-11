@@ -506,7 +506,6 @@ export function TabBar({
 				.drop-zone.drop-target::before {
 					width: 4px;
 					background: var(--color-primary);
-					box-shadow: 0 0 8px rgba(var(--color-primary-rgb, 99, 102, 241), 0.6);
 				}
 				
 				

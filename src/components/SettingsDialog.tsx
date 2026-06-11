@@ -127,9 +127,6 @@ export default function SettingsDialog({
 					fontSize: "14px",
 					cursor: "pointer",
 					letterSpacing: "-0.01em",
-					boxShadow: isActive
-						? "0 1px 3px color-mix(in srgb, var(--color-primary) 10%, transparent)"
-						: "none",
 				}}
 			>
 				<span

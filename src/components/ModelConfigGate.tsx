@@ -352,7 +352,7 @@ export default function ModelConfigGate({ children }: Props) {
 											type="button"
 											data-testid="shadowquill-retry-detection-button"
 											onClick={retryOllamaDetection}
-											className="interactive-glow flex-1 rounded-md bg-[var(--color-primary)] py-2 font-medium text-[var(--color-on-primary)] text-sm hover:bg-[var(--color-primary-variant)]"
+											className="flex-1 rounded-md bg-[var(--color-primary)] py-2 font-medium text-[var(--color-on-primary)] text-sm hover:bg-[var(--color-primary-variant)]"
 										>
 											Retry Detection
 										</button>

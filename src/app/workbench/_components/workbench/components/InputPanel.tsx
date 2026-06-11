@@ -123,9 +123,6 @@ export function InputPanel({
 								color: isRefinementMode
 									? "var(--color-on-tertiary)"
 									: "var(--color-on-surface-variant)",
-								boxShadow: isRefinementMode
-									? "0 2px 6px color-mix(in srgb, var(--color-tertiary), transparent 60%)"
-									: "none",
 							}}
 							title={
 								isRefinementMode

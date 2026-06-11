@@ -195,5 +195,4 @@
 .panel-resize-container:hover .panel-resize-line,
 .panel-resize-container--active .panel-resize-line {
 	background: var(--color-primary);
-	box-shadow: 0 0 8px color-mix(in srgb, var(--color-primary) 40%, transparent);
 }

@@ -127,20 +127,6 @@
 	}
 }
 
-@keyframes generating-soft-glow {
-	0%,
-	100% {
-		box-shadow:
-			0 6px 12px rgba(0, 0, 0, 0.18),
-			0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
-	}
-	50% {
-		box-shadow:
-			0 6px 12px rgba(0, 0, 0, 0.18),
-			0 0 16px 1px color-mix(in srgb, var(--color-primary) 20%, transparent);
-	}
-}
-
 /* ----------------------------------------
  * Workbench Generating State
  * Elegant dimming with smooth transitions
@@ -189,9 +175,7 @@
 
 /* Output panel stays fully visible with subtle activity indicator */
 .output-generating {
-	animation:
-		generating-border-shimmer 2.5s ease-in-out infinite,
-		generating-soft-glow 2.5s ease-in-out infinite;
+	animation: generating-border-shimmer 2.5s ease-in-out infinite;
 }
 
 /* Resize handle dims during generation */
