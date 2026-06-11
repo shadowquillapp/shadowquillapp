@@ -85,11 +85,6 @@
 	max-height: 70vh;
 }
 
-.modal-content--version-history {
-	width: min(600px, 94vw);
-	max-height: 80vh;
-}
-
 /* ========================================
  * HEADER (.modal-header)
  * ======================================== */
@@ -132,17 +127,3 @@
 /* ========================================
  * RESPONSIVE ADJUSTMENTS
  * ======================================== */
-
-@media (max-width: 640px) {
-	.modal-content--version-history {
-		width: calc(100vw - 32px);
-		max-height: 90vh;
-	}
-}
-
-@media (min-width: 641px) and (max-width: 1024px) {
-	.modal-content--version-history {
-		width: 90vw;
-		max-width: 600px;
-	}
-}
