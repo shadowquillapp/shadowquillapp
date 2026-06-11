@@ -38,6 +38,16 @@ export default function AppVersionContent() {
 		}
 	};
 
+	const handleOpenGitHubRepo = async () => {
+		try {
+			await window.shadowquill?.openExternalUrl?.(
+				"https://github.com/shadowquillapp/shadowquillapp",
+			);
+		} catch (error) {
+			console.error("Failed to open URL:", error);
+		}
+	};
+
 	const handleOpenReleaseUrl = async () => {
 		if (updateResult?.releaseUrl) {
 			try {
@@ -222,6 +232,22 @@ export default function AppVersionContent() {
 										<div>{updateResult.error || "Unknown error occurred"}</div>
 									</>
 								)}
+								<button
+									type="button"
+									onClick={handleOpenGitHubRepo}
+									className="md-btn"
+									style={{
+										marginTop: "12px",
+										padding: 0,
+										background: "none",
+										border: "none",
+										color: "var(--color-primary)",
+										textDecoration: "underline",
+										fontSize: "14px",
+									}}
+								>
+									github.com/shadowquillapp/shadowquillapp
+								</button>
 							</div>
 						)}
 					</div>
