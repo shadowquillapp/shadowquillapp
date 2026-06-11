@@ -127,7 +127,7 @@
 
 .shadowquill-status-chip--success {
 	background: #ffffff14;
-	color: #f5f5f5;
+	color: var(--color-on-surface);
 	border-color: #ffffff33;
 }
 
@@ -260,7 +260,7 @@
 }
 
 .shadowquill-status-card--success {
-	border-left: 3px solid #f5f5f5;
+	border-left: 3px solid var(--color-primary);
 	background: #ffffff0d;
 }
 
@@ -292,7 +292,7 @@
 
 .shadowquill-status-card--success .shadowquill-status-card__icon {
 	background: #ffffff14;
-	color: #f5f5f5;
+	color: var(--color-on-surface);
 }
 
 .shadowquill-status-card--error .shadowquill-status-card__icon {
@@ -386,7 +386,7 @@
 }
 
 .shadowquill-model-item svg {
-	color: #f5f5f5;
+	color: var(--color-on-surface);
 	font-size: 10px;
 	width: 10px;
 	flex-shrink: 0;

@@ -200,11 +200,11 @@
  * ======================================== */
 
 .token-key {
-	color: #f5f5f5;
+	color: var(--color-on-surface);
 }
 
 .token-string {
-	color: #e5e5e5;
+	color: var(--primarya10);
 }
 
 .token-number {
@@ -244,12 +244,12 @@
  * ======================================== */
 
 .token-md-header {
-	color: #f5f5f5;
+	color: var(--color-on-surface);
 	font-weight: 700;
 }
 
 .token-md-header-text {
-	color: #f5f5f5;
+	color: var(--color-on-surface);
 	font-weight: 700;
 }
 
@@ -258,7 +258,7 @@
 }
 
 .token-md-bold-text {
-	color: #f5f5f5;
+	color: var(--color-on-surface);
 	font-weight: 700;
 }
 
@@ -267,7 +267,7 @@
 }
 
 .token-md-italic-text {
-	color: #f5f5f5;
+	color: var(--color-on-surface);
 	font-style: italic;
 }
 
@@ -276,14 +276,14 @@
 }
 
 .token-md-code {
-	color: #e5e5e5;
+	color: var(--primarya10);
 	background: #ffffff14;
 	padding: 2px 4px;
 	border-radius: 3px;
 }
 
 .token-md-link-text {
-	color: #f5f5f5;
+	color: var(--color-on-surface);
 }
 
 .token-md-url {
@@ -296,7 +296,7 @@
 }
 
 .token-md-list-marker {
-	color: #f5f5f5;
+	color: var(--color-on-surface);
 	font-weight: 700;
 }
 

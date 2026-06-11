@@ -20,7 +20,7 @@
 | `FindBar.tsx` | Cmd+F-style in-page search with prev/next match navigation. |
 | `GlobalZoomControl.tsx` | Listens for IPC and toggles window zoom factor. |
 | `CustomSelect.tsx` | Portal-based dropdown selector with icon + disabled options. |
-| `FeatherLoader.tsx` | Branded animated SVG loader ("Crafting..." text). |
+| `FeatherLoader.tsx` | Branded animated SVG loader ("Generating" text with cycling dots). |
 | `Icon.tsx` | `Icon` wrapper around `@heroicons/react/24/solid|outline` with `IconName` union. |
 | `Logo.tsx` | Inline SVG app logo. |
 | `settings/AppVersionContent.tsx` | Version display + update check. |
