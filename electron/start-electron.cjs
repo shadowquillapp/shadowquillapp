@@ -152,9 +152,15 @@ function cleanup() {
 		const electronModule = require("electron");
 		const electronCmd =
 			typeof electronModule === "string" ? electronModule : "electron";
+		const electronEnv = {
+			...process.env,
+			ELECTRON: "1",
+			NEXT_PUBLIC_ELECTRON: "1",
+		};
+		delete electronEnv.ELECTRON_RUN_AS_NODE;
 		const proc = spawn(electronCmd, [path.join(__dirname, "main.cjs")], {
 			stdio: ["inherit", "inherit", "pipe"],
-			env: { ...process.env, ELECTRON: "1", NEXT_PUBLIC_ELECTRON: "1" },
+			env: electronEnv,
 		});
 
 		if (proc.stderr) {

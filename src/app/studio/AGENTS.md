@@ -21,7 +21,7 @@ studio/
 | `StudioHeader.tsx` | Page header (sidebar toggle). |
 | `PresetLibrary.tsx` | Searchable sidebar list. |
 | `PresetCard.tsx` | Preset card item. |
-| `PresetEditor.tsx` | Single-page scrollable editor: `BasicSettings` + inline Context fields (identity, XML schema, additional context). |
+| `PresetEditor.tsx` | Single-page scrollable editor: `BasicSettings` + inline Context fields (identity, additional context). |
 | `BasicSettings.tsx` | Core preset fields. |
 
 ## Conventions (delta from root)
