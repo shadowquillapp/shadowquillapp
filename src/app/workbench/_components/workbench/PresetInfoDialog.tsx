@@ -15,7 +15,7 @@ interface PresetInfoDialogProps {
 
 const CATEGORIES = {
 	general: ["tone", "detail", "format", "language"],
-	context: ["identity", "additionalContext", "audience", "styleGuidelines"],
+	context: ["additionalContext", "audience", "styleGuidelines"],
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
