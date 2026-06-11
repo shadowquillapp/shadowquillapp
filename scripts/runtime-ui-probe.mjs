@@ -35,7 +35,9 @@ let playwrightOk = false;
 try {
 	const { chromium } = await import("playwright");
 	const browser = await chromium.launch({ headless: true });
-	const page = await browser.newPage({ viewport: { width: 1280, height: 800 } });
+	const page = await browser.newPage({
+		viewport: { width: 1280, height: 800 },
+	});
 
 	for (const item of routes) {
 		await page.goto(`${baseUrl}${item.route}`, { waitUntil: "networkidle" });
@@ -48,10 +50,7 @@ try {
 	await browser.close();
 	playwrightOk = true;
 } catch (error) {
-	await writeFile(
-		path.join(outDir, "playwright-error.txt"),
-		String(error),
-	);
+	await writeFile(path.join(outDir, "playwright-error.txt"), String(error));
 }
 
 const failed = results.filter((result) => !result.ok);
@@ -60,6 +59,4 @@ if (failed.length > 0) {
 	process.exitCode = 1;
 }
 
-console.log(
-	JSON.stringify({ results, playwrightOk, outDir }, null, 2),
-);
+console.log(JSON.stringify({ results, playwrightOk, outDir }, null, 2));
