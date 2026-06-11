@@ -1,3 +1,5 @@
+## [0.12.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.0...v0.12.1) (2026-06-11)
+
 # [0.12.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.11.2...v0.12.0) (2026-06-11)
 
 
