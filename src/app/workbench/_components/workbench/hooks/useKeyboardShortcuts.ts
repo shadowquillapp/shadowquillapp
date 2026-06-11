@@ -5,6 +5,7 @@ export function useKeyboardShortcuts(
 	tabManager: ReturnType<typeof useTabManager>,
 	setShowPresetPicker: (show: boolean) => void,
 	setPresetPickerForNewTab: (forNewTab: boolean) => void,
+	closeActiveTab: () => void,
 ) {
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
@@ -17,10 +18,7 @@ export function useKeyboardShortcuts(
 			}
 			if ((e.metaKey || e.ctrlKey) && e.key === "w") {
 				e.preventDefault();
-				const activeTab = tabManager.activeTab;
-				if (activeTab) {
-					tabManager.closeTab(activeTab.id);
-				}
+				closeActiveTab();
 			}
 			if ((e.metaKey || e.ctrlKey) && e.key >= "1" && e.key <= "8") {
 				e.preventDefault();
@@ -33,5 +31,10 @@ export function useKeyboardShortcuts(
 		};
 		document.addEventListener("keydown", onKeyDown);
 		return () => document.removeEventListener("keydown", onKeyDown);
-	}, [tabManager, setShowPresetPicker, setPresetPickerForNewTab]);
+	}, [
+		tabManager,
+		setShowPresetPicker,
+		setPresetPickerForNewTab,
+		closeActiveTab,
+	]);
 }

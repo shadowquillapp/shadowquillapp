@@ -48,7 +48,7 @@ export default function SystemPromptEditorContent() {
 							border: "1px solid var(--color-outline)",
 							borderRadius: "8px",
 							fontFamily: "var(--font-mono, monospace)",
-							fontSize: "12px",
+							fontSize: "var(--text-sm)",
 							lineHeight: "1.5",
 							maxHeight: "400px",
 							overflowY: "auto",

@@ -33,7 +33,7 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 
 | Symbol | Why central |
 |---|---|
-| `src/components/Icon.tsx` (22) | Only Heroicons import path; used across studio, workbench, components, lib. |
+| `src/components/Icon.tsx` (22) | Only iconsax import path; used across studio, workbench, components, lib. |
 | `src/types/index.ts` (16) | Shared `TaskType`, `PresetLite`, `GenerationOptions`, `TestMessage`, … |
 | `src/lib/storage-keys.ts` (12) | Sole registry of every localStorage/sessionStorage key + scope. Touching persistence = touching this. |
 | `src/lib/local-storage.ts` (12) | Safe wrapper over `electron-storage` with `window` guards and factory-reset suppression. |
@@ -65,13 +65,13 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 - **TypeScript strict** + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` + `verbatimModuleSyntax`. `as T` casts mostly forbidden; `as unknown as T` only for Electron-bridge typing.
 - **Path alias**: `@/*` → `src/*`. Always use it from `src/`.
 - **No server-side state.** Next is the bundler/host; the app is a client-rendered SPA inside Electron. No `cookies()`, `headers()`, `unstable_cache`, route handlers, or RSC data fetching. Server components exist only to set `metadata` and hand off to a client component.
-- **No barrel `index.ts` at `src/lib/` root.** The only barrels are `src/lib/presets.ts` (2-line re-export) and `src/lib/prompt-directives/index.ts`. Import deep paths.
+- **No barrel `index.ts` at `src/lib/` root.** The only barrel is `src/lib/presets.ts` (2-line re-export). Import deep paths.
 - **Persistence = localStorage + sessionStorage + Electron IPC file KV.** No IndexedDB, no Cookies. All keys must be declared in `storage-keys.ts`.
 - **Semantic-intent prompt compiler** — `prompt-builder-core.ts` + `prompt-directives/base.ts` assemble prompts by task type (`intent`, `engineering`, `visual`, `analysis`, `narrative`, `persuasion`, `motion`). No per-task directive files.
 - **Temperature is not user-configurable** — fixed at `0.2` in `model-client.ts` (`MODEL_TEMPERATURE`).
 - **Tailwind v4 CSS-first config.** No `tailwind.config.js`. Single `@import "tailwindcss";` in `src/styles/index.css`. No `@theme` block — design tokens are plain `:root` CSS variables, consumed via `var(--color-*)`. Single fixed dark palette (black, gray, white); no theme switching.
 - **Biome is the only linter/formatter.** Do not introduce ESLint, Prettier, or Husky configs. `biome-ignore` comments are the only suppression mechanism (4 sites in `src/` — see workbench + components `AGENTS.md`).
-- **Use Heroicons only** (`@heroicons/react/24/solid` or `outline`). Wrap with `src/components/Icon.tsx`.
+- **Use iconsax-reactjs only** (`Bold` variant). Wrap with `src/components/Icon.tsx`.
 - **Vitest with jsdom**, `globals: true`. Mocks for `localStorage`, `sessionStorage`, `matchMedia`, `ResizeObserver`, `IntersectionObserver`, `fetch` live in `src/__tests__/setup.ts`. URL is `http://localhost:31415` (matches Electron dev port).
 - **`"use client"` is required on every component file that uses hooks or browser APIs.** 27 client components already; 0 server components beyond the page/layout shells.
 - **No external CDN links** — full offline operation (`src/app/layout.tsx:29`). All assets local.

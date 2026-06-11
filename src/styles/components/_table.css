@@ -1,0 +1,134 @@
+/**
+ * ==========================================================================
+ * DATA TABLE COMPONENTS
+ * ==========================================================================
+ *
+ * Dashboard-style table/row primitives for dense tabular data.
+ * Works for both real <table> elements and grid/list-based row layouts.
+ *
+ * COMPONENT CLASSES:
+ * - .data-table: Table container
+ * - .data-table__head-row / .data-table__row: Rows with 1px dividers
+ * - .data-table__cell: Cell (mono/right-aligned modifiers)
+ * ==========================================================================
+ */
+
+.data-table {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	border: 1px solid var(--color-outline);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface);
+	overflow: hidden;
+}
+
+.data-table--flush {
+	border: none;
+	border-radius: 0;
+}
+
+.data-table__head-row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	min-height: 28px;
+	padding: 0 var(--space-3);
+	background: var(--color-panel-head);
+	border-bottom: 1px solid var(--color-outline);
+	font-size: var(--text-2xs);
+	font-weight: 600;
+	letter-spacing: var(--label-tracking);
+	text-transform: uppercase;
+	color: var(--color-on-surface-variant);
+	user-select: none;
+}
+
+.data-table__row {
+	display: flex;
+	align-items: center;
+	gap: var(--space-3);
+	width: 100%;
+	min-height: 36px;
+	padding: var(--space-1) var(--space-3);
+	background: transparent;
+	border: none;
+	border-bottom: 1px solid var(--color-outline);
+	color: var(--color-on-surface);
+	font-size: var(--text-sm);
+	text-align: left;
+	cursor: default;
+}
+
+.data-table__row:last-child {
+	border-bottom: none;
+}
+
+button.data-table__row,
+.data-table__row--interactive {
+	cursor: pointer;
+}
+
+button.data-table__row:hover,
+.data-table__row--interactive:hover {
+	background: var(--color-surface-variant);
+}
+
+button.data-table__row:focus-visible,
+.data-table__row--interactive:focus-visible {
+	outline: 1px solid var(--color-accent);
+	outline-offset: -1px;
+}
+
+.data-table__row--selected {
+	background: var(--color-surface-variant);
+	box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+button.data-table__row--selected:hover {
+	background: var(--color-surface-variant);
+}
+
+.data-table__cell {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.data-table__cell--grow {
+	flex: 1;
+}
+
+.data-table__row--top {
+	align-items: flex-start;
+	padding-top: var(--space-2);
+	padding-bottom: var(--space-2);
+}
+
+.data-table__cell--wrap {
+	flex: 1;
+	white-space: pre-wrap;
+	overflow: visible;
+	text-overflow: unset;
+	line-height: 1.5;
+}
+
+.data-table__cell--mono {
+	font-family: var(--font-mono);
+	font-size: var(--text-xs);
+	color: var(--color-on-surface-variant);
+}
+
+.data-table__cell--num {
+	text-align: right;
+	font-family: var(--font-mono);
+	font-size: var(--text-xs);
+}
+
+.data-table__empty {
+	padding: var(--space-4) var(--space-3);
+	font-size: var(--text-sm);
+	color: var(--color-on-surface-variant);
+	text-align: center;
+}

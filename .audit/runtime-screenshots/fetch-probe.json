@@ -1,0 +1,18 @@
+{
+	"baseUrl": "http://localhost:31415",
+	"results": [
+		{
+			"route": "/workbench",
+			"status": 200,
+			"ok": true,
+			"marker": "ShadowQuill"
+		},
+		{
+			"route": "/studio",
+			"status": 200,
+			"ok": true,
+			"marker": "Preset Studio"
+		}
+	],
+	"at": "2026-06-11T13:57:21.280Z"
+}

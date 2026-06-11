@@ -20,10 +20,9 @@
 .message-bubble {
 	position: relative;
 	border: 1px solid var(--color-outline);
-	border-radius: 16px;
-	padding: 16px;
+	border-radius: var(--radius-sm);
+	padding: var(--space-3);
 	background: var(--color-surface);
-	box-shadow: var(--shadow-1);
 }
 
 /* ========================================
@@ -31,9 +30,10 @@
  * ======================================== */
 
 .message-bubble--user {
-	background: var(--color-primary);
-	border-color: var(--color-primary-variant);
-	color: var(--color-on-primary);
+	background: var(--color-surface-variant);
+	border-color: var(--color-outline);
+	color: var(--color-on-surface);
+	box-shadow: inset 2px 0 0 var(--color-accent);
 	margin-left: auto;
 	max-width: 90%;
 }
@@ -64,16 +64,18 @@
 
 .message-bubble__copy {
 	position: absolute;
-	top: 12px;
-	right: 12px;
-	background: var(--color-surface-variant);
-	border: 1px solid var(--color-outline);
-	border-radius: 6px;
-	padding: 6px;
+	top: 8px;
+	right: 8px;
+	padding: 0;
+	border: none;
+	border-radius: var(--radius-sm);
+	background: transparent;
+	color: var(--color-on-surface-variant);
 	cursor: pointer;
 	opacity: 0;
-	transition: opacity 200ms ease;
-	box-shadow: var(--shadow-1);
+	transition:
+		opacity 120ms linear,
+		color 120ms ease;
 }
 
 .message-bubble:hover .message-bubble__copy,
@@ -83,5 +85,5 @@
 }
 
 .message-bubble__copy:hover {
-	background: var(--color-surface);
+	color: var(--color-on-surface);
 }

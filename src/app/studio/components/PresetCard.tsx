@@ -20,62 +20,33 @@ export default function PresetCard({
 	return (
 		<button
 			type="button"
-			className={`group relative flex w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-left ${
-				isSelected
-					? "border-primary"
-					: "border-[var(--color-outline)] text-secondary hover:border-primary"
-			}`}
-			style={{
-				background: isSelected
-					? "var(--color-surface-variant)"
-					: "var(--color-surface)",
-			}}
-			onMouseEnter={(e) => {
-				if (!isSelected) {
-					(e.currentTarget as HTMLElement).style.background =
-						"var(--color-surface-variant)";
-				}
-			}}
-			onMouseLeave={(e) => {
-				if (!isSelected) {
-					(e.currentTarget as HTMLElement).style.background =
-						"var(--color-surface)";
-				}
-			}}
+			className={`data-table__row ${isSelected ? "data-table__row--selected" : ""}`}
 			onClick={onSelect}
 			aria-label={`Select preset: ${preset.name}`}
 			aria-pressed={isSelected}
 		>
-			<div
-				className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
-					isSelected ? "" : "text-secondary group-hover:text-light"
-				}`}
+			<Icon
+				name={getTaskTypeIcon(taskType)}
+				className="h-3.5 w-3.5 shrink-0"
 				style={{
-					background: isSelected
-						? "var(--color-primary)"
-						: "var(--color-surface-variant)",
-					color: isSelected ? "var(--color-on-primary)" : undefined,
+					color: isSelected
+						? "var(--color-on-surface)"
+						: "var(--color-on-surface-variant)",
+				}}
+			/>
+			<span
+				className="data-table__cell data-table__cell--grow font-medium"
+				style={{
+					color: isSelected
+						? "var(--color-on-surface)"
+						: "var(--color-on-surface-variant)",
 				}}
 			>
-				<Icon name={getTaskTypeIcon(taskType)} className="h-4 w-4" />
-			</div>
-
-			<div className="flex min-w-0 flex-1 items-center justify-between gap-2">
-				<span
-					className={`truncate font-medium text-sm leading-tight ${
-						isSelected ? "text-light" : "text-secondary group-hover:text-light"
-					}`}
-				>
-					{preset.name}
-				</span>
-				<span className="shrink-0 text-[10px] text-secondary capitalize opacity-80">
-					{taskType}
-				</span>
-			</div>
-
-			{isSelected && (
-				<div className="h-1.5 w-1.5 shrink-0 rounded-full bg-primary shadow-[0_0_4px_var(--color-primary)]" />
-			)}
+				{preset.name}
+			</span>
+			<span className="data-table__cell data-table__cell--mono uppercase">
+				{taskType}
+			</span>
 		</button>
 	);
 }

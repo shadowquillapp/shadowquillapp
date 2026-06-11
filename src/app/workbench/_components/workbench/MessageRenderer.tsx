@@ -3,14 +3,16 @@
 import type { ReactNode } from "react";
 import { useCallback } from "react";
 import { MarkdownCodeBlock } from "./components/MarkdownCodeBlock";
-
-const isMarkdownLang = (lang: string) => lang === "markdown" || lang === "md";
+import { OutputContentToolbar } from "./components/OutputContentToolbar";
+import { hasMarkdownFence, isMarkdownLang } from "./utils/markdown-fence";
 
 interface MessageRendererProps {
 	content: string;
-	messageId: string;
-	copiedMessageId: string | null;
-	onCopy: (id: string, content: string) => void;
+	markdownRendered?: boolean;
+	onToggleMarkdownView?: () => void;
+	onCopy?: () => void;
+	copyDisabled?: boolean;
+	copied?: boolean;
 }
 
 const escapeRegExp = (value: string) =>
@@ -19,10 +21,10 @@ const escapeRegExp = (value: string) =>
 const codeBlock = (key: string, label: string, body: ReactNode) => (
 	<div
 		key={key}
-		className="my-4 overflow-x-auto whitespace-pre-wrap rounded-lg border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
+		className="my-4 overflow-x-auto whitespace-pre-wrap rounded-[var(--radius-sm)] border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[length:var(--text-xs)]"
 	>
 		{label && (
-			<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
+			<div className="mb-2 font-semibold text-[length:var(--text-3xs)] text-on-surface-variant uppercase opacity-60">
 				{label}
 			</div>
 		)}
@@ -32,9 +34,11 @@ const codeBlock = (key: string, label: string, body: ReactNode) => (
 
 export function MessageRenderer({
 	content,
-	messageId: _messageId,
-	copiedMessageId: _copiedMessageId,
-	onCopy: _onCopy,
+	markdownRendered = true,
+	onToggleMarkdownView,
+	onCopy,
+	copyDisabled = false,
+	copied = false,
 }: MessageRendererProps) {
 	const highlightJSON = useCallback((rawCode: string) => {
 		const normalize = () => {
@@ -164,6 +168,7 @@ export function MessageRenderer({
 			: content;
 		const parts: ReactNode[] = [];
 		let lastIndex = 0;
+		let markdownToolbarShown = false;
 
 		const pushFenceBlock = (
 			key: string,
@@ -171,9 +176,32 @@ export function MessageRenderer({
 			lang: string,
 			code: string,
 		) => {
+			const showToolbar =
+				isMarkdownLang(lang) &&
+				!markdownToolbarShown &&
+				(onCopy !== undefined || onToggleMarkdownView !== undefined);
+			const showViewToggle = showToolbar && onToggleMarkdownView !== undefined;
+			if (showToolbar) {
+				markdownToolbarShown = true;
+			}
+
 			parts.push(
 				isMarkdownLang(lang) ? (
-					<MarkdownCodeBlock key={key} label={label} source={code} />
+					<MarkdownCodeBlock
+						key={key}
+						label={label}
+						source={code}
+						isRendered={markdownRendered}
+						showToolbar={showToolbar}
+						{...(showToolbar && onCopy !== undefined && { onCopy })}
+						copyDisabled={copyDisabled}
+						copied={copied}
+						showViewToggle={showViewToggle}
+						{...(showToolbar &&
+							onToggleMarkdownView !== undefined && {
+								onToggleView: onToggleMarkdownView,
+							})}
+					/>
 				) : (
 					codeBlock(key, label, highlightFor(lang, code))
 				),
@@ -276,5 +304,20 @@ export function MessageRenderer({
 		);
 	};
 
-	return renderMessageContent();
+	const body = renderMessageContent();
+
+	if (hasMarkdownFence(content)) {
+		return body;
+	}
+
+	return (
+		<>
+			<OutputContentToolbar
+				{...(onCopy !== undefined && { onCopy })}
+				copyDisabled={copyDisabled}
+				copied={copied}
+			/>
+			{body}
+		</>
+	);
 }

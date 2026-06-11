@@ -15,12 +15,10 @@ workbench/
         ├── PresetInfoDialog.tsx
         ├── PresetPickerModal.tsx
         ├── TabBar.tsx
-        ├── VersionNavigator.tsx
-        ├── VersionTimeline.tsx
         ├── types.ts                  # MessageItem, PromptPresetSummary, VersionGraph
         ├── useTabManager.ts          # ⚠ lives here, NOT in hooks/ (inconsistent on purpose)
         ├── version-graph.ts          # createVersionGraph, appendVersion, undoVersion, redoVersion, migrateVersionGraph
-        ├── components/               # InputPanel, ModelSelector, OutputPanel, PresetInfoRow, RefinementContextPanel, TextStats, VersionDropdown
+        ├── components/               # InputPanel, ModelSelector, OutputPanel, RefinementContextPanel, TextStats, VersionDropdown
         ├── hooks/                    # 9 hooks (see below)
         └── utils/                    # copyMessage, presetUtils
 ```

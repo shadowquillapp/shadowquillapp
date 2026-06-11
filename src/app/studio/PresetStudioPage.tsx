@@ -10,7 +10,7 @@ import { getLastSelectedPresetKey } from "@/lib/preset-store";
 import type { PresetLite } from "@/types";
 
 export default function PresetStudioPage() {
-	const { confirm } = useDialog();
+	const { confirm, showInfo } = useDialog();
 	const { presets, loadPresets, savePreset, deletePreset, duplicatePreset } =
 		usePresetManager();
 
@@ -48,19 +48,34 @@ export default function PresetStudioPage() {
 		}
 	}, [presets, selectedPresetId, editingPreset]);
 
+	const confirmDiscardChanges = useCallback(async () => {
+		if (!isDirty) return true;
+		return confirm({
+			title: "Discard Changes?",
+			message: "You have unsaved preset changes. Discard them and continue?",
+			confirmText: "Discard",
+			cancelText: "Keep Editing",
+			tone: "destructive",
+		});
+	}, [confirm, isDirty]);
+
 	const handleSelectPreset = useCallback(
-		(presetId: string) => {
-			const preset = presets.find((p: PresetLite) => p.id === presetId);
+		async (presetId: string) => {
+			if (!(await confirmDiscardChanges())) return;
+			const preset = presets.find(
+				(p: PresetLite) => p.id === presetId || p.name === presetId,
+			);
 			if (preset) {
 				setSelectedPresetId(presetId);
 				setEditingPreset({ ...preset });
 				setIsDirty(false);
 			}
 		},
-		[presets],
+		[presets, confirmDiscardChanges],
 	);
 
-	const handleNewPreset = useCallback(() => {
+	const handleNewPreset = useCallback(async () => {
+		if (!(await confirmDiscardChanges())) return;
 		const newPreset: PresetLite = {
 			id: `preset_${Date.now()}`,
 			name: "Untitled Preset",
@@ -73,9 +88,9 @@ export default function PresetStudioPage() {
 			},
 		};
 		setEditingPreset(newPreset);
-		setSelectedPresetId(null);
+		setSelectedPresetId(newPreset.id ?? null);
 		setIsDirty(true);
-	}, []);
+	}, [confirmDiscardChanges]);
 
 	const handleFieldChange = useCallback(
 		(field: string, value: unknown) => {
@@ -111,8 +126,15 @@ export default function PresetStudioPage() {
 			await loadPresets();
 		} catch (error) {
 			console.error("Failed to save preset:", error);
+			await showInfo({
+				title: "Save Failed",
+				message:
+					error instanceof Error
+						? error.message
+						: "Unable to save this preset.",
+			});
 		}
-	}, [editingPreset, savePreset, loadPresets]);
+	}, [editingPreset, savePreset, loadPresets, showInfo]);
 
 	const handleDuplicate = useCallback(
 		async (presetId: string) => {
@@ -120,9 +142,14 @@ export default function PresetStudioPage() {
 			if (duplicated) {
 				await loadPresets();
 				handleSelectPreset(duplicated.id || "");
+			} else {
+				await showInfo({
+					title: "Duplicate Failed",
+					message: "Unable to duplicate this preset.",
+				});
 			}
 		},
-		[duplicatePreset, loadPresets, handleSelectPreset],
+		[duplicatePreset, loadPresets, handleSelectPreset, showInfo],
 	);
 
 	const handleDelete = useCallback(
@@ -163,6 +190,17 @@ export default function PresetStudioPage() {
 	}, [isDirty]);
 
 	useEffect(() => {
+		if (isDirty) {
+			document.body.dataset.studioDirty = "true";
+		} else {
+			delete document.body.dataset.studioDirty;
+		}
+		return () => {
+			delete document.body.dataset.studioDirty;
+		};
+	}, [isDirty]);
+
+	useEffect(() => {
 		const checkScreenSize = () => {
 			const isSmall = window.innerWidth < 1280;
 			setIsSmallScreen((prev) => {
@@ -184,6 +222,7 @@ export default function PresetStudioPage() {
 		<div className="page-animate flex h-full flex-col bg-surface-0 text-light">
 			<StudioHeader
 				isSmallScreen={isSmallScreen}
+				sidebarOpen={sidebarOpen}
 				onToggleSidebar={() => setSidebarOpen((v) => !v)}
 			/>
 
@@ -216,13 +255,13 @@ export default function PresetStudioPage() {
 				<aside
 					className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
 						isSmallScreen
-							? `fixed top-8 left-0 z-30 h-[calc(100vh-2rem)] w-[min(90vw,420px)] border-r ${
+							? `absolute top-0 left-0 z-30 h-full w-[min(90vw,360px)] border-r ${
 									sidebarOpen ? "translate-x-0" : "-translate-x-full"
 								}`
-							: "w-[420px] flex-shrink-0 border-r"
+							: "w-[320px] flex-shrink-0 border-r"
 					}`}
 					style={{
-						background: "var(--color-surface-variant)",
+						background: "var(--color-surface)",
 					}}
 				>
 					<PresetLibrary
