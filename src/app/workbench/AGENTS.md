@@ -15,8 +15,6 @@ workbench/
         ├── PresetInfoDialog.tsx
         ├── PresetPickerModal.tsx
         ├── TabBar.tsx
-        ├── VersionNavigator.tsx
-        ├── VersionTimeline.tsx
         ├── types.ts                  # MessageItem, PromptPresetSummary, VersionGraph
         ├── useTabManager.ts          # ⚠ lives here, NOT in hooks/ (inconsistent on purpose)
         ├── version-graph.ts          # createVersionGraph, appendVersion, undoVersion, redoVersion, migrateVersionGraph

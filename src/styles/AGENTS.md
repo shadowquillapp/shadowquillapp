@@ -13,12 +13,12 @@ Cascade authority comes from import **order**, not `@layer`. Each subfolder has 
 
 | Folder | Files | Role |
 |---|---|---|
-| `variables/` (4) | `_colors.css`, `_spacing.css`, `_typography.css`, `_index.css` | Design tokens in `:root`. Colors: semantic palette (`--color-surface`, `-primary`, `-save`, `-attention`, `-destructive`, `-on-*`) + tonal scales (`--primarya0..a50`, `--surfacea0..a50`). Spacing: `--space-0..10` (4px), `--radius-sm/md/lg`, `--shadow-1/2`. Typography: `--font-sans` → `--font-geist-sans` (set by `next/font` in `layout.tsx`). |
-| `base/` (4) | `_reset.css`, `_scrollbar.css`, `_typography.css`, `_index.css` | Browser normalization layer. |
-| `components/` (12) | `_buttons.css`, `_inputs.css`, `_chips.css`, `_cards.css`, `_modals.css`, `_menus.css`, `_links.css`, `_loaders.css`, `_code-blocks.css`, `_mode-toggle.css`, `_message-bubble.css`, `_index.css` | Reusable UI primitives; one CSS file per widget type. `_buttons.css` includes `.preset-studio-btn` for studio save/action buttons. |
-| `features/` (6) | `_ollama.css`, `_workbench.css`, `_version-history.css` (largest, ~20k), `_refine-panel.css`, `_find-highlight.css`, `_index.css` | Page/feature-scoped composite UI. |
+| `variables/` (4) | `_colors.css`, `_spacing.css`, `_typography.css`, `_index.css` | Design tokens in `:root`. Colors: semantic palette + tonal scales. Spacing: `--space-0..10`, radius, shadows. Typography: `--font-sans` / `--font-mono` → Söhne stacks in `base/_fonts.css`. |
+| `base/` (5) | `_reset.css`, `_scrollbar.css`, `_typography.css`, `_fonts.css`, `_index.css` | Browser normalization + self-hosted Söhne fonts. |
+| `components/` (12) | `_buttons.css`, `_inputs.css`, `_chips.css`, `_cards.css`, `_modals.css`, `_menus.css`, `_links.css`, `_loaders.css`, `_code-blocks.css`, `_mode-toggle.css`, `_message-bubble.css`, `_index.css` | Reusable UI primitives; one CSS file per widget type. |
+| `features/` (5) | `_console-shell.css`, `_ollama.css`, `_workbench.css`, `_refine-panel.css`, `_find-highlight.css`, `_index.css` | Page/feature-scoped composite UI. |
 | `utilities/` (1) | `_spacing.css` | Helper classes. |
-| `animations/` (1) | `_index.css` | `@keyframes` (md-spin, version-pulse, output-fade-in, fade-in-up/down/scale, generating-border-shimmer, page-fade-in). |
+| `animations/` (1) | `_index.css` | `@keyframes` (md-spin, output-fade-in, fade-in-up/down/scale) + `.workbench--generating` dimming rules. |
 
 ## Conventions (delta from root)
 
