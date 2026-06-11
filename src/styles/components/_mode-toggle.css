@@ -96,7 +96,7 @@
 	min-width: 60px;
 	height: 18px;
 	padding: 0 10px;
-	font-size: 10px;
+	font-size: var(--text-2xs);
 	font-weight: 500;
 	line-height: 1;
 	white-space: nowrap;

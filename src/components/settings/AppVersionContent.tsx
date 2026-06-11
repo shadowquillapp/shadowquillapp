@@ -90,7 +90,7 @@ export default function AppVersionContent() {
 							className="md-input"
 							style={{
 								fontFamily: "var(--font-mono, monospace)",
-								fontSize: "16px",
+								fontSize: "var(--text-base)",
 								fontWeight: 600,
 								padding: "12px 16px",
 								background: "var(--color-surface)",
@@ -147,7 +147,7 @@ export default function AppVersionContent() {
 										<>
 											<div
 												style={{
-													fontSize: "16px",
+													fontSize: "var(--text-base)",
 													fontWeight: 600,
 													marginBottom: "8px",
 													color: "rgba(255, 193, 7, 1)",
@@ -163,7 +163,7 @@ export default function AppVersionContent() {
 											{updateResult.publishedAt && (
 												<div
 													style={{
-														fontSize: "14px",
+														fontSize: "var(--text-sm)",
 														opacity: 0.7,
 														marginBottom: "12px",
 													}}
@@ -195,7 +195,7 @@ export default function AppVersionContent() {
 										<>
 											<div
 												style={{
-													fontSize: "16px",
+													fontSize: "var(--text-base)",
 													fontWeight: 600,
 													color: "rgba(76, 175, 80, 1)",
 												}}
@@ -212,7 +212,7 @@ export default function AppVersionContent() {
 									<>
 										<div
 											style={{
-												fontSize: "16px",
+												fontSize: "var(--text-base)",
 												fontWeight: 600,
 												marginBottom: "4px",
 												color: "rgba(244, 67, 54, 1)",
@@ -234,7 +234,7 @@ export default function AppVersionContent() {
 										border: "none",
 										color: "var(--color-primary)",
 										textDecoration: "underline",
-										fontSize: "14px",
+										fontSize: "var(--text-sm)",
 									}}
 								>
 									github.com/shadowquillapp/shadowquillapp

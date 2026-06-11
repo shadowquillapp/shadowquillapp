@@ -109,7 +109,7 @@ export default function SettingsDialog({
 					border: "none",
 					boxShadow: isActive ? "inset 2px 0 0 var(--color-accent)" : "none",
 					fontWeight: isActive ? 600 : 500,
-					fontSize: "13px",
+					fontSize: "var(--text-md)",
 					cursor: "pointer",
 				}}
 			>

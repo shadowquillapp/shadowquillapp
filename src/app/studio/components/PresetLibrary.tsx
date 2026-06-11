@@ -59,7 +59,7 @@ export default function PresetLibrary({
 								Preset Library
 							</h2>
 							<span
-								className="flex h-5 min-w-[20px] items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-outline)] px-1.5 font-mono text-[10px] text-light"
+								className="flex h-5 min-w-[20px] items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-outline)] px-1.5 font-mono text-[length:var(--text-2xs)] text-light"
 								style={{ background: "var(--color-surface)" }}
 							>
 								{filteredPresets.length}

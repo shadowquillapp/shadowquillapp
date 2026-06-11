@@ -165,7 +165,7 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	font-size: 11px;
+	font-size: var(--text-xs);
 	font-family: var(--font-mono);
 	font-weight: 500;
 }
@@ -294,7 +294,7 @@
 }
 
 .simple-workbench__title {
-	font-size: 20px;
+	font-size: var(--text-2xl);
 	font-weight: 700;
 	margin: 0;
 }
@@ -334,7 +334,7 @@
 
 .prompt-input__header h2 {
 	margin: 0;
-	font-size: 18px;
+	font-size: var(--text-xl);
 	font-weight: 600;
 }
 
@@ -454,7 +454,7 @@
 
 .prompt-output__header h2 {
 	margin: 0;
-	font-size: 18px;
+	font-size: var(--text-xl);
 	font-weight: 600;
 }
 
@@ -498,7 +498,7 @@
 }
 
 .output-version-label {
-	font-size: 11px;
+	font-size: var(--text-xs);
 	font-weight: 500;
 	color: var(--color-on-surface-variant);
 	margin-bottom: var(--space-1);
@@ -507,7 +507,7 @@
 .output-message-content {
 	white-space: pre-wrap;
 	word-wrap: break-word;
-	font-size: 15px;
+	font-size: var(--text-lg);
 	line-height: 1.7;
 	color: var(--color-on-surface);
 	padding: 0;
@@ -624,7 +624,7 @@
 	}
 
 	.simple-workbench__title {
-		font-size: 16px;
+		font-size: var(--text-base);
 	}
 
 	.workbench-split {
@@ -648,7 +648,7 @@
 
 .workbench-meta-pill {
 	flex-shrink: 0;
-	font-size: 9px;
+	font-size: var(--text-3xs);
 	line-height: 12px;
 	padding: 1px 6px;
 	border-radius: 999px;

@@ -268,7 +268,7 @@ export default function FindBar() {
 				value={searchText}
 				onChange={(e) => setSearchText(e.target.value)}
 				placeholder="Find in page..."
-				className="flex-1 rounded-[var(--radius-sm)] border border-[var(--color-outline)] px-2 py-1 font-mono text-[var(--color-on-surface)] text-sm outline-none placeholder:text-[var(--color-on-surface-variant)] focus:border-[var(--color-accent)]"
+				className="flex-1 rounded-[var(--radius-sm)] border border-[var(--color-outline)] px-2 py-1 font-sans text-[var(--color-on-surface)] text-sm outline-none placeholder:text-[var(--color-on-surface-variant)] focus:border-[var(--color-accent)]"
 				style={{
 					background: "var(--color-surface)",
 				}}

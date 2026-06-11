@@ -19,7 +19,7 @@ const visuallyHidden: React.CSSProperties = {
 
 const resetButtonStyle: React.CSSProperties = {
 	padding: "4px 10px",
-	fontSize: 12,
+	fontSize: "var(--text-sm)",
 	borderRadius: "var(--radius-sm)",
 	border: "1px solid var(--color-outline)",
 	background: "var(--color-surface)",
@@ -29,7 +29,7 @@ const resetButtonStyle: React.CSSProperties = {
 const sectionTabStyle = (active: boolean): React.CSSProperties => ({
 	flex: 1,
 	padding: "6px 12px",
-	fontSize: 12,
+	fontSize: "var(--text-sm)",
 	fontWeight: 600,
 	letterSpacing: "var(--label-tracking)",
 	textTransform: "uppercase",
@@ -488,7 +488,7 @@ export function PresetPickerModal({
 										onClick={handleDeleteAllProjects}
 										style={{
 											padding: "4px 12px",
-											fontSize: 11,
+											fontSize: "var(--text-xs)",
 											fontWeight: 600,
 											borderRadius: "var(--radius-sm)",
 											display: "flex",
@@ -536,7 +536,7 @@ export function PresetPickerModal({
 											flexDirection: "column",
 											alignItems: "center",
 											gap: 10,
-											fontSize: 13,
+											fontSize: "var(--text-md)",
 											padding: 24,
 											textAlign: "center",
 										}}
@@ -619,7 +619,7 @@ export function PresetPickerModal({
 										flexDirection: "column",
 										alignItems: "center",
 										gap: 10,
-										fontSize: 13,
+										fontSize: "var(--text-md)",
 										padding: 24,
 										textAlign: "center",
 									}}
@@ -731,7 +731,7 @@ export function PresetPickerModal({
 													>
 														<div
 															style={{
-																fontSize: 12,
+																fontSize: "var(--text-sm)",
 																fontWeight: 600,
 																color: "var(--color-on-surface)",
 																overflow: "hidden",
@@ -745,7 +745,7 @@ export function PresetPickerModal({
 														</div>
 														<div
 															style={{
-																fontSize: 10,
+																fontSize: "var(--text-2xs)",
 																color: "var(--color-on-surface-variant)",
 																opacity: 0.75,
 																paddingBottom: 2,

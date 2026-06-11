@@ -71,7 +71,7 @@ export default function StudioHeader({
 
 					<span
 						style={{
-							fontSize: "14px",
+							fontSize: "var(--text-base)",
 							fontWeight: 600,
 							color: "var(--color-on-surface)",
 							whiteSpace: "nowrap",

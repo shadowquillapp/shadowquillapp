@@ -73,7 +73,7 @@ export default function LocalDataManagementContent() {
 							value={paths?.userData || "Unknown"}
 							style={{
 								fontFamily: "var(--font-mono, monospace)",
-								fontSize: "11px",
+								fontSize: "var(--text-xs)",
 								background: "var(--color-surface)",
 								padding: "10px 12px",
 							}}
@@ -96,7 +96,7 @@ export default function LocalDataManagementContent() {
 							}
 							style={{
 								fontFamily: "var(--font-mono, monospace)",
-								fontSize: "11px",
+								fontSize: "var(--text-xs)",
 								background: "var(--color-surface)",
 								padding: "10px 12px",
 							}}

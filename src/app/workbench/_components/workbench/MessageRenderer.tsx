@@ -21,10 +21,10 @@ const escapeRegExp = (value: string) =>
 const codeBlock = (key: string, label: string, body: ReactNode) => (
 	<div
 		key={key}
-		className="my-4 overflow-x-auto whitespace-pre-wrap rounded-[var(--radius-sm)] border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[11px]"
+		className="my-4 overflow-x-auto whitespace-pre-wrap rounded-[var(--radius-sm)] border border-[var(--color-outline)] bg-[var(--color-surface)] p-4 font-mono text-[length:var(--text-xs)]"
 	>
 		{label && (
-			<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
+			<div className="mb-2 font-semibold text-[length:var(--text-3xs)] text-on-surface-variant uppercase opacity-60">
 				{label}
 			</div>
 		)}

@@ -34,7 +34,7 @@
 
 .shadowquill-panel__head h3 {
 	margin: 1px 0 4px;
-	font-size: 15px;
+	font-size: var(--text-lg);
 	font-weight: 600;
 	color: var(--color-on-surface);
 }
@@ -42,7 +42,7 @@
 .shadowquill-panel__subtitle {
 	margin: 0;
 	color: var(--color-on-surface-variant);
-	font-size: 12px;
+	font-size: var(--text-sm);
 	max-width: 420px;
 	line-height: 1.3;
 }
@@ -70,7 +70,7 @@
 	border-top: 1px solid
 		color-mix(in srgb, var(--color-outline) 60%, transparent);
 	padding-top: 12px;
-	font-size: 11px;
+	font-size: var(--text-xs);
 	color: var(--color-on-surface-variant);
 }
 
@@ -78,7 +78,7 @@
 .shadowquill-panel__footer .md-btn--primary {
 	height: 28px;
 	padding: 0 12px;
-	font-size: 12px;
+	font-size: var(--text-sm);
 	font-weight: 500;
 	border-radius: var(--radius-sm);
 	gap: 8px;
@@ -129,13 +129,13 @@
 .shadowquill-label {
 	display: flex;
 	flex-direction: column;
-	font-size: 11px;
+	font-size: var(--text-xs);
 	font-weight: 600;
 	color: var(--color-on-surface);
 }
 
 .shadowquill-label span {
-	font-size: 10px;
+	font-size: var(--text-2xs);
 	font-weight: 400;
 	color: var(--color-on-surface-variant);
 }
@@ -187,7 +187,7 @@
 
 .shadowquill-field-hint {
 	margin: 0;
-	font-size: 10px;
+	font-size: var(--text-2xs);
 	color: var(--color-on-surface-variant);
 	line-height: 1.3;
 }
@@ -211,7 +211,7 @@
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 12px;
+	font-size: var(--text-sm);
 	flex-shrink: 0;
 	color: var(--color-on-surface-variant);
 }
@@ -231,7 +231,7 @@
 
 .shadowquill-status-card__title {
 	margin: 0;
-	font-size: 13px;
+	font-size: var(--text-md);
 	font-weight: 600;
 	color: var(--color-on-surface);
 }
@@ -239,7 +239,7 @@
 .shadowquill-status-card__body {
 	margin: 0;
 	color: var(--color-on-surface-variant);
-	font-size: 11px;
+	font-size: var(--text-xs);
 	line-height: 1.4;
 }
 
@@ -247,7 +247,7 @@
 	display: flex;
 	flex-wrap: wrap;
 	gap: 8px;
-	font-size: 10px;
+	font-size: var(--text-2xs);
 }
 
 .shadowquill-status-card__metrics div {
@@ -257,14 +257,14 @@
 
 .shadowquill-status-card__metrics span {
 	display: block;
-	font-size: 9px;
+	font-size: var(--text-3xs);
 	text-transform: uppercase;
 	letter-spacing: 0.05em;
 	color: var(--color-on-surface-variant);
 }
 
 .shadowquill-status-card__metrics strong {
-	font-size: 11px;
+	font-size: var(--text-xs);
 	color: var(--color-on-surface);
 }
 
@@ -288,14 +288,14 @@
 	display: flex;
 	align-items: center;
 	gap: 8px;
-	font-size: 11px;
+	font-size: var(--text-xs);
 	color: var(--color-on-surface);
 	padding: 4px 0;
 }
 
 .shadowquill-model-item svg {
 	color: var(--color-on-surface);
-	font-size: 10px;
+	font-size: var(--text-2xs);
 	width: 10px;
 	flex-shrink: 0;
 }
@@ -306,14 +306,14 @@
 
 .shadowquill-model-size {
 	color: var(--color-on-surface-variant);
-	font-size: 10px;
+	font-size: var(--text-2xs);
 	font-weight: 500;
 	margin-left: 4px;
 }
 
 .shadowquill-empty-note {
 	margin: 0;
-	font-size: 10px;
+	font-size: var(--text-2xs);
 	color: var(--color-on-surface-variant);
 }
 
@@ -323,7 +323,7 @@
 
 .shadowquill-error-inline {
 	margin: 0;
-	font-size: 10px;
+	font-size: var(--text-2xs);
 	color: var(--color-on-surface-variant);
 }
 
@@ -333,7 +333,7 @@
 	background: color-mix(in srgb, var(--color-outline) 30%, transparent);
 	border: 1px solid color-mix(in srgb, var(--color-outline) 60%, transparent);
 	color: var(--color-on-surface);
-	font-size: 11px;
+	font-size: var(--text-xs);
 }
 
 /* ========================================
@@ -341,7 +341,7 @@
  * ======================================== */
 
 .shadowquill-availability {
-	font-size: 11px;
+	font-size: var(--text-xs);
 	color: var(--color-on-surface-variant);
 	border: 1px solid var(--color-outline);
 	border-radius: var(--radius-sm);
@@ -371,7 +371,7 @@
 
 .shadowquill-guide-card h4 {
 	margin: 0;
-	font-size: 13px;
+	font-size: var(--text-md);
 }
 
 .shadowquill-guide-card ol,
@@ -379,7 +379,7 @@
 	margin: 0;
 	padding-left: 14px;
 	color: var(--color-on-surface-variant);
-	font-size: 11px;
+	font-size: var(--text-xs);
 	display: flex;
 	flex-direction: column;
 	gap: 3px;
@@ -390,7 +390,7 @@
 	background: #00000040;
 	padding: 2px 4px;
 	border-radius: 4px;
-	font-size: 10px;
+	font-size: var(--text-2xs);
 }
 
 .shadowquill-guide ul {

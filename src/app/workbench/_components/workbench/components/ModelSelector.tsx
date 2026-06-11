@@ -55,7 +55,7 @@ export function ModelSelector({
 			}}
 		>
 			<span
-				className="font-semibold text-[10px] uppercase"
+				className="font-semibold text-[length:var(--text-2xs)] uppercase"
 				style={{
 					color: "var(--color-on-surface-variant)",
 					letterSpacing: "var(--label-tracking)",
@@ -72,7 +72,11 @@ export function ModelSelector({
 					onClick={() => void refreshModels()}
 					title={modelLoadError}
 					aria-label={`Retry loading models: ${modelLoadError}`}
-					style={{ height: 22, padding: "0 var(--space-2)", fontSize: 10 }}
+					style={{
+						height: 22,
+						padding: "0 var(--space-2)",
+						fontSize: "var(--text-2xs)",
+					}}
 				>
 					Retry
 				</button>
@@ -107,7 +111,7 @@ export function ModelSelector({
 									);
 								} catch {}
 							}}
-							className={`model-selector__pill flex h-[22px] items-center justify-center px-2 font-mono font-semibold text-[11px] ${
+							className={`model-selector__pill flex h-[22px] items-center justify-center px-2 font-mono font-semibold text-[length:var(--text-xs)] ${
 								!isInstalled ? "cursor-not-allowed opacity-40" : ""
 							}`}
 							title={

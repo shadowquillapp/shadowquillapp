@@ -36,6 +36,7 @@
 	max-width: 100%;
 	overflow-x: auto;
 	white-space: pre;
+	font-family: var(--font-mono);
 }
 
 .message-prose p {
@@ -120,7 +121,7 @@
 	background: var(--color-surface-variant);
 	border-radius: 3px;
 	padding: 1px 4px;
-	font-family: monospace;
+	font-family: var(--font-mono);
 	font-size: 0.9em;
 }
 
@@ -160,7 +161,7 @@
 }
 
 .bubble-code-lang {
-	font-size: 11px;
+	font-size: var(--text-xs);
 	font-weight: 500;
 	font-family: var(--font-mono);
 	color: var(--color-on-surface-variant);
@@ -182,8 +183,8 @@
 
 .bubble-code-content {
 	padding: 12px;
-	font-family: monospace;
-	font-size: 13px;
+	font-family: var(--font-mono);
+	font-size: var(--text-md);
 	line-height: 1.4;
 	white-space: pre-wrap;
 	overflow-x: auto;

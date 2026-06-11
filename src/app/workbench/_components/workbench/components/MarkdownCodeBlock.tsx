@@ -43,16 +43,16 @@ export function MarkdownCodeBlock({
 				/>
 			)}
 			{label && (
-				<div className="mb-2 font-semibold text-[9px] text-on-surface-variant uppercase opacity-60">
+				<div className="mb-2 font-semibold text-[length:var(--text-3xs)] text-on-surface-variant uppercase opacity-60">
 					{label}
 				</div>
 			)}
 			{isRendered ? (
-				<div className="message-prose font-sans text-[12px] text-on-surface leading-relaxed">
+				<div className="message-prose font-sans text-[length:var(--text-sm)] text-on-surface leading-relaxed">
 					<ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{source}</ReactMarkdown>
 				</div>
 			) : (
-				<div className="overflow-x-auto whitespace-pre-wrap font-mono text-[11px]">
+				<div className="overflow-x-auto whitespace-pre-wrap font-mono text-[length:var(--text-xs)]">
 					{highlightMarkdown(source)}
 				</div>
 			)}

@@ -24,7 +24,7 @@ function ActiveOutputView({
 	const [isMarkdownRendered, setIsMarkdownRendered] = useState(true);
 
 	return (
-		<div className="max-w-none break-words font-mono text-[11px] text-on-surface leading-relaxed">
+		<div className="max-w-none break-words font-mono text-[length:var(--text-xs)] text-on-surface leading-relaxed">
 			<MessageRenderer
 				content={output.content}
 				markdownRendered={isMarkdownRendered}

@@ -155,7 +155,7 @@ export function InputPanel({
 				>
 					<textarea
 						aria-label={isRefinementMode ? "Refinement prompt" : "Prompt input"}
-						className="absolute inset-0 h-full w-full resize-none border-none p-3 font-mono text-[10px] text-on-surface leading-[20px] shadow-none placeholder:text-on-surface-variant/50 focus:outline-none md:p-4 md:text-[11px] md:leading-[24px]"
+						className="absolute inset-0 h-full w-full resize-none border-none p-3 font-sans text-[length:var(--text-sm)] text-on-surface leading-[24px] shadow-none placeholder:text-on-surface-variant/50 focus:outline-none md:p-4 md:text-[length:var(--text-md)] md:leading-[28px]"
 						style={{
 							backgroundColor: "var(--color-surface)",
 							caretColor: "var(--color-accent)",
