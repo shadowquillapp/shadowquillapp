@@ -55,7 +55,6 @@ pnpm start
 
 ## Development
 
-Windows/Powershell
 ```bash
 pnpm install              # Install packages
 pnpm run dev              # Dev mode (Electron + Next)
@@ -64,17 +63,6 @@ pnpm start                # Run production build
 pnpm run test             # Vitest
 pnpm run typecheck        # TypeScript check
 pnpm run check            # Lint with Biome
-```
-
-Unix/Linux
-```bash
-npx pnpm install              # Install packages
-npx pnpm run dev              # Dev mode (Electron + Next)
-npx pnpm run build            # Production build
-npx pnpm start                # Run production build
-npx pnpm run test             # Vitest
-npx pnpm run typecheck        # TypeScript check
-npx pnpm run check            # Lint with Biome
 ```
 
 ## Tech stack
