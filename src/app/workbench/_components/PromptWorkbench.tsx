@@ -50,12 +50,7 @@ export default function PromptWorkbench() {
 	const tabManager = useTabManager();
 	const [showPresetPicker, setShowPresetPicker] = useState(false);
 	const [presetPickerForNewTab, setPresetPickerForNewTab] = useState(false);
-	const { presets, applyPreset } = usePresetManager(
-		tabManager,
-		showPresetPicker,
-		setShowPresetPicker,
-		setPresetPickerForNewTab,
-	);
+	const { presets, applyPreset } = usePresetManager(tabManager);
 
 	const {
 		recentProjects,
