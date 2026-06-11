@@ -1,9 +1,11 @@
 "use client";
 
 import type React from "react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { Icon, type IconName } from "@/components/Icon";
+import { useMenuKeyboard } from "@/components/useMenuKeyboard";
+import { usePortalMenuAnchor } from "@/components/usePortalMenuAnchor";
 
 interface Option {
 	value: string;
@@ -36,117 +38,38 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 	title,
 }) => {
 	const [isOpen, setIsOpen] = useState(false);
-	const [dropdownPos, setDropdownPos] = useState<{
-		top: number;
-		left: number;
-		width: number;
-		maxHeight: number;
-		openUpward: boolean;
-	} | null>(null);
 	const buttonRef = useRef<HTMLButtonElement | null>(null);
+	const menuRef = useRef<HTMLDivElement | null>(null);
 
 	const selectedOption = options.find((opt) => opt.value === value);
 	const displayText = selectedOption?.label || placeholder;
 
-	const calculatePosition = useCallback(() => {
-		if (!buttonRef.current) return null;
-
-		const rect = buttonRef.current.getBoundingClientRect();
-		const viewportHeight = window.innerHeight;
-		const viewportWidth = window.innerWidth;
-
-		const estimatedDropdownHeight = options.length * 40 + 16;
-
-		const spaceBelow = viewportHeight - rect.bottom - 8;
-		const spaceAbove = rect.top - 8;
-
-		const openUpward =
-			spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow;
-
-		const maxHeight = Math.min(
-			estimatedDropdownHeight,
-			openUpward ? spaceAbove : spaceBelow,
-			300,
-		);
-
-		let left = rect.left;
-		const dropdownWidth = rect.width;
-
-		if (left + dropdownWidth > viewportWidth) {
-			left = viewportWidth - dropdownWidth - 8;
-		}
-		if (left < 8) {
-			left = 8;
-		}
-
-		return {
-			top: openUpward ? rect.top - maxHeight - 4 : rect.bottom + 4,
-			left,
-			width: dropdownWidth,
-			maxHeight,
-			openUpward,
-		};
-	}, [options.length]);
+	const closeMenu = useCallback(() => setIsOpen(false), []);
+	const dropdownPos = usePortalMenuAnchor({
+		open: isOpen,
+		onClose: closeMenu,
+		triggerRef: buttonRef,
+		menuRef,
+		itemCount: options.length,
+	});
 
 	const toggleDropdown = () => {
 		if (disabled) return;
-
-		if (!isOpen) {
-			const position = calculatePosition();
-			setDropdownPos(position);
-		}
-		setIsOpen(!isOpen);
+		setIsOpen((open) => !open);
 	};
 
 	const selectOption = (optionValue: string) => {
 		onChange(optionValue);
 		setIsOpen(false);
+		buttonRef.current?.focus();
 	};
 
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			const target = event.target as Element;
-
-			if (buttonRef.current?.contains(target)) {
-				return;
-			}
-
-			if (target.closest(".menu-panel")) {
-				return;
-			}
-
-			setIsOpen(false);
-		};
-
-		if (isOpen) {
-			document.addEventListener("click", handleClickOutside);
-			return () => document.removeEventListener("click", handleClickOutside);
-		}
-		return undefined;
-	}, [isOpen]);
-
-	useEffect(() => {
-		const handleEscape = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				setIsOpen(false);
-			}
-		};
-
-		const handleWindowResize = () => setDropdownPos(calculatePosition());
-
-		if (isOpen) {
-			document.addEventListener("keydown", handleEscape);
-			window.addEventListener("resize", handleWindowResize);
-			window.addEventListener("scroll", handleWindowResize, true);
-
-			return () => {
-				document.removeEventListener("keydown", handleEscape);
-				window.removeEventListener("resize", handleWindowResize);
-				window.removeEventListener("scroll", handleWindowResize, true);
-			};
-		}
-		return undefined;
-	}, [isOpen, calculatePosition]);
+	const handleMenuKeyDown = useMenuKeyboard({
+		open: isOpen,
+		onClose: closeMenu,
+		menuRef,
+		triggerRef: buttonRef,
+	});
 
 	return (
 		<>
@@ -163,21 +86,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 				aria-expanded={isOpen}
 				aria-label={ariaLabel}
 				title={title}
-				className={`md-select ${className}`}
-				style={{
-					width: "100%",
-					textAlign: "left",
-					display: "flex",
-					alignItems: "center",
-					justifyContent: "space-between",
-					background: "var(--color-surface-variant)",
-					color: "var(--color-on-surface)",
-					border: "1px solid var(--color-outline)",
-					borderRadius: "8px",
-					padding: "8px 12px",
-					fontSize: "14px",
-					boxShadow: "var(--shadow-1)",
-				}}
+				className={`md-select md-select--trigger ${className}`.trim()}
 			>
 				<span
 					className={`flex items-center gap-2 ${selectedOption ? "" : "opacity-80"}`}
@@ -191,7 +100,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 					{displayText}
 				</span>
 				<svg
-					className={`ml-2 h-4 w-4 shrink-0 transition-transform ${isOpen ? "rotate-180" : ""}`}
+					className={`dropdown-arrow ml-2 h-4 w-4 shrink-0 ${isOpen ? "dropdown-arrow--open" : ""}`}
 					viewBox="0 0 20 20"
 					fill="none"
 					stroke="currentColor"
@@ -207,11 +116,11 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 				typeof document !== "undefined" &&
 				createPortal(
 					<div
+						ref={menuRef}
 						role="menu"
+						onKeyDown={handleMenuKeyDown}
 						className={`menu-panel fixed z-[10001] overflow-y-auto ${
-							dropdownPos.openUpward
-								? "slide-in-from-bottom-2 animate-in"
-								: "slide-in-from-top-2 animate-in"
+							dropdownPos.openUpward ? "fade-in-up" : "fade-in-down"
 						}`}
 						style={{
 							top: dropdownPos.top,
@@ -230,19 +139,8 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 										selectOption(option.value);
 									}
 								}}
-								className="menu-item"
-								style={{
-									opacity: option.disabled ? 0.5 : 1,
-									cursor: option.disabled ? "not-allowed" : "pointer",
-									background:
-										option.value === value
-											? "var(--color-primary)"
-											: "transparent",
-									color:
-										option.value === value
-											? "var(--color-on-primary)"
-											: "var(--color-on-surface)",
-								}}
+								className={`menu-item ${option.disabled ? "menu-item--disabled" : ""}`}
+								data-selected={option.value === value}
 								role="menuitem"
 								disabled={option.disabled}
 							>

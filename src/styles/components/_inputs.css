@@ -55,6 +55,43 @@
 	outline-offset: 0;
 }
 
+.md-select--trigger {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	width: 100%;
+	height: auto;
+	min-height: 40px;
+	padding: 8px 12px;
+	border-radius: 8px;
+	font-size: 14px;
+	box-shadow: var(--shadow-1);
+	cursor: pointer;
+	transition:
+		border-color 150ms ease,
+		box-shadow 150ms ease,
+		background 150ms ease;
+}
+
+.md-select--trigger:hover:not(:disabled) {
+	border-color: color-mix(
+		in srgb,
+		var(--color-primary),
+		var(--color-outline) 50%
+	);
+	box-shadow: var(--shadow-2);
+}
+
+.md-select--trigger:disabled {
+	opacity: 0.55;
+	cursor: not-allowed;
+}
+
+.md-select--trigger[aria-expanded="true"] {
+	border-color: var(--color-primary);
+	box-shadow: var(--shadow-2);
+}
+
 /* ========================================
  * CHECKBOX (.md-checkbox)
  * Modern styled checkbox with smooth animations

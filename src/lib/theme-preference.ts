@@ -23,11 +23,23 @@ export function readThemePreference(): ThemeId {
 	return "earth";
 }
 
+const THEME_TRANSITION_CLASS = "theme-transitioning";
+const THEME_TRANSITION_MS = 300;
+let transitionTimer: ReturnType<typeof setTimeout> | null = null;
+
 export function applyThemeToDocument(theme: ThemeId): void {
-	document.documentElement.setAttribute(
-		"data-theme",
-		theme === "earth" ? "" : theme,
-	);
+	const root = document.documentElement;
+	const next = theme === "earth" ? "" : theme;
+	if (root.getAttribute("data-theme") === next) return;
+
+	root.classList.add(THEME_TRANSITION_CLASS);
+	root.setAttribute("data-theme", next);
+
+	if (transitionTimer !== null) clearTimeout(transitionTimer);
+	transitionTimer = setTimeout(() => {
+		root.classList.remove(THEME_TRANSITION_CLASS);
+		transitionTimer = null;
+	}, THEME_TRANSITION_MS);
 }
 
 export function applyStoredThemeToDocument(): void {

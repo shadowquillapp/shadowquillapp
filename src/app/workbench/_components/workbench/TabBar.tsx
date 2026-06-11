@@ -211,7 +211,7 @@ export function TabBar({
 								role="tab"
 								aria-selected={isActive}
 								tabIndex={0}
-								className={`md-btn tab-item ${isDragging ? "dragging" : ""}`}
+								className={`md-btn tab-item fade-in-scale ${isDragging ? "dragging" : ""}`}
 								draggable={!!onReorderTabs}
 								onClick={() => onSwitchTab(tab.id)}
 								onKeyDown={(e) => {

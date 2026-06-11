@@ -267,7 +267,7 @@ export function OutputPanel({
 
 			{activeTab?.error && (
 				<div
-					className="slide-in-from-bottom-2 absolute flex animate-in items-center rounded-lg border border-attention/10 bg-attention/10 text-attention shadow-lg"
+					className="fade-in-up absolute flex items-center rounded-lg border border-attention/10 bg-attention/10 text-attention shadow-lg"
 					style={{
 						right: "var(--space-6)",
 						bottom: "var(--space-6)",

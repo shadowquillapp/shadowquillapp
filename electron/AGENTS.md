@@ -36,15 +36,10 @@
 | `menu.cjs` | App menu (mac app menu, File/Edit/View) wiring Find, Zoom In/Out/Reset, fullscreen; emits `shadowquill:find:*` and `shadowquill:zoom:changed` to focused window. |
 | `data-paths.cjs` | OS-correct `userData` (`%LOCALAPPDATA%/ShadowQuill`, `~/Library/Application Support/ShadowQuill`, `~/.local/share/ShadowQuill`); handles `--factory-reset` CLI early wipe; clears Windows `Zone.Identifier` ADS. |
 
-## Factory reset (two paths)
+## Factory reset
 
-**UI factory reset** (`shadowquill:factoryReset` IPC, triggered from `LocalDataManagementContent`):
-1. Renderer: `clearAllStorageForFactoryReset()` (blocks writes, clears declared keys).
-2. Main: resets `app-data.json` to `{}`, clears both Electron sessions + cache, deletes `window-state.json`.
-3. Renderer: `window.location.assign("/workbench")` — **no `app.relaunch()`**.
-
-**CLI factory reset** (`--factory-reset` flag, `data-paths.cjs`):
-- Full `userData` wipe before app start; spawns a new process. More destructive than UI path.
+- **UI** (`shadowquill:factoryReset`): renderer `clearAllStorageForFactoryReset()` → main clears `app-data.json` + sessions/cache + `window-state.json` → `location.assign("/workbench")` (no `app.relaunch()`).
+- **CLI** (`--factory-reset` in `data-paths.cjs`): full `userData` wipe before start; spawns new process.
 
 ## IPC contract
 
@@ -59,15 +54,12 @@ All channels prefixed `shadowquill:` (invoke/handle, main returns Promise).
 - `shadowquill:view:getZoomFactor|setZoomFactor|resetZoom`
 - `shadowquill:find:findInPage|stopFindInPage`
 
-**Main → Renderer (push, `webContents.send` / `ipcRenderer.on`):**
-- `shadowquill:zoom:changed` · `shadowquill:find:show|next|previous` · `shadowquill:info` (preload-only)
-- DOM events (renderer side, via `executeJavaScript`): `found-in-page` CustomEvent, `app-info` CustomEvent
+**Main → Renderer:** `shadowquill:zoom:changed` · `shadowquill:find:show|next|previous` · `shadowquill:info`; DOM events via `executeJavaScript`: `found-in-page`, `app-info`.
 
 ## Next.js lifecycle
 
-- **Dev**: `start-electron.cjs` → `next dev --turbo -H localhost -p 31415` (port 31415) → `main.cjs` `loadURL("http://localhost:31415")`.
-- **Prod (packaged)**: `main.cjs` → `startNextServer()` in `utils/next-server.cjs` → ephemeral port → `loadURL("http://localhost:${port}")`. Falls back to static `.next/server/app/*/index.html` on Next failure; total failure → `dialog.showErrorBox` + `app.quit()`.
-- **`before-quit`**: closes HTTP server and flushes session storage before exit.
+- **Dev**: `start-electron.cjs` → `next dev --turbo -H localhost -p 31415` → `loadURL(localhost:31415)`.
+- **Prod**: `next-server.cjs` ephemeral port; static `.next/server/app/*.html` fallback; failure → `showErrorBox` + `quit`. **`before-quit`**: close HTTP server, flush session storage.
 
 ## Conventions (delta from root)
 
@@ -84,4 +76,4 @@ All channels prefixed `shadowquill:` (invoke/handle, main returns Promise).
 - ❌ **Do not use `setWindowOpenHandler` to open new windows** — it must `deny` and route to `shell.openExternal` (`window-manager.cjs`).
 - ❌ **Do not set `frame: true`** on macOS/Windows — custom titlebar is intentional.
 - ❌ **Do not store secrets in IPC payloads** — they're passed through the renderer.
-- ❌ **Do not bypass `isLoopbackHost` (in `src/lib/domain/model-config.ts`)** — Electron main also fetches Ollama URLs; non-loopback is an SSRF vector.
+- ❌ **Do not bypass `isLoopbackHost`** (`domain/model-config.ts`) — SSRF vector; main also fetches Ollama URLs.

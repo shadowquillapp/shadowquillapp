@@ -47,12 +47,33 @@
 	cursor: pointer;
 }
 
-.menu-item:hover {
+.menu-item:hover:not(:disabled) {
 	background: var(--color-outline);
+}
+
+.menu-item:focus-visible {
+	outline: none;
+	background: var(--color-outline);
+	box-shadow: inset 2px 0 0 var(--color-primary);
+}
+
+.menu-item[data-selected="true"] {
+	background: var(--color-primary);
+	color: var(--color-on-primary);
+}
+
+.menu-item[data-selected="true"]:disabled {
+	opacity: 0.65;
+	cursor: default;
 }
 
 .menu-item--selected {
 	background: var(--color-outline);
+}
+
+.menu-item--disabled {
+	opacity: 0.5;
+	cursor: not-allowed;
 }
 
 /* ========================================

@@ -1,13 +1,13 @@
 # `src/app/workbench/` — AGENTS.md
 
 **Parent:** [`/AGENTS.md`](../../AGENTS.md)
-**Scope:** the primary surface — the prompt workbench. `page.tsx` is a server component that wraps `<PromptWorkbench />` in `<ModelConfigGate />`.
+**Scope:** the primary surface — the prompt workbench. `page.tsx` is a thin server shell that renders `<PromptWorkbench />` only (no `ModelConfigGate` wrapper).
 
 ## Layout (deeply nested co-location)
 
 ```
 workbench/
-├── page.tsx                          # server; <ModelConfigGate><PromptWorkbench /></ModelConfigGate>
+├── page.tsx                          # server; <PromptWorkbench /> only
 └── _components/
     ├── PromptWorkbench.tsx           # client; orchestrator (10 hooks + dialogs)
     └── workbench/                    # <-- same name, deeper: feature internals
@@ -52,4 +52,4 @@ workbench/
 - ❌ **Do not import `useDialog` from a server component** — it only works in `PromptWorkbench` and below.
 - ❌ **Do not reach into another feature's hooks folder** — they are workbench-internal.
 - ❌ **Do not bypass `useGeneration`** for ad-hoc prompt sends — all output flows through the version graph.
-- ⚠️ `biome-ignore correctness/useExhaustiveDependencies` is used in `PromptWorkbench.tsx:126` and `ModelConfigGate.tsx:820` — keep the comment justifying the suppression if you touch those effects.
+- ⚠️ `biome-ignore` in workbench tree (3 of 4 repo-wide): `PromptWorkbench.tsx:107` (`useExhaustiveDependencies`), `:341` (a11y resize handle), `PresetPickerModal.tsx:333` (stop propagation). 4th: `ModelConfigGate.tsx:408` in components `AGENTS.md`.

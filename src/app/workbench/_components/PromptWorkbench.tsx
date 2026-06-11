@@ -124,23 +124,6 @@ export default function PromptWorkbench() {
 		: [];
 	const isVersionNavigatorEmpty = Boolean(activeTab) && versions.length === 0;
 
-	useEffect(() => {
-		if (!showVersionDropdown) return;
-
-		const handleClickOutside = (e: MouseEvent) => {
-			if (
-				versionDropdownRef.current &&
-				!versionDropdownRef.current.contains(e.target as Node) &&
-				!(e.target as Element).closest(".version-dropdown-menu")
-			) {
-				setShowVersionDropdown(false);
-			}
-		};
-
-		document.addEventListener("mousedown", handleClickOutside);
-		return () => document.removeEventListener("mousedown", handleClickOutside);
-	}, [showVersionDropdown]);
-
 	const versionsWithOutput = versions.filter((v) => v.outputMessageId);
 	const isRefinementMode = versionsWithOutput.length > 0;
 
