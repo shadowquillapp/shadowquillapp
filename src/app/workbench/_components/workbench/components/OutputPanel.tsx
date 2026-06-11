@@ -108,10 +108,19 @@ export function OutputPanel({
 			}}
 		>
 			<div className="panel group relative min-h-0 flex-1">
-				<div className="panel__head">
-					<span className="panel__title">Output</span>
-					<span className="panel__head-spacer" />
+				<div className="panel__head panel__head--tall">
+					<span
+						className="panel__title"
+						style={{ color: "var(--color-accent)" }}
+					>
+						Output
+					</span>
+					<span
+						className="panel__head-divider hidden sm:block"
+						aria-hidden="true"
+					/>
 					<TextStats wordCount={outputWordCount} charCount={outputCharCount} />
+					<span className="panel__head-spacer" />
 					<VersionDropdown
 						versionDropdownRef={versionDropdownRef}
 						showVersionDropdown={showVersionDropdown}

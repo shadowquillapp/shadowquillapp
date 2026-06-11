@@ -43,6 +43,13 @@
 	min-height: 36px;
 }
 
+/* Tab-only header: zero slack shell around the tab row */
+.simple-workbench__header--tabs {
+	padding: 0;
+	min-height: unset;
+	align-items: stretch;
+}
+
 .simple-workbench__header-left {
 	display: flex;
 	align-items: flex-end;
@@ -68,6 +75,8 @@
 	flex: 1;
 	min-width: 0;
 	background: transparent;
+	min-height: 32px;
+	align-items: stretch;
 }
 
 .workbench-tab-bar:not(.workbench-tab-bar--embedded) {
@@ -204,8 +213,9 @@
 }
 
 .workbench-tab-new {
-	width: 28px;
-	height: 28px;
+	width: 32px;
+	min-width: 32px;
+	height: 32px;
 	padding: 0;
 	flex-shrink: 0;
 	display: flex;
@@ -222,6 +232,7 @@
 }
 
 .workbench-tab-new:hover:not(:disabled) {
+	background: var(--color-surface-variant);
 	color: var(--color-on-surface);
 }
 
@@ -230,7 +241,32 @@
 	cursor: not-allowed;
 }
 
+.workbench-tab-new--embedded {
+	border-left: 1px solid var(--color-outline);
+}
+
+.workbench-tab-new--solo {
+	position: relative;
+	z-index: 10;
+	overflow: visible;
+}
+
+.workbench-tab-new__icon {
+	width: 12px;
+	height: 12px;
+	flex-shrink: 0;
+	opacity: 0.7;
+	transition: opacity 0.12s ease;
+}
+
+.workbench-tab-new:hover:not(:disabled) .workbench-tab-new__icon {
+	opacity: 1;
+}
+
 .workbench-tab-new--standalone {
+	width: 28px;
+	min-width: 28px;
+	height: 28px;
 	border-radius: var(--radius-sm);
 	background: var(--color-accent);
 	color: var(--color-on-accent);
@@ -257,6 +293,15 @@
 	border-radius: 0;
 	cursor: pointer;
 	color: var(--color-on-surface);
+}
+
+/* Embedded bar: controls and list stretch to match 32px tab height */
+.workbench-tab-bar--embedded .workbench-tab-list {
+	align-items: stretch;
+}
+
+.workbench-tab-bar--embedded .workbench-tab-scroll {
+	height: 32px;
 }
 
 .workbench-tab-drop-zone {
@@ -377,6 +422,15 @@
 
 .prompt-input__run-btn {
 	min-width: 140px;
+}
+
+.run-button-container {
+	min-width: 80px;
+}
+
+.run-button-container.md-btn--primary svg path {
+	fill: currentColor;
+	opacity: 1;
 }
 
 /* ========================================
@@ -619,7 +673,7 @@
 }
 
 @media (max-width: 768px) {
-	.simple-workbench__header {
+	.simple-workbench__header:not(.simple-workbench__header--tabs) {
 		padding: 0 var(--space-2);
 	}
 
