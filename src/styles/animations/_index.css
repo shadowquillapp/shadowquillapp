@@ -127,20 +127,6 @@
 	}
 }
 
-@keyframes generating-soft-glow {
-	0%,
-	100% {
-		box-shadow:
-			0 6px 12px rgba(0, 0, 0, 0.18),
-			0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
-	}
-	50% {
-		box-shadow:
-			0 6px 12px rgba(0, 0, 0, 0.18),
-			0 0 16px 1px color-mix(in srgb, var(--color-primary) 20%, transparent);
-	}
-}
-
 /* ----------------------------------------
  * Workbench Generating State
  * Elegant dimming with smooth transitions
@@ -185,25 +171,11 @@
 	opacity: 1;
 	pointer-events: auto;
 	filter: none;
-	/* Subtle pulse to draw attention */
-	animation: generating-stop-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes generating-stop-pulse {
-	0%,
-	100% {
-		transform: scale(1);
-	}
-	50% {
-		transform: scale(1.05);
-	}
 }
 
 /* Output panel stays fully visible with subtle activity indicator */
 .output-generating {
-	animation:
-		generating-border-shimmer 2.5s ease-in-out infinite,
-		generating-soft-glow 2.5s ease-in-out infinite;
+	animation: generating-border-shimmer 2.5s ease-in-out infinite;
 }
 
 /* Resize handle dims during generation */
@@ -211,6 +183,81 @@
 	opacity: 0.3;
 	pointer-events: none;
 	transition: opacity 0.3s ease;
+}
+
+/* ========================================
+ * FADE ANIMATIONS
+ * ======================================== */
+
+@keyframes fade-in {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes fade-out {
+	from {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+	}
+}
+
+@keyframes fade-in-up {
+	from {
+		opacity: 0;
+		transform: translateY(8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fade-in-down {
+	from {
+		opacity: 0;
+		transform: translateY(-8px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes fade-in-scale {
+	from {
+		opacity: 0;
+		transform: scale(0.96);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.fade-in {
+	animation: fade-in 240ms ease-out;
+}
+
+.fade-out {
+	animation: fade-out 200ms ease-in forwards;
+}
+
+.fade-in-up {
+	animation: fade-in-up 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-in-down {
+	animation: fade-in-down 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fade-in-scale {
+	animation: fade-in-scale 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* ========================================
@@ -246,8 +293,12 @@
 	.md-spin,
 	.version-just-created,
 	.output-animate-in,
+	.fade-in,
+	.fade-out,
+	.fade-in-up,
+	.fade-in-down,
+	.fade-in-scale,
 	.version-switching,
-	.workbench--generating .prompt-input-pane .run-button-container,
 	.output-generating,
 	.simple-workbench,
 	.page-animate {

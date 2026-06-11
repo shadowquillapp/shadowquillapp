@@ -9,7 +9,6 @@ export const STORAGE_KEYS = {
 	MODEL_BASE_URL: { key: "MODEL_BASE_URL", scope: "local" },
 	MODEL_NAME: { key: "MODEL_NAME", scope: "local" },
 	SYSTEM_PROMPT_BUILD: { key: "SYSTEM_PROMPT_BUILD", scope: "local" },
-	THEME_PREFERENCE: { key: "theme-preference", scope: "local" },
 	RECENT_PRESETS: { key: "recent-presets", scope: "local" },
 	LAST_SELECTED_PRESET: { key: "last-selected-preset", scope: "local" },
 	PANEL_WIDTH: { key: "shadowquill:panelWidth", scope: "local" },

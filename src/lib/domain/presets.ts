@@ -18,7 +18,6 @@ export interface Preset extends PresetLite {
 const STRING_OPTION_KEYS = [
 	"language",
 	"audience",
-	"identity",
 	"additionalContext",
 	"styleGuidelines",
 ] as const satisfies readonly (keyof GenerationOptions)[];

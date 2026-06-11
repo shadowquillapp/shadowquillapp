@@ -4,7 +4,6 @@ import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "./Icon";
 import AppVersionContent from "./settings/AppVersionContent";
-import DisplayContent from "./settings/DisplayContent";
 import LocalDataManagementContent from "./settings/LocalDataManagementContent";
 import OllamaSetupContent from "./settings/OllamaSetupContent";
 import SystemPromptEditorContent from "./settings/SystemPromptEditorContent";
@@ -12,7 +11,6 @@ import { useCloseOnEscape } from "./useCloseOnEscape";
 
 const SETTINGS_TABS = [
 	{ tab: "version", label: "App Version", Content: AppVersionContent },
-	{ tab: "display", label: "Display", Content: DisplayContent },
 	{
 		tab: "data",
 		label: "Data Management",
@@ -127,9 +125,6 @@ export default function SettingsDialog({
 					fontSize: "14px",
 					cursor: "pointer",
 					letterSpacing: "-0.01em",
-					boxShadow: isActive
-						? "0 1px 3px color-mix(in srgb, var(--color-primary) 10%, transparent)"
-						: "none",
 				}}
 			>
 				<span

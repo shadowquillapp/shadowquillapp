@@ -22,16 +22,7 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 	return (
 		<button
 			type="button"
-			className="group flex w-full cursor-pointer items-center rounded-lg text-left transition-all hover:opacity-95 focus-visible:outline focus-visible:outline-1 focus-visible:outline-[var(--color-outline)]"
-			style={{
-				gap: 6,
-				padding: "6px 8px",
-				background:
-					"color-mix(in srgb, var(--color-primary), var(--color-surface-variant) 92%)",
-				border:
-					"1px solid color-mix(in srgb, var(--color-outline), var(--color-primary) 30%)",
-				boxShadow: "none",
-			}}
+			className="preset-info-row group fade-in-up"
 			onClick={onClick}
 			title="Click for full preset details"
 		>
@@ -45,67 +36,56 @@ export function PresetInfoRow({ preset, onClick }: PresetInfoRowProps) {
 				/>
 			</div>
 
-			<div
-				className="flex min-w-0 flex-1 items-center overflow-hidden"
-				style={{ gap: 8 }}
-			>
-				<span className="shrink-0 font-bold text-[13px] text-on-surface leading-none">
-					{preset.name}
-				</span>
-				<span
-					className="shrink-0"
-					style={{
-						fontSize: 9,
-						fontWeight: 800,
-						textTransform: "uppercase",
-						letterSpacing: "0.04em",
-						color: "var(--color-primary)",
-						background:
-							"color-mix(in srgb, var(--color-primary), var(--color-surface) 92%)",
-						border:
-							"1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
-						padding: "2px 6px",
-						borderRadius: 999,
-						lineHeight: "12px",
-					}}
-				>
-					{preset.taskType}
-				</span>
-				{meta.map((item) => (
+			<div className="preset-info-row__meta">
+				<span className="preset-info-row__name">{preset.name}</span>
+				<div className="preset-info-row__tags">
 					<span
-						key={item}
-						className="shrink-0"
+						className="preset-info-row__tag shrink-0"
 						style={{
 							fontSize: 9,
-							color: "var(--color-on-surface-variant)",
-							opacity: 0.7,
+							fontWeight: 800,
+							textTransform: "uppercase",
+							letterSpacing: "0.04em",
+							color: "var(--color-primary)",
 							background:
-								"color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 80%)",
+								"color-mix(in srgb, var(--color-primary), var(--color-surface) 92%)",
 							border:
-								"1px solid color-mix(in srgb, var(--color-outline), transparent 35%)",
+								"1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 70%)",
 							padding: "2px 6px",
 							borderRadius: 999,
 							lineHeight: "12px",
-							textTransform:
-								item === item.toUpperCase() ? "none" : "capitalize",
-							fontVariantNumeric: "tabular-nums",
 						}}
-						title={item}
 					>
-						{item}
+						{preset.taskType}
 					</span>
-				))}
+					{meta.map((item) => (
+						<span
+							key={item}
+							className="preset-info-row__tag shrink-0"
+							style={{
+								fontSize: 9,
+								color: "var(--color-on-surface-variant)",
+								opacity: 0.7,
+								background:
+									"color-mix(in srgb, var(--color-surface), var(--color-surface-variant) 80%)",
+								border:
+									"1px solid color-mix(in srgb, var(--color-outline), transparent 35%)",
+								padding: "2px 6px",
+								borderRadius: 999,
+								lineHeight: "12px",
+								textTransform:
+									item === item.toUpperCase() ? "none" : "capitalize",
+								fontVariantNumeric: "tabular-nums",
+							}}
+							title={item}
+						>
+							{item}
+						</span>
+					))}
+				</div>
 			</div>
 
-			<div
-				className="flex shrink-0 items-center justify-center"
-				style={{
-					color:
-						"color-mix(in srgb, var(--color-on-surface-variant), transparent 25%)",
-					transition: "transform 120ms ease",
-					opacity: 0.75,
-				}}
-			>
+			<div className="preset-info-row__chevron">
 				<Icon name="chevron-right" style={{ width: 12, height: 12 }} />
 			</div>
 		</button>

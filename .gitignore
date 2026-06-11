@@ -8,3 +8,4 @@ tsconfig.tsbuildinfo
 .markdownlint.json
 /coverage/
 .env.local
+.pnpm-store/

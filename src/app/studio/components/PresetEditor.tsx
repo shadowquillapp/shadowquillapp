@@ -64,23 +64,6 @@ export default function PresetEditor({
 							<SectionHeading>Context</SectionHeading>
 							<div>
 								<label
-									htmlFor="identity"
-									className="mb-1 block font-medium text-secondary text-xs"
-								>
-									Identity
-								</label>
-								<input
-									id="identity"
-									type="text"
-									value={preset.options?.identity || ""}
-									onChange={(e) => onFieldChange("identity", e.target.value)}
-									placeholder="e.g., You are an expert programmer..."
-									className="md-input w-full px-3 py-2 text-sm"
-								/>
-							</div>
-
-							<div>
-								<label
 									htmlFor="additional-context"
 									className="mb-1 block font-medium text-secondary text-xs"
 								>

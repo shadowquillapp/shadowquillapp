@@ -1,5 +1,9 @@
+import type React from "react";
+import { useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Icon } from "@/components/Icon";
+import { useMenuKeyboard } from "@/components/useMenuKeyboard";
+import { usePortalMenuAnchor } from "@/components/usePortalMenuAnchor";
 import type { VersionGraph } from "../types";
 
 interface VersionDropdownProps {
@@ -28,18 +32,44 @@ export function VersionDropdown({
 			? versions.findIndex((v) => v.id === activeTab.versionGraph.activeId) + 1
 			: 0;
 
+	const menuRef = useRef<HTMLDivElement | null>(null);
+
+	const closeMenu = useCallback(
+		() => setShowVersionDropdown(false),
+		[setShowVersionDropdown],
+	);
+
+	const dropdownPos = usePortalMenuAnchor({
+		open: showVersionDropdown,
+		onClose: closeMenu,
+		triggerRef: versionDropdownRef,
+		menuRef,
+		itemCount: versions.length,
+		rowHeight: 44,
+	});
+
+	const handleMenuKeyDown = useMenuKeyboard({
+		open: showVersionDropdown,
+		onClose: closeMenu,
+		menuRef,
+		triggerRef: versionDropdownRef,
+	});
+
+	const toggleMenu = () => {
+		if (versions.length === 0) return;
+		setShowVersionDropdown(!showVersionDropdown);
+	};
+
 	return (
 		<div style={{ position: "relative" }}>
 			<button
 				ref={versionDropdownRef}
 				type="button"
 				className="md-btn"
+				aria-haspopup="menu"
+				aria-expanded={showVersionDropdown}
 				disabled={versions.length === 0}
-				onClick={() => {
-					if (versions.length > 0) {
-						setShowVersionDropdown(!showVersionDropdown);
-					}
-				}}
+				onClick={toggleMenu}
 				title={
 					versions.length > 0 && activeTab
 						? `Version ${currentVersionIndex} - Click to switch versions`
@@ -59,19 +89,21 @@ export function VersionDropdown({
 			</button>
 			{showVersionDropdown &&
 				versions.length > 0 &&
+				dropdownPos &&
 				typeof document !== "undefined" &&
 				createPortal(
 					<div
-						className="version-dropdown-menu menu-panel slide-in-from-top-2 fixed z-[10001] animate-in overflow-y-auto"
+						ref={menuRef}
+						role="menu"
+						onKeyDown={handleMenuKeyDown}
+						className={`version-dropdown-menu menu-panel fixed z-[10001] overflow-y-auto ${
+							dropdownPos.openUpward ? "fade-in-up" : "fade-in-down"
+						}`}
 						style={{
-							top:
-								(versionDropdownRef.current?.getBoundingClientRect().bottom ||
-									0) + 4,
-							left:
-								versionDropdownRef.current?.getBoundingClientRect().left || 0,
-							width:
-								versionDropdownRef.current?.getBoundingClientRect().width || 0,
-							maxHeight: 300,
+							top: dropdownPos.top,
+							left: dropdownPos.left,
+							width: Math.max(dropdownPos.width, 160),
+							maxHeight: dropdownPos.maxHeight,
 						}}
 					>
 						{versions.map((version, index) => {
@@ -92,16 +124,8 @@ export function VersionDropdown({
 										}
 									}}
 									className="menu-item"
-									style={{
-										opacity: isCurrentVersion ? 0.6 : 1,
-										cursor: isCurrentVersion ? "default" : "pointer",
-										background: isCurrentVersion
-											? "var(--color-primary)"
-											: "transparent",
-										color: isCurrentVersion
-											? "var(--color-on-primary)"
-											: "var(--color-on-surface)",
-									}}
+									role="menuitem"
+									data-selected={isCurrentVersion}
 									disabled={isCurrentVersion}
 								>
 									<span

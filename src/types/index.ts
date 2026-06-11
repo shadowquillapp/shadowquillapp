@@ -24,7 +24,6 @@ export interface GenerationOptions {
 	format?: Format;
 	language?: string;
 	audience?: string;
-	identity?: string;
 	additionalContext?: string;
 	styleGuidelines?: string;
 }
