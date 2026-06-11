@@ -21,10 +21,9 @@
 .menu-panel {
 	border: 1px solid var(--color-outline);
 	background: var(--color-surface-variant);
-	padding: 8px 0;
-	border-radius: 12px;
+	padding: 4px 0;
+	border-radius: var(--radius-sm);
 	min-width: 192px;
-	box-shadow: var(--shadow-2);
 }
 
 /* ========================================
@@ -35,9 +34,9 @@
 .menu-item {
 	width: 100%;
 	text-align: left;
-	font-size: 14px;
-	line-height: 24px;
-	padding: 8px 12px;
+	font-size: var(--text-sm);
+	line-height: 20px;
+	padding: 6px 12px;
 	color: var(--color-on-surface);
 	background: transparent;
 	border: none;
@@ -48,18 +47,19 @@
 }
 
 .menu-item:hover:not(:disabled) {
-	background: var(--color-outline);
+	background: var(--surfacea30);
 }
 
 .menu-item:focus-visible {
 	outline: none;
-	background: var(--color-outline);
-	box-shadow: inset 2px 0 0 var(--color-primary);
+	background: var(--surfacea30);
+	box-shadow: inset 2px 0 0 var(--color-accent);
 }
 
 .menu-item[data-selected="true"] {
-	background: var(--color-primary);
-	color: var(--color-on-primary);
+	background: transparent;
+	color: var(--color-on-surface);
+	box-shadow: inset 2px 0 0 var(--color-accent);
 }
 
 .menu-item[data-selected="true"]:disabled {
@@ -68,7 +68,7 @@
 }
 
 .menu-item--selected {
-	background: var(--color-outline);
+	background: var(--surfacea30);
 }
 
 .menu-item--disabled {

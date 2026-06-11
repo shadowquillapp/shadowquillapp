@@ -145,7 +145,7 @@
 .bubble-code-block {
 	background: var(--color-surface);
 	border: 1px solid var(--color-outline);
-	border-radius: 8px;
+	border-radius: var(--radius-sm);
 	margin: 8px 0;
 	overflow: hidden;
 }
@@ -154,16 +154,15 @@
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	padding: 8px 12px;
-	background: var(--color-outline);
+	padding: 4px 12px;
+	background: transparent;
 	border-bottom: 1px solid var(--color-outline);
 }
 
 .bubble-code-lang {
 	font-size: 11px;
-	font-weight: 600;
-	text-transform: uppercase;
-	letter-spacing: 0.5px;
+	font-weight: 500;
+	font-family: var(--font-mono);
 	color: var(--color-on-surface-variant);
 }
 
@@ -174,13 +173,10 @@
 	cursor: pointer;
 	padding: 4px;
 	border-radius: 4px;
-	transition:
-		background 120ms ease,
-		color 120ms ease;
+	transition: color 120ms ease;
 }
 
 .bubble-code-copy:hover {
-	background: var(--color-surface-variant);
 	color: var(--color-on-surface);
 }
 
@@ -196,7 +192,7 @@
 
 /* ========================================
  * SYNTAX TOKENS
- * Single fixed palette: white / gray
+ * Syntax tokens use semantic palette variables.
  * ======================================== */
 
 .token-key {
@@ -208,35 +204,35 @@
 }
 
 .token-number {
-	color: #a3a3a3;
+	color: var(--color-on-surface-variant);
 }
 
 .token-boolean {
-	color: #d4d4d4;
+	color: var(--color-on-surface);
 }
 
 .token-null {
-	color: #d4d4d4;
+	color: var(--color-on-surface);
 }
 
 .token-brace {
-	color: #a3a3a3;
+	color: var(--color-on-surface-variant);
 }
 
 .token-bracket {
-	color: #a3a3a3;
+	color: var(--color-on-surface-variant);
 }
 
 .token-colon {
-	color: #a3a3a3;
+	color: var(--color-on-surface-variant);
 }
 
 .token-comma {
-	color: #525252;
+	color: var(--color-outline);
 }
 
 .token-punctuation {
-	color: #a3a3a3;
+	color: var(--color-on-surface-variant);
 }
 
 /* ========================================
@@ -254,7 +250,7 @@
 }
 
 .token-md-bold {
-	color: #d4d4d4;
+	color: var(--color-on-surface);
 }
 
 .token-md-bold-text {
@@ -263,7 +259,7 @@
 }
 
 .token-md-italic {
-	color: #d4d4d4;
+	color: var(--color-on-surface);
 }
 
 .token-md-italic-text {
@@ -272,7 +268,7 @@
 }
 
 .token-md-code-tick {
-	color: #d4d4d4;
+	color: var(--color-on-surface);
 }
 
 .token-md-code {
@@ -287,12 +283,12 @@
 }
 
 .token-md-url {
-	color: #d4d4d4;
+	color: var(--color-on-surface);
 	text-decoration: underline;
 }
 
 .token-md-punctuation {
-	color: #a3a3a3;
+	color: var(--color-on-surface-variant);
 }
 
 .token-md-list-marker {
@@ -301,24 +297,24 @@
 }
 
 .token-md-quote-marker {
-	color: #525252;
+	color: var(--color-outline);
 	font-weight: 700;
 }
 
 .token-md-quote-text {
-	color: #a3a3a3;
+	color: var(--color-on-surface-variant);
 	font-style: italic;
 }
 
 .token-md-hr {
-	color: #525252;
+	color: var(--color-outline);
 }
 
 .token-md-strike {
-	color: #d4d4d4;
+	color: var(--color-on-surface);
 }
 
 .token-md-strike-text {
-	color: #a3a3a3;
+	color: var(--color-on-surface-variant);
 	text-decoration: line-through;
 }

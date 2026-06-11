@@ -1,8 +1,7 @@
 "use client";
 
-import { Cog6ToothIcon, PaintBrushIcon } from "@heroicons/react/24/solid";
-import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import type React from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
 import SettingsDialog, { type SettingsTab } from "@/components/SettingsDialog";
 import { getJSON } from "@/lib/local-storage";
@@ -23,16 +22,18 @@ import { PresetInfoDialog } from "./workbench/PresetInfoDialog";
 import { PresetPickerModal } from "./workbench/PresetPickerModal";
 import { TabBar } from "./workbench/TabBar";
 import { useTabManager } from "./workbench/useTabManager";
-import { VersionNavigator } from "./workbench/VersionNavigator";
 import { versionList } from "./workbench/version-graph";
 
 export default function PromptWorkbench() {
 	const { showInfo, confirm } = useDialog();
-	const router = useRouter();
-	const { availableModels, currentModelId, setCurrentModelId } =
-		useModelManager();
+	const {
+		availableModels,
+		modelLoadError,
+		refreshModels,
+		currentModelId,
+		setCurrentModelId,
+	} = useModelManager();
 	const [showPresetInfo, setShowPresetInfo] = useState(false);
-	const [justCreatedVersion, setJustCreatedVersion] = useState(false);
 	const [showRefinementContext, setShowRefinementContext] = useState(false);
 	const [showVersionDropdown, setShowVersionDropdown] = useState(false);
 	const versionDropdownRef = useRef<HTMLButtonElement | null>(null);
@@ -82,16 +83,14 @@ export default function PromptWorkbench() {
 		ensureProject,
 		refreshProjectList,
 		confirm,
-		setJustCreatedVersion,
 		setOutputAnimateKey,
 	);
 
-	const { goToPreviousVersion, goToNextVersion, jumpToVersion } =
-		useVersionNavigation(
-			tabManager,
-			setOutputAnimateKey,
-			setShowVersionDropdown,
-		);
+	const { jumpToVersion } = useVersionNavigation(
+		tabManager,
+		setOutputAnimateKey,
+		setShowVersionDropdown,
+	);
 
 	const endRef = useRef<HTMLDivElement | null>(null);
 
@@ -99,10 +98,13 @@ export default function PromptWorkbench() {
 	useEffect(() => {
 		const container = scrollContainerRef.current;
 		if (!container) return;
+		const distanceFromBottom =
+			container.scrollHeight - container.scrollTop - container.clientHeight;
+		if (distanceFromBottom > 160 && !tabManager.activeTab?.sending) return;
 		requestAnimationFrame(() => {
 			container.scrollTo({
 				top: container.scrollHeight,
-				behavior: "smooth",
+				behavior: "auto",
 			});
 		});
 	}, [tabManager.activeTab?.messages, tabManager.activeTab?.sending]);
@@ -113,8 +115,6 @@ export default function PromptWorkbench() {
 	const versions = activeTab
 		? versionList(activeTab.versionGraph).filter((v) => v.label !== "Start")
 		: [];
-	const isVersionNavigatorEmpty = Boolean(activeTab) && versions.length === 0;
-
 	const versionsWithOutput = versions.filter((v) => v.outputMessageId);
 	const isRefinementMode = versionsWithOutput.length > 0;
 
@@ -136,7 +136,6 @@ export default function PromptWorkbench() {
 				(m) => m.id === activeVersion.outputMessageId && m.role === "assistant",
 			)?.content
 		: null;
-	const inputThatGeneratedOutput = activeVersion?.originalInput ?? null;
 
 	const { wordCount, charCount } = useTextStats(activeTab?.draft);
 
@@ -150,10 +149,15 @@ export default function PromptWorkbench() {
 	const { wordCount: outputWordCount, charCount: outputCharCount } =
 		useTextStats(activeVersionOutput?.content);
 
+	const closeActiveTab = useCallback(() => {
+		if (tabManager.activeTabId) tabManager.closeTab(tabManager.activeTabId);
+	}, [tabManager]);
+
 	useKeyboardShortcuts(
 		tabManager,
 		setShowPresetPicker,
 		setPresetPickerForNewTab,
+		closeActiveTab,
 	);
 
 	const { handleResizeStart } = usePanelResize(
@@ -166,23 +170,40 @@ export default function PromptWorkbench() {
 
 	const isGenerating = activeTab?.sending ?? false;
 
+	// Keep Studio's "last selected preset" in sync with the active tab,
+	// since cross-route navigation now happens through the console rail.
+	const activePresetKey = activeTab?.preset
+		? (activeTab.preset.id ?? activeTab.preset.name)
+		: null;
+	useEffect(() => {
+		if (activePresetKey) setLastSelectedPresetKey(activePresetKey);
+	}, [activePresetKey]);
+
+	useEffect(() => {
+		window.dispatchEvent(
+			new CustomEvent("sq-generation-status", {
+				detail: { generating: isGenerating },
+			}),
+		);
+		return () => {
+			window.dispatchEvent(
+				new CustomEvent("sq-generation-status", {
+					detail: { generating: false },
+				}),
+			);
+		};
+	}, [isGenerating]);
+
+	const handleResizeKeyDown = useCallback((e: React.KeyboardEvent) => {
+		if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+		e.preventDefault();
+		const delta = e.key === "ArrowLeft" ? -5 : 5;
+		setLeftPanelWidth((value) => Math.min(80, Math.max(20, value + delta)));
+	}, []);
+
 	return (
 		<>
 			<style jsx global>{`
-				@media (max-width: 768px) {
-					.simple-workbench__panels {
-						flex-direction: column !important;
-					}
-					.prompt-input-pane,
-					.prompt-output-pane {
-						height: 50vh !important;
-						border-right: none !important;
-						border-bottom: 1px solid var(--color-outline) !important;
-					}
-					.prompt-output-pane {
-						border-bottom: none !important;
-					}
-				}
 				@media (max-width: 640px) {
 					.hidden-mobile {
 						display: none !important;
@@ -192,27 +213,8 @@ export default function PromptWorkbench() {
 			<div
 				className={`simple-workbench ${isGenerating ? "workbench--generating" : ""}`}
 			>
-				<header
-					className="simple-workbench__header"
-					style={{
-						flexWrap: "nowrap",
-						gap: "var(--space-2)",
-						padding:
-							"var(--space-2) var(--space-3) var(--space-1) var(--space-3)",
-						alignItems: "flex-end",
-					}}
-				>
-					<div
-						className="simple-workbench__header-left"
-						style={{
-							display: "flex",
-							gap: "var(--space-2)",
-							flexWrap: "nowrap",
-							flex: "1 1 auto",
-							minWidth: 0,
-							overflow: "hidden",
-						}}
-					>
+				<header className="simple-workbench__header">
+					<div className="simple-workbench__header-left">
 						<TabBar
 							embedded
 							tabs={tabManager.tabs.map((tab) => ({
@@ -231,137 +233,60 @@ export default function PromptWorkbench() {
 							}}
 						/>
 					</div>
-					<div
-						className="simple-workbench__header-actions"
-						style={{
-							display: "flex",
-							gap: "var(--space-2)",
-							flexShrink: 0,
-							paddingBottom: "var(--space-2)",
-						}}
-					>
-						<button
-							type="button"
-							onClick={() => {
-								const activeTab = tabManager.activeTab;
-								if (activeTab?.preset) {
-									const presetKey =
-										activeTab.preset.id ?? activeTab.preset.name;
-									if (presetKey) {
-										setLastSelectedPresetKey(presetKey);
-									}
-								}
-								router.push("/studio");
-							}}
-							className="md-btn md-btn--primary"
-							title="Open Preset Studio"
-							style={{ minWidth: 0 }}
-						>
-							<PaintBrushIcon className="h-4 w-4" />
-						</button>
-						<button
-							type="button"
-							className="md-btn"
-							onClick={() => {
-								setSettingsOpen(true);
-							}}
-							title="Settings"
-						>
-							<Cog6ToothIcon className="h-4 w-4" />
-						</button>
-					</div>
 				</header>
 
-				<div
-					ref={panelsRef}
-					className="simple-workbench__panels"
-					style={{
-						display: "flex",
-						flexDirection: "row",
-						height: "100%",
-						overflow: "hidden",
-						position: "relative",
-						marginRight: "var(--space-2)",
-					}}
-				>
-					<InputPanel
-						leftPanelWidth={leftPanelWidth}
-						isResizing={isResizing}
-						tabManager={tabManager}
-						isRefinementMode={isRefinementMode}
-						wordCount={wordCount}
-						charCount={charCount}
-						copyMessage={copyMessage}
-						copiedMessageId={copiedMessageId}
-						showRefinementContext={showRefinementContext}
-						setShowRefinementContext={setShowRefinementContext}
-						versions={versions}
-						activeVersionId={activeVersionId}
-						activeVersionNumber={activeVersionNumber}
-						activeVersionIsRefinement={activeVersionIsRefinement}
-						inputThatGeneratedOutput={inputThatGeneratedOutput}
-						outputToRefine={outputToRefine}
-						textareaContainerRef={textareaContainerRef}
-						activeTab={activeTab}
-						isGenerating={isGenerating}
-						availableModels={availableModels}
-						currentModelId={currentModelId}
-						setCurrentModelId={setCurrentModelId}
-						send={send}
-						stopGenerating={stopGenerating}
-						setShowPresetInfo={setShowPresetInfo}
-					/>
+				<div ref={panelsRef} className="simple-workbench__panels">
+					<div className="workbench-split panel">
+						<InputPanel
+							leftPanelWidth={leftPanelWidth}
+							isResizing={isResizing}
+							onResizeStart={handleResizeStart}
+							onResizeKeyDown={handleResizeKeyDown}
+							tabManager={tabManager}
+							isRefinementMode={isRefinementMode}
+							wordCount={wordCount}
+							charCount={charCount}
+							copyMessage={copyMessage}
+							copiedMessageId={copiedMessageId}
+							showRefinementContext={showRefinementContext}
+							setShowRefinementContext={setShowRefinementContext}
+							versions={versions}
+							activeVersionId={activeVersionId}
+							activeVersionNumber={activeVersionNumber}
+							activeVersionIsRefinement={activeVersionIsRefinement}
+							outputToRefine={outputToRefine}
+							textareaContainerRef={textareaContainerRef}
+							activeTab={activeTab}
+							isGenerating={isGenerating}
+							availableModels={availableModels}
+							modelLoadError={modelLoadError}
+							refreshModels={refreshModels}
+							currentModelId={currentModelId}
+							setCurrentModelId={setCurrentModelId}
+							send={send}
+							stopGenerating={stopGenerating}
+							setShowPresetInfo={setShowPresetInfo}
+						/>
 
-					{/* biome-ignore lint/a11y/useSemanticElements: Interactive resize handle requires div, not hr */}
-					<div
-						className={`panel-resize-container relative hidden flex-col items-center justify-center md:flex ${isResizing ? "panel-resize-container--active" : ""} ${isVersionNavigatorEmpty ? "panel-resize-container--solid" : ""}`}
-						onMouseDown={handleResizeStart}
-						role="separator"
-						aria-orientation="vertical"
-						aria-label="Resize panels"
-						aria-valuenow={leftPanelWidth}
-						aria-valuemin={0}
-						aria-valuemax={100}
-						tabIndex={0}
-						title="Drag to resize panels"
-						style={{
-							width: "var(--space-2)",
-							flexShrink: 0,
-							cursor: "col-resize",
-						}}
-					>
-						<div className="panel-resize-line panel-resize-line--top" />
-						<div className="panel-resize-line panel-resize-line--bottom" />
-
-						{activeTab && (
-							<VersionNavigator
-								versionGraph={activeTab.versionGraph}
-								onPrev={goToPreviousVersion}
-								onNext={goToNextVersion}
-								isGenerating={activeTab.sending}
-								justCreatedVersion={justCreatedVersion}
-							/>
-						)}
+						<OutputPanel
+							tabManager={tabManager}
+							isResizing={isResizing}
+							versionDropdownRef={versionDropdownRef}
+							showVersionDropdown={showVersionDropdown}
+							setShowVersionDropdown={setShowVersionDropdown}
+							versions={versions}
+							activeTab={activeTab}
+							jumpToVersion={jumpToVersion}
+							outputWordCount={outputWordCount}
+							outputCharCount={outputCharCount}
+							copyMessage={copyMessage}
+							copiedMessageId={copiedMessageId}
+							scrollContainerRef={scrollContainerRef}
+							activeMessages={activeMessages}
+							outputAnimateKey={outputAnimateKey}
+							endRef={endRef}
+						/>
 					</div>
-
-					<OutputPanel
-						tabManager={tabManager}
-						isResizing={isResizing}
-						versionDropdownRef={versionDropdownRef}
-						showVersionDropdown={showVersionDropdown}
-						setShowVersionDropdown={setShowVersionDropdown}
-						versions={versions}
-						activeTab={activeTab}
-						jumpToVersion={jumpToVersion}
-						outputWordCount={outputWordCount}
-						outputCharCount={outputCharCount}
-						copyMessage={copyMessage}
-						copiedMessageId={copiedMessageId}
-						scrollContainerRef={scrollContainerRef}
-						activeMessages={activeMessages}
-						outputAnimateKey={outputAnimateKey}
-						endRef={endRef}
-					/>
 				</div>
 			</div>
 
@@ -395,8 +320,8 @@ export default function PromptWorkbench() {
 					setShowPresetPicker(false);
 					setPresetPickerForNewTab(false);
 				}}
-				onSelectProject={(projectId) => {
-					loadProject(projectId);
+				onSelectProject={async (projectId) => {
+					await loadProject(projectId);
 					setShowPresetPicker(false);
 					setPresetPickerForNewTab(false);
 				}}

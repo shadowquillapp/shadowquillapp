@@ -1,11 +1,7 @@
 "use client";
 
-import {
-	ChevronDownIcon,
-	ChevronUpIcon,
-	XMarkIcon,
-} from "@heroicons/react/24/solid";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Icon } from "./Icon";
 
 const HIGHLIGHT_CLASS = "find-highlight";
 const ACTIVE_CLASS = "find-highlight--active";
@@ -260,12 +256,10 @@ export default function FindBar() {
 	return (
 		<div
 			data-find-bar
-			className="fixed top-12 right-4 z-[9999] flex items-center gap-2 rounded-2xl border border-white/20 px-3 py-2 backdrop-blur-2xl"
+			className="fixed top-12 right-4 z-[9999] flex items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--color-outline)] px-2 py-1.5"
 			style={{
 				minWidth: 280,
-				background: "color-mix(in srgb, var(--color-surface) 65%, transparent)",
-				boxShadow:
-					"0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255,255,255,0.05) inset, 0 1px 0 rgba(255,255,255,0.15) inset, 0 -1px 0 rgba(0,0,0,0.1) inset",
+				background: "var(--color-surface-variant)",
 			}}
 		>
 			<input
@@ -274,11 +268,9 @@ export default function FindBar() {
 				value={searchText}
 				onChange={(e) => setSearchText(e.target.value)}
 				placeholder="Find in page..."
-				className="flex-1 rounded-lg border border-white/10 px-3 py-1.5 text-[var(--color-on-surface)] text-sm outline-none transition-all placeholder:text-[var(--color-on-surface-variant)] focus:border-white/30 focus:ring-1 focus:ring-white/10"
+				className="flex-1 rounded-[var(--radius-sm)] border border-[var(--color-outline)] px-2 py-1 font-mono text-[var(--color-on-surface)] text-sm outline-none placeholder:text-[var(--color-on-surface-variant)] focus:border-[var(--color-accent)]"
 				style={{
-					background: "rgba(0, 0, 0, 0.25)",
-					boxShadow:
-						"inset 0 1px 3px rgba(0,0,0,0.2), 0 1px 0 rgba(255,255,255,0.05)",
+					background: "var(--color-surface)",
 				}}
 			/>
 
@@ -298,29 +290,32 @@ export default function FindBar() {
 				type="button"
 				onClick={goToPrevious}
 				disabled={!searchText}
-				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:bg-surface-a20 hover:text-[var(--color-on-surface)] disabled:cursor-not-allowed disabled:opacity-40"
+				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:text-[var(--color-on-surface)] disabled:cursor-not-allowed disabled:opacity-40"
 				title="Previous (Shift+Enter)"
+				aria-label="Previous match"
 			>
-				<ChevronUpIcon className="h-3 w-3" />
+				<Icon name="chevron-up" className="h-3 w-3" />
 			</button>
 
 			<button
 				type="button"
 				onClick={goToNext}
 				disabled={!searchText}
-				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:bg-surface-a20 hover:text-[var(--color-on-surface)] disabled:cursor-not-allowed disabled:opacity-40"
+				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:text-[var(--color-on-surface)] disabled:cursor-not-allowed disabled:opacity-40"
 				title="Next (Enter)"
+				aria-label="Next match"
 			>
-				<ChevronDownIcon className="h-3 w-3" />
+				<Icon name="chevron-down" className="h-3 w-3" />
 			</button>
 
 			<button
 				type="button"
 				onClick={closeFindBar}
-				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:bg-surface-a20 hover:text-[var(--color-on-surface)]"
+				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:text-[var(--color-on-surface)]"
 				title="Close (Escape)"
+				aria-label="Close find bar"
 			>
-				<XMarkIcon className="h-3 w-3" />
+				<Icon name="close" className="h-3 w-3" />
 			</button>
 		</div>
 	);

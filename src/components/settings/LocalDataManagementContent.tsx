@@ -66,18 +66,18 @@ export default function LocalDataManagementContent() {
 							Application Data Directory
 							<span>Main storage location for settings and configurations</span>
 						</div>
-						<div
+						<input
+							type="text"
+							readOnly
 							className="md-input"
+							value={paths?.userData || "Unknown"}
 							style={{
 								fontFamily: "var(--font-mono, monospace)",
 								fontSize: "11px",
-								wordBreak: "break-all",
 								background: "var(--color-surface)",
 								padding: "10px 12px",
 							}}
-						>
-							{paths?.userData || "Unknown"}
-						</div>
+						/>
 					</div>
 
 					<div className="shadowquill-field">
@@ -85,20 +85,22 @@ export default function LocalDataManagementContent() {
 							Local Storage Database
 							<span>LevelDB storage for conversations and workspace data</span>
 						</div>
-						<div
+						<input
+							type="text"
+							readOnly
 							className="md-input"
+							value={
+								paths?.localStorageLevelDb ||
+								paths?.localStorageDir ||
+								"Unknown"
+							}
 							style={{
 								fontFamily: "var(--font-mono, monospace)",
 								fontSize: "11px",
-								wordBreak: "break-all",
 								background: "var(--color-surface)",
 								padding: "10px 12px",
 							}}
-						>
-							{paths?.localStorageLevelDb ||
-								paths?.localStorageDir ||
-								"Unknown"}
-						</div>
+						/>
 					</div>
 
 					<div
@@ -115,12 +117,7 @@ export default function LocalDataManagementContent() {
 							<div className="shadowquill-status-card__actions">
 								<button
 									type="button"
-									className="md-btn"
-									style={{
-										background: "rgba(239, 68, 68, 0.15)",
-										borderColor: "#ef4444",
-										color: "#ef4444",
-									}}
+									className="md-btn md-btn--destructive md-btn--label"
 									onClick={async () => {
 										const ok = await confirm({
 											title: "Factory Reset",

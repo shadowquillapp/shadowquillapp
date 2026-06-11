@@ -1,4 +1,3 @@
-import { XMarkIcon } from "@heroicons/react/24/solid";
 import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
@@ -19,29 +18,34 @@ const visuallyHidden: React.CSSProperties = {
 };
 
 const resetButtonStyle: React.CSSProperties = {
-	padding: "6px 10px",
+	padding: "4px 10px",
 	fontSize: 12,
-	borderRadius: 8,
-	border: "1px solid var(--color-outline-variant)",
+	borderRadius: "var(--radius-sm)",
+	border: "1px solid var(--color-outline)",
 	background: "var(--color-surface)",
 	color: "var(--color-on-surface)",
 };
 
 const sectionTabStyle = (active: boolean): React.CSSProperties => ({
 	flex: 1,
-	padding: "8px 12px",
-	fontSize: 13,
+	padding: "6px 12px",
+	fontSize: 12,
 	fontWeight: 600,
+	letterSpacing: "var(--label-tracking)",
+	textTransform: "uppercase",
 	border: "none",
-	borderRadius: 8,
+	borderRadius: "var(--radius-sm)",
 	cursor: "pointer",
 	display: "flex",
 	alignItems: "center",
 	justifyContent: "center",
 	gap: 6,
-	transition: "all 0.15s",
-	background: active ? "var(--color-primary)" : "transparent",
-	color: active ? "var(--color-on-primary)" : "var(--color-on-surface-variant)",
+	transition: "background 120ms linear, color 120ms linear",
+	background: active
+		? "color-mix(in srgb, var(--color-accent) 16%, transparent)"
+		: "transparent",
+	boxShadow: active ? "inset 0 0 0 1px var(--color-accent)" : "none",
+	color: active ? "var(--color-on-surface)" : "var(--color-on-surface-variant)",
 });
 
 const setCardStyle = (
@@ -299,12 +303,8 @@ export function PresetPickerModal({
 			return;
 		}
 		if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-			const container = gridRef.current;
-			const minCardWidth = 190;
-			const columns = container?.clientWidth
-				? Math.max(1, Math.floor(container.clientWidth / minCardWidth))
-				: 3;
-			const delta = e.key === "ArrowDown" ? columns : -columns;
+			// Rows are a single-column table; move one row at a time.
+			const delta = e.key === "ArrowDown" ? 1 : -1;
 			e.preventDefault();
 			moveFocus(idx, delta);
 			return;
@@ -327,7 +327,12 @@ export function PresetPickerModal({
 				}
 			}}
 		>
-			<div className="modal-backdrop-blur" />
+			<button
+				type="button"
+				className="modal-backdrop-blur"
+				aria-label="Close picker"
+				onClick={onClose}
+			/>
 			{/* biome-ignore lint/a11y/noStaticElementInteractions: modal content needs to stop propagation */}
 			<div
 				className="modal-content"
@@ -350,7 +355,7 @@ export function PresetPickerModal({
 						onClick={onClose}
 						title="Close"
 					>
-						<XMarkIcon className="h-4 w-4" />
+						<Icon name="close" className="h-4 w-4" />
 					</button>
 				</div>
 
@@ -368,25 +373,29 @@ export function PresetPickerModal({
 							display: "flex",
 							flexDirection: "column",
 							gap: 12,
-							marginBottom: 20,
+							marginBottom: 16,
 							paddingBottom: 12,
-							background: "var(--color-surface-variant)",
+							background: "var(--color-surface)",
 							borderBottom: "1px solid var(--color-outline)",
 						}}
 					>
 						<div
+							role="tablist"
+							aria-label="Picker sections"
 							style={{
 								display: "flex",
 								gap: 4,
 								padding: 4,
 								background: "var(--color-surface)",
-								borderRadius: 10,
+								borderRadius: "var(--radius-sm)",
 								border: "1px solid var(--color-outline)",
 							}}
 						>
 							<button
 								type="button"
 								onClick={() => handleTabSwitch("presets")}
+								role="tab"
+								aria-selected={activeSection === "presets"}
 								style={sectionTabStyle(activeSection === "presets")}
 							>
 								<Icon name="brush" style={{ width: 14, height: 14 }} />
@@ -395,6 +404,8 @@ export function PresetPickerModal({
 							<button
 								type="button"
 								onClick={() => handleTabSwitch("saved")}
+								role="tab"
+								aria-selected={activeSection === "saved"}
 								style={sectionTabStyle(activeSection === "saved")}
 							>
 								<Icon name="folder-open" style={{ width: 14, height: 14 }} />
@@ -451,20 +462,13 @@ export function PresetPickerModal({
 									<button
 										type="button"
 										aria-label="Clear search"
-										className="md-btn"
+										className="md-icon-btn"
 										onClick={() => setSearchQuery("")}
 										style={{
 											position: "absolute",
 											right: 6,
 											top: "50%",
 											transform: "translateY(-50%)",
-											width: 24,
-											height: 24,
-											display: "flex",
-											alignItems: "center",
-											justifyContent: "center",
-											borderRadius: 6,
-											background: "transparent",
 										}}
 									>
 										<Icon
@@ -483,16 +487,17 @@ export function PresetPickerModal({
 										className="md-btn md-btn--destructive"
 										onClick={handleDeleteAllProjects}
 										style={{
-											padding: "6px 12px",
+											padding: "4px 12px",
 											fontSize: 11,
 											fontWeight: 600,
-											borderRadius: 6,
+											borderRadius: "var(--radius-sm)",
 											display: "flex",
 											alignItems: "center",
 											gap: 6,
-											color: "#ef4444",
-											border: "1px solid rgba(239, 68, 68, 0.3)",
-											background: "rgba(239, 68, 68, 0.08)",
+											color: "var(--color-on-destructive)",
+											border: "1px solid var(--color-destructive)",
+											background:
+												"color-mix(in srgb, var(--color-destructive) 25%, transparent)",
 											flexShrink: 0,
 										}}
 									>
@@ -556,20 +561,18 @@ export function PresetPickerModal({
 										</div>
 									</div>
 								) : (
-									<div
-										ref={gridRef}
-										style={{
-											display: "grid",
-											gridTemplateColumns:
-												"repeat(auto-fill, minmax(160px, 1fr))",
-											gap: 10,
-										}}
-									>
+									<div ref={gridRef} className="data-table">
+										<div className="data-table__head-row">
+											<span className="data-table__cell data-table__cell--grow">
+												Name
+											</span>
+											<span className="data-table__cell">Type</span>
+										</div>
 										{filteredPresets.map((preset) => (
 											<button
 												key={preset.id ?? preset.name}
 												type="button"
-												className="md-btn"
+												className="data-table__row"
 												onClick={() => {
 													onSelectPreset(preset);
 													onClose();
@@ -582,70 +585,28 @@ export function PresetPickerModal({
 												onKeyDown={(e) =>
 													onCardKeyDown(preset.id ?? preset.name, e)
 												}
-												style={{
-													display: "flex",
-													alignItems: "center",
-													gap: 10,
-													padding: "10px 12px",
-													textAlign: "left",
-													height: "auto",
-													background: "var(--color-surface-variant)",
-													border: "1px solid var(--color-outline)",
-													borderRadius: 10,
-													overflow: "hidden",
-												}}
-												onMouseEnter={(e) =>
-													setCardStyle(e, "var(--color-primary)")
-												}
-												onMouseLeave={(e) =>
-													setCardStyle(e, "var(--color-outline)")
-												}
-												onFocus={(e) => setCardStyle(e, "var(--color-primary)")}
-												onBlur={(e) => setCardStyle(e, "var(--color-outline)")}
 											>
-												<div
+												<Icon
+													name={getTaskTypeIcon(preset.taskType)}
 													style={{
-														display: "flex",
-														alignItems: "center",
-														justifyContent: "center",
-														width: 28,
-														height: 28,
-														borderRadius: 6,
-														background:
-															"color-mix(in oklab, var(--color-primary) 18%, transparent)",
-														color: "var(--color-primary)",
+														width: 14,
+														height: 14,
 														flexShrink: 0,
+														color: "var(--color-on-surface-variant)",
+													}}
+												/>
+												<span
+													className="data-table__cell data-table__cell--grow"
+													style={{
+														fontWeight: 600,
+														color: "var(--color-on-surface)",
 													}}
 												>
-													<Icon
-														name={getTaskTypeIcon(preset.taskType)}
-														style={{ width: 14, height: 14 }}
-													/>
-												</div>
-												<div style={{ flex: 1, minWidth: 0 }}>
-													<div
-														style={{
-															fontSize: 13,
-															fontWeight: 600,
-															color: "var(--color-on-surface)",
-															overflow: "hidden",
-															textOverflow: "ellipsis",
-															whiteSpace: "nowrap",
-														}}
-													>
-														{preset.name}
-													</div>
-													<div
-														style={{
-															fontSize: 10,
-															fontWeight: 500,
-															color: "var(--color-on-surface-variant)",
-															textTransform: "capitalize",
-														}}
-													>
-														{preset.taskType}
-													</div>
-												</div>
+													{preset.name}
+												</span>
+												<span className="data-table__cell data-table__cell--mono uppercase">
+													{preset.taskType}
+												</span>
 											</button>
 										))}
 									</div>
@@ -723,18 +684,19 @@ export function PresetPickerModal({
 														}
 														onClose();
 													}}
+													aria-label={`Open saved workbench ${project.title}`}
 													disabled={isDeleting}
 													style={{
 														display: "flex",
 														alignItems: "center",
 														gap: 8,
-														padding: "12px",
+														padding: "6px 10px",
 														textAlign: "left",
 														background: "var(--color-surface-variant)",
 														border: "1px solid var(--color-outline)",
-														borderRadius: 8,
+														borderRadius: "var(--radius-sm)",
 														flex: 1,
-														height: 44,
+														height: 36,
 													}}
 													onMouseEnter={(e) => {
 														if (isDeleting) return;
@@ -750,25 +712,15 @@ export function PresetPickerModal({
 														setCardStyle(e, "var(--color-outline)")
 													}
 												>
-													<div
+													<Icon
+														name="file-text"
 														style={{
-															display: "flex",
-															alignItems: "center",
-															justifyContent: "center",
-															width: 24,
-															height: 24,
-															borderRadius: 6,
-															background:
-																"color-mix(in oklab, var(--color-secondary) 15%, transparent)",
-															color: "var(--color-secondary)",
+															width: 14,
+															height: 14,
 															flexShrink: 0,
+															color: "var(--color-on-surface-variant)",
 														}}
-													>
-														<Icon
-															name="file-text"
-															style={{ width: 14, height: 14 }}
-														/>
-													</div>
+													/>
 													<div
 														style={{
 															flex: 1,
@@ -841,7 +793,7 @@ export function PresetPickerModal({
 														<Icon
 															name="trash"
 															className="h-4 w-4"
-															style={{ color: "#ef4444" }}
+															style={{ color: "var(--color-on-destructive)" }}
 														/>
 													</button>
 												)}

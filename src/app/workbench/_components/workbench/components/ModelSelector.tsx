@@ -7,6 +7,8 @@ import {
 
 interface ModelSelectorProps {
 	availableModels: Array<{ name: string; size: number }>;
+	modelLoadError: string | null;
+	refreshModels: () => Promise<void>;
 	currentModelId: string | null;
 	setCurrentModelId: (id: string) => void;
 	isGenerating: boolean;
@@ -14,6 +16,8 @@ interface ModelSelectorProps {
 
 export function ModelSelector({
 	availableModels,
+	modelLoadError,
+	refreshModels,
 	currentModelId,
 	setCurrentModelId,
 	isGenerating,
@@ -41,106 +45,96 @@ export function ModelSelector({
 						: tag.toUpperCase(),
 		};
 	});
-	const selectorHeight = `min(${Math.max(80, models.length * 26 + 28)}px, 56vh)`;
-
 	return (
 		<div
-			className="model-selector absolute z-10"
+			className="model-selector flex min-w-0 items-center"
 			style={{
-				left: "var(--space-4)",
-				bottom: "var(--space-4)",
+				gap: "var(--space-1)",
 				pointerEvents: isGenerating ? "none" : "auto",
-				transition: "opacity 0.2s ease",
+				opacity: isGenerating ? 0.5 : 1,
 			}}
 		>
-			<div
-				className="relative"
+			<span
+				className="font-semibold text-[10px] uppercase"
 				style={{
-					width: "min(96px, 18vw)",
-					height: selectorHeight,
-					minWidth: "72px",
-					minHeight: "80px",
+					color: "var(--color-on-surface-variant)",
+					letterSpacing: "var(--label-tracking)",
+					marginRight: "var(--space-1)",
+					whiteSpace: "nowrap",
 				}}
 			>
-				<div
-					className="absolute inset-0 overflow-hidden rounded-[18px] border"
-					style={{
-						borderColor:
-							"color-mix(in srgb, var(--color-outline), transparent 40%)",
-						background:
-							"color-mix(in srgb, var(--color-surface), transparent 70%)",
-						backdropFilter: "blur(4px)",
-						WebkitBackdropFilter: "blur(4px)",
-						padding: "var(--space-2)",
-					}}
+				Model
+			</span>
+			{modelLoadError && (
+				<button
+					type="button"
+					className="md-btn"
+					onClick={() => void refreshModels()}
+					title={modelLoadError}
+					aria-label={`Retry loading models: ${modelLoadError}`}
+					style={{ height: 22, padding: "0 var(--space-2)", fontSize: 10 }}
 				>
-					<div
-						className="text-center font-bold text-[10px] uppercase tracking-wider"
-						style={{
-							color: "var(--color-on-surface)",
-							opacity: 0.7,
-							lineHeight: 1,
-							marginBottom: "var(--space-1)",
-						}}
-					>
-						GEMMA
-					</div>
-					<div
-						className="relative z-[1] flex h-full flex-col items-stretch justify-between"
-						style={{ height: "calc(100% - var(--space-4))" }}
-					>
-						{models.map((model) => {
-							const isInstalled = availableModels.some(
-								(m) => m.name.toLowerCase() === model.id,
-							);
-							const isActive = currentModelId?.toLowerCase() === model.id;
-							return (
-								<button
-									key={model.id}
-									type="button"
-									disabled={!isInstalled}
-									onClick={() => {
-										if (!isInstalled) return;
-										writeLocalModelConfigClient({
-											provider: "ollama",
-											baseUrl: "http://localhost:11434",
-											model: model.id,
-										});
-										setCurrentModelId(model.id);
-										try {
-											window.dispatchEvent(
-												new CustomEvent("sq-model-changed", {
-													detail: { modelId: model.id },
-												}),
-											);
-										} catch {}
-									}}
-									className={`model-selector__pill flex h-[22px] w-full items-center justify-center rounded-[12px] font-bold text-[13px] ${
-										!isInstalled ? "cursor-not-allowed opacity-40" : ""
-									}`}
-									title={
-										isInstalled
-											? `Switch to ${model.displayName}`
-											: `${model.displayName} is not installed`
-									}
-									aria-pressed={isActive}
-									style={{
-										lineHeight: 1,
-										color: "var(--color-on-surface)",
-										background: isActive
-											? "color-mix(in srgb, var(--color-primary), var(--color-surface) 72%)"
-											: "transparent",
-										border: isActive
-											? "1px solid color-mix(in srgb, var(--color-primary), var(--color-outline) 20%)"
-											: "1px solid transparent",
-									}}
-								>
-									{model.label}
-								</button>
-							);
-						})}
-					</div>
-				</div>
+					Retry
+				</button>
+			)}
+			<div
+				className="flex items-center overflow-x-auto"
+				style={{ gap: "var(--space-1)" }}
+			>
+				{models.map((model) => {
+					const isInstalled = availableModels.some(
+						(m) => m.name.toLowerCase() === model.id,
+					);
+					const isActive = currentModelId?.toLowerCase() === model.id;
+					return (
+						<button
+							key={model.id}
+							type="button"
+							disabled={!isInstalled}
+							onClick={() => {
+								if (!isInstalled) return;
+								writeLocalModelConfigClient({
+									provider: "ollama",
+									baseUrl: "http://localhost:11434",
+									model: model.id,
+								});
+								setCurrentModelId(model.id);
+								try {
+									window.dispatchEvent(
+										new CustomEvent("sq-model-changed", {
+											detail: { modelId: model.id },
+										}),
+									);
+								} catch {}
+							}}
+							className={`model-selector__pill flex h-[22px] items-center justify-center px-2 font-mono font-semibold text-[11px] ${
+								!isInstalled ? "cursor-not-allowed opacity-40" : ""
+							}`}
+							title={
+								isInstalled
+									? `Switch to ${model.displayName}`
+									: `${model.displayName} is not installed`
+							}
+							aria-pressed={isActive}
+							style={{
+								lineHeight: 1,
+								whiteSpace: "nowrap",
+								borderRadius: "var(--radius-sm)",
+								color: isActive
+									? "var(--color-on-surface)"
+									: "var(--color-on-surface-variant)",
+								background: isActive
+									? "color-mix(in srgb, var(--color-accent) 16%, transparent)"
+									: "transparent",
+								border: isActive
+									? "1px solid var(--color-accent)"
+									: "1px solid var(--color-outline)",
+							}}
+						>
+							{model.label}
+						</button>
+					);
+				})}
 			</div>
 		</div>
 	);

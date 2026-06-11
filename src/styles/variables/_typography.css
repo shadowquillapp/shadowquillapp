@@ -15,4 +15,20 @@
 	--font-sans:
 		ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji",
 		"Segoe UI Symbol", "Noto Color Emoji";
+	--font-mono:
+		ui-monospace, "SF Mono", SFMono-Regular, Menlo, Monaco, Consolas,
+		"Liberation Mono", monospace;
+
+	/* ========================================
+	 * TYPE SCALE (dense console)
+	 * ======================================== */
+
+	--text-2xs: 10px;
+	--text-xs: 11px;
+	--text-sm: 12px;
+	--text-md: 13px;
+	--text-lg: 15px;
+
+	/* Uppercase tracked label (panel heads, nav, table headers) */
+	--label-tracking: 0.08em;
 }

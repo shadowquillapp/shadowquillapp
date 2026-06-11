@@ -35,7 +35,7 @@ export default function BasicSettings({
 					value={preset.name}
 					onChange={(e) => onFieldChange("name", e.target.value)}
 					placeholder="Enter preset name"
-					className="md-input !rounded-lg h-10 w-full px-3 py-2 text-sm"
+					className="md-input h-8 w-full"
 				/>
 			</div>
 
@@ -103,10 +103,10 @@ export default function BasicSettings({
 				</div>
 			</div>
 
-			<div>
-				<div className="mb-1.5 block font-medium text-secondary text-xs">
+			<fieldset>
+				<legend className="mb-1.5 block font-medium text-secondary text-xs">
 					Detail Level
-				</div>
+				</legend>
 				<div className="grid grid-cols-2 gap-2">
 					{(
 						Object.keys(DETAIL_LEVELS) as Array<keyof typeof DETAIL_LEVELS>
@@ -119,29 +119,26 @@ export default function BasicSettings({
 								key={level}
 								type="button"
 								onClick={() => onFieldChange("detail", level)}
-								className="relative rounded-xl border p-3 text-center transition-all duration-200"
+								className="relative rounded-[var(--radius-sm)] border p-2 text-center"
+								aria-pressed={isSelected}
 								style={{
 									borderColor: isSelected
-										? "var(--color-primary)"
+										? "var(--color-accent)"
 										: "var(--color-outline)",
 									background: isSelected
-										? "var(--color-primary)"
+										? "color-mix(in srgb, var(--color-accent) 14%, transparent)"
 										: "var(--color-surface-variant)",
-									color: isSelected
-										? "var(--color-on-primary)"
-										: "var(--color-on-surface)",
+									color: "var(--color-on-surface)",
+									transition:
+										"border-color 120ms linear, background 120ms linear",
 								}}
 								onMouseEnter={(e) => {
 									if (!isSelected) {
-										e.currentTarget.style.background =
-											"color-mix(in srgb, var(--color-primary) 10%, var(--color-surface-variant))";
-										e.currentTarget.style.borderColor = "var(--color-primary)";
+										e.currentTarget.style.borderColor = "var(--surfacea50)";
 									}
 								}}
 								onMouseLeave={(e) => {
 									if (!isSelected) {
-										e.currentTarget.style.background =
-											"var(--color-surface-variant)";
 										e.currentTarget.style.borderColor = "var(--color-outline)";
 									}
 								}}
@@ -152,7 +149,7 @@ export default function BasicSettings({
 										className="h-4 w-4"
 										style={{
 											color: isSelected
-												? "var(--color-on-primary)"
+												? "var(--color-on-surface)"
 												: "var(--color-on-surface-variant)",
 										}}
 									/>
@@ -162,7 +159,7 @@ export default function BasicSettings({
 						);
 					})}
 				</div>
-			</div>
+			</fieldset>
 
 			<div className="grid grid-cols-1 gap-4 md:grid-cols-2">
 				<div>

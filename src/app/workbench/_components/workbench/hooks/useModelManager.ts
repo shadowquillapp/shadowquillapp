@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useCloseOnEscape } from "@/components/useCloseOnEscape";
 import {
 	listAvailableModels,
@@ -10,26 +10,32 @@ export function useModelManager() {
 		Array<{ name: string; size: number }>
 	>([]);
 	const [currentModelId, setCurrentModelId] = useState<string | null>(null);
+	const [modelLoadError, setModelLoadError] = useState<string | null>(null);
 	const [modelMenuOpen, setModelMenuOpen] = useState(false);
 	const modelBtnRef = useRef<HTMLButtonElement | null>(null);
 	const modelMenuRef = useRef<HTMLDivElement | null>(null);
 	useCloseOnEscape(modelMenuOpen, () => setModelMenuOpen(false));
 
-	useEffect(() => {
-		const load = async () => {
-			try {
-				const cfg = readLocalModelConfigClient();
-				const models = await listAvailableModels("http://localhost:11434");
-				setAvailableModels(models);
-				if (cfg && cfg.provider === "ollama" && typeof cfg.model === "string") {
-					setCurrentModelId(cfg.model);
-				}
-			} catch {
-				/* ignore */
+	const refreshModels = useCallback(async () => {
+		try {
+			setModelLoadError(null);
+			const cfg = readLocalModelConfigClient();
+			const models = await listAvailableModels("http://localhost:11434");
+			setAvailableModels(models);
+			if (cfg && cfg.provider === "ollama" && typeof cfg.model === "string") {
+				setCurrentModelId(cfg.model);
 			}
-		};
-		load();
+		} catch (error) {
+			setAvailableModels([]);
+			setModelLoadError(
+				error instanceof Error ? error.message : "Unable to load Ollama models",
+			);
+		}
 	}, []);
+
+	useEffect(() => {
+		void refreshModels();
+	}, [refreshModels]);
 
 	useEffect(() => {
 		if (!modelMenuOpen) return;
@@ -51,6 +57,8 @@ export function useModelManager() {
 
 	return {
 		availableModels,
+		modelLoadError,
+		refreshModels,
 		currentModelId,
 		setCurrentModelId,
 		modelMenuOpen,
