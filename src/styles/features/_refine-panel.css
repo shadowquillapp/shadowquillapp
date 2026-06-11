@@ -426,10 +426,6 @@
 	color: var(--color-on-surface);
 	opacity: 0.6;
 	cursor: pointer;
-	transition:
-		background 100ms ease,
-		color 100ms ease,
-		opacity 100ms ease;
 }
 
 .refine-timeline__copy-btn:hover:not(:disabled) {

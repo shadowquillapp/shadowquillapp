@@ -89,26 +89,6 @@
 	gap: 10px;
 	/* No gradients — flat primary */
 	background: var(--color-primary);
-	box-shadow:
-		0 2px 8px color-mix(in srgb, var(--color-primary) 30%, transparent),
-		inset 0 1px 0 color-mix(in srgb, #fff 15%, transparent);
-	transition:
-		box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
-		transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.shadowquill-panel__footer .md-btn--primary:hover:not(:disabled) {
-	transform: translateY(-1px);
-	box-shadow:
-		0 4px 16px color-mix(in srgb, var(--color-primary) 40%, transparent),
-		inset 0 1px 0 color-mix(in srgb, #fff 20%, transparent);
-}
-
-.shadowquill-panel__footer .md-btn--primary:active:not(:disabled) {
-	transform: translateY(0);
-	box-shadow:
-		0 1px 4px color-mix(in srgb, var(--color-primary) 25%, transparent),
-		inset 0 1px 0 color-mix(in srgb, #fff 10%, transparent);
 }
 
 /* Animated logo in CTA button */

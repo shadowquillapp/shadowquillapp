@@ -58,7 +58,7 @@ export default function PresetLibrary({
 							<button
 								type="button"
 								onClick={onCreateNew}
-								className="md-btn md-btn--primary flex h-9 items-center gap-2 rounded-full px-4 font-medium text-sm shadow-md hover:shadow-lg"
+								className="md-btn md-btn--primary flex h-9 items-center gap-2 rounded-full px-4 font-medium text-sm"
 								aria-label="Create new preset"
 								title="Create new preset"
 							>

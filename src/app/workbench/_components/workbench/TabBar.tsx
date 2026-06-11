@@ -475,10 +475,6 @@ export function TabBar({
 					display: none;
 				}
 				
-				.tab-item {
-					transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-				}
-				
 				.tab-item:active {
 					cursor: grabbing !important;
 				}

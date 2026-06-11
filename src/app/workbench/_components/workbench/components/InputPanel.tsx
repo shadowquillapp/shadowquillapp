@@ -162,7 +162,7 @@ export function InputPanel({
 								copyMessage("prompt-draft", activeTab?.draft ?? "")
 							}
 							disabled={!activeTab}
-							className="flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
+							className="flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
 							title="Copy prompt"
 							aria-label="Copy prompt"
 							style={{
@@ -263,24 +263,9 @@ export function InputPanel({
 							border: activeTab?.sending
 								? "none"
 								: "1px solid var(--color-outline)",
-							boxShadow: activeTab?.sending ? "none" : "var(--shadow-1)",
-							transition:
-								"background 120ms ease, border-color 120ms ease, box-shadow 120ms ease, opacity 120ms ease",
 							zIndex: 10,
 							pointerEvents: "auto",
 							opacity: 1,
-						}}
-						onMouseEnter={(e) => {
-							if (!activeTab?.sending) {
-								e.currentTarget.style.boxShadow = "var(--shadow-2)";
-								e.currentTarget.style.borderColor = "var(--color-primary)";
-							}
-						}}
-						onMouseLeave={(e) => {
-							if (!activeTab?.sending) {
-								e.currentTarget.style.boxShadow = "var(--shadow-1)";
-								e.currentTarget.style.borderColor = "var(--color-outline)";
-							}
 						}}
 						title={activeTab?.sending ? "Stop Generation" : "Run Prompt"}
 					>

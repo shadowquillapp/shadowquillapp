@@ -185,18 +185,6 @@
 	opacity: 1;
 	pointer-events: auto;
 	filter: none;
-	/* Subtle pulse to draw attention */
-	animation: generating-stop-pulse 1.5s ease-in-out infinite;
-}
-
-@keyframes generating-stop-pulse {
-	0%,
-	100% {
-		transform: scale(1);
-	}
-	50% {
-		transform: scale(1.05);
-	}
 }
 
 /* Output panel stays fully visible with subtle activity indicator */
@@ -327,7 +315,6 @@
 	.fade-in-down,
 	.fade-in-scale,
 	.version-switching,
-	.workbench--generating .prompt-input-pane .run-button-container,
 	.output-generating,
 	.simple-workbench,
 	.page-animate {
