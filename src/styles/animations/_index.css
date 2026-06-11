@@ -288,21 +288,6 @@
 	animation: fade-in-scale 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* ----------------------------------------
- * Theme Switch Cross-Fade
- * Applied transiently by applyThemeToDocument
- * ---------------------------------------- */
-
-:where(html.theme-transitioning, html.theme-transitioning *) {
-	transition:
-		background-color 280ms ease,
-		color 280ms ease,
-		border-color 280ms ease,
-		fill 280ms ease,
-		stroke 280ms ease,
-		box-shadow 280ms ease;
-}
-
 /* ========================================
  * PAGE ANIMATIONS
  * ======================================== */
@@ -331,10 +316,6 @@
 		transition-duration: 1ms;
 		animation-duration: 1ms;
 		animation-iteration-count: 1;
-	}
-
-	:where(html.theme-transitioning, html.theme-transitioning *) {
-		transition: none;
 	}
 
 	.md-spin,

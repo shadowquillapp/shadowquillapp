@@ -24,7 +24,7 @@
 | `Icon.tsx` | `Icon` wrapper around `@heroicons/react/24/solid|outline` with `IconName` union. |
 | `Logo.tsx` | Inline SVG app logo. |
 | `settings/AppVersionContent.tsx` | Version display + update check. |
-| `settings/DisplayContent.tsx` | Theme, font scale, zoom, density controls. |
+| `settings/DisplayContent.tsx` | Zoom controls + display stats. |
 | `settings/LocalDataManagementContent.tsx` | Storage paths, export, factory-reset. Flow: `clearAllStorageForFactoryReset()` → `window.shadowquill.factoryReset()` → `window.location.assign("/workbench")`; on failure calls `abortFactoryReset()`. |
 | `settings/OllamaSetupContent.tsx` | Model install/connect/validate UI. |
 | `settings/SystemPromptEditorContent.tsx` | Editable system-prompt textarea. |

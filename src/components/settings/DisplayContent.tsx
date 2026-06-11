@@ -1,13 +1,6 @@
 /** @jsxImportSource react */
 "use client";
 import React from "react";
-import {
-	applyThemeToDocument,
-	persistTheme,
-	readThemePreference,
-	type ThemeId,
-} from "@/lib/theme-preference";
-import { Icon, type IconName } from "../Icon";
 
 const FIELD_LABEL_STYLE: React.CSSProperties = {
 	marginBottom: "10px",
@@ -34,15 +27,11 @@ export default function DisplayContent() {
 		isMaximized?: boolean;
 		isFullScreen?: boolean;
 	} | null>(null);
-	const [currentTheme, setCurrentTheme] =
-		React.useState<ThemeId>(readThemePreference);
 
 	React.useEffect(() => {
 		const api = window.shadowquill;
 		const hasApi = !!api?.view?.getZoomFactor;
 		setAvailable(hasApi);
-
-		applyThemeToDocument(currentTheme);
 
 		const refreshWindowInfo = async () => {
 			try {
@@ -68,7 +57,7 @@ export default function DisplayContent() {
 		const onResize = () => void refreshWindowInfo();
 		window.addEventListener("resize", onResize);
 		return () => window.removeEventListener("resize", onResize);
-	}, [currentTheme]);
+	}, []);
 
 	React.useEffect(() => {
 		const api = window.shadowquill;
@@ -99,20 +88,7 @@ export default function DisplayContent() {
 		void applyZoom((Math.round(zoomFactor * 100) + deltaPercent) / 100);
 	};
 
-	const handleThemeChange = (theme: ThemeId) => {
-		setCurrentTheme(theme);
-		applyThemeToDocument(theme);
-		persistTheme(theme);
-	};
-
 	const percent = Math.round(zoomFactor * 100);
-
-	const themeOptions = [
-		{ value: "earth" as const, label: "Earth", icon: "palette" },
-		{ value: "purpledark" as const, label: "Dark Purple", icon: "sparkles" },
-		{ value: "dark" as const, label: "Dark", icon: "moon" },
-		{ value: "light" as const, label: "Light", icon: "sun" },
-	];
 
 	return (
 		<div className="shadowquill-setup">
@@ -123,7 +99,7 @@ export default function DisplayContent() {
 							className="shadowquill-panel__eyebrow"
 							style={{ fontSize: "9px", marginBottom: "2px" }}
 						>
-							Display & Theme
+							Display
 						</p>
 						<h3 style={{ fontSize: "18px", marginBottom: "0" }}>Display</h3>
 					</div>
@@ -148,55 +124,6 @@ export default function DisplayContent() {
 							{error}
 						</div>
 					)}
-
-					<div className="shadowquill-field" style={{ marginBottom: "24px" }}>
-						<div className="shadowquill-label" style={FIELD_LABEL_STYLE}>
-							Theme
-						</div>
-						<div className="grid grid-cols-4 gap-2">
-							{themeOptions.map((option) => (
-								<button
-									key={option.value}
-									type="button"
-									onClick={() => handleThemeChange(option.value)}
-									className={`flex flex-col items-center gap-1.5 rounded-lg p-3 transition-all ${
-										currentTheme === option.value
-											? "bg-primary/10"
-											: "bg-[var(--color-surface-variant)]"
-									}`}
-									style={
-										currentTheme === option.value
-											? {
-													border: "2px solid var(--color-primary)",
-													outline: "2px solid var(--color-primary)",
-													outlineOffset: "-2px",
-												}
-											: { border: "2px solid var(--color-outline)" }
-									}
-									aria-label={`Select ${option.label} theme`}
-									title={option.label}
-								>
-									<Icon
-										name={option.icon as IconName}
-										className={`h-5 w-5 ${
-											currentTheme === option.value
-												? "text-primary"
-												: "text-on-surface-variant"
-										}`}
-									/>
-									<span
-										className={`font-medium text-xs ${
-											currentTheme === option.value
-												? "text-primary"
-												: "text-on-surface"
-										}`}
-									>
-										{option.label}
-									</span>
-								</button>
-							))}
-						</div>
-					</div>
 
 					<div className="shadowquill-field" style={{ marginBottom: "24px" }}>
 						<div className="shadowquill-label" style={FIELD_LABEL_STYLE}>

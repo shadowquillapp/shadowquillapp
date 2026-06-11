@@ -8,7 +8,6 @@ import SettingsDialog from "@/components/SettingsDialog";
 import { getJSON } from "@/lib/local-storage";
 import { setLastSelectedPresetKey } from "@/lib/preset-store";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
-import { applyStoredThemeToDocument } from "@/lib/theme-preference";
 import { InputPanel } from "./workbench/components/InputPanel";
 import { OutputPanel } from "./workbench/components/OutputPanel";
 import { useCopyMessage } from "./workbench/hooks/useCopyMessage";
@@ -66,10 +65,6 @@ export default function PromptWorkbench() {
 		deleteProject,
 		deleteAllProjects,
 	} = useProjectManager(tabManager, presets, applyPreset, showInfo);
-
-	useEffect(() => {
-		applyStoredThemeToDocument();
-	}, []);
 
 	useEffect(() => {
 		setLeftPanelWidth(getJSON<number>(STORAGE_KEYS.PANEL_WIDTH.key, 50));

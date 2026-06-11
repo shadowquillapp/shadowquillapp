@@ -28,7 +28,6 @@ studio/
 
 - **`PresetStudioPage` is the page-level state owner** — selected preset, editing preset, dirty flag, sidebar open, small-screen flag. Pull everything through `usePresetManager()`.
 - **Auto-selects last-used preset on mount**; warns on `beforeunload` if dirty.
-- **Theme on mount** via `applyStoredThemeToDocument()` from `@/lib/theme-preference` (shared with workbench).
 - **Persistence via `@/lib/presets` barrel** through the studio's `usePresetManager` (not direct `@/lib/domain/presets` imports in components).
 - **`usePresetManager` is the only preset-authoring API** — load, save, delete, duplicate only.
 
