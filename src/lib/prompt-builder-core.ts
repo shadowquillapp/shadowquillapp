@@ -109,10 +109,6 @@ export function buildUnifiedPromptCore(params: {
 		sections.push(systemPrompt);
 	}
 
-	if (options?.identity?.trim()) {
-		sections.push(`Act as ${options.identity.trim()}.`);
-	}
-
 	pushLanguageReminder(sections, language, "unified");
 
 	sections.push(CORE_GUIDELINES);

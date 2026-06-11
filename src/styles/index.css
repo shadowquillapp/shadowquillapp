@@ -15,39 +15,31 @@
  *    CSS custom properties for colors, spacing, typography, and shadows.
  *    These establish the design token system used throughout the app.
  *
- * 2. THEMES
- *    Theme-specific variable overrides for different color schemes.
- *    Themes are activated via data-theme attribute on the root element.
- *
- * 3. BASE
+ * 2. BASE
  *    Foundational styles including reset, scrollbars, and typography.
  *    These normalize browser defaults and set up core element styling.
  *
- * 4. COMPONENTS
+ * 3. COMPONENTS
  *    Reusable UI components like buttons, inputs, cards, modals, etc.
  *    These are self-contained and can be used across the application.
  *
- * 5. FEATURES
+ * 4. FEATURES
  *    Feature-specific styles for complete UI sections like the workbench,
  *    version history, Ollama setup, etc.
  *
- * 6. UTILITIES
+ * 5. UTILITIES
  *    Single-purpose utility classes for common styling needs like
  *    spacing, text alignment, etc.
  *
- * 7. ANIMATIONS
+ * 6. ANIMATIONS
  *    Keyframe definitions and animation utility classes.
  *
  * USAGE:
  * Import this file in your main app entry point (layout.tsx).
  *
- * THEMES:
- * - default (earth): Warm, earthy tones
- * - purpledark: Vibrant purple accents
- * - dark: dark with blue accents
- * - light: Clean light theme
- *
- * Set theme via: <html data-theme="dark">
+ * THEME:
+ * Single fixed dark palette (black, gray, white) defined in
+ * variables/_colors.css. There is no theme switching.
  *
  * FILE STRUCTURE:
  *
@@ -57,10 +49,6 @@
  * │   ├── _colors.css        # Color palette and semantic colors
  * │   ├── _spacing.css       # Spacing scale, radius, shadows
  * │   └── _typography.css    # Font families
- * ├── themes/                # Theme-specific overrides
- * │   ├── _purpledark.css    # Purple dark theme
- * │   ├── _dark.css          # Standard dark theme
- * │   └── _light.css         # Light theme
  * ├── base/                  # Foundational styles
  * │   ├── _reset.css         # Browser reset & defaults
  * │   ├── _scrollbar.css     # Custom scrollbar styling
@@ -75,7 +63,6 @@
  * │   ├── _links.css         # Styled links
  * │   ├── _loaders.css       # Loading indicators
  * │   ├── _code-blocks.css   # Code display & syntax
- * │   ├── _toasts.css        # Toast notifications
  * │   ├── _mode-toggle.css   # Toggle switches
  * │   └── _message-bubble.css # Chat bubbles
  * ├── features/              # Feature-specific styles
@@ -103,31 +90,26 @@
 @import "./variables/_index.css";
 
 /* ========================================
- * 2. THEMES (Variable Overrides)
- * ======================================== */
-@import "./themes/_index.css";
-
-/* ========================================
- * 3. BASE (Reset & Defaults)
+ * 2. BASE (Reset & Defaults)
  * ======================================== */
 @import "./base/_index.css";
 
 /* ========================================
- * 4. COMPONENTS (Reusable UI)
+ * 3. COMPONENTS (Reusable UI)
  * ======================================== */
 @import "./components/_index.css";
 
 /* ========================================
- * 5. FEATURES (Feature-specific UI)
+ * 4. FEATURES (Feature-specific UI)
  * ======================================== */
 @import "./features/_index.css";
 
 /* ========================================
- * 6. UTILITIES (Helper Classes)
+ * 5. UTILITIES (Helper Classes)
  * ======================================== */
 @import "./utilities/_index.css";
 
 /* ========================================
- * 7. ANIMATIONS (Keyframes & Utilities)
+ * 6. ANIMATIONS (Keyframes & Utilities)
  * ======================================== */
 @import "./animations/_index.css";

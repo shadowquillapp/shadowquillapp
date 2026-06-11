@@ -35,12 +35,20 @@ function setupSecurityForSessions(isDev, sessions) {
 			});
 		});
 
+		const CLIPBOARD_PERMISSIONS = new Set([
+			"clipboard-read",
+			"clipboard-write",
+			"clipboard-sanitized-write",
+		]);
+
 		targetSession.setPermissionRequestHandler?.(
-			(_webContents, _permission, callback) => {
-				callback(false);
+			(_webContents, permission, callback) => {
+				callback(CLIPBOARD_PERMISSIONS.has(permission));
 			},
 		);
-		targetSession.setPermissionCheckHandler?.(() => false);
+		targetSession.setPermissionCheckHandler?.((_webContents, permission) =>
+			CLIPBOARD_PERMISSIONS.has(permission),
+		);
 	};
 
 	for (const targetSession of sessions) {

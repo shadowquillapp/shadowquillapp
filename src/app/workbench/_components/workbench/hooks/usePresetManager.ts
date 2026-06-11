@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
 	getLastSelectedPresetKey,
 	mapPresetList,
@@ -13,16 +13,10 @@ import { getPresets, type Preset } from "@/lib/presets";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type { useTabManager } from "../useTabManager";
 
-export function usePresetManager(
-	tabManager: ReturnType<typeof useTabManager>,
-	_showPresetPicker: boolean,
-	setShowPresetPicker: (show: boolean) => void,
-	setPresetPickerForNewTab: (forNewTab: boolean) => void,
-) {
+export function usePresetManager(tabManager: ReturnType<typeof useTabManager>) {
 	const [presets, setPresets] = useState<PresetSummary[]>([]);
 	const [loadingPresets, setLoadingPresets] = useState(false);
 	const [selectedPresetKey, setSelectedPresetKey] = useState("");
-	const hasAutoShownPresetPicker = useRef(false);
 
 	const applyPreset = useCallback(
 		(p: PresetSummary, opts?: { trackRecent?: boolean }) => {
@@ -138,32 +132,6 @@ export function usePresetManager(
 			}
 		});
 	}, [presets, tabManager]);
-	useEffect(() => {
-		if (loadingPresets || presets.length === 0) return;
-
-		if (tabManager.tabs.length > 0) {
-			hasAutoShownPresetPicker.current = false;
-			return;
-		}
-
-		if (!hasAutoShownPresetPicker.current) {
-			hasAutoShownPresetPicker.current = true;
-			const dailyHelperPreset = presets.find((p) => p.id === "daily-assistant");
-			if (dailyHelperPreset) {
-				loadPreset(dailyHelperPreset, { trackRecent: false });
-			} else {
-				setShowPresetPicker(true);
-				setPresetPickerForNewTab(true);
-			}
-		}
-	}, [
-		loadingPresets,
-		presets,
-		tabManager.tabs.length,
-		loadPreset,
-		setShowPresetPicker,
-		setPresetPickerForNewTab,
-	]);
 
 	return {
 		presets,

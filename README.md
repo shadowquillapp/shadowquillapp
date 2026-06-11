@@ -37,7 +37,6 @@ pnpm start
 | **10 default presets** | Starting points for common workflows |
 | **Preset Studio** | Build your own presets with live preview |
 | **Version history** | Step through prompt versions with prev/next navigation |
-| **4 themes** | Earth, Dark Purple, Dark, Light |
 | **Gemma via Ollama** | Finds compatible models on your local instance |
 
 ### Default presets
@@ -55,7 +54,6 @@ pnpm start
 
 ## Development
 
-Windows/Powershell
 ```bash
 pnpm install              # Install packages
 pnpm run dev              # Dev mode (Electron + Next)
@@ -64,17 +62,6 @@ pnpm start                # Run production build
 pnpm run test             # Vitest
 pnpm run typecheck        # TypeScript check
 pnpm run check            # Lint with Biome
-```
-
-Unix/Linux
-```bash
-npx pnpm install              # Install packages
-npx pnpm run dev              # Dev mode (Electron + Next)
-npx pnpm run build            # Production build
-npx pnpm start                # Run production build
-npx pnpm run test             # Vitest
-npx pnpm run typecheck        # TypeScript check
-npx pnpm run check            # Lint with Biome
 ```
 
 ## Tech stack

@@ -21,10 +21,9 @@ const TitlebarButton: React.FC<{
 			type="button"
 			aria-label={ariaLabel}
 			onClick={onClick}
-			className="relative flex h-4 w-4 items-center justify-center overflow-hidden rounded-full shadow-sm"
+			className="relative flex h-4 w-4 items-center justify-center overflow-hidden rounded-full"
 			style={{
 				backgroundColor: isHovered ? color : `${color}CC`,
-				transition: "all 200ms ease",
 			}}
 			onMouseEnter={() => setIsHovered(true)}
 			onMouseLeave={() => setIsHovered(false)}
@@ -34,8 +33,6 @@ const TitlebarButton: React.FC<{
 					className="text-black"
 					style={{
 						opacity: isHovered ? 1 : 0,
-						transform: `scale(${isHovered ? 1 : 0.7})`,
-						transition: "all 150ms ease",
 					}}
 				>
 					{children}

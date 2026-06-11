@@ -115,7 +115,7 @@ export function ModelSelector({
 											);
 										} catch {}
 									}}
-									className={`flex h-[22px] w-full items-center justify-center rounded-[12px] font-bold text-[13px] transition-colors ${
+									className={`model-selector__pill flex h-[22px] w-full items-center justify-center rounded-[12px] font-bold text-[13px] ${
 										!isInstalled ? "cursor-not-allowed opacity-40" : ""
 									}`}
 									title={

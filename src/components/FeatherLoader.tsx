@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+
 interface FeatherLoaderProps {
 	className?: string;
 	text?: string;
@@ -5,8 +9,17 @@ interface FeatherLoaderProps {
 
 export default function FeatherLoader({
 	className = "",
-	text = "Crafting...",
+	text = "Generating",
 }: FeatherLoaderProps) {
+	const [dotCount, setDotCount] = useState(1);
+
+	useEffect(() => {
+		const timer = setInterval(() => {
+			setDotCount((c) => (c % 3) + 1);
+		}, 400);
+		return () => clearInterval(timer);
+	}, []);
+
 	return (
 		<div className={`luxury-loader ${className}`}>
 			<div className="luxury-loader__icon">
@@ -24,7 +37,19 @@ export default function FeatherLoader({
 					/>
 				</svg>
 			</div>
-			<span className="luxury-loader__text">{text}</span>
+			<span className="luxury-loader__text">
+				{text}
+				<span
+					aria-hidden="true"
+					style={{
+						display: "inline-block",
+						width: "3ch",
+						textAlign: "left",
+					}}
+				>
+					{".".repeat(dotCount)}
+				</span>
+			</span>
 		</div>
 	);
 }

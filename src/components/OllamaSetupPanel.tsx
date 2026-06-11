@@ -175,14 +175,7 @@ export function OllamaSetupPanel({
 								type="button"
 								onClick={() => testLocalConnection()}
 								disabled={testingLocal || !isValidOllamaPort(localPort)}
-								className={[
-									"md-btn",
-									"md-btn--primary",
-									"shadowquill-field__action",
-									statusTone !== "success" && "pulse-glow",
-								]
-									.filter(Boolean)
-									.join(" ")}
+								className="md-btn md-btn--primary shadowquill-field__action"
 								title="Check for available Ollama models"
 								aria-label="Check for available Ollama models"
 							>
@@ -341,13 +334,7 @@ export function OllamaSetupPanel({
 					<button
 						type="submit"
 						disabled={!canSave}
-						className={[
-							"md-btn",
-							"md-btn--primary",
-							variant === "gate" && localTestResult?.success && "pulse-glow",
-						]
-							.filter(Boolean)
-							.join(" ")}
+						className="md-btn md-btn--primary"
 						style={
 							variant === "gate"
 								? { display: "flex", alignItems: "center", gap: "8px" }

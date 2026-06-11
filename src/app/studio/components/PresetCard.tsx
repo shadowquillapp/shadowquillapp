@@ -20,10 +20,10 @@ export default function PresetCard({
 	return (
 		<button
 			type="button"
-			className={`group relative flex w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-left transition-all duration-200 ${
+			className={`group relative flex w-full cursor-pointer items-center gap-3 rounded-lg border px-3 py-2 text-left ${
 				isSelected
-					? "border-primary shadow-md"
-					: "border-[var(--color-outline)] text-secondary hover:border-primary hover:shadow-md"
+					? "border-primary"
+					: "border-[var(--color-outline)] text-secondary hover:border-primary"
 			}`}
 			style={{
 				background: isSelected
@@ -47,8 +47,8 @@ export default function PresetCard({
 			aria-pressed={isSelected}
 		>
 			<div
-				className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg transition-colors ${
-					isSelected ? "shadow-sm" : "text-secondary group-hover:text-light"
+				className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${
+					isSelected ? "" : "text-secondary group-hover:text-light"
 				}`}
 				style={{
 					background: isSelected

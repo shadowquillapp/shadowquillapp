@@ -122,7 +122,7 @@ export function OutputPanel({
 								}
 							}}
 							disabled={!lastAssistantMessage}
-							className="flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:scale-100"
+							className="flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
 							title="Copy response"
 							aria-label="Copy response"
 							style={{
@@ -267,7 +267,7 @@ export function OutputPanel({
 
 			{activeTab?.error && (
 				<div
-					className="slide-in-from-bottom-2 absolute flex animate-in items-center rounded-lg border border-attention/10 bg-attention/10 text-attention shadow-lg"
+					className="fade-in-up absolute flex items-center rounded-lg border border-attention/10 bg-attention/10 text-attention shadow-lg"
 					style={{
 						right: "var(--space-6)",
 						bottom: "var(--space-6)",

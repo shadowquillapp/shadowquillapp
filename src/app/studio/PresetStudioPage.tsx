@@ -7,7 +7,6 @@ import StudioHeader from "@/app/studio/components/StudioHeader";
 import { usePresetManager } from "@/app/studio/hooks/usePresetManager";
 import { useDialog } from "@/components/DialogProvider";
 import { getLastSelectedPresetKey } from "@/lib/preset-store";
-import { applyStoredThemeToDocument } from "@/lib/theme-preference";
 import type { PresetLite } from "@/types";
 
 export default function PresetStudioPage() {
@@ -48,10 +47,6 @@ export default function PresetStudioPage() {
 			}
 		}
 	}, [presets, selectedPresetId, editingPreset]);
-
-	useEffect(() => {
-		applyStoredThemeToDocument();
-	}, []);
 
 	const handleSelectPreset = useCallback(
 		(presetId: string) => {
