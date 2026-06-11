@@ -27,8 +27,6 @@ interface InputPanelProps {
 		metadata?: { isRefinement?: boolean };
 	}>;
 	activeVersionId: string | undefined;
-	activeVersionNumber: number;
-	activeVersionIsRefinement: boolean;
 	outputToRefine: string | null | undefined;
 	textareaContainerRef: React.RefObject<HTMLDivElement | null>;
 	activeTab: ReturnType<typeof useTabManager>["activeTab"];
@@ -58,8 +56,6 @@ export function InputPanel({
 	setShowRefinementContext,
 	versions,
 	activeVersionId,
-	activeVersionNumber,
-	activeVersionIsRefinement,
 	outputToRefine,
 	textareaContainerRef,
 	activeTab,
@@ -103,7 +99,7 @@ export function InputPanel({
 				onKeyDown={onResizeKeyDown}
 			/>
 			<div className="panel group relative min-h-0 flex-1">
-				<div className="panel__head">
+				<div className="panel__head panel__head--tall">
 					<span
 						className="panel__title"
 						style={
@@ -126,22 +122,43 @@ export function InputPanel({
 							title="Preset details"
 							aria-label={`Show details for ${activeTab.preset.name}`}
 						>
-							<Icon name="info" style={{ width: 14, height: 14 }} />
+							<Icon name="sliders" style={{ width: 14, height: 14 }} />
 						</button>
 					)}
 
-					<span className="panel__head-spacer" />
+					<span
+						className="panel__head-divider hidden sm:block"
+						aria-hidden="true"
+					/>
 					<TextStats wordCount={wordCount} charCount={charCount} />
+					<span className="panel__head-spacer" />
+
+					{isRefinementMode && outputToRefine && (
+						<button
+							type="button"
+							className={`panel__head-action ${
+								showRefinementContext ? "panel__head-history--active" : ""
+							}`}
+							onClick={() => setShowRefinementContext(!showRefinementContext)}
+							aria-expanded={showRefinementContext}
+							title={
+								showRefinementContext
+									? "Hide version history"
+									: `Show version history (${versions.length} versions)`
+							}
+						>
+							<Icon name="layout" style={{ width: 12, height: 12 }} />
+							History
+							<span>v{versions.length}</span>
+						</button>
+					)}
 				</div>
 
 				{isRefinementMode && outputToRefine && (
 					<RefinementContextPanel
 						showRefinementContext={showRefinementContext}
-						setShowRefinementContext={setShowRefinementContext}
 						versions={versions}
 						activeVersionId={activeVersionId}
-						activeVersionNumber={activeVersionNumber}
-						activeVersionIsRefinement={activeVersionIsRefinement}
 						activeTab={activeTab}
 						tabManager={tabManager}
 						copyMessage={copyMessage}
@@ -197,7 +214,6 @@ export function InputPanel({
 						className={`run-button-container md-btn md-btn--label disabled:cursor-not-allowed disabled:opacity-50 ${
 							activeTab?.sending ? "md-btn--destructive" : "md-btn--primary"
 						}`}
-						style={{ minWidth: 96 }}
 						title={activeTab?.sending ? "Stop Generation" : "Run Prompt"}
 						aria-label={activeTab?.sending ? "Stop generation" : "Run prompt"}
 					>
