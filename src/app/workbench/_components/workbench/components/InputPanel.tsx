@@ -1,13 +1,15 @@
+import type React from "react";
 import { Icon } from "@/components/Icon";
 import type { useTabManager } from "../useTabManager";
 import { ModelSelector } from "./ModelSelector";
-import { PresetInfoRow } from "./PresetInfoRow";
 import { RefinementContextPanel } from "./RefinementContextPanel";
 import { TextStats } from "./TextStats";
 
 interface InputPanelProps {
 	leftPanelWidth: number;
 	isResizing: boolean;
+	onResizeStart: (e: React.MouseEvent) => void;
+	onResizeKeyDown: (e: React.KeyboardEvent) => void;
 	tabManager: ReturnType<typeof useTabManager>;
 	isRefinementMode: boolean;
 	wordCount: number;
@@ -27,12 +29,13 @@ interface InputPanelProps {
 	activeVersionId: string | undefined;
 	activeVersionNumber: number;
 	activeVersionIsRefinement: boolean;
-	inputThatGeneratedOutput: string | null;
 	outputToRefine: string | null | undefined;
 	textareaContainerRef: React.RefObject<HTMLDivElement | null>;
 	activeTab: ReturnType<typeof useTabManager>["activeTab"];
 	isGenerating: boolean;
 	availableModels: Array<{ name: string; size: number }>;
+	modelLoadError: string | null;
+	refreshModels: () => Promise<void>;
 	currentModelId: string | null;
 	setCurrentModelId: (id: string) => void;
 	send: () => Promise<void>;
@@ -43,6 +46,8 @@ interface InputPanelProps {
 export function InputPanel({
 	leftPanelWidth,
 	isResizing,
+	onResizeStart,
+	onResizeKeyDown,
 	tabManager,
 	isRefinementMode,
 	wordCount,
@@ -55,12 +60,13 @@ export function InputPanel({
 	activeVersionId,
 	activeVersionNumber,
 	activeVersionIsRefinement,
-	inputThatGeneratedOutput,
 	outputToRefine,
 	textareaContainerRef,
 	activeTab,
 	isGenerating,
 	availableModels,
+	modelLoadError,
+	refreshModels,
 	currentModelId,
 	setCurrentModelId,
 	send,
@@ -69,123 +75,63 @@ export function InputPanel({
 }: InputPanelProps) {
 	return (
 		<section
-			className="prompt-input-pane flex h-full flex-col overflow-hidden bg-surface"
+			className={`prompt-input-pane flex h-full flex-col overflow-hidden bg-surface ${isResizing ? "prompt-input-pane--resizing" : ""}`}
 			style={{
 				backgroundColor: "var(--color-surface)",
-				width: `${leftPanelWidth}%`,
+				["--pane-width" as string]: `${leftPanelWidth}%`,
 				flexShrink: 0,
 				flexGrow: 0,
-				minWidth: 480,
+				minWidth: 0,
 				opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
 				pointerEvents: tabManager.tabs.length === 0 ? "none" : "auto",
 				transition: isResizing ? "none" : "opacity 0.3s ease",
 				filter: tabManager.tabs.length === 0 ? "grayscale(0.3)" : "none",
-				gap: "var(--space-4)",
-				padding: "var(--space-6)",
 			}}
 		>
+			{/* biome-ignore lint/a11y/useSemanticElements: Interactive resize handle requires div, not hr */}
 			<div
-				className="group relative flex min-h-0 flex-1 flex-col rounded-2xl"
-				style={{
-					background: "var(--color-input-card, var(--color-surface-variant))",
-					border: "1px solid var(--color-outline)",
-					boxShadow: "0 6px 12px rgba(0,0,0,0.18)",
-				}}
-			>
-				<div
-					className="flex shrink-0 items-center justify-between rounded-t-2xl"
-					style={{
-						background: "var(--color-input-card, var(--color-surface-variant))",
-						borderBottom:
-							"1px solid color-mix(in srgb, var(--color-outline), transparent 60%)",
-						gap: "var(--space-3)",
-						padding:
-							"var(--space-3) var(--space-3) var(--space-3) var(--space-3)",
-					}}
-				>
-					<div
-						className="flex min-w-0 items-center"
-						style={{ gap: "var(--space-3)" }}
+				className="workbench-split__handle"
+				role="separator"
+				aria-orientation="vertical"
+				aria-label="Resize panels"
+				aria-valuenow={leftPanelWidth}
+				aria-valuemin={20}
+				aria-valuemax={80}
+				tabIndex={0}
+				title="Drag to resize panels"
+				onMouseDown={onResizeStart}
+				onKeyDown={onResizeKeyDown}
+			/>
+			<div className="panel group relative min-h-0 flex-1">
+				<div className="panel__head">
+					<span
+						className="panel__title"
+						style={
+							isRefinementMode ? { color: "var(--color-accent)" } : undefined
+						}
+						title={
+							isRefinementMode
+								? "Refinement mode: Your input will modify the previous output"
+								: "Initial mode: Your input will generate a new prompt"
+						}
 					>
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: "var(--space-2)",
-								padding: "var(--space-1) var(--space-3)",
-								borderRadius: "20px",
-								background: isRefinementMode
-									? "var(--color-tertiary)"
-									: "var(--color-surface)",
-								border: isRefinementMode
-									? "none"
-									: "1px solid var(--color-outline)",
-								color: isRefinementMode
-									? "var(--color-on-tertiary)"
-									: "var(--color-on-surface-variant)",
-							}}
-							title={
-								isRefinementMode
-									? "Refinement mode: Your input will modify the previous output"
-									: "Initial mode: Your input will generate a new prompt"
-							}
-						>
-							<Icon
-								name={isRefinementMode ? "refresh" : "edit"}
-								style={{
-									width: 11,
-									height: 11,
-									opacity: isRefinementMode ? 1 : 0.7,
-								}}
-							/>
-							<span
-								style={{
-									fontSize: "10px",
-									fontWeight: 600,
-									letterSpacing: "0.02em",
-								}}
-							>
-								{isRefinementMode ? "Refine" : "Input"}
-							</span>
-						</div>
+						{isRefinementMode ? "Refine" : "Input"}
+					</span>
 
-						<TextStats wordCount={wordCount} charCount={charCount} />
-					</div>
-
-					<div className="flex items-center" style={{ gap: "var(--space-1)" }}>
+					{activeTab?.preset && (
 						<button
 							type="button"
-							onClick={() =>
-								copyMessage("prompt-draft", activeTab?.draft ?? "")
-							}
-							disabled={!activeTab}
-							className="flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-40"
-							title="Copy prompt"
-							aria-label="Copy prompt"
-							style={{
-								width: 28,
-								height: 28,
-								borderRadius: "var(--radius-sm)",
-								background:
-									copiedMessageId === "prompt-draft"
-										? "var(--color-save)"
-										: "var(--color-surface)",
-								border:
-									copiedMessageId === "prompt-draft"
-										? "1px solid var(--color-save)"
-										: "1px solid var(--color-outline)",
-								color:
-									copiedMessageId === "prompt-draft"
-										? "var(--color-on-save)"
-										: "var(--color-on-surface-variant)",
-							}}
+							className="panel__head-action"
+							onClick={() => setShowPresetInfo(true)}
+							title="Preset details"
+							aria-label={`Show details for ${activeTab.preset.name}`}
 						>
-							<Icon
-								name={copiedMessageId === "prompt-draft" ? "check" : "copy"}
-								style={{ width: 13, height: 13 }}
-							/>
+							<Icon name="info" style={{ width: 14, height: 14 }} />
 						</button>
-					</div>
+					)}
+
+					<span className="panel__head-spacer" />
+					<TextStats wordCount={wordCount} charCount={charCount} />
 				</div>
 
 				{isRefinementMode && outputToRefine && (
@@ -196,7 +142,6 @@ export function InputPanel({
 						activeVersionId={activeVersionId}
 						activeVersionNumber={activeVersionNumber}
 						activeVersionIsRefinement={activeVersionIsRefinement}
-						inputThatGeneratedOutput={inputThatGeneratedOutput}
 						activeTab={activeTab}
 						tabManager={tabManager}
 						copyMessage={copyMessage}
@@ -209,13 +154,11 @@ export function InputPanel({
 					className="relative min-h-0 w-full flex-1"
 				>
 					<textarea
-						className="absolute inset-0 h-full w-full resize-none rounded-b-2xl p-3 pt-3 pb-24 font-mono text-[10px] text-on-surface leading-[20px] shadow-none transition-all duration-200 ease-out placeholder:text-on-surface-variant/50 focus:border-[var(--color-outline)] focus:outline-none focus:ring-2 focus:ring-[var(--color-outline)] md:p-6 md:pt-4 md:pb-24 md:text-[11px] md:leading-[24px]"
+						aria-label={isRefinementMode ? "Refinement prompt" : "Prompt input"}
+						className="absolute inset-0 h-full w-full resize-none border-none p-3 font-sans text-[length:var(--text-sm)] text-on-surface leading-[24px] shadow-none placeholder:text-on-surface-variant/50 focus:outline-none md:p-4 md:text-[length:var(--text-md)] md:leading-[28px]"
 						style={{
-							backgroundColor:
-								"color-mix(in srgb, var(--color-surface-variant), var(--color-surface) 55%)",
-							caretColor: "var(--color-primary)",
-							boxShadow:
-								"inset 0 0 0 1px color-mix(in srgb, var(--color-outline), white 18%)",
+							backgroundColor: "var(--color-surface)",
+							caretColor: "var(--color-accent)",
 							pointerEvents: isGenerating ? "none" : "auto",
 						}}
 						value={activeTab?.draft ?? ""}
@@ -229,13 +172,19 @@ export function InputPanel({
 						}
 						disabled={!activeTab || isGenerating}
 					/>
+				</div>
 
+				<div className="panel__foot">
 					<ModelSelector
 						availableModels={availableModels}
+						modelLoadError={modelLoadError}
+						refreshModels={refreshModels}
 						currentModelId={currentModelId}
 						setCurrentModelId={setCurrentModelId}
 						isGenerating={isGenerating}
 					/>
+
+					<span className="panel__head-spacer" />
 
 					<button
 						type="button"
@@ -245,61 +194,27 @@ export function InputPanel({
 						disabled={
 							!activeTab || (!activeTab.sending && !activeTab.draft.trim())
 						}
-						className={`run-button-container absolute flex items-center justify-center disabled:cursor-not-allowed disabled:opacity-50 ${
-							activeTab?.sending
-								? "bg-transparent hover:opacity-80"
-								: "rounded-full bg-[var(--color-primary)] text-on-primary hover:bg-[var(--color-primary-variant)]"
+						className={`run-button-container md-btn md-btn--label disabled:cursor-not-allowed disabled:opacity-50 ${
+							activeTab?.sending ? "md-btn--destructive" : "md-btn--primary"
 						}`}
-						style={{
-							width: activeTab?.sending ? "auto" : "min(42px, 10vw)",
-							height: activeTab?.sending ? "auto" : "min(42px, 10vw)",
-							minWidth: activeTab?.sending ? "auto" : "36px",
-							minHeight: activeTab?.sending ? "auto" : "36px",
-							right: "var(--space-4)",
-							bottom: "var(--space-4)",
-							border: activeTab?.sending
-								? "none"
-								: "1px solid var(--color-outline)",
-							zIndex: 10,
-							pointerEvents: "auto",
-							opacity: 1,
-						}}
+						style={{ minWidth: 96 }}
 						title={activeTab?.sending ? "Stop Generation" : "Run Prompt"}
+						aria-label={activeTab?.sending ? "Stop generation" : "Run prompt"}
 					>
 						{activeTab?.sending ? (
-							<Icon
-								name="stop"
-								className="relative z-10"
-								style={{
-									width: "28px",
-									height: "28px",
-									fontSize: "28px",
-									color: "#dc6b6b",
-								}}
-							/>
+							<>
+								<Icon name="stop" style={{ width: 14, height: 14 }} />
+								Stop
+							</>
 						) : (
-							<Icon
-								name="chevron-right"
-								className="relative z-10"
-								style={{
-									width: "22px",
-									height: "22px",
-									fontSize: "22px",
-									left: "calc(var(--space-1) / 3)",
-									color: "var(--color-on-primary)",
-								}}
-							/>
+							<>
+								<Icon name="chevron-right" style={{ width: 14, height: 14 }} />
+								Run
+							</>
 						)}
 					</button>
 				</div>
 			</div>
-
-			{activeTab?.preset && (
-				<PresetInfoRow
-					preset={activeTab.preset}
-					onClick={() => setShowPresetInfo(true)}
-				/>
-			)}
 		</section>
 	);
 }

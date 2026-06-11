@@ -1,4 +1,4 @@
-import { useCallback, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import type { useDialog } from "@/components/DialogProvider";
 import { appendMessagesWithCap as localAppendMessages } from "@/lib/domain/projects";
 import { callLocalModelClient } from "@/lib/model-client";
@@ -16,13 +16,17 @@ export function useGeneration(
 	ensureProject: (firstLine: string, tabId?: string) => Promise<string | null>,
 	refreshProjectList: () => Promise<void>,
 	confirm: ReturnType<typeof useDialog>["confirm"],
-	setJustCreatedVersion: (value: boolean) => void,
 	setOutputAnimateKey: React.Dispatch<React.SetStateAction<number>>,
 ) {
 	const abortRef = useRef<{
 		controller: AbortController;
 		tabId: string;
 	} | null>(null);
+	const tabManagerRef = useRef(tabManager);
+
+	useEffect(() => {
+		tabManagerRef.current = tabManager;
+	}, [tabManager]);
 
 	const send = useCallback(async () => {
 		const activeTab = tabManager.activeTab;
@@ -196,8 +200,6 @@ export function useGeneration(
 				},
 			);
 			tabManager.setVersionGraphForTab(tabId, updatedGraph);
-			tabManager.markDirtyForTab(tabId, false);
-
 			tabManager.updateDraftForTab(tabId, "");
 
 			if (!isRefinementMode) {
@@ -208,9 +210,7 @@ export function useGeneration(
 				tabManager.updateTabLabel(tabId, truncatedLabel);
 			}
 
-			setJustCreatedVersion(true);
 			setOutputAnimateKey((prev) => prev + 1);
-			setTimeout(() => setJustCreatedVersion(false), 700);
 		} catch (e: unknown) {
 			const error = e as Error & { name?: string };
 			if (error?.name === "AbortError" || error?.message?.includes("aborted")) {
@@ -229,24 +229,57 @@ export function useGeneration(
 		ensureProject,
 		refreshProjectList,
 		confirm,
-		setJustCreatedVersion,
 		setOutputAnimateKey,
 	]);
 
+	const abortGenerating = useCallback((showMessage: boolean) => {
+		const manager = tabManagerRef.current;
+		const activeRequest = abortRef.current;
+		if (!activeRequest) return;
+		activeRequest.controller.abort();
+		manager.setSendingForTab(activeRequest.tabId, false);
+
+		if (!showMessage) return;
+		const abortedMsg: MessageItem = {
+			id: crypto.randomUUID(),
+			role: "assistant",
+			content: "Response aborted",
+		};
+		manager.pushMessageForTab(activeRequest.tabId, abortedMsg);
+
+		const tab = manager
+			.getTabs()
+			.find((item) => item.id === activeRequest.tabId);
+		if (tab) {
+			const timestamp = new Date().toLocaleTimeString([], {
+				hour: "2-digit",
+				minute: "2-digit",
+			});
+			manager.setVersionGraphForTab(
+				activeRequest.tabId,
+				appendVersion(
+					tab.versionGraph,
+					tab.draft,
+					`Aborted ${timestamp}`,
+					tab.draft,
+					abortedMsg.id,
+					{ taskType: tab.preset.taskType, isRefinement: false },
+				),
+			);
+		}
+	}, []);
+
+	useEffect(() => {
+		return () => {
+			abortGenerating(false);
+		};
+	}, [abortGenerating]);
+
 	const stopGenerating = useCallback(() => {
 		try {
-			const activeRequest = abortRef.current;
-			activeRequest?.controller.abort();
-			if (!activeRequest) return;
-			const abortedMsg: MessageItem = {
-				id: crypto.randomUUID(),
-				role: "assistant",
-				content: "Response aborted",
-			};
-			tabManager.pushMessageForTab(activeRequest.tabId, abortedMsg);
-			tabManager.setSendingForTab(activeRequest.tabId, false);
+			abortGenerating(true);
 		} catch {}
-	}, [tabManager]);
+	}, [abortGenerating]);
 
 	return { send, stopGenerating };
 }

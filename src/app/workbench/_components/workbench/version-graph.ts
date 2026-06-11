@@ -99,20 +99,6 @@ export function jumpToVersion(
 	return { ...graph, activeId: targetId };
 }
 
-export function undoVersion(graph: VersionGraph): VersionGraph | null {
-	const active = graph.nodes[graph.activeId];
-	if (!active?.prevId) return null;
-	const prevNode = graph.nodes[active.prevId];
-	if (prevNode?.label === "Start") return null;
-	return { ...graph, activeId: active.prevId };
-}
-
-export function redoVersion(graph: VersionGraph): VersionGraph | null {
-	const active = graph.nodes[graph.activeId];
-	if (!active?.nextId) return null;
-	return { ...graph, activeId: active.nextId };
-}
-
 export function versionList(graph: VersionGraph): VersionNode[] {
 	const list: VersionNode[] = [];
 	let cursor: string | null = graph.headId;
@@ -129,19 +115,6 @@ export function versionList(graph: VersionGraph): VersionNode[] {
 
 export function getActiveContent(graph: VersionGraph): string {
 	return graph.nodes[graph.activeId]?.content ?? "";
-}
-
-export function hasUndo(graph: VersionGraph): boolean {
-	const active = graph.nodes[graph.activeId];
-	if (!active?.prevId) return false;
-	const prevNode = graph.nodes[active.prevId];
-	if (prevNode?.label === "Start") return false;
-	return true;
-}
-
-export function hasRedo(graph: VersionGraph): boolean {
-	const active = graph.nodes[graph.activeId];
-	return Boolean(active?.nextId);
 }
 
 export function getOutputMessageId(

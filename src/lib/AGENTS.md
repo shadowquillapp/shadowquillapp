@@ -25,7 +25,7 @@
 
 ## Conventions (delta from root)
 
-- **No barrel `index.ts` at this level** — the only barrels are `presets.ts` and `prompt-directives/index.ts`. Import deep paths.
+- **No barrel `index.ts` at this level** — the only barrel is `presets.ts`. Import deep paths.
 - **Module-level mutable singletons are normal** (`_factoryResetInProgress`, cache instances, `writeQueue`). React Context lives in `components/`, not here.
 - **`typeof window === "undefined"` SSR guards** in browser-only helpers (`system-prompts.ts`'s `readRawPrompt`/`writeRawPrompt`).
 - **Electron-bridge typing workaround**: `as unknown as T` only at the IPC boundary (`electron-storage.ts`).

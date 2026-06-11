@@ -55,19 +55,12 @@ export interface TestMessage {
 	createdAt: Date;
 }
 
-export interface SystemSpecs {
-	cpu: string;
-	ram: number;
-	gpu: string;
-}
-
 declare global {
 	interface Window {
 		shadowquill?: {
 			getEnvSafety?: () => Promise<unknown>;
 			restartApp?: () => Promise<unknown>;
 			getPlatform?: () => Promise<string>;
-			getSystemSpecs?: () => Promise<SystemSpecs>;
 			checkForUpdates?: () => Promise<{
 				success: boolean;
 				currentVersion?: string;

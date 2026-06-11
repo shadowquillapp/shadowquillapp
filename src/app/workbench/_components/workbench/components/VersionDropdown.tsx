@@ -45,7 +45,9 @@ export function VersionDropdown({
 		triggerRef: versionDropdownRef,
 		menuRef,
 		itemCount: versions.length,
-		rowHeight: 44,
+		rowHeight: 24,
+		align: "end",
+		menuWidth: Math.max(40, `${versions.length}`.length * 8 + 24),
 	});
 
 	const handleMenuKeyDown = useMenuKeyboard({
@@ -65,9 +67,14 @@ export function VersionDropdown({
 			<button
 				ref={versionDropdownRef}
 				type="button"
-				className="md-btn"
+				className="panel__head-action"
 				aria-haspopup="menu"
 				aria-expanded={showVersionDropdown}
+				aria-label={
+					versions.length > 0 && activeTab
+						? `Switch version, currently version ${currentVersionIndex}`
+						: "No versions available"
+				}
 				disabled={versions.length === 0}
 				onClick={toggleMenu}
 				title={
@@ -77,15 +84,7 @@ export function VersionDropdown({
 				}
 			>
 				<Icon name="git-compare" style={{ width: 11, height: 11 }} />
-				<span
-					style={{
-						fontSize: "10px",
-						fontWeight: 700,
-						letterSpacing: "0.02em",
-					}}
-				>
-					v{currentVersionIndex}
-				</span>
+				<span>v{currentVersionIndex}</span>
 			</button>
 			{showVersionDropdown &&
 				versions.length > 0 &&
@@ -96,13 +95,13 @@ export function VersionDropdown({
 						ref={menuRef}
 						role="menu"
 						onKeyDown={handleMenuKeyDown}
-						className={`version-dropdown-menu menu-panel fixed z-[10001] overflow-y-auto ${
+						className={`version-dropdown-menu fixed z-[10001] overflow-y-auto ${
 							dropdownPos.openUpward ? "fade-in-up" : "fade-in-down"
 						}`}
 						style={{
 							top: dropdownPos.top,
 							left: dropdownPos.left,
-							width: Math.max(dropdownPos.width, 160),
+							width: dropdownPos.width,
 							maxHeight: dropdownPos.maxHeight,
 						}}
 					>
@@ -111,7 +110,6 @@ export function VersionDropdown({
 							const isCurrentVersion = Boolean(
 								activeTab && version.id === activeTab.versionGraph.activeId,
 							);
-							const isRefinement = version.metadata?.isRefinement === true;
 
 							return (
 								<button
@@ -123,49 +121,12 @@ export function VersionDropdown({
 											jumpToVersion(version.id);
 										}
 									}}
-									className="menu-item"
+									className="version-dropdown-item"
 									role="menuitem"
-									data-selected={isCurrentVersion}
+									aria-current={isCurrentVersion ? "true" : undefined}
 									disabled={isCurrentVersion}
 								>
-									<span
-										style={{
-											display: "flex",
-											alignItems: "center",
-											justifyContent: "space-between",
-											width: "100%",
-										}}
-									>
-										<span
-											style={{
-												display: "flex",
-												alignItems: "center",
-												gap: "8px",
-											}}
-										>
-											<span
-												style={{
-													fontSize: "12px",
-													fontWeight: 600,
-												}}
-											>
-												v{versionNum}
-											</span>
-											<span
-												style={{
-													fontSize: "11px",
-													opacity: 0.7,
-													textTransform: "uppercase",
-													letterSpacing: "0.05em",
-												}}
-											>
-												{isRefinement ? "Refinement" : "Base"}
-											</span>
-										</span>
-										{isCurrentVersion && (
-											<Icon name="check" style={{ width: 14, height: 14 }} />
-										)}
-									</span>
+									v{versionNum}
 								</button>
 							);
 						})}

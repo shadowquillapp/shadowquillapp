@@ -18,18 +18,20 @@
 
 	/* ========================================
 	 * BORDER RADIUS
-	 * Consistent rounding for UI elements
+	 * Console aesthetic: sharp geometry, 0-2px only
 	 * ======================================== */
 
-	--radius-sm: 8px;
-	--radius-md: 12px;
-	--radius-lg: 16px;
+	--radius-none: 0;
+	--radius-sm: 2px;
+	--radius-md: 2px;
+	--radius-lg: 2px;
 
 	/* ========================================
 	 * SHADOWS
-	 * Elevation system for depth
+	 * Flat console: no soft elevation.
+	 * shadow-2 is a 1px ring substitute for emphasis.
 	 * ======================================== */
 
-	--shadow-1: 0 2px 8px #00000040;
-	--shadow-2: 0 6px 16px #00000059;
+	--shadow-1: none;
+	--shadow-2: 0 0 0 1px var(--color-outline);
 }

@@ -55,15 +55,25 @@ export default function OllamaConnectionMonitor() {
 		[],
 	);
 
+	const broadcastStatus = useCallback((ok: boolean) => {
+		try {
+			window.dispatchEvent(
+				new CustomEvent("sq-connection-status", { detail: { ok } }),
+			);
+		} catch {}
+	}, []);
+
 	const checkConnection = useCallback(async () => {
 		const config = readLocalModelConfig();
 		if (!config) {
 			setIsMonitoring(false);
+			broadcastStatus(false);
 			return;
 		}
 
 		setIsMonitoring(true);
 		const result = await validateLocalModelConnection(config);
+		broadcastStatus(result.ok);
 
 		if (lastKnownStatusRef.current === true && !result.ok) {
 			let isInstalled = ollamaInstalledRef.current;
@@ -89,17 +99,23 @@ export default function OllamaConnectionMonitor() {
 					const recheckResult =
 						await validateLocalModelConnection(recheckConfig);
 					lastKnownStatusRef.current = recheckResult.ok;
+					broadcastStatus(recheckResult.ok);
 				}
 				return;
 			}
 		}
 		lastKnownStatusRef.current = result.ok;
-	}, [confirm, checkOllamaInstalled, handleOpenOrInstallOllama]);
+	}, [
+		confirm,
+		checkOllamaInstalled,
+		handleOpenOrInstallOllama,
+		broadcastStatus,
+	]);
 
 	useEffect(() => {
 		const initialTimeout = setTimeout(() => {
 			void checkConnection();
-		}, 3000);
+		}, 0);
 
 		return () => clearTimeout(initialTimeout);
 	}, [checkConnection]);

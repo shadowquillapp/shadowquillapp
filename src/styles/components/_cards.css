@@ -1,49 +1,157 @@
 /**
  * ==========================================================================
- * CARD COMPONENTS
+ * PANEL / SURFACE COMPONENTS
  * ==========================================================================
  *
- * Card and surface components for containing content.
+ * Flat console panels for containing content. 1px borders are the primary
+ * separation mechanism; no soft elevation.
  *
  * COMPONENT CLASSES:
  * - .md-surface: Basic surface container
- * - .md-card: Card with full styling
+ * - .md-card: Flat bordered container
  * - .md-divider: Horizontal divider line
+ * - .panel: Modular console panel (head / body / foot)
+ * - .toolbar: Dense horizontal control row
  * ==========================================================================
  */
 
 /* ========================================
  * SURFACE (.md-surface)
- * Basic elevated surface
  * ======================================== */
 
 .md-surface {
-	background: var(--color-surface-variant);
+	background: var(--color-surface);
 	border: 1px solid var(--color-outline);
-	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-1);
+	border-radius: var(--radius-md);
 }
 
 /* ========================================
  * CARD (.md-card)
- * Full-width card component
  * ======================================== */
 
 .md-card {
-	background: var(--color-surface-variant);
+	background: var(--color-surface);
 	border: 1px solid var(--color-outline);
 	border-radius: var(--radius-md);
-	box-shadow: var(--shadow-1);
 	display: block;
 	width: 100%;
 }
 
 /* ========================================
  * DIVIDER (.md-divider)
- * Horizontal separator line
  * ======================================== */
 
 .md-divider {
 	height: 1px;
 	background: var(--color-outline);
+}
+
+/* ========================================
+ * CONSOLE PANEL (.panel)
+ * Modular system panel with labeled head bar
+ * ======================================== */
+
+.panel {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	min-width: 0;
+	background: var(--color-surface);
+	border: 1px solid var(--color-outline);
+	border-radius: var(--radius-md);
+	overflow: hidden;
+}
+
+.panel__head {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	flex-shrink: 0;
+	min-width: 0;
+	min-height: 32px;
+	padding: 0 var(--space-3);
+	background: var(--color-panel-head);
+	border-bottom: 1px solid var(--color-outline);
+}
+
+.panel__title {
+	font-size: var(--text-xs);
+	font-weight: 600;
+	letter-spacing: var(--label-tracking);
+	text-transform: uppercase;
+	color: var(--color-on-surface-variant);
+	white-space: nowrap;
+}
+
+.panel__head-spacer {
+	flex: 1;
+	min-width: 0;
+}
+
+.panel__head-action {
+	display: inline-flex;
+	align-items: center;
+	gap: var(--space-1);
+	padding: 0;
+	border: none;
+	background: transparent;
+	color: var(--color-on-surface-variant);
+	cursor: pointer;
+	font-size: var(--text-xs);
+	font-weight: 500;
+	white-space: nowrap;
+}
+
+.panel__head-action:hover:not(:disabled) {
+	color: var(--color-on-surface);
+}
+
+.panel__head-action:focus-visible {
+	outline: 1px solid var(--color-accent);
+	outline-offset: 1px;
+}
+
+.panel__head-action[disabled] {
+	opacity: 0.5;
+	cursor: not-allowed;
+}
+
+.panel__body {
+	flex: 1;
+	min-height: 0;
+	padding: var(--space-3);
+	overflow: auto;
+}
+
+.panel__foot {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	flex-shrink: 0;
+	min-height: 36px;
+	padding: var(--space-1) var(--space-3);
+	background: var(--color-panel-head);
+	border-top: 1px solid var(--color-outline);
+}
+
+/* ========================================
+ * TOOLBAR (.toolbar)
+ * Dense horizontal control row
+ * ======================================== */
+
+.toolbar {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+	min-height: 36px;
+	padding: var(--space-1) var(--space-2);
+	background: var(--color-panel-head);
+	border-bottom: 1px solid var(--color-outline);
+}
+
+.toolbar__divider {
+	width: 1px;
+	height: 16px;
+	background: var(--color-outline);
+	flex-shrink: 0;
 }

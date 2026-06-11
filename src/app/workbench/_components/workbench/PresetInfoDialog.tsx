@@ -1,10 +1,12 @@
 "use client";
 
-import { XMarkIcon } from "@heroicons/react/24/solid";
 import { useRouter } from "next/navigation";
-import { Icon, type IconName } from "@/components/Icon";
+import type React from "react";
+import { useEffect, useRef } from "react";
+import { Icon } from "@/components/Icon";
 import { useCloseOnEscape } from "@/components/useCloseOnEscape";
 import { setLastSelectedPresetKey } from "@/lib/preset-store";
+import { getTaskTypeIcon } from "@/lib/task-type-icon";
 import type { PresetLite } from "@/types";
 
 interface PresetInfoDialogProps {
@@ -14,18 +16,19 @@ interface PresetInfoDialogProps {
 }
 
 const CATEGORIES = {
-	general: ["tone", "detail", "format", "language"],
-	context: ["additionalContext", "audience", "styleGuidelines"],
+	general: [
+		"tone",
+		"detail",
+		"format",
+		"language",
+		"additionalContext",
+		"audience",
+		"styleGuidelines",
+	],
 };
 
 const CATEGORY_LABELS: Record<string, string> = {
-	general: "General Settings",
-	context: "Context",
-};
-
-const CATEGORY_ICONS: Record<string, IconName> = {
-	general: "sliders",
-	context: "file-text",
+	general: "Settings",
 };
 
 export function PresetInfoDialog({
@@ -34,6 +37,7 @@ export function PresetInfoDialog({
 	preset,
 }: PresetInfoDialogProps) {
 	const router = useRouter();
+	const dialogRef = useRef<HTMLDialogElement | null>(null);
 
 	const handleOpenInStudio = () => {
 		if (preset.id) {
@@ -47,6 +51,37 @@ export function PresetInfoDialog({
 
 	useCloseOnEscape(open, onClose);
 
+	useEffect(() => {
+		if (!open) return;
+		requestAnimationFrame(() => {
+			dialogRef.current
+				?.querySelector<HTMLElement>(
+					'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
+				)
+				?.focus();
+		});
+	}, [open]);
+
+	const handleDialogKeyDown = (e: React.KeyboardEvent<HTMLDialogElement>) => {
+		e.stopPropagation();
+		if (e.key !== "Tab") return;
+		const focusable = Array.from(
+			dialogRef.current?.querySelectorAll<HTMLElement>(
+				'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+			) ?? [],
+		).filter((item) => item.offsetParent !== null);
+		const first = focusable[0];
+		const last = focusable[focusable.length - 1];
+		if (!first || !last) return;
+		if (e.shiftKey && document.activeElement === first) {
+			e.preventDefault();
+			last.focus();
+		} else if (!e.shiftKey && document.activeElement === last) {
+			e.preventDefault();
+			first.focus();
+		}
+	};
+
 	if (!open) return null;
 
 	const options = preset.options || {};
@@ -57,12 +92,7 @@ export function PresetInfoDialog({
 	> = {};
 
 	for (const [key, value] of Object.entries(options)) {
-		if (
-			value === undefined ||
-			value === null ||
-			value === "" ||
-			value === false
-		) {
+		if (value === undefined || value === null || value === "") {
 			continue;
 		}
 
@@ -80,23 +110,47 @@ export function PresetInfoDialog({
 		groupedOptions[category]?.push({ key, value });
 	}
 
-	const categoryOrder = ["general", "context", "other"];
+	for (const items of Object.values(groupedOptions)) {
+		items.sort((a, b) => {
+			const order = CATEGORIES.general;
+			return order.indexOf(a.key) - order.indexOf(b.key);
+		});
+	}
+
+	const categoryOrder = ["general", "other"];
+	const taskType = preset.taskType || "intent";
+
+	const formatLabel = options.format
+		? options.format === "plain"
+			? "Plain"
+			: "MD"
+		: null;
+	const metaPills: Array<string> = [];
+	if (options.tone) metaPills.push(options.tone);
+	if (formatLabel) metaPills.push(formatLabel);
+	if (options.detail) metaPills.push(options.detail);
 
 	return (
 		<div className="modal-container">
-			<div className="modal-backdrop-blur" />
+			<button
+				type="button"
+				className="modal-backdrop-blur"
+				aria-label="Close preset details"
+				onClick={onClose}
+			/>
 			<dialog
+				ref={dialogRef}
 				aria-modal="true"
+				aria-labelledby="preset-info-title"
 				open
-				className="modal-content"
+				className="modal-content modal-content--medium"
 				onClick={(e) => e.stopPropagation()}
-				onKeyDown={(e) => e.stopPropagation()}
-				style={{ maxWidth: 520 }}
+				onKeyDown={handleDialogKeyDown}
 			>
 				<div className="modal-header">
 					<div className="modal-title flex items-center gap-2">
 						<Icon name="info" className="text-primary" />
-						<span>Preset Details</span>
+						<span id="preset-info-title">Preset Details</span>
 					</div>
 					<button
 						type="button"
@@ -105,62 +159,44 @@ export function PresetInfoDialog({
 						onClick={onClose}
 						title="Close"
 					>
-						<XMarkIcon className="h-4 w-4" />
+						<Icon name="close" className="h-4 w-4" />
 					</button>
 				</div>
 
 				<div className="modal-body">
-					<div className="flex flex-col gap-6">
-						<div
-							className="flex items-start justify-between gap-4 rounded-xl border border-[var(--color-outline)] p-5"
-							style={{
-								background: "var(--color-surface-variant)",
-							}}
-						>
-							<div className="flex flex-col gap-2">
-								<div
-									className="font-bold text-xl leading-tight tracking-tight"
+					<div className="flex flex-col gap-4">
+						<div className="panel">
+							<div className="panel__head">
+								<span
+									className="min-w-0 truncate font-semibold text-sm"
 									style={{ color: "var(--color-on-surface)" }}
+									title={preset.name}
 								>
 									{preset.name}
-								</div>
-								<div className="flex items-center gap-2">
-									<span className="inline-flex items-center gap-1.5 font-bold text-[10px] text-primary uppercase tracking-wider">
-										<Icon
-											name={
-												preset.taskType === "engineering"
-													? "git-compare"
-													: preset.taskType === "visual"
-														? "palette"
-														: preset.taskType === "motion"
-															? "eye"
-															: "sparkles"
-											}
-											className="h-3 w-3"
-										/>
-										{preset.taskType || "General"}
-									</span>
-								</div>
+								</span>
+								<span className="panel__head-spacer" />
+								<button
+									type="button"
+									className="panel__head-action"
+									onClick={handleOpenInStudio}
+									title="Open in Preset Studio"
+									aria-label="Open in Preset Studio"
+								>
+									<Icon name="edit" className="h-3.5 w-3.5" />
+									Open in Studio
+								</button>
 							</div>
-							<button
-								type="button"
-								className="md-btn md-btn--primary"
-								onClick={handleOpenInStudio}
-								title="Open in Preset Studio"
-								aria-label="Open in Preset Studio"
-								style={{
-									display: "flex",
-									alignItems: "center",
-									gap: 6,
-									padding: "8px 12px",
-									fontSize: 12,
-									fontWeight: 600,
-									whiteSpace: "nowrap",
-								}}
-							>
-								<Icon name="brush" style={{ width: 14, height: 14 }} />
-								Edit
-							</button>
+							<div className="panel__body flex flex-wrap items-center gap-1.5 py-2">
+								<span className="workbench-meta-pill workbench-meta-pill--accent inline-flex items-center gap-1">
+									<Icon name={getTaskTypeIcon(taskType)} className="h-3 w-3" />
+									{taskType}
+								</span>
+								{metaPills.map((item) => (
+									<span key={item} className="workbench-meta-pill" title={item}>
+										{item}
+									</span>
+								))}
+							</div>
 						</div>
 
 						<div className="flex flex-col gap-5">
@@ -170,46 +206,43 @@ export function PresetInfoDialog({
 
 								return (
 									<div key={cat} className="flex flex-col gap-3">
-										<div
-											className="flex items-center gap-2 border-[var(--color-outline)]/50 border-b pb-1.5 font-bold text-xs uppercase tracking-wider"
-											style={{ color: "var(--color-on-surface)" }}
+										<h3
+											className="border-[var(--color-outline)] border-b pb-1.5 font-semibold text-secondary text-xs uppercase"
+											style={{ letterSpacing: "var(--label-tracking)" }}
 										>
-											<Icon
-												name={CATEGORY_ICONS[cat] || "settings"}
-												className="h-3.5 w-3.5 opacity-70"
-											/>
 											{CATEGORY_LABELS[cat] || "Other Settings"}
-										</div>
+										</h3>
 
-										<div className="grid grid-cols-2 gap-3">
+										<div className="data-table">
+											<div className="data-table__head-row">
+												<span className="data-table__cell data-table__cell--grow">
+													Setting
+												</span>
+												<span className="data-table__cell">Value</span>
+											</div>
 											{items.map(({ key, value }) => {
 												const label = key
 													.replace(/([A-Z])/g, " $1")
 													.replace(/^./, (str) => str.toUpperCase());
 
 												const displayValue =
-													typeof value === "boolean" ? "Yes" : String(value);
+													typeof value === "boolean"
+														? value
+															? "Yes"
+															: "No"
+														: String(value);
 												const isLongText = displayValue.length > 40;
 
 												return (
 													<div
 														key={key}
-														className={`flex flex-col gap-1.5 rounded-lg border border-[var(--color-outline)] p-3 transition-colors hover:border-primary/50 ${isLongText ? "col-span-2" : ""}`}
-														style={{
-															background: "var(--color-surface)",
-														}}
+														className={`data-table__row ${isLongText ? "data-table__row--top" : ""}`}
 													>
-														<span
-															className="font-bold text-[10px] uppercase leading-none tracking-wide"
-															style={{
-																color: "var(--color-on-surface-variant)",
-															}}
-														>
+														<span className="data-table__cell data-table__cell--grow">
 															{label}
 														</span>
 														<span
-															className={`font-mono text-sm ${isLongText ? "whitespace-pre-wrap leading-relaxed" : "truncate"}`}
-															style={{ color: "var(--color-on-surface)" }}
+															className={`data-table__cell data-table__cell--mono ${isLongText ? "data-table__cell--wrap" : ""}`}
 															title={displayValue}
 														>
 															{displayValue}
@@ -223,8 +256,10 @@ export function PresetInfoDialog({
 							})}
 
 							{Object.keys(groupedOptions).length === 0 && (
-								<div className="flex flex-col items-center justify-center py-8 text-secondary text-sm italic">
-									No specific options configured for this preset.
+								<div className="data-table">
+									<div className="data-table__empty">
+										No specific options configured for this preset.
+									</div>
 								</div>
 							)}
 						</div>

@@ -7,12 +7,14 @@
  * These establish the baseline for the entire application.
  *
  * IMPORT ORDER:
- * 1. Reset - Normalize browser defaults
- * 2. Scrollbar - Custom scrollbar styling
- * 3. Typography - Text utilities
+ * 1. Fonts - @font-face declarations (must load before use)
+ * 2. Reset - Normalize browser defaults
+ * 3. Scrollbar - Custom scrollbar styling
+ * 4. Typography - Text utilities
  * ==========================================================================
  */
 
+@import "./_fonts.css";
 @import "./_reset.css";
 @import "./_scrollbar.css";
 @import "./_typography.css";

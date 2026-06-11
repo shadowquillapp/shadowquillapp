@@ -24,42 +24,30 @@
 }
 
 .luxury-loader__icon {
-	width: 32px;
-	height: 32px;
-	color: var(--color-primary);
-	animation: luxury-float 3.5s ease-in-out infinite;
+	width: 24px;
+	height: 24px;
+	color: var(--color-on-surface-variant);
+	animation: luxury-pulse 1.6s linear infinite;
 }
 
 .luxury-loader__text {
-	font-weight: 700;
-	font-size: 16px;
-	letter-spacing: 0.5px;
-	/* No gradients — flat text color */
+	font-weight: 500;
+	font-size: var(--text-sm);
+	font-family: var(--font-mono);
 	color: var(--color-on-surface-variant);
 	animation: none;
 }
 
 /* ========================================
- * LUXURY LOADER ANIMATIONS
+ * LOADER ANIMATIONS
  * ======================================== */
 
-@keyframes luxury-float {
+@keyframes luxury-pulse {
 	0%,
 	100% {
-		transform: translateY(0) rotate(0deg);
-		opacity: 0.85;
+		opacity: 0.5;
 	}
 	50% {
-		transform: translateY(-5px) rotate(8deg);
 		opacity: 1;
-	}
-}
-
-@keyframes luxury-shimmer {
-	0% {
-		background-position: 100% 0;
-	}
-	100% {
-		background-position: -100% 0;
 	}
 }

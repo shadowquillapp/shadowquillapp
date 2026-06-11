@@ -66,9 +66,9 @@
  * │   ├── _mode-toggle.css   # Toggle switches
  * │   └── _message-bubble.css # Chat bubbles
  * ├── features/              # Feature-specific styles
+ * │   ├── _console-shell.css # App nav rail + status bar
  * │   ├── _ollama.css        # Ollama setup UI
  * │   ├── _workbench.css     # Prompt workbench
- * │   ├── _version-history.css # Version history
  * │   ├── _refine-panel.css  # Refinement panel
  * │   └── _find-highlight.css # Search highlighting
  * ├── utilities/             # Utility classes

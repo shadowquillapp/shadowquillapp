@@ -7,7 +7,6 @@
  *
  * COMPONENT CLASSES:
  * - .md-chip: Standard chip
- * - .workbench-chip: Workbench-specific chip
  * ==========================================================================
  */
 
@@ -18,26 +17,12 @@
 .md-chip {
 	display: inline-flex;
 	align-items: center;
-	gap: 8px;
-	padding: 8px 12px;
-	border-radius: 999px;
-	background: var(--color-surface-variant);
+	gap: var(--space-2);
+	padding: 2px 6px;
+	border-radius: var(--radius-sm);
+	background: transparent;
 	border: 1px solid var(--color-outline);
-	color: var(--color-on-surface);
-	cursor: pointer;
-}
-
-/* ========================================
- * WORKBENCH CHIP
- * Smaller chip variant for workbench UI
- * ======================================== */
-
-.workbench-chip {
-	border: 1px solid var(--color-outline);
-	border-radius: 999px;
-	padding: 2px 8px;
-	font-size: 11px;
-	text-transform: uppercase;
-	letter-spacing: 0.05em;
 	color: var(--color-on-surface-variant);
+	font-size: var(--text-xs);
+	cursor: pointer;
 }

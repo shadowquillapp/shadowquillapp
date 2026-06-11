@@ -1,21 +1,20 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon } from "@/components/Icon";
-import { Logo } from "@/components/Logo";
 import SettingsDialog, { type SettingsTab } from "@/components/SettingsDialog";
 
 interface StudioHeaderProps {
 	isSmallScreen?: boolean;
+	sidebarOpen?: boolean;
 	onToggleSidebar?: () => void;
 }
 
 export default function StudioHeader({
 	isSmallScreen,
+	sidebarOpen,
 	onToggleSidebar,
 }: StudioHeaderProps) {
-	const router = useRouter();
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [settingsInitialTab, setSettingsInitialTab] =
 		useState<SettingsTab>("version");
@@ -59,81 +58,27 @@ export default function StudioHeader({
 					{isSmallScreen && (
 						<button
 							type="button"
-							className="md-btn"
-							style={{
-								width: 32,
-								height: 32,
-								padding: 0,
-								flexShrink: 0,
-								borderColor: "var(--color-outline)",
-								borderRadius: "6px",
-								background: "transparent",
-								color: "var(--color-on-surface-variant)",
-								cursor: "pointer",
-							}}
+							className="md-icon-btn"
+							style={{ flexShrink: 0 }}
 							onClick={onToggleSidebar}
 							title="Toggle sidebar"
+							aria-label="Toggle preset library sidebar"
+							aria-expanded={sidebarOpen}
 						>
 							<Icon name="bars" className="h-4 w-4" />
 						</button>
 					)}
 
-					<div
+					<span
 						style={{
-							display: "flex",
-							alignItems: "center",
-							gap: "8px",
+							fontSize: "var(--text-base)",
+							fontWeight: 600,
+							color: "var(--color-on-surface)",
+							whiteSpace: "nowrap",
 						}}
 					>
-						<span
-							style={{
-								fontSize: "14px",
-								fontWeight: 600,
-								color: "var(--color-on-surface)",
-								display: "flex",
-								alignItems: "center",
-								gap: "6px",
-								whiteSpace: "nowrap",
-							}}
-						>
-							Preset Studio
-						</span>
-						<Logo
-							style={{
-								width: 20,
-								height: 20,
-								flexShrink: 0,
-								color: "var(--color-primary)",
-							}}
-						/>
-					</div>
-				</div>
-
-				<div
-					className="simple-workbench__header-actions"
-					style={{
-						display: "flex",
-						gap: "8px",
-						flexShrink: 0,
-					}}
-				>
-					<button
-						type="button"
-						onClick={() => router.push("/workbench")}
-						className="md-btn md-btn--primary"
-						title="Open Workbench Tab"
-						style={{ minWidth: 0, padding: "6px" }}
-					>
-						<Logo style={{ width: 24, height: 24 }} />
-					</button>
-					<button
-						type="button"
-						className="md-btn"
-						onClick={() => setSettingsOpen(true)}
-						title="Settings"
-					>
-						<Icon name="gear" className="h-4 w-4" />
-					</button>
+						Preset Studio
+					</span>
 				</div>
 			</header>
 

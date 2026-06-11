@@ -13,7 +13,7 @@ export function TextStats({ wordCount, charCount }: TextStatsProps) {
 		>
 			<div
 				className="flex items-center"
-				style={{ fontSize: "10px", gap: "var(--space-1)" }}
+				style={{ fontSize: "var(--text-2xs)", gap: "var(--space-1)" }}
 			>
 				<Icon
 					name="file-text"
@@ -35,7 +35,7 @@ export function TextStats({ wordCount, charCount }: TextStatsProps) {
 			</span>
 			<div
 				className="flex items-center"
-				style={{ fontSize: "10px", gap: "var(--space-1)" }}
+				style={{ fontSize: "var(--text-2xs)", gap: "var(--space-1)" }}
 			>
 				<span style={{ fontVariantNumeric: "tabular-nums" }}>
 					{charCount.toLocaleString()}

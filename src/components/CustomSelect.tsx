@@ -99,16 +99,10 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
 					)}
 					{displayText}
 				</span>
-				<svg
+				<Icon
+					name="chevron-down"
 					className={`dropdown-arrow ml-2 h-4 w-4 shrink-0 ${isOpen ? "dropdown-arrow--open" : ""}`}
-					viewBox="0 0 20 20"
-					fill="none"
-					stroke="currentColor"
-					strokeWidth={2}
-					aria-hidden="true"
-				>
-					<path d="M5 8l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
-				</svg>
+				/>
 			</button>
 
 			{isOpen &&

@@ -16,7 +16,6 @@ interface RefinementContextPanelProps {
 	activeVersionId: string | undefined;
 	activeVersionNumber: number;
 	activeVersionIsRefinement: boolean;
-	inputThatGeneratedOutput: string | null;
 	activeTab: ReturnType<typeof useTabManager>["activeTab"];
 	tabManager: ReturnType<typeof useTabManager>;
 	copyMessage: (messageId: string, content: string) => Promise<void>;
@@ -30,7 +29,6 @@ export function RefinementContextPanel({
 	activeVersionId,
 	activeVersionNumber,
 	activeVersionIsRefinement,
-	inputThatGeneratedOutput,
 	activeTab,
 	tabManager,
 	copyMessage,
@@ -61,15 +59,6 @@ export function RefinementContextPanel({
 						{versions.length}
 					</span>
 				</div>
-				{!showRefinementContext && inputThatGeneratedOutput && (
-					<div className="refine-panel__preview">
-						<span className="refine-panel__preview-label">Preview:</span>
-						<span className="refine-panel__preview-text">
-							{inputThatGeneratedOutput.slice(0, 25)}
-							{inputThatGeneratedOutput.length > 25 ? "..." : ""}
-						</span>
-					</div>
-				)}
 				<div className="refine-panel__toggle">
 					<span>{showRefinementContext ? "Hide" : "History"}</span>
 					<Icon name="chevron-down" className="refine-panel__toggle-icon" />
@@ -100,7 +89,6 @@ export function RefinementContextPanel({
 									};
 									tabManager.setVersionGraph(updatedGraph);
 								}
-								tabManager.markDirty(false);
 							};
 
 							const versionInput = version.originalInput || "";
@@ -184,7 +172,9 @@ export function RefinementContextPanel({
 											</div>
 										</div>
 										<div className="refine-timeline__body">
-											{versionInput || <em style={{ opacity: 0.5 }}>Empty</em>}
+											{versionInput || (
+												<em className="refine-timeline__empty">Empty</em>
+											)}
 										</div>
 									</div>
 								</div>

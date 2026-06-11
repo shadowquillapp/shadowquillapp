@@ -20,15 +20,15 @@
 	background: var(--color-surface-variant);
 	color: var(--color-on-surface);
 	border: 1px solid var(--color-outline);
-	border-radius: 12px;
-	padding: 12px 16px;
-	box-shadow: var(--shadow-1);
+	border-radius: var(--radius-sm);
+	padding: 6px 10px;
+	font-size: var(--text-md);
 }
 
 .md-input:focus {
-	outline: 2px solid var(--color-primary);
+	outline: 1px solid var(--color-accent);
 	outline-offset: 0;
-	border-color: var(--color-primary);
+	border-color: var(--color-accent);
 }
 
 /* ========================================
@@ -36,22 +36,22 @@
  * ======================================== */
 
 .md-select {
-	height: 40px;
-	border-radius: 12px;
+	height: 32px;
+	border-radius: var(--radius-sm);
 	border: 1px solid var(--color-outline);
 	background: var(--color-surface-variant);
 	color: var(--color-on-surface);
-	padding: 0 40px 0 16px;
+	padding: 0 32px 0 10px;
 	appearance: none;
 	position: relative;
-	font-size: 13px;
+	font-size: var(--text-sm);
 	width: 100%;
 	cursor: pointer;
 }
 
 .md-select:focus {
-	border-color: var(--color-primary);
-	outline: 2px solid var(--color-primary);
+	border-color: var(--color-accent);
+	outline: 1px solid var(--color-accent);
 	outline-offset: 0;
 }
 
@@ -61,25 +61,18 @@
 	justify-content: space-between;
 	width: 100%;
 	height: auto;
-	min-height: 40px;
-	padding: 8px 12px;
-	border-radius: 8px;
-	font-size: 14px;
-	box-shadow: var(--shadow-1);
+	min-height: 32px;
+	padding: 5px 10px;
+	border-radius: var(--radius-sm);
+	font-size: var(--text-md);
 	cursor: pointer;
 	transition:
-		border-color 150ms ease,
-		box-shadow 150ms ease,
-		background 150ms ease;
+		border-color 120ms linear,
+		background 120ms linear;
 }
 
 .md-select--trigger:hover:not(:disabled) {
-	border-color: color-mix(
-		in srgb,
-		var(--color-primary),
-		var(--color-outline) 50%
-	);
-	box-shadow: var(--shadow-2);
+	border-color: var(--surfacea50);
 }
 
 .md-select--trigger:disabled {
@@ -88,66 +81,46 @@
 }
 
 .md-select--trigger[aria-expanded="true"] {
-	border-color: var(--color-primary);
-	box-shadow: var(--shadow-2);
+	border-color: var(--color-accent);
 }
 
 /* ========================================
  * CHECKBOX (.md-checkbox)
- * Modern styled checkbox with smooth animations
+ * Flat square console checkbox
  * ======================================== */
 
 input[type="checkbox"].md-checkbox {
 	appearance: none;
 	-webkit-appearance: none;
 	-moz-appearance: none;
-	width: 20px;
-	height: 20px;
-	min-width: 20px;
-	min-height: 20px;
-	border: 2px solid var(--color-outline);
-	border-radius: 6px;
+	width: 16px;
+	height: 16px;
+	min-width: 16px;
+	min-height: 16px;
+	border: 1px solid var(--color-outline);
+	border-radius: var(--radius-sm);
 	background: var(--color-surface-variant);
 	cursor: pointer;
 	position: relative;
 	transition:
-		background 200ms cubic-bezier(0.4, 0, 0.2, 1),
-		border-color 200ms cubic-bezier(0.4, 0, 0.2, 1),
-		box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1),
-		transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
+		background 120ms linear,
+		border-color 120ms linear;
 	flex-shrink: 0;
 	margin: 0;
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
 }
 
 input[type="checkbox"].md-checkbox:hover {
-	border-color: var(--color-primary);
-	background: var(--color-surface);
-	box-shadow:
-		0 2px 4px rgba(199, 176, 131, 0.2),
-		0 0 0 1px rgba(199, 176, 131, 0.1);
-	transform: translateY(-1px);
-}
-
-input[type="checkbox"].md-checkbox:active {
-	transform: translateY(0);
-	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+	border-color: var(--surfacea50);
 }
 
 input[type="checkbox"].md-checkbox:checked {
-	background: var(--color-primary);
-	border-color: var(--color-primary);
-	box-shadow:
-		0 2px 8px rgba(199, 176, 131, 0.4),
-		0 0 0 2px rgba(199, 176, 131, 0.1);
+	background: var(--color-accent);
+	border-color: var(--color-accent);
 }
 
 input[type="checkbox"].md-checkbox:checked:hover {
-	background: var(--color-primary-variant);
-	border-color: var(--color-primary-variant);
-	box-shadow:
-		0 3px 10px rgba(163, 143, 106, 0.5),
-		0 0 0 2px rgba(163, 143, 106, 0.15);
+	background: var(--color-accent-variant);
+	border-color: var(--color-accent-variant);
 }
 
 input[type="checkbox"].md-checkbox:checked::before {
@@ -155,39 +128,20 @@ input[type="checkbox"].md-checkbox:checked::before {
 	position: absolute;
 	left: 50%;
 	top: 50%;
-	width: 6px;
-	height: 10px;
-	border: solid var(--color-on-primary);
+	width: 5px;
+	height: 9px;
+	border: solid var(--color-on-accent);
 	border-width: 0 2px 2px 0;
-	transform: translate(-50%, -60%) rotate(45deg) scale(1);
+	transform: translate(-50%, -60%) rotate(45deg);
 	display: block;
-	opacity: 1;
-	animation: checkmark-appear 200ms cubic-bezier(0.4, 0, 0.2, 1) forwards;
-}
-
-@keyframes checkmark-appear {
-	0% {
-		opacity: 0;
-		transform: translate(-50%, -60%) rotate(45deg) scale(0.3);
-	}
-	50% {
-		transform: translate(-50%, -60%) rotate(45deg) scale(1.1);
-	}
-	100% {
-		opacity: 1;
-		transform: translate(-50%, -60%) rotate(45deg) scale(1);
-	}
 }
 
 input[type="checkbox"].md-checkbox:focus-visible {
-	outline: 2px solid var(--color-primary);
-	outline-offset: 3px;
-	border-radius: 6px;
+	outline: 1px solid var(--color-accent);
+	outline-offset: 2px;
 }
 
 input[type="checkbox"].md-checkbox:disabled {
 	opacity: 0.4;
 	cursor: not-allowed;
-	transform: none;
-	box-shadow: none;
 }

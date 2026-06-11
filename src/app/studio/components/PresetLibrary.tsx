@@ -9,8 +9,8 @@ import type { PresetLite } from "@/types";
 interface PresetLibraryProps {
 	presets: PresetLite[];
 	selectedPresetId: string | null;
-	onSelectPreset: (id: string) => void;
-	onCreateNew?: () => void;
+	onSelectPreset: (id: string) => void | Promise<void>;
+	onCreateNew?: () => void | Promise<void>;
 	className?: string;
 	style?: React.CSSProperties;
 }
@@ -34,21 +34,32 @@ export default function PresetLibrary({
 			);
 		})
 		.sort((a, b) => a.name.localeCompare(b.name));
+	const selectedPreset = selectedPresetId
+		? presets.find((preset) => preset.id === selectedPresetId)
+		: null;
+	const selectedHidden = Boolean(
+		selectedPreset &&
+			searchQuery &&
+			!filteredPresets.some((preset) => preset.id === selectedPresetId),
+	);
 
 	return (
 		<section className={className} style={style} aria-label="Preset Library">
 			<div className="flex h-full flex-col">
 				<div
-					className="z-10 flex flex-col gap-4 border-[var(--color-outline)] border-b px-6 py-5"
-					style={{ background: "var(--color-surface-variant)" }}
+					className="z-10 flex flex-col gap-2 border-[var(--color-outline)] border-b px-3 py-2"
+					style={{ background: "var(--color-panel-head)" }}
 				>
-					<div className="flex items-center justify-between">
-						<div className="flex items-center gap-3">
-							<h2 className="font-semibold text-lg text-light tracking-tight">
+					<div className="flex items-center justify-between gap-2">
+						<div className="flex min-w-0 items-center gap-2">
+							<h2
+								className="truncate font-semibold text-light text-xs uppercase"
+								style={{ letterSpacing: "var(--label-tracking)" }}
+							>
 								Preset Library
 							</h2>
 							<span
-								className="flex h-6 min-w-[24px] items-center justify-center rounded-full border border-[var(--color-outline)] px-2.5 font-semibold text-light text-xs shadow-sm"
+								className="flex h-5 min-w-[20px] items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-outline)] px-1.5 font-mono text-[length:var(--text-2xs)] text-light"
 								style={{ background: "var(--color-surface)" }}
 							>
 								{filteredPresets.length}
@@ -58,57 +69,62 @@ export default function PresetLibrary({
 							<button
 								type="button"
 								onClick={onCreateNew}
-								className="md-btn md-btn--primary flex h-9 items-center gap-2 rounded-full px-4 font-medium text-sm"
+								className="md-btn md-btn--primary md-btn--label"
 								aria-label="Create new preset"
 								title="Create new preset"
 							>
-								<Icon name="plus" className="h-4 w-4" />
+								<Icon name="plus" className="h-3.5 w-3.5" />
+								New
 							</button>
 						)}
 					</div>
 
-					<div className="relative">
-						<Icon
-							name="search"
-							className="absolute top-1/2 left-4 h-4 w-4 -translate-y-1/2 text-secondary"
-						/>
-						<input
-							type="search"
-							placeholder="Search presets..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							className="h-11 w-full rounded-2xl border border-[var(--color-outline)] bg-[var(--color-surface)] py-2 pr-4 pl-11 text-light text-sm placeholder:text-secondary/60 focus:outline-none"
-							aria-label="Search presets"
-						/>
-					</div>
+					<input
+						type="search"
+						placeholder="Filter presets..."
+						value={searchQuery}
+						onChange={(e) => setSearchQuery(e.target.value)}
+						className="md-input h-8 w-full"
+						aria-label="Search presets"
+					/>
 				</div>
 
-				<div className="flex-1 overflow-y-auto p-4">
+				<div className="flex-1 overflow-y-auto">
 					{filteredPresets.length === 0 ? (
 						<div className="flex h-full flex-col items-center justify-center p-6 text-center opacity-60">
 							<Icon
 								name="folder-open"
-								className="mb-3 h-12 w-12 text-secondary"
+								className="mb-3 h-10 w-10 text-secondary"
 							/>
 							<p className="font-medium text-light text-sm">No presets found</p>
 							<p className="mt-1 text-secondary text-xs">
-								{searchQuery
-									? "Try adjusting your search"
-									: "Create a preset to get started"}
+								{selectedHidden
+									? `${selectedPreset?.name} is still open in the editor.`
+									: searchQuery
+										? "Try adjusting your search"
+										: "Create a preset to get started"}
 							</p>
 						</div>
 					) : (
-						<ul className="list-none space-y-3">
+						<div className="data-table data-table--flush">
+							<div className="data-table__head-row">
+								<span className="data-table__cell data-table__cell--grow">
+									Name
+								</span>
+								<span className="data-table__cell">Type</span>
+							</div>
 							{filteredPresets.map((preset) => (
-								<li key={preset.id || preset.name}>
-									<PresetCard
-										preset={preset}
-										isSelected={selectedPresetId === preset.id}
-										onSelect={() => onSelectPreset(preset.id || preset.name)}
-									/>
-								</li>
+								<PresetCard
+									key={preset.id || preset.name}
+									preset={preset}
+									isSelected={
+										selectedPresetId === (preset.id || preset.name) ||
+										selectedPresetId === preset.name
+									}
+									onSelect={() => void onSelectPreset(preset.id || preset.name)}
+								/>
 							))}
-						</ul>
+						</div>
 					)}
 				</div>
 			</div>

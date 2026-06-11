@@ -6,26 +6,6 @@ import { Icon } from "@/components/Icon";
 import { getTaskTypeIcon } from "@/lib/task-type-icon";
 import type { PromptPresetSummary } from "./types";
 
-const dropZoneStyle: CSSProperties = {
-	width: 24,
-	height: 32,
-	flexShrink: 0,
-	borderRadius: "4px",
-	border: "1px dashed transparent",
-	transition: "all 0.15s ease",
-	display: "flex",
-	alignItems: "center",
-	justifyContent: "center",
-};
-
-const scrollButtonStyle: CSSProperties = {
-	width: 28,
-	height: 28,
-	padding: 0,
-	flexShrink: 0,
-	background: "var(--color-surface-variant)",
-};
-
 export interface TabInfo {
 	id: string;
 	label: string;
@@ -73,20 +53,18 @@ export function TabBar({
 	const recalcSizes = useCallback(() => {
 		const container = tabsContainerRef.current;
 		if (!container) return;
-		const gap = embedded ? 6 : 4;
-		const addBtn = embedded ? 32 : 28;
+		const addBtn = 28;
 		const scrollReserve =
-			(showLeftScroll ? 28 + gap : 0) + (showRightScroll ? 28 + gap : 0);
-		const safety = embedded ? 8 : 4;
-		const available =
-			container.clientWidth - addBtn - scrollReserve - safety - gap;
+			(showLeftScroll ? 28 : 0) + (showRightScroll ? 28 : 0);
+		const safety = 4;
+		const available = container.clientWidth - addBtn - scrollReserve - safety;
 		const n = Math.max(1, tabs.length);
-		const ideal = Math.floor((available - gap * (n - 1)) / n);
+		const ideal = Math.floor(available / n);
 		const minW = 84;
-		const maxW = 180;
+		const maxW = 200;
 		const width = Math.max(minW, Math.min(maxW, ideal));
 		setComputedTabWidth(Number.isFinite(width) ? width : null);
-	}, [embedded, showLeftScroll, showRightScroll, tabs.length]);
+	}, [showLeftScroll, showRightScroll, tabs.length]);
 
 	useEffect(() => {
 		checkScroll();
@@ -118,30 +96,36 @@ export function TabBar({
 
 	const canAddTab = tabs.length < maxTabs;
 	const noTabs = tabs.length === 0;
+	const focusTabAt = (index: number) => {
+		const target = tabs[index];
+		if (!target) return;
+		onSwitchTab(target.id);
+		requestAnimationFrame(() => {
+			tabsContainerRef.current
+				?.querySelector<HTMLElement>(`[data-tab-id="${target.id}"]`)
+				?.focus();
+		});
+	};
+
+	const tabWidthStyle: CSSProperties = computedTabWidth
+		? {
+				minWidth: computedTabWidth,
+				maxWidth: computedTabWidth,
+				width: computedTabWidth,
+			}
+		: { minWidth: 100, maxWidth: 200 };
 
 	return (
 		<div
-			style={{
-				display: "flex",
-				alignItems: "center",
-				gap: embedded ? 6 : 4,
-				background: embedded ? "transparent" : "var(--color-surface)",
-				borderBottom: embedded ? "none" : "1px solid var(--color-outline)",
-				padding: embedded ? 0 : "6px 8px",
-				position: "relative",
-				flexWrap: "nowrap",
-				flex: embedded ? 1 : undefined,
-				minWidth: embedded ? 0 : undefined,
-				minHeight: embedded ? "auto" : "48px",
-			}}
+			className={`workbench-tab-bar ${embedded ? "workbench-tab-bar--embedded" : ""}`}
 		>
 			{showLeftScroll && (
 				<button
 					type="button"
-					className="md-btn"
+					className="workbench-tab-scroll"
 					onClick={scrollLeft}
-					style={scrollButtonStyle}
 					title="Scroll left"
+					aria-label="Scroll tabs left"
 				>
 					<Icon name="chevron-left" style={{ width: 14, height: 14 }} />
 				</button>
@@ -149,17 +133,9 @@ export function TabBar({
 
 			<div
 				ref={tabsContainerRef}
-				style={{
-					display: "flex",
-					gap: 4,
-					flex: 1,
-					overflowX: noTabs ? "visible" : "auto",
-					overflowY: noTabs ? "visible" : "hidden",
-					scrollbarWidth: "none",
-					msOverflowStyle: "none",
-					minWidth: 0,
-				}}
-				className="hide-scrollbar"
+				role="tablist"
+				aria-label="Workbench tabs"
+				className={`workbench-tab-list ${noTabs ? "workbench-tab-list--empty" : ""}`}
 			>
 				{tabs.map((tab, index) => {
 					const isActive = tab.id === activeTabId;
@@ -173,7 +149,7 @@ export function TabBar({
 									<button
 										key={`drop-before-${tab.id}`}
 										type="button"
-										className={`drop-zone ${dragOverIndex === index ? "drop-target" : ""}`}
+										className={`workbench-tab-drop-zone ${dragOverIndex === index ? "workbench-tab-drop-zone--target" : ""}`}
 										aria-label="Drop zone for reordering tabs"
 										onDragOver={(e) => {
 											if (draggedIndex === null || draggedIndex === index)
@@ -202,22 +178,38 @@ export function TabBar({
 											setDraggedIndex(null);
 											setDragOverIndex(null);
 										}}
-										style={dropZoneStyle}
-									></button>
+									/>
 								)}
 
 							<div
-								key={tab.id}
 								role="tab"
 								aria-selected={isActive}
-								tabIndex={0}
-								className={`md-btn tab-item fade-in-scale ${isDragging ? "dragging" : ""}`}
+								aria-label={tab.label}
+								data-tab-id={tab.id}
+								tabIndex={isActive ? 0 : -1}
+								className={`workbench-tab fade-in-scale ${isActive ? "workbench-tab--active" : ""} ${isDragging ? "workbench-tab--dragging" : ""}`}
+								style={{
+									...tabWidthStyle,
+									cursor: onReorderTabs ? "grab" : "pointer",
+								}}
 								draggable={!!onReorderTabs}
 								onClick={() => onSwitchTab(tab.id)}
 								onKeyDown={(e) => {
 									if (e.key === "Enter" || e.key === " ") {
 										e.preventDefault();
 										onSwitchTab(tab.id);
+									} else if (e.key === "ArrowLeft") {
+										e.preventDefault();
+										focusTabAt(index === 0 ? tabs.length - 1 : index - 1);
+									} else if (e.key === "ArrowRight") {
+										e.preventDefault();
+										focusTabAt(index === tabs.length - 1 ? 0 : index + 1);
+									} else if (e.key === "Home") {
+										e.preventDefault();
+										focusTabAt(0);
+									} else if (e.key === "End") {
+										e.preventDefault();
+										focusTabAt(tabs.length - 1);
 									}
 								}}
 								onDragStart={(e) => {
@@ -242,6 +234,7 @@ export function TabBar({
 										return;
 									e.preventDefault();
 									e.dataTransfer.dropEffect = "move";
+									setDragOverIndex(index);
 								}}
 								onDrop={(e) => {
 									if (
@@ -250,118 +243,35 @@ export function TabBar({
 										dropHandledRef.current
 									)
 										return;
-									if (dragOverIndex !== null && dragOverIndex !== index) {
-										e.preventDefault();
-										dropHandledRef.current = true;
+									e.preventDefault();
+									dropHandledRef.current = true;
 
-										let targetIndex = dragOverIndex;
-										if (dragOverIndex === tabs.length) {
-											targetIndex = tabs.length - 1;
-										} else if (draggedIndex < dragOverIndex) {
-											targetIndex = dragOverIndex - 1;
-										}
+									const targetIndex = index;
 
-										if (draggedIndex !== targetIndex) {
-											onReorderTabs(draggedIndex, targetIndex);
-										}
+									if (draggedIndex !== targetIndex) {
+										onReorderTabs(draggedIndex, targetIndex);
+									}
 
-										setDraggedIndex(null);
-										setDragOverIndex(null);
-									}
-								}}
-								style={{
-									display: "flex",
-									alignItems: "center",
-									gap: 6,
-									padding: "6px 8px",
-									minWidth: computedTabWidth ?? 100,
-									maxWidth: computedTabWidth ?? 180,
-									width: computedTabWidth ?? undefined,
-									height: 32,
-									background: isActive
-										? "var(--color-primary)"
-										: "var(--color-surface-variant)",
-									color: isActive
-										? "var(--color-on-primary)"
-										: "var(--color-on-surface)",
-									border: isActive
-										? "1px solid var(--color-primary)"
-										: "1px solid var(--color-outline)",
-									borderRadius: "8px 8px 0 0",
-									position: "relative",
-									flexShrink: 0,
-									cursor: onReorderTabs ? "grab" : "pointer",
-								}}
-								onMouseEnter={(e) => {
-									if (!isActive && !isDragging) {
-										e.currentTarget.style.borderColor = "var(--color-primary)";
-									}
-								}}
-								onMouseLeave={(e) => {
-									if (!isActive && !isDragging) {
-										e.currentTarget.style.borderColor = "var(--color-outline)";
-									}
+									setDraggedIndex(null);
+									setDragOverIndex(null);
 								}}
 							>
 								<Icon
 									name={getTaskTypeIcon(tab.preset.taskType)}
-									style={{
-										width: 12,
-										height: 12,
-										flexShrink: 0,
-										opacity: isActive ? 1 : 0.7,
-									}}
+									className="workbench-tab__icon"
 								/>
 
-								<span
-									style={{
-										flex: 1,
-										fontSize: 11,
-										fontWeight: isActive ? 600 : 500,
-										overflow: "hidden",
-										textOverflow: "ellipsis",
-										whiteSpace: "nowrap",
-										display: "flex",
-										alignItems: "center",
-										gap: 3,
-										minWidth: 0,
-									}}
-								>
-									{tab.label}
-								</span>
+								<span className="workbench-tab__label">{tab.label}</span>
 
 								<button
 									type="button"
+									className="workbench-tab__close"
 									onClick={(e) => {
 										e.stopPropagation();
 										onCloseTab(tab.id);
 									}}
-									style={{
-										width: 16,
-										height: 16,
-										padding: 0,
-										display: "flex",
-										alignItems: "center",
-										justifyContent: "center",
-										background: "transparent",
-										border: "none",
-										borderRadius: 4,
-										cursor: "pointer",
-										flexShrink: 0,
-										opacity: 0.6,
-										transition: "opacity 0.15s",
-									}}
-									onMouseEnter={(e) => {
-										e.currentTarget.style.opacity = "1";
-										e.currentTarget.style.background = isActive
-											? "rgba(255,255,255,0.2)"
-											: "rgba(0,0,0,0.1)";
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.opacity = "0.6";
-										e.currentTarget.style.background = "transparent";
-									}}
 									title="Close tab"
+									aria-label={`Close ${tab.label}`}
 								>
 									<Icon name="close" style={{ width: 10, height: 10 }} />
 								</button>
@@ -373,7 +283,7 @@ export function TabBar({
 				{onReorderTabs && draggedIndex !== null && (
 					<button
 						type="button"
-						className={`drop-zone ${dragOverIndex === tabs.length ? "drop-target" : ""}`}
+						className={`workbench-tab-drop-zone ${dragOverIndex === tabs.length ? "workbench-tab-drop-zone--target" : ""}`}
 						aria-label="Drop zone for reordering tabs"
 						onDragOver={(e) => {
 							if (draggedIndex === null) return;
@@ -395,121 +305,37 @@ export function TabBar({
 							setDraggedIndex(null);
 							setDragOverIndex(null);
 						}}
-						style={dropZoneStyle}
-					></button>
+					/>
 				)}
 
 				<button
 					type="button"
-					className="md-btn"
+					className={`workbench-tab-new ${embedded ? "" : "workbench-tab-new--standalone"}`}
 					onClick={onNewTab}
 					disabled={!canAddTab}
 					aria-label="New tab"
 					title={canAddTab ? "New tab" : `Maximum ${maxTabs} tabs reached`}
-					style={{
-						width: embedded ? 32 : 28,
-						height: embedded ? 32 : 28,
-						padding: 0,
-						flexShrink: 0,
-						border: embedded ? "1px solid var(--color-outline)" : undefined,
-						borderRadius: embedded ? "8px 8px 0 0" : 6,
-						background: embedded
-							? "transparent"
-							: canAddTab
-								? "var(--color-primary)"
-								: "var(--color-surface-variant)",
-						color: embedded
-							? "var(--color-on-surface-variant)"
-							: canAddTab
-								? "var(--color-on-primary)"
-								: "var(--color-outline)",
-						cursor: canAddTab ? "pointer" : "not-allowed",
-						opacity: canAddTab ? 1 : 0.5,
-						transition:
-							"background-color 0.15s, border-color 0.15s, color 0.15s",
-						overflow: noTabs ? "visible" : undefined,
-						position: noTabs ? "relative" : undefined,
-						zIndex: noTabs ? 10 : undefined,
-					}}
-					onMouseEnter={(e) => {
-						if (!canAddTab) return;
-						if (embedded) {
-							e.currentTarget.style.background = "var(--color-surface-variant)";
-							e.currentTarget.style.borderColor = "var(--color-primary)";
-							e.currentTarget.style.color = "var(--color-on-surface)";
-						}
-					}}
-					onMouseLeave={(e) => {
-						if (!canAddTab) return;
-						if (embedded) {
-							e.currentTarget.style.background = "transparent";
-							e.currentTarget.style.borderColor = "var(--color-outline)";
-							e.currentTarget.style.color = "var(--color-on-surface-variant)";
-						}
-					}}
+					style={
+						noTabs
+							? { position: "relative", zIndex: 10, overflow: "visible" }
+							: undefined
+					}
 				>
-					<Icon
-						name="plus"
-						style={{
-							width: embedded ? 12 : 14,
-							height: embedded ? 12 : 14,
-						}}
-					/>
+					<Icon name="plus" style={{ width: 12, height: 12 }} />
 				</button>
 			</div>
 
 			{showRightScroll && (
 				<button
 					type="button"
-					className="md-btn"
+					className="workbench-tab-scroll"
 					onClick={scrollRight}
-					style={scrollButtonStyle}
 					title="Scroll right"
+					aria-label="Scroll tabs right"
 				>
 					<Icon name="chevron-right" style={{ width: 14, height: 14 }} />
 				</button>
 			)}
-
-			<style jsx>{`
-				.hide-scrollbar::-webkit-scrollbar {
-					display: none;
-				}
-				
-				.tab-item:active {
-					cursor: grabbing !important;
-				}
-				
-				.tab-item.dragging {
-					opacity: 0.4;
-					cursor: grabbing !important;
-					z-index: 1000;
-					transition: opacity 0.15s ease;
-				}
-				
-				.drop-zone {
-					transition: all 0.15s ease;
-					position: relative;
-				}
-				
-				.drop-zone::before {
-					content: "";
-					position: absolute;
-					left: 50%;
-					transform: translateX(-50%);
-					width: 4px;
-					height: 100%;
-					border-radius: 2px;
-					background: transparent;
-					transition: all 0.15s ease;
-				}
-				
-				.drop-zone.drop-target::before {
-					width: 4px;
-					background: var(--color-primary);
-				}
-				
-				
-			`}</style>
 		</div>
 	);
 }

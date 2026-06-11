@@ -1,0 +1,125 @@
+/**
+ * ==========================================================================
+ * CONSOLE SHELL
+ * ==========================================================================
+ *
+ * App-wide operating-console frame: left navigation rail + bottom status bar.
+ *
+ * COMPONENT CLASSES:
+ * - .console-nav: Left navigation rail
+ * - .console-nav__item: Rail nav button (icon only, tooltip label)
+ * - .console-nav__settings-btn: Bottom settings icon (no border)
+ * - .console-status-bar: Bottom status strip
+ * ==========================================================================
+ */
+
+/* ========================================
+ * LEFT NAVIGATION RAIL (.console-nav)
+ * ======================================== */
+
+.console-nav {
+	display: flex;
+	flex-direction: column;
+	width: 40px;
+	flex-shrink: 0;
+	background: var(--color-titlebar-background);
+	border-right: 1px solid var(--color-outline);
+}
+
+.console-nav__items {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+}
+
+.console-nav__item {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding: var(--space-3) 0;
+	border: none;
+	border-left: 2px solid transparent;
+	background: transparent;
+	color: var(--color-on-surface-variant);
+	cursor: pointer;
+}
+
+.console-nav__item:hover {
+	color: var(--color-on-surface);
+}
+
+.console-nav__item:focus-visible {
+	outline: 1px solid var(--color-accent);
+	outline-offset: -2px;
+}
+
+.console-nav__item--active {
+	color: var(--color-on-surface);
+	border-left-color: var(--color-accent);
+}
+
+.console-nav__bottom {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: var(--space-3) 0;
+}
+
+.console-nav__settings-btn {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: none;
+	background: transparent;
+	color: var(--color-on-surface-variant);
+	cursor: pointer;
+}
+
+.console-nav__settings-btn:hover {
+	color: var(--color-on-surface);
+}
+
+.console-nav__settings-btn:focus-visible {
+	outline: 1px solid var(--color-accent);
+	outline-offset: 2px;
+}
+
+.console-nav__item svg,
+.console-nav__settings-btn svg {
+	width: 18px;
+	height: 18px;
+	flex-shrink: 0;
+}
+
+/* ========================================
+ * BOTTOM STATUS BAR (.console-status-bar)
+ * ======================================== */
+
+.console-status-bar {
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	gap: var(--space-4);
+	height: 24px;
+	flex-shrink: 0;
+	padding: 0 var(--space-3);
+	background: var(--color-titlebar-background);
+	border-top: 1px solid var(--color-outline);
+	font-family: var(--font-mono);
+	font-size: var(--text-2xs);
+	color: var(--color-on-surface-variant);
+	user-select: none;
+}
+
+.console-status-bar__item {
+	display: flex;
+	align-items: center;
+	gap: var(--space-1);
+	white-space: nowrap;
+}
+
+.console-status-bar__item--alert {
+	color: var(--color-on-surface);
+}
