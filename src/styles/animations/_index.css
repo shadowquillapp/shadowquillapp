@@ -44,18 +44,6 @@
 	}
 }
 
-@keyframes badge-pulse {
-	0%,
-	100% {
-		opacity: 1;
-		transform: scale(1);
-	}
-	50% {
-		opacity: 0.55;
-		transform: scale(0.94);
-	}
-}
-
 @keyframes output-fade-in {
 	0% {
 		opacity: 0;
@@ -232,8 +220,7 @@
 	.fade-in-down,
 	.fade-in-scale,
 	.output-generating,
-	.version-nav-vertical--pulse .version-nav-vertical__badge,
-	.version-nav-vertical__badge--generating,
+	.version-nav-vertical--pulse .version-nav-vertical__center,
 	.simple-workbench,
 	.page-animate {
 		animation: none;

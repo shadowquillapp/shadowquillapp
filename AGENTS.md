@@ -65,7 +65,7 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 - **TypeScript strict** + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` + `verbatimModuleSyntax`. `as T` casts mostly forbidden; `as unknown as T` only for Electron-bridge typing.
 - **Path alias**: `@/*` → `src/*`. Always use it from `src/`.
 - **No server-side state.** Next is the bundler/host; the app is a client-rendered SPA inside Electron. No `cookies()`, `headers()`, `unstable_cache`, route handlers, or RSC data fetching. Server components exist only to set `metadata` and hand off to a client component.
-- **No barrel `index.ts` at `src/lib/` root.** The only barrels are `src/lib/presets.ts` (2-line re-export) and `src/lib/prompt-directives/index.ts`. Import deep paths.
+- **No barrel `index.ts` at `src/lib/` root.** The only barrel is `src/lib/presets.ts` (2-line re-export). Import deep paths.
 - **Persistence = localStorage + sessionStorage + Electron IPC file KV.** No IndexedDB, no Cookies. All keys must be declared in `storage-keys.ts`.
 - **Semantic-intent prompt compiler** — `prompt-builder-core.ts` + `prompt-directives/base.ts` assemble prompts by task type (`intent`, `engineering`, `visual`, `analysis`, `narrative`, `persuasion`, `motion`). No per-task directive files.
 - **Temperature is not user-configurable** — fixed at `0.2` in `model-client.ts` (`MODEL_TEMPERATURE`).
