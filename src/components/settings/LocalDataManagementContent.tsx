@@ -4,6 +4,7 @@ import { getElectronDataPaths } from "@/lib/electron-storage";
 import {
 	abortFactoryReset,
 	clearAllStorageForFactoryReset,
+	isFactoryResetInProgress,
 } from "@/lib/local-storage";
 import { useDialog } from "../DialogProvider";
 
@@ -131,20 +132,21 @@ export default function LocalDataManagementContent() {
 										setLoading(true);
 										setError(null);
 										try {
-											clearAllStorageForFactoryReset();
 											const res =
 												await (window.shadowquill?.factoryReset?.() as Promise<
 													{ ok: boolean; error?: string } | undefined
 												>);
 											if (!res?.ok) {
-												abortFactoryReset();
 												setError(res?.error || "Reset failed");
 												setLoading(false);
 												return;
 											}
+											clearAllStorageForFactoryReset();
 											window.location.assign("/workbench");
 										} catch (e: unknown) {
-											abortFactoryReset();
+											if (isFactoryResetInProgress()) {
+												abortFactoryReset();
+											}
 											const err = e as Error;
 											setError(err?.message || "Reset failed");
 											setLoading(false);

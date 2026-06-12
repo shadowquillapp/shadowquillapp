@@ -239,11 +239,17 @@ export default function FindBar() {
 	}, [isVisible, closeFindBar, goToNext, goToPrevious]);
 
 	useEffect(() => {
-		if (!searchText) {
+		if (!isVisible) return;
+		if (!searchText.trim()) {
 			clearHighlights();
+			setHasSearched(false);
+			return;
 		}
-		setHasSearched(false);
-	}, [searchText, clearHighlights]);
+		const timer = window.setTimeout(() => {
+			performSearch(searchText);
+		}, 200);
+		return () => window.clearTimeout(timer);
+	}, [searchText, isVisible, clearHighlights, performSearch]);
 
 	useEffect(() => {
 		return () => {

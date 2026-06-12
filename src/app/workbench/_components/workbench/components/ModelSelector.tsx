@@ -1,6 +1,8 @@
+import { resolveOllamaBaseUrl } from "@/lib/domain/model-config";
 import {
 	formatOllamaModelName,
 	isSupportedOllamaModelName,
+	readLocalModelConfig as readLocalModelConfigClient,
 	SUPPORTED_OLLAMA_MODELS,
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
@@ -97,9 +99,10 @@ export function ModelSelector({
 							disabled={!isInstalled}
 							onClick={() => {
 								if (!isInstalled) return;
+								const cfg = readLocalModelConfigClient();
 								writeLocalModelConfigClient({
 									provider: "ollama",
-									baseUrl: "http://localhost:11434",
+									baseUrl: resolveOllamaBaseUrl(cfg),
 									model: model.id,
 								});
 								setCurrentModelId(model.id);
