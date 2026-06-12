@@ -1,0 +1,116 @@
+/**
+ * ==========================================================================
+ * STATUS COMPONENTS
+ * ==========================================================================
+ *
+ * Status banners and empty-state placeholders.
+ *
+ * COMPONENT CLASSES:
+ * - .status-banner: Inline status message
+ * - .status-banner--success/warning/error: Tone variants
+ * - .empty-state: Generic empty placeholder (mirrors .workbench-empty)
+ * ==========================================================================
+ */
+
+/* ========================================
+ * STATUS BANNER (.status-banner)
+ * ======================================== */
+
+.status-banner {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-1);
+	padding: var(--space-2) var(--space-3);
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--color-outline);
+	font-size: var(--text-xs);
+	color: var(--color-on-surface);
+}
+
+.status-banner__title {
+	margin: 0;
+	font-size: var(--text-sm);
+	font-weight: 600;
+	color: var(--color-on-surface);
+}
+
+.status-banner__body {
+	margin: 0;
+	color: var(--color-on-surface-variant);
+	line-height: 1.4;
+}
+
+.status-banner__meta {
+	margin: 0;
+	font-size: var(--text-sm);
+	color: var(--color-on-surface-variant);
+	opacity: 0.7;
+}
+
+.status-banner--success {
+	background: var(--color-success-surface);
+	border-color: color-mix(in srgb, var(--color-success) 30%, transparent);
+}
+
+.status-banner--success .status-banner__title {
+	color: var(--color-success);
+}
+
+.status-banner--warning {
+	background: var(--color-warning-surface);
+	border-color: color-mix(in srgb, var(--color-warning) 30%, transparent);
+}
+
+.status-banner--warning .status-banner__title {
+	color: var(--color-warning);
+}
+
+.status-banner--error {
+	background: var(--color-error-surface);
+	border-color: color-mix(in srgb, var(--color-error) 30%, transparent);
+}
+
+.status-banner--error .status-banner__title {
+	color: var(--color-error);
+}
+
+/* ========================================
+ * EMPTY STATE (.empty-state)
+ * Mirrors .workbench-empty layout
+ * ======================================== */
+
+.empty-state,
+.workbench-empty {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	gap: var(--space-3);
+	color: var(--color-on-surface-variant);
+	padding: var(--space-6);
+	height: 100%;
+	min-height: 0;
+}
+
+.empty-state__icon,
+.workbench-empty__icon {
+	width: 40px;
+	height: 40px;
+	color: var(--color-on-surface-variant);
+	opacity: 0.4;
+}
+
+.empty-state__title,
+.workbench-empty__title {
+	font-size: var(--text-sm);
+	font-weight: 500;
+}
+
+.empty-state__hint,
+.workbench-empty__hint {
+	font-size: var(--text-xs);
+	opacity: 0.8;
+	max-width: 240px;
+}

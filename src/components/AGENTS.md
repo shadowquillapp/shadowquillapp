@@ -1,7 +1,7 @@
 # `src/components/` — AGENTS.md
 
 **Parent:** [`/AGENTS.md`](../../AGENTS.md)
-**Scope:** cross-cutting UI shell + settings tab content. 14 top-level `.tsx` + 3 hook modules (`.ts`); presentational-only: `FeatherLoader.tsx`, `Logo.tsx`.
+**Scope:** cross-cutting UI shell + settings tab content. 13 top-level `.tsx` + 6 `.ts` modules (hooks + menu-position helpers); presentational-only: `FeatherLoader.tsx`.
 
 ## File map
 
@@ -19,6 +19,11 @@
 | `FindBar.tsx` | Cmd+F-style in-page search with prev/next match navigation. |
 | `GlobalZoomControl.tsx` | Listens for IPC and toggles window zoom factor. |
 | `CustomSelect.tsx` | Portal-based dropdown selector with icon + disabled options. |
+| `ConsoleNav.tsx` | Left console navigation rail (workbench/studio switching). |
+| `StatusBar.tsx` | Bottom status bar (connection/model state). |
+| `menu-position.ts` | Pure viewport-clamping math for portal menus (tested in `src/__tests__/menu-position.test.ts`). |
+| `usePortalMenuAnchor.ts` | Anchors portal menus to a trigger rect; pairs with `menu-position.ts`. |
+| `useMenuKeyboard.ts` | Escape/Arrow/Home/End/Tab keyboard navigation for menus. |
 | `FeatherLoader.tsx` | Branded animated SVG loader ("Generating" text with cycling dots). |
 | `Icon.tsx` | `Icon` wrapper around `iconsax-reactjs` (Bold variant) with `IconName` union. |
 | `settings/AppVersionContent.tsx` | Version display + update check. |

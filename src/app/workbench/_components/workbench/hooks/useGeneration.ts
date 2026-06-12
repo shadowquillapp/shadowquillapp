@@ -178,7 +178,9 @@ export function useGeneration(
 				await refreshProjectList();
 			} catch {}
 
-			const currentGraph = activeTab.versionGraph;
+			const latestTab =
+				tabManager.getTabs().find((tab) => tab.id === tabId) ?? activeTab;
+			const currentGraph = latestTab.versionGraph;
 			const timestamp = new Date().toLocaleTimeString([], {
 				hour: "2-digit",
 				minute: "2-digit",

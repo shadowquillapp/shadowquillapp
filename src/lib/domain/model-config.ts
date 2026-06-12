@@ -10,6 +10,12 @@ export interface LocalModelConfig {
 
 export const DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
 
+export function resolveOllamaBaseUrl(
+	config: LocalModelConfig | null | undefined,
+): string {
+	return config?.baseUrl ?? DEFAULT_OLLAMA_BASE_URL;
+}
+
 /**
  * Allow only loopback hosts. Prevents the SSRF/privilege-escalation path
  * where a non-loopback URL is written to storage and then fetched from

@@ -42,7 +42,7 @@
 	font-weight: 500;
 	cursor: pointer;
 	border-radius: var(--radius-sm);
-	transition: color 120ms linear;
+	transition: color var(--duration-fast) var(--ease-ios);
 	z-index: 2;
 	position: relative;
 }
@@ -68,7 +68,7 @@
 	height: calc(100% - 4px);
 	background: var(--color-primary);
 	border-radius: var(--radius-sm);
-	transition: transform 120ms linear;
+	transition: transform var(--duration-normal) var(--ease-ios-spring);
 	z-index: 1;
 }
 
@@ -84,7 +84,7 @@
 	background: transparent;
 	border-radius: var(--radius-sm);
 	cursor: pointer;
-	transition: border-color 120ms linear;
+	transition: border-color var(--duration-fast) var(--ease-ios);
 }
 
 .mode-toggle--compact:hover {
@@ -103,8 +103,8 @@
 	color: var(--color-on-surface-variant);
 	opacity: 0.7;
 	transition:
-		color 180ms ease,
-		opacity 180ms ease;
+		color var(--duration-fast) var(--ease-ios),
+		opacity var(--duration-fast) var(--ease-ios);
 }
 
 .mode-toggle--compact:not(.mode-toggle--source)
@@ -116,7 +116,7 @@
 
 .mode-toggle--compact .mode-toggle-slider {
 	border-radius: var(--radius-sm);
-	transition: transform 120ms linear;
+	transition: transform var(--duration-normal) var(--ease-ios-spring);
 }
 
 .mode-toggle--source .mode-toggle-slider {

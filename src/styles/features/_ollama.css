@@ -109,11 +109,19 @@
 }
 
 .shadowquill-status-chip--success {
-	color: var(--color-on-surface);
+	color: var(--color-success);
 }
 
 .shadowquill-status-chip--loading {
 	color: var(--color-on-surface);
+}
+
+.shadowquill-status-chip--idle {
+	color: var(--color-on-surface-variant);
+}
+
+.shadowquill-status-chip--error {
+	color: var(--color-error);
 }
 
 /* ========================================
@@ -218,7 +226,24 @@
 
 .shadowquill-status-card--success .shadowquill-status-card__icon,
 .shadowquill-status-card--loading .shadowquill-status-card__icon {
-	color: var(--color-on-surface);
+	color: var(--color-success);
+}
+
+.shadowquill-status-card--error .shadowquill-status-card__icon {
+	color: var(--color-error);
+}
+
+.shadowquill-status-card--idle .shadowquill-status-card__icon {
+	color: var(--color-on-surface-variant);
+}
+
+.shadowquill-status-card--error {
+	background: var(--color-error-surface);
+	border-color: color-mix(in srgb, var(--color-error) 30%, transparent);
+}
+
+.shadowquill-status-card--idle {
+	background: var(--color-surface);
 }
 
 .shadowquill-status-card__content {
@@ -330,8 +355,8 @@
 .shadowquill-error-banner {
 	padding: 8px 12px;
 	border-radius: var(--radius-sm);
-	background: color-mix(in srgb, var(--color-outline) 30%, transparent);
-	border: 1px solid color-mix(in srgb, var(--color-outline) 60%, transparent);
+	background: var(--color-error-surface);
+	border: 1px solid color-mix(in srgb, var(--color-error) 30%, transparent);
 	color: var(--color-on-surface);
 	font-size: var(--text-xs);
 }
@@ -387,9 +412,9 @@
 }
 
 .shadowquill-guide-card code {
-	background: #00000040;
+	background: var(--color-overlay-dark);
 	padding: 2px 4px;
-	border-radius: 4px;
+	border-radius: var(--radius-sm);
 	font-size: var(--text-2xs);
 }
 

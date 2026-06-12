@@ -89,29 +89,12 @@ export default function SettingsDialog({
 						focusTab(SETTINGS_TABS.length - 1);
 					}
 				}}
-				className={`settings-tab-btn text-left ${isActive ? "settings-tab-btn--active" : ""}`}
+				className={`settings-tab-btn ${isActive ? "settings-tab-btn--active" : ""}`}
 				role="tab"
 				aria-selected={isActive}
 				aria-controls={`settings-panel-${tab}`}
 				id={`settings-tab-${tab}`}
 				tabIndex={isActive ? 0 : -1}
-				style={{
-					width: "100%",
-					textAlign: "left",
-					padding: "8px 12px",
-					borderRadius: 0,
-					background: isActive
-						? "color-mix(in srgb, var(--color-accent) 12%, transparent)"
-						: "transparent",
-					color: isActive
-						? "var(--color-on-surface)"
-						: "var(--color-on-surface-variant)",
-					border: "none",
-					boxShadow: isActive ? "inset 2px 0 0 var(--color-accent)" : "none",
-					fontWeight: isActive ? 600 : 500,
-					fontSize: "var(--text-md)",
-					cursor: "pointer",
-				}}
 			>
 				{label}
 			</button>
@@ -163,22 +146,6 @@ export default function SettingsDialog({
 				aria-modal="true"
 				aria-labelledby="settings-title"
 			>
-				<style>{`
-          .settings-tab-btn {
-            transition: background 120ms linear, color 120ms linear;
-            position: relative;
-          }
-
-          .settings-tab-btn:focus-visible {
-            outline: 2px solid var(--color-accent);
-            outline-offset: -2px;
-          }
-
-          .settings-tab-btn:hover {
-            background: var(--color-surface-variant);
-            color: var(--color-on-surface);
-          }
-        `}</style>
 				<div
 					className="modal-header"
 					style={{
@@ -235,9 +202,11 @@ export default function SettingsDialog({
 							}}
 						>
 							<div
+								key={activeTab}
 								id={`settings-panel-${activeTab}`}
 								role="tabpanel"
 								aria-labelledby={`settings-tab-${activeTab}`}
+								className="settings-panel--enter"
 							>
 								<ActiveContent />
 							</div>

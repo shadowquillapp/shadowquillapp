@@ -11,13 +11,30 @@
 	--palette-bg: #1e1e1e;
 	--palette-chrome: #141414;
 	--palette-white: #ffffff;
+	--palette-muted: #cccccc;
+	--palette-destructive: #c72e2e;
+	--palette-destructive-hover: #a82626;
+	--palette-success: #4caf50;
+	--palette-warning: #ffc107;
+	--palette-error: #f44336;
+
+	/* Syntax palette (VS Code dark theme) */
+	--syntax-string: #ce9178;
+	--syntax-number: #b5cea8;
+	--syntax-keyword: #569cd6;
+	--syntax-comment: #6a9955;
+	--syntax-function: #dcdcaa;
+	--syntax-type: #4ec9b0;
+	--syntax-variable: #9cdcfe;
+	--syntax-operator: #d4d4d4;
+	--syntax-punctuation: #808080;
 
 	/* Semantic tokens */
 	--color-surface: var(--palette-bg);
 	--color-surface-variant: var(--palette-sidebar);
 	--color-outline: var(--palette-border);
 	--color-on-surface: var(--palette-white);
-	--color-on-surface-variant: var(--palette-white);
+	--color-on-surface-variant: var(--palette-muted);
 	--color-primary: var(--palette-accent);
 	--color-primary-variant: var(--palette-accent-hover);
 	--color-on-primary: var(--palette-white);
@@ -29,12 +46,30 @@
 	--color-on-attention: var(--palette-white);
 	--color-tertiary: var(--color-attention);
 	--color-on-tertiary: var(--color-on-attention);
-	--color-destructive: var(--palette-border);
-	--color-destructive-variant: var(--palette-border);
+	--color-destructive: var(--palette-destructive);
+	--color-destructive-variant: var(--palette-destructive-hover);
 	--color-on-destructive: var(--palette-white);
 	--color-accent: var(--palette-accent);
 	--color-accent-variant: var(--palette-accent-hover);
 	--color-on-accent: var(--palette-white);
+	--color-success: var(--palette-success);
+	--color-warning: var(--palette-warning);
+	--color-error: var(--palette-error);
+	--color-success-surface: color-mix(
+		in srgb,
+		var(--palette-success) 10%,
+		transparent
+	);
+	--color-warning-surface: color-mix(
+		in srgb,
+		var(--palette-warning) 10%,
+		transparent
+	);
+	--color-error-surface: color-mix(
+		in srgb,
+		var(--palette-error) 10%,
+		transparent
+	);
 	--color-running: var(--color-accent);
 	--color-panel-head: var(--palette-elevated);
 	--color-tab-active: var(--palette-accent);
@@ -44,31 +79,34 @@
 	--workbench-composer-background: var(--color-surface);
 	--color-input-card: var(--palette-elevated);
 	--color-output-panel: var(--color-surface);
-	--darka0: var(--palette-bg);
-	--lighta0: var(--palette-white);
-	--accenta0: var(--palette-accent);
-	--primarya0: var(--palette-white);
-	--primarya10: var(--palette-white);
-	--primarya20: var(--palette-white);
-	--primarya30: var(--palette-white);
-	--primarya40: var(--palette-white);
-	--primarya50: var(--palette-white);
+	--color-scrim: color-mix(in srgb, var(--palette-bg) 65%, transparent);
+	--color-overlay-light: color-mix(
+		in srgb,
+		var(--palette-white) 8%,
+		transparent
+	);
+	--color-overlay-dark: color-mix(in srgb, var(--palette-bg) 25%, transparent);
+
+	/* Surface tonal scale */
 	--surfacea0: var(--color-surface);
 	--surfacea10: var(--palette-sidebar);
 	--surfacea20: var(--palette-sidebar);
 	--surfacea30: var(--palette-elevated);
 	--surfacea40: var(--palette-border);
 	--surfacea50: var(--palette-border);
-	--surfacetonala0: var(--surfacea0);
-	--surfacetonala10: var(--surfacea10);
-	--surfacetonala20: var(--surfacea20);
-	--surfacetonala30: var(--surfacea30);
-	--surfacetonala40: var(--surfacea40);
-	--surfacetonala50: var(--surfacea50);
-	--buttonbg: var(--palette-accent);
-	--buttontext: var(--palette-white);
-	--dropdownbg: var(--palette-sidebar);
-	--cardbg: var(--palette-sidebar);
-	--sliderbg: var(--color-surface-variant);
+
+	/* Syntax aliases (legacy) */
+	--primarya10: var(--syntax-string);
+
 	--shadowcolor: color-mix(in srgb, var(--palette-bg) 50%, transparent);
+
+	/* Z-index scale */
+	--z-modal: 50;
+	--z-findbar: 9000;
+	--z-sidebar-backdrop: 25;
+
+	/* macOS traffic-light controls (titlebar only) */
+	--palette-traffic-close: #ff5f57;
+	--palette-traffic-minimize: #ffbd2e;
+	--palette-traffic-maximize: #28ca42;
 }

@@ -13,6 +13,7 @@ export default function FeatherLoader({
 	text = "Generating",
 }: FeatherLoaderProps) {
 	const [dotCount, setDotCount] = useState(1);
+	const dots = ".".repeat(dotCount);
 
 	useEffect(() => {
 		const timer = setInterval(() => {
@@ -22,23 +23,27 @@ export default function FeatherLoader({
 	}, []);
 
 	return (
-		<div className={`luxury-loader ${className}`}>
-			<div className="luxury-loader__icon">
-				<Icon name="brush" title="Loading" />
+		<div
+			role="status"
+			className={`luxury-loader ${className}`}
+			aria-busy="true"
+		>
+			<div className="luxury-loader__icon" aria-hidden="true">
+				<Icon name="brush" />
 			</div>
-			<span className="luxury-loader__text">
+			<span className="luxury-loader__text" aria-hidden="true">
 				{text}
 				<span
-					aria-hidden="true"
 					style={{
 						display: "inline-block",
 						width: "3ch",
 						textAlign: "left",
 					}}
 				>
-					{".".repeat(dotCount)}
+					{dots}
 				</span>
 			</span>
+			<span className="sr-only">{text}</span>
 		</div>
 	);
 }

@@ -58,21 +58,14 @@ export default function AppVersionContent() {
 		}
 	};
 
+	const statusBannerClass = updateResult?.success
+		? updateResult.updateAvailable
+			? "status-banner status-banner--warning"
+			: "status-banner status-banner--success"
+		: "status-banner status-banner--error";
+
 	return (
 		<div className="shadowquill-setup">
-			<style>{`
-				@keyframes spin {
-					from {
-						transform: rotate(0deg);
-					}
-					to {
-						transform: rotate(360deg);
-					}
-				}
-				.animate-spin {
-					animation: spin 1s linear infinite;
-				}
-			`}</style>
 			<section className="shadowquill-panel">
 				<header className="shadowquill-panel__head">
 					<div>
@@ -86,28 +79,13 @@ export default function AppVersionContent() {
 				<div className="shadowquill-panel__body">
 					<div className="shadowquill-field">
 						<div className="shadowquill-label">Current Version</div>
-						<div
-							className="md-input"
-							style={{
-								fontFamily: "var(--font-mono, monospace)",
-								fontSize: "var(--text-base)",
-								fontWeight: 600,
-								padding: "12px 16px",
-								background: "var(--color-surface)",
-							}}
-						>
+						<div className="md-input md-input--readonly font-mono font-semibold">
 							{APP_VERSION}
 						</div>
 					</div>
 
-					<div className="shadowquill-field" style={{ marginTop: "24px" }}>
-						<div
-							style={{
-								display: "flex",
-								alignItems: "center",
-								gap: "12px",
-							}}
-						>
+					<div className="shadowquill-field mt-6">
+						<div className="flex items-center gap-3">
 							<div className="shadowquill-label">Check for Updates</div>
 							<button
 								type="button"
@@ -119,55 +97,26 @@ export default function AppVersionContent() {
 							>
 								<Icon
 									name="refresh"
-									className={`h-5 w-5 ${isChecking ? "animate-spin" : ""}`}
+									className={`h-5 w-5 ${isChecking ? "md-spin" : ""}`}
 								/>
 							</button>
 						</div>
 
 						{updateResult && (
-							<div
-								style={{
-									marginTop: "16px",
-									padding: "16px",
-									borderRadius: "8px",
-									background: updateResult.success
-										? updateResult.updateAvailable
-											? "rgba(255, 193, 7, 0.1)"
-											: "rgba(76, 175, 80, 0.1)"
-										: "rgba(244, 67, 54, 0.1)",
-									border: updateResult.success
-										? updateResult.updateAvailable
-											? "1px solid rgba(255, 193, 7, 0.3)"
-											: "1px solid rgba(76, 175, 80, 0.3)"
-										: "1px solid rgba(244, 67, 54, 0.3)",
-								}}
-							>
+							<div className={`${statusBannerClass} mt-4`}>
 								{updateResult.success ? (
 									updateResult.updateAvailable ? (
 										<>
-											<div
-												style={{
-													fontSize: "var(--text-base)",
-													fontWeight: 600,
-													marginBottom: "8px",
-													color: "rgba(255, 193, 7, 1)",
-												}}
-											>
+											<div className="status-banner__title">
 												Update Available!
 											</div>
-											<div style={{ marginBottom: "12px" }}>
+											<div className="status-banner__body">
 												Version {updateResult.latestVersion} is now available.
 												You are currently running version{" "}
 												{updateResult.currentVersion}.
 											</div>
 											{updateResult.publishedAt && (
-												<div
-													style={{
-														fontSize: "var(--text-sm)",
-														opacity: 0.7,
-														marginBottom: "12px",
-													}}
-												>
+												<div className="status-banner__meta">
 													Released:{" "}
 													{new Date(
 														updateResult.publishedAt,
@@ -181,28 +130,17 @@ export default function AppVersionContent() {
 											<button
 												type="button"
 												onClick={handleOpenReleaseUrl}
-												className="md-btn"
-												style={{
-													padding: "8px 16px",
-													background: "rgba(255, 193, 7, 0.2)",
-													border: "1px solid rgba(255, 193, 7, 0.4)",
-												}}
+												className="md-btn mt-3"
 											>
 												Download Latest Version
 											</button>
 										</>
 									) : (
 										<>
-											<div
-												style={{
-													fontSize: "var(--text-base)",
-													fontWeight: 600,
-													color: "rgba(76, 175, 80, 1)",
-												}}
-											>
+											<div className="status-banner__title">
 												You're up to date!
 											</div>
-											<div style={{ marginTop: "4px" }}>
+											<div className="status-banner__body">
 												You are running the latest version (
 												{updateResult.currentVersion}).
 											</div>
@@ -210,32 +148,18 @@ export default function AppVersionContent() {
 									)
 								) : (
 									<>
-										<div
-											style={{
-												fontSize: "var(--text-base)",
-												fontWeight: 600,
-												marginBottom: "4px",
-												color: "rgba(244, 67, 54, 1)",
-											}}
-										>
+										<div className="status-banner__title">
 											Error Checking for Updates
 										</div>
-										<div>{updateResult.error || "Unknown error occurred"}</div>
+										<div className="status-banner__body">
+											{updateResult.error || "Unknown error occurred"}
+										</div>
 									</>
 								)}
 								<button
 									type="button"
 									onClick={handleOpenGitHubRepo}
-									className="md-btn"
-									style={{
-										marginTop: "12px",
-										padding: 0,
-										background: "none",
-										border: "none",
-										color: "var(--color-primary)",
-										textDecoration: "underline",
-										fontSize: "var(--text-sm)",
-									}}
+									className="md-link mt-3 border-none bg-transparent p-0"
 								>
 									github.com/shadowquillapp/shadowquillapp
 								</button>
