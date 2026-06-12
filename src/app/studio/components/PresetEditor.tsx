@@ -50,7 +50,10 @@ export default function PresetEditor({
 
 	return (
 		<section className={`${className} bg-surface`} aria-label="Preset Editor">
-			<div key={preset.id ?? preset.name} className="studio-editor--enter flex h-full flex-col">
+			<div
+				key={preset.id ?? preset.name}
+				className="studio-editor--enter flex h-full flex-col"
+			>
 				<div className="flex-1 overflow-y-auto px-4 py-3">
 					<div className="mx-auto max-w-5xl space-y-6">
 						<section className="space-y-4">

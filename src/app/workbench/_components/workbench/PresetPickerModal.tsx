@@ -513,8 +513,7 @@ export function PresetPickerModal({
 							overflow: "hidden",
 							position: "relative",
 							height: contentHeight === "auto" ? "auto" : contentHeight,
-							transition:
-								"height var(--duration-normal) var(--ease-ios-out)",
+							transition: "height var(--duration-normal) var(--ease-ios-out)",
 						}}
 					>
 						<div

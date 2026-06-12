@@ -52,8 +52,7 @@
 }
 
 .modal-container .modal-backdrop-blur {
-	animation: modal-backdrop-enter var(--duration-modal) var(--ease-ios-out)
-		both;
+	animation: modal-backdrop-enter var(--duration-modal) var(--ease-ios-out) both;
 }
 
 .modal-container .modal-content {
@@ -110,8 +109,7 @@
 }
 
 .studio-editor--enter {
-	animation: studio-editor-enter var(--duration-normal) var(--ease-ios-out)
-		both;
+	animation: studio-editor-enter var(--duration-normal) var(--ease-ios-out) both;
 }
 
 /* ========================================

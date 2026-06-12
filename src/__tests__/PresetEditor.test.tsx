@@ -28,7 +28,9 @@ describe("PresetEditor motion wiring", () => {
 			/>,
 		);
 
-		expect(container.querySelector(".studio-editor--enter")).toBeInTheDocument();
+		expect(
+			container.querySelector(".studio-editor--enter"),
+		).toBeInTheDocument();
 	});
 
 	it("does not apply editor enter class in the empty state", () => {
@@ -43,7 +45,9 @@ describe("PresetEditor motion wiring", () => {
 			/>,
 		);
 
-		expect(container.querySelector(".studio-editor--enter")).not.toBeInTheDocument();
+		expect(
+			container.querySelector(".studio-editor--enter"),
+		).not.toBeInTheDocument();
 		expect(
 			screen.getByText("Select a preset to edit or create a new one"),
 		).toBeInTheDocument();
