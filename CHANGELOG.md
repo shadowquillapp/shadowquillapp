@@ -1,3 +1,10 @@
+## [0.12.3](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.2...v0.12.3) (2026-06-12)
+
+
+### Bug Fixes
+
+* reliability fixes, iOS motion system, and shell polish ([#29](https://github.com/shadowquillapp/shadowquillapp/issues/29)) ([ad808ea](https://github.com/shadowquillapp/shadowquillapp/commit/ad808eab92549786282f300acf25a67bba05a8ea))
+
 ## [0.12.2](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.1...v0.12.2) (2026-06-11)
 
 ## [0.12.1](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.0...v0.12.1) (2026-06-11)
