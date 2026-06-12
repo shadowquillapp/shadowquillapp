@@ -40,7 +40,8 @@ const sectionTabStyle = (active: boolean): React.CSSProperties => ({
 	alignItems: "center",
 	justifyContent: "center",
 	gap: 6,
-	transition: "background 120ms linear, color 120ms linear",
+	transition:
+		"background-color var(--duration-fast) var(--ease-ios), color var(--duration-fast) var(--ease-ios), box-shadow var(--duration-fast) var(--ease-ios), transform var(--duration-fast) var(--ease-ios-spring)",
 	background: active
 		? "color-mix(in srgb, var(--color-accent) 16%, transparent)"
 		: "transparent",
@@ -409,7 +410,7 @@ export function PresetPickerModal({
 								style={sectionTabStyle(activeSection === "saved")}
 							>
 								<Icon name="folder-open" style={{ width: 14, height: 14 }} />
-								Saved Tabs
+								Saved Workbenches
 								{savedProjects.length > 0 && ` (${savedProjects.length})`}
 							</button>
 						</div>
@@ -512,7 +513,8 @@ export function PresetPickerModal({
 							overflow: "hidden",
 							position: "relative",
 							height: contentHeight === "auto" ? "auto" : contentHeight,
-							transition: "height 0.25s ease-out",
+							transition:
+								"height var(--duration-normal) var(--ease-ios-out)",
 						}}
 					>
 						<div
@@ -524,7 +526,8 @@ export function PresetPickerModal({
 										: "translateX(20px)"
 									: "translateX(0)",
 								opacity: isAnimating ? 0 : 1,
-								transition: "transform 0.2s ease-out, opacity 0.15s ease-out",
+								transition:
+									"transform var(--duration-fast) var(--ease-ios-out), opacity var(--duration-fast) var(--ease-ios-out)",
 							}}
 						>
 							{activeSection === "presets" ? (
@@ -672,7 +675,8 @@ export function PresetPickerModal({
 													alignItems: "center",
 													gap: 8,
 													opacity: isDeleting ? 0.5 : 1,
-													transition: "opacity 0.2s",
+													transition:
+														"opacity var(--duration-fast) var(--ease-ios)",
 												}}
 											>
 												<button

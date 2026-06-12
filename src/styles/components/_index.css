@@ -20,6 +20,7 @@
  * - toasts: Toast notifications
  * - mode-toggle: Toggle switch component
  * - message-bubble: Chat message bubbles
+ * - status: Status banners and empty states
  * ==========================================================================
  */
 
@@ -29,9 +30,11 @@
 @import "./_cards.css";
 @import "./_table.css";
 @import "./_modals.css";
+@import "./_settings.css";
 @import "./_menus.css";
 @import "./_links.css";
 @import "./_loaders.css";
 @import "./_code-blocks.css";
 @import "./_mode-toggle.css";
 @import "./_message-bubble.css";
+@import "./_status.css";

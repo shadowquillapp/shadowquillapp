@@ -42,12 +42,12 @@ describe("FindBar", () => {
 		const input = screen.getByPlaceholderText("Find in page...");
 		fireEvent.change(input, { target: { value: "shadow" } });
 
-		expect(screen.queryByText("1/1")).not.toBeInTheDocument();
+		expect(screen.queryByText("1 of 1 matches")).not.toBeInTheDocument();
 
 		act(() => {
 			vi.advanceTimersByTime(200);
 		});
 
-		expect(screen.getByText("1/1")).toBeInTheDocument();
+		expect(screen.getByText("1 of 1 matches")).toBeInTheDocument();
 	});
 });

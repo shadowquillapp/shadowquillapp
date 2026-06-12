@@ -122,8 +122,9 @@
 	cursor: pointer;
 	position: relative;
 	transition:
-		background-color 0.12s ease,
-		color 0.12s ease;
+		background-color var(--duration-fast) var(--ease-ios),
+		color var(--duration-fast) var(--ease-ios),
+		border-color var(--duration-fast) var(--ease-ios);
 }
 
 .workbench-tab:last-of-type {
@@ -152,6 +153,26 @@
 
 .workbench-tab[draggable="true"]:active {
 	cursor: grabbing;
+}
+
+.workbench-tab__trigger {
+	flex: 1;
+	min-width: 0;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0;
+	background: transparent;
+	border: none;
+	color: inherit;
+	cursor: inherit;
+	font: inherit;
+}
+
+.workbench-tab__trigger:focus-visible {
+	outline: 1px solid var(--color-accent);
+	outline-offset: -1px;
+	z-index: 2;
 }
 
 .workbench-tab__icon {
@@ -198,8 +219,9 @@
 	color: var(--color-on-surface-variant);
 	opacity: 0;
 	transition:
-		opacity 0.12s ease,
-		color 0.12s ease;
+		opacity var(--duration-fast) var(--ease-ios),
+		color var(--duration-fast) var(--ease-ios),
+		transform var(--duration-fast) var(--ease-ios-spring);
 }
 
 .workbench-tab:hover .workbench-tab__close,
@@ -210,6 +232,15 @@
 .workbench-tab__close:hover {
 	opacity: 1;
 	color: var(--color-on-surface);
+}
+
+.workbench-tab__close:active {
+	transform: scale(0.85);
+}
+
+.workbench-tab__close:focus-visible {
+	outline: 1px solid var(--color-accent);
+	outline-offset: 1px;
 }
 
 .workbench-tab-new {
@@ -227,8 +258,13 @@
 	color: var(--color-on-surface-variant);
 	cursor: pointer;
 	transition:
-		background-color 0.12s ease,
-		color 0.12s ease;
+		background-color var(--duration-fast) var(--ease-ios),
+		color var(--duration-fast) var(--ease-ios),
+		transform var(--duration-fast) var(--ease-ios-spring);
+}
+
+.workbench-tab-new:not(:disabled):active .workbench-tab-new__icon {
+	animation: tab-icon-pop var(--duration-fast) var(--ease-ios-spring);
 }
 
 .workbench-tab-new:hover:not(:disabled) {
@@ -256,7 +292,9 @@
 	height: 12px;
 	flex-shrink: 0;
 	opacity: 0.7;
-	transition: opacity 0.12s ease;
+	transition:
+		opacity var(--duration-fast) var(--ease-ios),
+		transform var(--duration-fast) var(--ease-ios-spring);
 }
 
 .workbench-tab-new:hover:not(:disabled) .workbench-tab-new__icon {
@@ -278,9 +316,7 @@
 }
 
 .workbench-tab:focus-visible {
-	outline: 1px solid var(--color-accent);
-	outline-offset: -1px;
-	z-index: 2;
+	outline: none;
 }
 
 .workbench-tab-scroll {
@@ -312,7 +348,7 @@
 	border-radius: 0;
 	background: transparent;
 	position: relative;
-	transition: background-color 0.15s ease;
+	transition: background-color var(--duration-fast) var(--ease-ios);
 }
 
 .workbench-tab-drop-zone::before {
@@ -325,7 +361,7 @@
 	width: 2px;
 	border-radius: 1px;
 	background: transparent;
-	transition: background-color 0.15s ease;
+	transition: background-color var(--duration-fast) var(--ease-ios);
 }
 
 .workbench-tab-drop-zone--target::before {
@@ -596,6 +632,7 @@
 .version-dropdown-item:focus-visible {
 	outline: none;
 	color: var(--color-on-surface);
+	box-shadow: inset 2px 0 0 var(--color-accent);
 }
 
 .version-dropdown-item:disabled {
@@ -604,41 +641,7 @@
 	cursor: default;
 }
 
-/* ========================================
- * EMPTY STATE
- * ======================================== */
-
-.workbench-empty {
-	flex: 1;
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	text-align: center;
-	gap: var(--space-3);
-	color: var(--color-on-surface-variant);
-	padding: var(--space-6);
-	height: 100%;
-	min-height: 0;
-}
-
-.workbench-empty__icon {
-	width: 40px;
-	height: 40px;
-	color: var(--color-on-surface-variant);
-	opacity: 0.4;
-}
-
-.workbench-empty__title {
-	font-size: var(--text-sm);
-	font-weight: 500;
-}
-
-.workbench-empty__hint {
-	font-size: var(--text-xs);
-	opacity: 0.8;
-	max-width: 240px;
-}
+/* Empty state: see components/_status.css (.empty-state, .workbench-empty) */
 
 /* ========================================
  * APP REGION (for Electron drag regions)

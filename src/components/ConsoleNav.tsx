@@ -5,7 +5,7 @@ import { useDialog } from "./DialogProvider";
 import { Icon, type IconName } from "./Icon";
 
 const NAV_ITEMS: { label: string; icon: IconName; path: string }[] = [
-	{ label: "Bench", icon: "terminal", path: "/workbench" },
+	{ label: "Workbench", icon: "terminal", path: "/workbench" },
 	{ label: "Studio", icon: "brush", path: "/studio" },
 ];
 
