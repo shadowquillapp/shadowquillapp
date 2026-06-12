@@ -12,11 +12,14 @@
  * - workbench: Prompt workbench and related components
  * - refine-panel: Refinement panel and timeline
  * - find-highlight: Search result highlighting
+ * - find-bar: In-page search bar
  * ==========================================================================
  */
 
 @import "./_console-shell.css";
+@import "./_studio.css";
 @import "./_ollama.css";
 @import "./_workbench.css";
 @import "./_refine-panel.css";
 @import "./_find-highlight.css";
+@import "./_find-bar.css";

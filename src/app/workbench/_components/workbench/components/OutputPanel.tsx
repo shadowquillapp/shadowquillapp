@@ -103,7 +103,9 @@ export function OutputPanel({
 				minWidth: 0,
 				opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
 				pointerEvents: tabManager.tabs.length === 0 ? "none" : "auto",
-				transition: isResizing ? "none" : "opacity 0.3s ease",
+				transition: isResizing
+					? "none"
+					: "opacity var(--duration-slow) var(--ease-ios)",
 				filter: tabManager.tabs.length === 0 ? "grayscale(0.3)" : "none",
 			}}
 		>

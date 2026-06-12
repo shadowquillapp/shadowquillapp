@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCloseOnEscape } from "@/components/useCloseOnEscape";
+import { resolveOllamaBaseUrl } from "@/lib/domain/model-config";
 import {
 	listAvailableModels,
 	readLocalModelConfig as readLocalModelConfigClient,
@@ -20,7 +21,7 @@ export function useModelManager() {
 		try {
 			setModelLoadError(null);
 			const cfg = readLocalModelConfigClient();
-			const models = await listAvailableModels("http://localhost:11434");
+			const models = await listAvailableModels(resolveOllamaBaseUrl(cfg));
 			setAvailableModels(models);
 			if (cfg && cfg.provider === "ollama" && typeof cfg.model === "string") {
 				setCurrentModelId(cfg.model);
@@ -35,6 +36,18 @@ export function useModelManager() {
 
 	useEffect(() => {
 		void refreshModels();
+	}, [refreshModels]);
+
+	useEffect(() => {
+		const onModelChanged = () => {
+			void refreshModels();
+		};
+		window.addEventListener("MODEL_CHANGED", onModelChanged);
+		window.addEventListener("sq-model-changed", onModelChanged);
+		return () => {
+			window.removeEventListener("MODEL_CHANGED", onModelChanged);
+			window.removeEventListener("sq-model-changed", onModelChanged);
+		};
 	}, [refreshModels]);
 
 	useEffect(() => {

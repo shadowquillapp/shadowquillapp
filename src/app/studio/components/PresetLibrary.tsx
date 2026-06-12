@@ -91,13 +91,10 @@ export default function PresetLibrary({
 
 				<div className="flex-1 overflow-y-auto">
 					{filteredPresets.length === 0 ? (
-						<div className="flex h-full flex-col items-center justify-center p-6 text-center opacity-60">
-							<Icon
-								name="folder-open"
-								className="mb-3 h-10 w-10 text-secondary"
-							/>
-							<p className="font-medium text-light text-sm">No presets found</p>
-							<p className="mt-1 text-secondary text-xs">
+						<div className="empty-state">
+							<Icon name="folder-open" className="empty-state__icon" />
+							<p className="empty-state__title">No presets found</p>
+							<p className="empty-state__hint">
 								{selectedHidden
 									? `${selectedPreset?.name} is still open in the editor.`
 									: searchQuery

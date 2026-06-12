@@ -173,8 +173,8 @@
 	color: var(--color-on-surface-variant);
 	cursor: pointer;
 	padding: 4px;
-	border-radius: 4px;
-	transition: color 120ms ease;
+	border-radius: var(--radius-sm);
+	transition: color var(--duration-fast) var(--ease-ios);
 }
 
 .bubble-code-copy:hover {
@@ -197,43 +197,43 @@
  * ======================================== */
 
 .token-key {
-	color: var(--color-on-surface);
+	color: var(--syntax-variable);
 }
 
 .token-string {
-	color: var(--primarya10);
+	color: var(--syntax-string);
 }
 
 .token-number {
-	color: var(--color-on-surface-variant);
+	color: var(--syntax-number);
 }
 
 .token-boolean {
-	color: var(--color-on-surface);
+	color: var(--syntax-keyword);
 }
 
 .token-null {
-	color: var(--color-on-surface);
+	color: var(--syntax-keyword);
 }
 
 .token-brace {
-	color: var(--color-on-surface-variant);
+	color: var(--syntax-punctuation);
 }
 
 .token-bracket {
-	color: var(--color-on-surface-variant);
+	color: var(--syntax-punctuation);
 }
 
 .token-colon {
-	color: var(--color-on-surface-variant);
+	color: var(--syntax-punctuation);
 }
 
 .token-comma {
-	color: var(--color-outline);
+	color: var(--syntax-punctuation);
 }
 
 .token-punctuation {
-	color: var(--color-on-surface-variant);
+	color: var(--syntax-punctuation);
 }
 
 /* ========================================
@@ -273,10 +273,10 @@
 }
 
 .token-md-code {
-	color: var(--primarya10);
-	background: #ffffff14;
+	color: var(--syntax-string);
+	background: var(--color-overlay-light);
 	padding: 2px 4px;
-	border-radius: 3px;
+	border-radius: var(--radius-sm);
 }
 
 .token-md-link-text {

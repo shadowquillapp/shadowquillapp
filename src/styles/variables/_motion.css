@@ -1,0 +1,15 @@
+:root {
+	/* ========================================
+	 * MOTION TOKENS — iOS-style easing & timing
+	 * ======================================== */
+
+	--ease-ios: cubic-bezier(0.25, 0.1, 0.25, 1);
+	--ease-ios-out: cubic-bezier(0, 0, 0.2, 1);
+	--ease-ios-in: cubic-bezier(0.4, 0, 1, 1);
+	--ease-ios-spring: cubic-bezier(0.32, 0.72, 0, 1);
+	--duration-instant: 100ms;
+	--duration-fast: 180ms;
+	--duration-normal: 280ms;
+	--duration-slow: 380ms;
+	--duration-modal: 320ms;
+}

@@ -8,8 +8,8 @@
 	border-radius: 2px;
 	padding: 0 1px;
 	transition:
-		background 150ms ease,
-		box-shadow 150ms ease;
+		background var(--duration-fast) var(--ease-ios),
+		box-shadow var(--duration-fast) var(--ease-ios);
 }
 
 /* ========================================
@@ -27,13 +27,16 @@
  * ======================================== */
 
 .find-highlight--pulse {
-	animation: none;
+	animation: find-highlight-pulse var(--duration-slow) var(--ease-ios-out);
 }
 
 @keyframes find-highlight-pulse {
 	0%,
-	50%,
 	100% {
-		box-shadow: none;
+		box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 0%, transparent);
+	}
+	50% {
+		box-shadow: 0 0 0 4px
+			color-mix(in srgb, var(--color-primary) 45%, transparent);
 	}
 }

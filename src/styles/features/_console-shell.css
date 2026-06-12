@@ -35,6 +35,15 @@
 	background-color: var(--titlebar-btn-color);
 }
 
+.titlebar-window-btn:focus-visible {
+	outline: 1px solid var(--color-accent);
+	outline-offset: 1px;
+}
+
+.studio-sidebar-backdrop {
+	z-index: var(--z-sidebar-backdrop);
+}
+
 /* ========================================
  * LEFT NAVIGATION RAIL (.console-nav)
  * ======================================== */
@@ -65,6 +74,10 @@
 	background: transparent;
 	color: var(--color-on-surface-variant);
 	cursor: pointer;
+	transition:
+		color var(--duration-fast) var(--ease-ios),
+		border-color var(--duration-fast) var(--ease-ios-spring),
+		background-color var(--duration-fast) var(--ease-ios);
 }
 
 .console-nav__item:hover {

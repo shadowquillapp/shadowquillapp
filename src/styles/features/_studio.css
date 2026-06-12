@@ -1,0 +1,47 @@
+/**
+ * Preset Studio — sidebar, selection, and editor transitions.
+ */
+
+.studio-sidebar {
+	display: flex;
+	flex-direction: column;
+	background: var(--color-surface);
+	border-color: var(--color-outline);
+}
+
+.studio-sidebar--docked {
+	width: 320px;
+	flex-shrink: 0;
+	border-right: 1px solid var(--color-outline);
+}
+
+.studio-sidebar--overlay {
+	position: absolute;
+	top: 0;
+	left: 0;
+	z-index: 30;
+	height: 100%;
+	width: min(90vw, 360px);
+	border-right: 1px solid var(--color-outline);
+	transition:
+		transform var(--duration-normal) var(--ease-ios-spring),
+		opacity var(--duration-fast) var(--ease-ios-out);
+}
+
+.studio-sidebar--overlay.studio-sidebar--closed {
+	transform: translateX(-100%);
+	pointer-events: none;
+}
+
+.studio-sidebar--overlay.studio-sidebar--open {
+	transform: translateX(0);
+}
+
+.studio-sidebar-backdrop {
+	animation: modal-backdrop-enter var(--duration-modal) var(--ease-ios-out)
+		both;
+}
+
+button.data-table__row--selected {
+	animation: preset-row-select var(--duration-fast) var(--ease-ios-spring) both;
+}

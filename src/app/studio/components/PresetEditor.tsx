@@ -38,16 +38,11 @@ export default function PresetEditor({
 	if (!preset) {
 		return (
 			<section className={`${className} bg-surface`} aria-label="Preset Editor">
-				<div className="flex h-full items-center justify-center">
-					<div className="text-center">
-						<Icon
-							name="edit"
-							className="mb-2 h-12 w-12 text-secondary opacity-50"
-						/>
-						<p className="text-secondary text-sm">
-							Select a preset to edit or create a new one
-						</p>
-					</div>
+				<div className="empty-state">
+					<Icon name="edit" className="empty-state__icon" />
+					<p className="empty-state__title">
+						Select a preset to edit or create a new one
+					</p>
 				</div>
 			</section>
 		);
@@ -55,7 +50,7 @@ export default function PresetEditor({
 
 	return (
 		<section className={`${className} bg-surface`} aria-label="Preset Editor">
-			<div className="flex h-full flex-col">
+			<div key={preset.id ?? preset.name} className="studio-editor--enter flex h-full flex-col">
 				<div className="flex-1 overflow-y-auto px-4 py-3">
 					<div className="mx-auto max-w-5xl space-y-6">
 						<section className="space-y-4">
