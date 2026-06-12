@@ -80,7 +80,9 @@ export function InputPanel({
 				minWidth: 0,
 				opacity: tabManager.tabs.length === 0 ? 0.4 : 1,
 				pointerEvents: tabManager.tabs.length === 0 ? "none" : "auto",
-				transition: isResizing ? "none" : "opacity 0.3s ease",
+				transition: isResizing
+					? "none"
+					: "opacity var(--duration-slow) var(--ease-ios)",
 				filter: tabManager.tabs.length === 0 ? "grayscale(0.3)" : "none",
 			}}
 		>
@@ -122,7 +124,7 @@ export function InputPanel({
 							title="Preset details"
 							aria-label={`Show details for ${activeTab.preset.name}`}
 						>
-							<Icon name="sliders" style={{ width: 14, height: 14 }} />
+							<Icon name="info" style={{ width: 14, height: 14 }} />
 						</button>
 					)}
 

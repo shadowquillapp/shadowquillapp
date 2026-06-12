@@ -74,7 +74,7 @@ export default function StatusBar() {
 		connection === "connected"
 			? "Ollama: connected"
 			: connection === "offline"
-				? "Ollama: idle"
+				? "Ollama: offline"
 				: "Ollama: —";
 
 	return (

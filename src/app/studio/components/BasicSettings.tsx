@@ -119,39 +119,13 @@ export default function BasicSettings({
 								key={level}
 								type="button"
 								onClick={() => onFieldChange("detail", level)}
-								className="relative rounded-[var(--radius-sm)] border p-2 text-center"
+								className={`detail-toggle ${isSelected ? "detail-toggle--selected" : ""}`}
 								aria-pressed={isSelected}
-								style={{
-									borderColor: isSelected
-										? "var(--color-accent)"
-										: "var(--color-outline)",
-									background: isSelected
-										? "color-mix(in srgb, var(--color-accent) 14%, transparent)"
-										: "var(--color-surface-variant)",
-									color: "var(--color-on-surface)",
-									transition:
-										"border-color 120ms linear, background 120ms linear",
-								}}
-								onMouseEnter={(e) => {
-									if (!isSelected) {
-										e.currentTarget.style.borderColor = "var(--surfacea50)";
-									}
-								}}
-								onMouseLeave={(e) => {
-									if (!isSelected) {
-										e.currentTarget.style.borderColor = "var(--color-outline)";
-									}
-								}}
 							>
 								<div className="flex items-center justify-center gap-2">
 									<Icon
 										name={meta.icon}
-										className="h-4 w-4"
-										style={{
-											color: isSelected
-												? "var(--color-on-surface)"
-												: "var(--color-on-surface-variant)",
-										}}
+										className="detail-toggle__icon h-4 w-4"
 									/>
 									<span className="font-semibold text-xs">{meta.label}</span>
 								</div>

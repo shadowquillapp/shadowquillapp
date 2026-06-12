@@ -41,8 +41,8 @@
 	background: transparent;
 	border: none;
 	transition:
-		background 120ms,
-		color 120ms;
+		background-color var(--duration-fast) var(--ease-ios),
+		color var(--duration-fast) var(--ease-ios);
 	cursor: pointer;
 }
 

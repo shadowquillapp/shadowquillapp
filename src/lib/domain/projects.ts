@@ -132,14 +132,16 @@ export async function appendMessagesWithCap(
 	const now = Date.now();
 	const messagesMap = readTestMessages();
 	const created: TestMessage[] = [];
-	for (const it of items) {
+	for (let i = 0; i < items.length; i++) {
+		const it = items[i];
+		if (!it) continue;
 		const id = randomId("msg");
 		const m: StoredTestMessage = {
 			id,
 			projectId,
 			role: it.role,
 			content: it.content,
-			createdAt: now,
+			createdAt: now + i,
 		};
 		messagesMap[id] = m;
 		created.push({ ...m, createdAt: new Date(m.createdAt) });

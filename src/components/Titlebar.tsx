@@ -58,15 +58,30 @@ export default function Titlebar() {
 		/>
 	);
 
-	const closeButton = makeButton("close", "Close", "#FF5F57", () => {
-		window.shadowquill?.window?.close?.();
-	});
-	const minimizeButton = makeButton("minimize", "Minimize", "#FFBD2E", () => {
-		window.shadowquill?.window?.minimize?.();
-	});
-	const maximizeButton = makeButton("maximize", "Maximize", "#28CA42", () => {
-		window.shadowquill?.window?.maximizeToggle?.();
-	});
+	const closeButton = makeButton(
+		"close",
+		"Close",
+		"var(--palette-traffic-close)",
+		() => {
+			window.shadowquill?.window?.close?.();
+		},
+	);
+	const minimizeButton = makeButton(
+		"minimize",
+		"Minimize",
+		"var(--palette-traffic-minimize)",
+		() => {
+			window.shadowquill?.window?.minimize?.();
+		},
+	);
+	const maximizeButton = makeButton(
+		"maximize",
+		"Maximize",
+		"var(--palette-traffic-maximize)",
+		() => {
+			window.shadowquill?.window?.maximizeToggle?.();
+		},
+	);
 
 	const buttons = isMac
 		? [closeButton, minimizeButton, maximizeButton]

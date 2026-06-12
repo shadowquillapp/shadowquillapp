@@ -20,7 +20,7 @@
  * ======================================== */
 
 .dropdown-arrow {
-	transition: transform 200ms ease;
+	transition: transform var(--duration-fast) var(--ease-ios-spring);
 }
 
 .dropdown-arrow--open {
@@ -28,55 +28,132 @@
 }
 
 /* ========================================
- * VERSION/OUTPUT ANIMATIONS
+ * MODAL ENTER
  * ======================================== */
 
-@keyframes output-fade-in {
-	0% {
+@keyframes modal-backdrop-enter {
+	from {
 		opacity: 0;
 	}
-	100% {
+	to {
 		opacity: 1;
 	}
 }
 
+@keyframes modal-content-enter {
+	from {
+		opacity: 0;
+		transform: scale(0.96) translateY(10px);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+.modal-container .modal-backdrop-blur {
+	animation: modal-backdrop-enter var(--duration-modal) var(--ease-ios-out) both;
+}
+
+.modal-container .modal-content {
+	animation: modal-content-enter var(--duration-modal) var(--ease-ios-spring)
+		both;
+}
+
+/* ========================================
+ * PAGE & PANEL ENTER
+ * ======================================== */
+
+@keyframes page-enter {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes settings-panel-enter {
+	from {
+		opacity: 0;
+		transform: translateX(6px);
+	}
+	to {
+		opacity: 1;
+		transform: translateX(0);
+	}
+}
+
+@keyframes studio-editor-enter {
+	from {
+		opacity: 0;
+		transform: translateY(6px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+@keyframes preset-row-select {
+	from {
+		box-shadow: inset 0 0 0 var(--color-accent);
+	}
+	to {
+		box-shadow: inset 2px 0 0 var(--color-accent);
+	}
+}
+
+.page-animate {
+	animation: page-enter var(--duration-normal) var(--ease-ios-out) both;
+}
+
+.studio-editor--enter {
+	animation: studio-editor-enter var(--duration-normal) var(--ease-ios-out) both;
+}
+
+/* ========================================
+ * VERSION/OUTPUT ANIMATIONS
+ * ======================================== */
+
+@keyframes output-fade-in {
+	from {
+		opacity: 0;
+		transform: translateY(4px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
 .output-animate-in {
-	animation: output-fade-in 120ms linear;
+	animation: output-fade-in var(--duration-fast) var(--ease-ios-out) both;
 }
 
 /* ========================================
  * GENERATION STATE ANIMATIONS
  * ======================================== */
 
-/* ----------------------------------------
- * Workbench Generating State
- * Simple opacity dimming, no filters
- * ---------------------------------------- */
-
-/* Restore normal state when not generating */
 .simple-workbench__header,
 .prompt-input-pane {
-	transition: opacity 0.3s ease;
+	transition: opacity var(--duration-slow) var(--ease-ios);
 }
 
-/* Header dims during generation */
 .workbench--generating .simple-workbench__header {
 	opacity: 0.35;
 	pointer-events: none;
 }
 
-/* Input pane dims but remains visible */
 .workbench--generating .prompt-input-pane {
 	opacity: 0.45;
 }
 
-/* Disable interactions on input pane content during generation */
 .workbench--generating .prompt-input-pane textarea,
 .workbench--generating .prompt-input-pane .model-selector {
 	pointer-events: none;
 }
 
-/* Keep the stop button fully visible and interactive */
 .workbench--generating .prompt-input-pane .run-button-container {
 	opacity: 1;
 	pointer-events: auto;
@@ -89,51 +166,119 @@
 @keyframes fade-in-up {
 	from {
 		opacity: 0;
+		transform: translateY(8px);
 	}
 	to {
 		opacity: 1;
+		transform: translateY(0);
 	}
 }
 
 @keyframes fade-in-down {
 	from {
 		opacity: 0;
+		transform: translateY(-8px);
 	}
 	to {
 		opacity: 1;
+		transform: translateY(0);
 	}
 }
 
 @keyframes fade-in-scale {
 	from {
 		opacity: 0;
+		transform: scale(0.94) translateY(2px);
 	}
 	to {
 		opacity: 1;
+		transform: scale(1) translateY(0);
+	}
+}
+
+@keyframes tab-icon-pop {
+	from {
+		transform: scale(1) rotate(0deg);
+	}
+	to {
+		transform: scale(1.15) rotate(90deg);
 	}
 }
 
 .fade-in-up {
-	animation: fade-in-up 120ms linear;
+	animation: fade-in-up var(--duration-normal) var(--ease-ios-spring) both;
 }
 
 .fade-in-down {
-	animation: fade-in-down 120ms linear;
+	animation: fade-in-down var(--duration-normal) var(--ease-ios-spring) both;
 }
 
 .fade-in-scale {
-	animation: fade-in-scale 120ms linear;
+	animation: fade-in-scale var(--duration-normal) var(--ease-ios-spring) both;
+}
+
+.workbench-tab--enter {
+	animation: fade-in-scale var(--duration-normal) var(--ease-ios-spring) both;
 }
 
 /* ========================================
- * PAGE ANIMATIONS
- * Console surfaces render immediately — no page entrance motion.
+ * INTERACTIVE PRESS (shared utility + controls)
  * ======================================== */
 
-.simple-workbench,
-.page-animate {
-	animation: none;
+.sq-pressable,
+.md-btn,
+.md-icon-btn,
+.md-close-btn,
+.preset-studio-btn,
+.detail-toggle,
+.console-nav__item,
+.console-nav__settings-btn,
+.titlebar-window-btn,
+.menu-item,
+button.data-table__row,
+.settings-tab-btn,
+.mode-toggle,
+.mode-toggle-option,
+.md-chip,
+.find-bar__nav-btn,
+.refine-timeline__copy-btn,
+.refine-timeline__item-btn,
+.refine-timeline__content[role="button"],
+.bubble-code-copy {
+	transition:
+		background-color var(--duration-fast) var(--ease-ios),
+		border-color var(--duration-fast) var(--ease-ios),
+		color var(--duration-fast) var(--ease-ios),
+		opacity var(--duration-fast) var(--ease-ios),
+		transform var(--duration-fast) var(--ease-ios-spring),
+		box-shadow var(--duration-fast) var(--ease-ios);
 }
+
+.sq-pressable:not(:disabled):active,
+.md-btn:not(:disabled):active,
+.md-icon-btn:not(:disabled):active,
+.md-close-btn:not(:disabled):active,
+.preset-studio-btn:not(:disabled):active,
+.detail-toggle:not(:disabled):active,
+.console-nav__item:not(:disabled):active,
+.console-nav__settings-btn:not(:disabled):active,
+.titlebar-window-btn:not(:disabled):active,
+.menu-item:not(:disabled):active,
+button.data-table__row:not(:disabled):active,
+.settings-tab-btn:not(:disabled):active,
+.mode-toggle-option:not(:disabled):active,
+.md-chip:not(:disabled):active,
+.find-bar__nav-btn:not(:disabled):active,
+.refine-timeline__copy-btn:not(:disabled):active,
+.refine-timeline__item-btn:not(:disabled):active,
+.refine-timeline__content[role="button"]:not(:disabled):active,
+.bubble-code-copy:not(:disabled):active {
+	transform: scale(0.96);
+}
+
+/* ========================================
+ * REDUCED MOTION
+ * ======================================== */
 
 @media (prefers-reduced-motion: reduce) {
 	*,
@@ -150,8 +295,41 @@
 	.fade-in-up,
 	.fade-in-down,
 	.fade-in-scale,
-	.simple-workbench,
-	.page-animate {
+	.workbench-tab--enter,
+	.modal-container .modal-backdrop-blur,
+	.modal-container .modal-content,
+	.page-animate,
+	.settings-panel--enter,
+	.studio-editor--enter,
+	.studio-sidebar-backdrop,
+	button.data-table__row--selected {
 		animation: none;
+	}
+
+	.sq-pressable:not(:disabled):active,
+	.md-btn:not(:disabled):active,
+	.md-icon-btn:not(:disabled):active,
+	.md-close-btn:not(:disabled):active,
+	.preset-studio-btn:not(:disabled):active,
+	.detail-toggle:not(:disabled):active,
+	.console-nav__item:not(:disabled):active,
+	.console-nav__settings-btn:not(:disabled):active,
+	.titlebar-window-btn:not(:disabled):active,
+	.menu-item:not(:disabled):active,
+	button.data-table__row:not(:disabled):active,
+	.settings-tab-btn:not(:disabled):active,
+	.mode-toggle-option:not(:disabled):active,
+	.md-chip:not(:disabled):active,
+	.find-bar__nav-btn:not(:disabled):active,
+	.refine-timeline__copy-btn:not(:disabled):active,
+	.refine-timeline__item-btn:not(:disabled):active,
+	.refine-timeline__content[role="button"]:not(:disabled):active,
+	.bubble-code-copy:not(:disabled):active {
+		transform: none;
+	}
+
+	.studio-sidebar--overlay.studio-sidebar--closed {
+		transform: none;
+		opacity: 0;
 	}
 }

@@ -40,6 +40,8 @@ export function TabBar({
 	const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 	const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
 	const dropHandledRef = useRef(false);
+	const seenTabIdsRef = useRef(new Set<string>());
+	const isFirstRenderRef = useRef(true);
 
 	const checkScroll = useCallback(() => {
 		const container = tabsContainerRef.current;
@@ -115,6 +117,13 @@ export function TabBar({
 			}
 		: { minWidth: 100, maxWidth: 200 };
 
+	if (isFirstRenderRef.current) {
+		for (const tab of tabs) {
+			seenTabIdsRef.current.add(tab.id);
+		}
+		isFirstRenderRef.current = false;
+	}
+
 	return (
 		<div
 			className={`workbench-tab-bar ${embedded ? "workbench-tab-bar--embedded" : ""}`}
@@ -140,6 +149,10 @@ export function TabBar({
 				{tabs.map((tab, index) => {
 					const isActive = tab.id === activeTabId;
 					const isDragging = draggedIndex === index;
+					const shouldEnter = !seenTabIdsRef.current.has(tab.id);
+					if (shouldEnter) {
+						seenTabIdsRef.current.add(tab.id);
+					}
 
 					return (
 						<Fragment key={tab.id}>
@@ -181,37 +194,15 @@ export function TabBar({
 									/>
 								)}
 
+							{/* biome-ignore lint/a11y/noStaticElementInteractions: DnD reorder shell; keyboard activation lives on the tab button child */}
 							<div
-								role="tab"
-								aria-selected={isActive}
-								aria-label={tab.label}
-								data-tab-id={tab.id}
-								tabIndex={isActive ? 0 : -1}
-								className={`workbench-tab fade-in-scale ${isActive ? "workbench-tab--active" : ""} ${isDragging ? "workbench-tab--dragging" : ""}`}
+								role="presentation"
+								className={`workbench-tab sq-pressable ${shouldEnter ? "workbench-tab--enter" : ""} ${isActive ? "workbench-tab--active" : ""} ${isDragging ? "workbench-tab--dragging" : ""}`}
 								style={{
 									...tabWidthStyle,
 									cursor: onReorderTabs ? "grab" : "pointer",
 								}}
 								draggable={!!onReorderTabs}
-								onClick={() => onSwitchTab(tab.id)}
-								onKeyDown={(e) => {
-									if (e.key === "Enter" || e.key === " ") {
-										e.preventDefault();
-										onSwitchTab(tab.id);
-									} else if (e.key === "ArrowLeft") {
-										e.preventDefault();
-										focusTabAt(index === 0 ? tabs.length - 1 : index - 1);
-									} else if (e.key === "ArrowRight") {
-										e.preventDefault();
-										focusTabAt(index === tabs.length - 1 ? 0 : index + 1);
-									} else if (e.key === "Home") {
-										e.preventDefault();
-										focusTabAt(0);
-									} else if (e.key === "End") {
-										e.preventDefault();
-										focusTabAt(tabs.length - 1);
-									}
-								}}
 								onDragStart={(e) => {
 									if (!onReorderTabs) return;
 									dropHandledRef.current = false;
@@ -256,12 +247,40 @@ export function TabBar({
 									setDragOverIndex(null);
 								}}
 							>
-								<Icon
-									name={getTaskTypeIcon(tab.preset.taskType)}
-									className="workbench-tab__icon"
-								/>
-
-								<span className="workbench-tab__label">{tab.label}</span>
+								<button
+									type="button"
+									role="tab"
+									aria-selected={isActive}
+									aria-label={tab.label}
+									data-tab-id={tab.id}
+									tabIndex={isActive ? 0 : -1}
+									className="workbench-tab__trigger"
+									onClick={() => onSwitchTab(tab.id)}
+									onKeyDown={(e) => {
+										if (e.key === "Enter" || e.key === " ") {
+											e.preventDefault();
+											onSwitchTab(tab.id);
+										} else if (e.key === "ArrowLeft") {
+											e.preventDefault();
+											focusTabAt(index === 0 ? tabs.length - 1 : index - 1);
+										} else if (e.key === "ArrowRight") {
+											e.preventDefault();
+											focusTabAt(index === tabs.length - 1 ? 0 : index + 1);
+										} else if (e.key === "Home") {
+											e.preventDefault();
+											focusTabAt(0);
+										} else if (e.key === "End") {
+											e.preventDefault();
+											focusTabAt(tabs.length - 1);
+										}
+									}}
+								>
+									<Icon
+										name={getTaskTypeIcon(tab.preset.taskType)}
+										className="workbench-tab__icon"
+									/>
+									<span className="workbench-tab__label">{tab.label}</span>
+								</button>
 
 								<button
 									type="button"
@@ -310,7 +329,7 @@ export function TabBar({
 
 				<button
 					type="button"
-					className={`workbench-tab-new ${embedded ? "workbench-tab-new--embedded" : "workbench-tab-new--standalone"} ${noTabs ? "workbench-tab-new--solo" : ""}`}
+					className={`workbench-tab-new sq-pressable ${embedded ? "workbench-tab-new--embedded" : "workbench-tab-new--standalone"} ${noTabs ? "workbench-tab-new--solo" : ""}`}
 					onClick={onNewTab}
 					disabled={!canAddTab}
 					aria-label="New tab"

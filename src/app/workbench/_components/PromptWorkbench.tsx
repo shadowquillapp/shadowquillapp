@@ -202,7 +202,7 @@ export default function PromptWorkbench() {
 				}
 			`}</style>
 			<div
-				className={`simple-workbench ${isGenerating ? "workbench--generating" : ""}`}
+				className={`simple-workbench page-animate ${isGenerating ? "workbench--generating" : ""}`}
 			>
 				<header className="simple-workbench__header simple-workbench__header--tabs">
 					<TabBar
@@ -316,7 +316,9 @@ export default function PromptWorkbench() {
 				onDeleteAllProjects={deleteAllProjects}
 				presets={presets}
 				savedProjects={recentProjects}
-				title={presetPickerForNewTab ? "Open Workbench Tab" : "Select a Preset"}
+				title={
+					presetPickerForNewTab ? "Open Saved Workbench" : "Select a Preset"
+				}
 			/>
 		</>
 	);

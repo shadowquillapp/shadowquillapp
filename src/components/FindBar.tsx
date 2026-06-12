@@ -239,11 +239,17 @@ export default function FindBar() {
 	}, [isVisible, closeFindBar, goToNext, goToPrevious]);
 
 	useEffect(() => {
-		if (!searchText) {
+		if (!isVisible) return;
+		if (!searchText.trim()) {
 			clearHighlights();
+			setHasSearched(false);
+			return;
 		}
-		setHasSearched(false);
-	}, [searchText, clearHighlights]);
+		const timer = window.setTimeout(() => {
+			performSearch(searchText);
+		}, 200);
+		return () => window.clearTimeout(timer);
+	}, [searchText, isVisible, clearHighlights, performSearch]);
 
 	useEffect(() => {
 		return () => {
@@ -253,44 +259,38 @@ export default function FindBar() {
 
 	if (!isVisible) return null;
 
+	const matchStatus =
+		matchCount > 0 && searchText
+			? `${currentMatch} of ${matchCount} matches`
+			: matchCount === 0 && searchText && hasSearched
+				? "No results"
+				: "";
+
 	return (
-		<div
-			data-find-bar
-			className="fixed top-12 right-4 z-[9999] flex items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--color-outline)] px-2 py-1.5"
-			style={{
-				minWidth: 280,
-				background: "var(--color-surface-variant)",
-			}}
-		>
+		<div data-find-bar className="find-bar">
 			<input
 				ref={inputRef}
 				type="text"
 				value={searchText}
 				onChange={(e) => setSearchText(e.target.value)}
 				placeholder="Find in page..."
-				className="flex-1 rounded-[var(--radius-sm)] border border-[var(--color-outline)] px-2 py-1 font-sans text-[var(--color-on-surface)] text-sm outline-none placeholder:text-[var(--color-on-surface-variant)] focus:border-[var(--color-accent)]"
-				style={{
-					background: "var(--color-surface)",
-				}}
+				aria-label="Find in page"
+				className="find-bar__input"
 			/>
 
-			{matchCount > 0 && searchText && (
-				<span className="min-w-[60px] text-center text-[var(--color-on-surface-variant)] text-xs">
-					{currentMatch}/{matchCount}
-				</span>
-			)}
-
-			{matchCount === 0 && searchText && hasSearched && (
-				<span className="min-w-[60px] text-center text-[var(--color-attention)] text-xs">
-					No results
-				</span>
-			)}
+			<span
+				className="find-bar__match-count"
+				aria-live="polite"
+				aria-atomic="true"
+			>
+				{matchStatus}
+			</span>
 
 			<button
 				type="button"
 				onClick={goToPrevious}
 				disabled={!searchText}
-				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:text-[var(--color-on-surface)] disabled:cursor-not-allowed disabled:opacity-40"
+				className="find-bar__nav-btn"
 				title="Previous (Shift+Enter)"
 				aria-label="Previous match"
 			>
@@ -301,7 +301,7 @@ export default function FindBar() {
 				type="button"
 				onClick={goToNext}
 				disabled={!searchText}
-				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:text-[var(--color-on-surface)] disabled:cursor-not-allowed disabled:opacity-40"
+				className="find-bar__nav-btn"
 				title="Next (Enter)"
 				aria-label="Next match"
 			>
@@ -311,7 +311,7 @@ export default function FindBar() {
 			<button
 				type="button"
 				onClick={closeFindBar}
-				className="rounded p-1.5 text-[var(--color-on-surface-variant)] transition-colors hover:text-[var(--color-on-surface)]"
+				className="find-bar__nav-btn"
 				title="Close (Escape)"
 				aria-label="Close find bar"
 			>

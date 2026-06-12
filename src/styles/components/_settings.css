@@ -1,0 +1,39 @@
+/**
+ * Settings dialog tab rail + panel transitions.
+ */
+
+.settings-tab-btn {
+	width: 100%;
+	text-align: left;
+	padding: 8px 12px;
+	border-radius: 0;
+	border: none;
+	font-size: var(--text-md);
+	font-weight: 500;
+	cursor: pointer;
+	position: relative;
+	color: var(--color-on-surface-variant);
+	background: transparent;
+}
+
+.settings-tab-btn--active {
+	font-weight: 600;
+	color: var(--color-on-surface);
+	background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+	box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+.settings-tab-btn:hover:not(.settings-tab-btn--active) {
+	background: var(--color-surface-variant);
+	color: var(--color-on-surface);
+}
+
+.settings-tab-btn:focus-visible {
+	outline: 2px solid var(--color-accent);
+	outline-offset: -2px;
+}
+
+.settings-panel--enter {
+	animation: settings-panel-enter var(--duration-normal) var(--ease-ios-out)
+		both;
+}

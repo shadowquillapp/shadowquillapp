@@ -22,7 +22,11 @@ export default function SystemPromptEditorContent() {
 	}, []);
 
 	if (loading) {
-		return <div className="text-sm">Loading…</div>;
+		return (
+			<div className="empty-state" aria-live="polite" aria-busy="true">
+				<p className="empty-state__title">Loading…</p>
+			</div>
+		);
 	}
 
 	return (

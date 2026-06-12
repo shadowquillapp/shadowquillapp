@@ -72,6 +72,18 @@
 	color: var(--color-attention);
 }
 
+.text-success {
+	color: var(--color-success);
+}
+
+.text-warning {
+	color: var(--color-warning);
+}
+
+.text-error {
+	color: var(--color-error);
+}
+
 .hover\:bg-attention\/10:hover {
 	background-color: color-mix(in srgb, var(--color-attention) 10%, transparent);
 }

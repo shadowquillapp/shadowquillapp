@@ -180,3 +180,37 @@
 	outline: 1px solid var(--color-accent);
 	outline-offset: 1px;
 }
+
+/* Detail level selector (studio preset editor) */
+.detail-toggle {
+	position: relative;
+	border: 1px solid var(--color-outline);
+	border-radius: var(--radius-sm);
+	padding: var(--space-2);
+	text-align: center;
+	background: var(--color-surface-variant);
+	color: var(--color-on-surface);
+	cursor: pointer;
+}
+
+.detail-toggle:hover:not(.detail-toggle--selected) {
+	border-color: var(--surfacea50);
+}
+
+.detail-toggle--selected {
+	border-color: var(--color-accent);
+	background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+}
+
+.detail-toggle__icon {
+	color: var(--color-on-surface-variant);
+}
+
+.detail-toggle--selected .detail-toggle__icon {
+	color: var(--color-on-surface);
+}
+
+.detail-toggle:focus-visible {
+	outline: 1px solid var(--color-accent);
+	outline-offset: 1px;
+}

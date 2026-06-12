@@ -229,21 +229,8 @@ export default function PresetStudioPage() {
 			{isSmallScreen && sidebarOpen && (
 				<button
 					type="button"
-					style={{
-						position: "fixed",
-						inset: 0,
-						background: "rgba(0,0,0,0.5)",
-						zIndex: 25,
-						border: "none",
-						padding: 0,
-						cursor: "pointer",
-					}}
+					className="modal-backdrop-blur studio-sidebar-backdrop fixed inset-0"
 					onClick={() => setSidebarOpen(false)}
-					onKeyDown={(e) => {
-						if (e.key === "Enter" || e.key === " ") {
-							setSidebarOpen(false);
-						}
-					}}
 					aria-label="Close sidebar"
 				/>
 			)}
@@ -253,16 +240,15 @@ export default function PresetStudioPage() {
 				style={{ position: "relative" }}
 			>
 				<aside
-					className={`flex flex-col border-[var(--color-outline)] transition-all duration-300 ${
+					className={`studio-sidebar ${
 						isSmallScreen
-							? `absolute top-0 left-0 z-30 h-full w-[min(90vw,360px)] border-r ${
-									sidebarOpen ? "translate-x-0" : "-translate-x-full"
+							? `studio-sidebar--overlay ${
+									sidebarOpen
+										? "studio-sidebar--open"
+										: "studio-sidebar--closed"
 								}`
-							: "w-[320px] flex-shrink-0 border-r"
+							: "studio-sidebar--docked"
 					}`}
-					style={{
-						background: "var(--color-surface)",
-					}}
 				>
 					<PresetLibrary
 						presets={presets}

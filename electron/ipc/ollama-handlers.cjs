@@ -29,11 +29,11 @@ ipcMain.handle("shadowquill:checkOllamaInstalled", async (event) => {
 	try {
 		if (process.platform === "darwin") {
 			try {
-				execSync(
+				const output = execSync(
 					'mdfind "kMDItemKind == Application && kMDItemFSName == Ollama.app"',
-					{ timeout: 3000 },
-				);
-				return { installed: true };
+					{ encoding: "utf8", timeout: 3000 },
+				).trim();
+				return { installed: output.length > 0 };
 			} catch (_) {
 				return { installed: false };
 			}
@@ -78,10 +78,12 @@ ipcMain.handle("shadowquill:openOllama", async (event) => {
 			};
 		}
 		try {
+			execSync("command -v systemctl", { timeout: 3000 });
 			spawnDetached("systemctl", ["--user", "start", "ollama"]);
 			return { ok: true };
 		} catch (_) {
 			try {
+				execSync("command -v ollama", { timeout: 3000 });
 				spawnDetached("ollama", ["serve"]);
 				return { ok: true };
 			} catch (_) {

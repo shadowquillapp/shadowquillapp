@@ -17,7 +17,7 @@
 .refine-panel__content-wrapper {
 	display: grid;
 	grid-template-rows: 0fr;
-	transition: grid-template-rows 200ms ease-out;
+	transition: grid-template-rows var(--duration-normal) var(--ease-ios-out);
 }
 
 .refine-panel--expanded .refine-panel__content-wrapper {
@@ -37,13 +37,13 @@
 
 .refine-panel__content-inner > .refine-timeline {
 	opacity: 0;
-	transition: opacity 150ms ease-out;
+	transition: opacity var(--duration-fast) var(--ease-ios-out);
 	transition-delay: 0ms;
 }
 
 .refine-panel--expanded .refine-panel__content-inner > .refine-timeline {
 	opacity: 1;
-	transition-delay: 50ms;
+	transition-delay: var(--duration-instant);
 }
 
 /* ========================================
