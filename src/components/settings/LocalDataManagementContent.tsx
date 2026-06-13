@@ -109,7 +109,7 @@ export default function LocalDataManagementContent() {
 						style={{ marginTop: "8px" }}
 					>
 						<div className="shadowquill-status-card__content">
-							<p className="shadowquill-status-card__title">Danger Zone</p>
+							<p className="shadowquill-status-card__title">Delete All Data</p>
 							<p className="shadowquill-status-card__body">
 								Factory reset will permanently delete all local data including
 								settings, saved prompts, and presets. This action cannot be

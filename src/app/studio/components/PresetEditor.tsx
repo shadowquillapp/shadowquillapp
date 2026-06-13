@@ -1,9 +1,11 @@
 "use client";
 
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useRef, useState } from "react";
 import BasicSettings from "@/app/studio/components/BasicSettings";
 import { Icon } from "@/components/Icon";
 import type { PresetLite } from "@/types";
+
+const STUDIO_EDITOR_EXIT_MS = 180;
 
 interface PresetEditorProps {
 	preset: PresetLite | null;
@@ -35,7 +37,43 @@ export default function PresetEditor({
 	onDelete,
 	className = "",
 }: PresetEditorProps) {
-	if (!preset) {
+	const presetKey = preset?.id ?? preset?.name ?? null;
+	const [visiblePreset, setVisiblePreset] = useState<PresetLite | null>(preset);
+	const [animClass, setAnimClass] = useState(
+		preset ? "studio-editor--enter" : "",
+	);
+	const visibleKeyRef = useRef(presetKey);
+	const isFirstRenderRef = useRef(true);
+
+	useEffect(() => {
+		if (isFirstRenderRef.current) {
+			isFirstRenderRef.current = false;
+			visibleKeyRef.current = presetKey;
+			return;
+		}
+
+		if (presetKey === visibleKeyRef.current) {
+			setVisiblePreset(preset);
+			return;
+		}
+
+		let cancelled = false;
+		setAnimClass("studio-editor--exit");
+
+		const exitTimer = window.setTimeout(() => {
+			if (cancelled) return;
+			visibleKeyRef.current = presetKey;
+			setVisiblePreset(preset);
+			setAnimClass(preset ? "studio-editor--enter" : "");
+		}, STUDIO_EDITOR_EXIT_MS);
+
+		return () => {
+			cancelled = true;
+			clearTimeout(exitTimer);
+		};
+	}, [preset, presetKey]);
+
+	if (!visiblePreset && animClass !== "studio-editor--exit") {
 		return (
 			<section className={`${className} bg-surface`} aria-label="Preset Editor">
 				<div className="empty-state">
@@ -48,20 +86,26 @@ export default function PresetEditor({
 		);
 	}
 
+	if (!visiblePreset) return null;
+
+	const editorPreset = visiblePreset;
+
 	return (
 		<section className={`${className} bg-surface`} aria-label="Preset Editor">
 			<div
-				key={preset.id ?? preset.name}
-				className="studio-editor--enter flex h-full flex-col"
+				className={`${animClass} flex h-full flex-col`}
 			>
 				<div className="flex-1 overflow-y-auto px-4 py-3">
 					<div className="mx-auto max-w-5xl space-y-6">
-						<section className="space-y-4">
+						<section className="studio-editor__section space-y-4">
 							<SectionHeading>Basics</SectionHeading>
-							<BasicSettings preset={preset} onFieldChange={onFieldChange} />
+							<BasicSettings
+								preset={editorPreset}
+								onFieldChange={onFieldChange}
+							/>
 						</section>
 
-						<section className="space-y-4">
+						<section className="studio-editor__section space-y-4">
 							<SectionHeading>Context</SectionHeading>
 							<div>
 								<label
@@ -72,7 +116,7 @@ export default function PresetEditor({
 								</label>
 								<textarea
 									id="additional-context"
-									value={preset.options?.additionalContext || ""}
+									value={editorPreset.options?.additionalContext || ""}
 									onChange={(e) =>
 										onFieldChange("additionalContext", e.target.value)
 									}
@@ -89,7 +133,7 @@ export default function PresetEditor({
 								style={{ letterSpacing: "var(--label-tracking)" }}
 							>
 								<span className="h-2 w-2 rounded-[var(--radius-sm)] bg-[var(--color-attention)]" />
-								{`Unsaved changes to ${preset.name}`}
+								{`Unsaved changes to ${editorPreset.name}`}
 							</div>
 						)}
 					</div>
@@ -99,11 +143,11 @@ export default function PresetEditor({
 					<div className="mx-auto flex max-w-5xl items-center justify-between">
 						<button
 							type="button"
-							onClick={() => preset.id && onDelete(preset.id)}
+							onClick={() => editorPreset.id && onDelete(editorPreset.id)}
 							className="md-btn md-btn--destructive md-btn--label"
-							disabled={!preset.id || preset.name === "Default"}
+							disabled={!editorPreset.id || editorPreset.name === "Default"}
 							title={
-								preset.name === "Default"
+								editorPreset.name === "Default"
 									? "Default preset cannot be deleted"
 									: "Delete preset"
 							}
@@ -114,11 +158,13 @@ export default function PresetEditor({
 						<div className="flex gap-2">
 							<button
 								type="button"
-								onClick={() => preset.id && onDuplicate(preset.id)}
+								onClick={() =>
+									editorPreset.id && onDuplicate(editorPreset.id)
+								}
 								className="md-btn md-btn--label"
-								disabled={!preset.id}
+								disabled={!editorPreset.id}
 								title={
-									preset.id
+									editorPreset.id
 										? "Duplicate preset"
 										: "Save this preset before duplicating"
 								}

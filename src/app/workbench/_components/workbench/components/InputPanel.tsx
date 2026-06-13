@@ -104,9 +104,7 @@ export function InputPanel({
 				<div className="panel__head panel__head--tall">
 					<span
 						className="panel__title"
-						style={
-							isRefinementMode ? { color: "var(--color-accent)" } : undefined
-						}
+						style={{ color: "var(--color-accent)" }}
 						title={
 							isRefinementMode
 								? "Refinement mode: Your input will modify the previous output"
@@ -121,10 +119,10 @@ export function InputPanel({
 							type="button"
 							className="panel__head-action"
 							onClick={() => setShowPresetInfo(true)}
-							title="Preset details"
-							aria-label={`Show details for ${activeTab.preset.name}`}
+							title="Preset settings"
+							aria-label={`Open preset settings for ${activeTab.preset.name}`}
 						>
-							<Icon name="info" style={{ width: 14, height: 14 }} />
+							<Icon name="sliders" style={{ width: 14, height: 14 }} />
 						</button>
 					)}
 
