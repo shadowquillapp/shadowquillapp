@@ -1,3 +1,15 @@
+## [0.12.5](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.4...v0.12.5) (2026-06-13)
+
+
+### Bug Fixes
+
+* better workbench tab manager ui ([5954cd0](https://github.com/shadowquillapp/shadowquillapp/commit/5954cd004ec45f81c56c03c1b71e616b2e10a8dc))
+* model name calling bug ([deab1b8](https://github.com/shadowquillapp/shadowquillapp/commit/deab1b8994007e70441ce12778ed8685f71ac12d))
+* remove redudent borders in settings modal ([2a8989e](https://github.com/shadowquillapp/shadowquillapp/commit/2a8989e846c617921df3fd38ef4918fd6347b5c9))
+* rework default presets ([726c747](https://github.com/shadowquillapp/shadowquillapp/commit/726c747bf0997b1110a323dcd3bc502adf893507))
+* saved workbench delete icon rework ([8163623](https://github.com/shadowquillapp/shadowquillapp/commit/81636234acb3fba988fe3f52529deaa58f256588))
+* UI consistency ([a683892](https://github.com/shadowquillapp/shadowquillapp/commit/a6838922d8f2b0d767fca876a0dfda3657c659a1))
+
 ## [0.12.4](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.3...v0.12.4) (2026-06-13)
 
 
