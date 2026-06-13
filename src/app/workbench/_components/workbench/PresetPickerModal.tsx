@@ -39,7 +39,6 @@ interface PresetPickerModalProps {
 	onSelectPreset: (preset: PromptPresetSummary) => void;
 	onSelectProject?: (projectId: string) => void;
 	onDeleteProject?: (projectId: string) => Promise<void>;
-	onDeleteAllProjects?: () => Promise<void>;
 	presets: PromptPresetSummary[];
 	savedProjects?: SavedProject[];
 	title?: string;
@@ -113,7 +112,6 @@ export function PresetPickerModal({
 	onSelectPreset,
 	onSelectProject,
 	onDeleteProject,
-	onDeleteAllProjects,
 	presets,
 	savedProjects = [],
 	title = "Select a Preset",
@@ -171,21 +169,6 @@ export function PresetPickerModal({
 		} finally {
 			setDeletingProjectId(null);
 		}
-	};
-
-	const handleDeleteAllProjects = async () => {
-		if (!onDeleteAllProjects) return;
-
-		const ok = await confirm({
-			title: "Delete All Workbenches",
-			message: `Delete ALL ${savedProjects.length} saved workbenches? This cannot be undone.`,
-			confirmText: "Delete All",
-			cancelText: "Cancel",
-			tone: "destructive",
-		});
-		if (!ok) return;
-
-		await onDeleteAllProjects();
 	};
 
 	useEffect(() => {
@@ -502,19 +485,6 @@ export function PresetPickerModal({
 									</button>
 								)}
 							</div>
-
-							{activeSection === "saved" &&
-								savedProjects.length > 0 &&
-								onDeleteAllProjects && (
-									<button
-										type="button"
-										className="md-btn md-btn--destructive md-btn--label"
-										onClick={handleDeleteAllProjects}
-									>
-										<Icon name="trash" className="h-3.5 w-3.5" />
-										Delete All
-									</button>
-								)}
 						</div>
 					</div>
 

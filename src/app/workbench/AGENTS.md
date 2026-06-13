@@ -33,7 +33,7 @@ workbench/
 | `useModelManager.ts` | List local models, current model id, menu state. |
 | `usePanelResize.ts` | Mouse-drag resize; persists width via `local-storage`. |
 | `usePresetManager.ts` | Preset list, selection, apply, recent tracking. |
-| `useProjectManager.ts` | Project CRUD (local DB): list, load, delete, delete-all, ensure. |
+| `useProjectManager.ts` | Project CRUD (local DB): list, load, delete, ensure. |
 | `useTextStats.ts` | Word + char count (memoized). |
 | `useVersionNavigation.ts` | Prev/next version traversal in graph. |
 

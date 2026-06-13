@@ -183,14 +183,6 @@ export function getDefaultPresets(): Preset[] {
 			"Compile diagnostic intent with root-cause focus. Require reproduction steps, failure boundaries, and regression prevention in the output framing. Do not assume stack or environment not stated by the user.",
 		),
 		seedPreset(
-			"email-drafter",
-			"Email Draft",
-			"narrative",
-			"friendly",
-			"plain",
-			"Preserve the user's voice and second-person address. Compile email intent with subject line, greeting, and concise body framing. Do not rewrite personality or tone unless requested.",
-		),
-		seedPreset(
 			"research-assistant",
 			"Research Assistant",
 			"analysis",
@@ -229,6 +221,14 @@ export function getDefaultPresets(): Preset[] {
 			"neutral",
 			"markdown",
 			"Compile temporal visual intent with scene, action, and camera semantics. Validate interaction flow across frames. Surface temporal spec gaps as concrete clauses — do not invent values not stated by the user.",
+		),
+		seedPreset(
+			"school-work",
+			"School Work",
+			"analysis",
+			"friendly",
+			"markdown",
+			"Help students turn assignments, notes, and study goals into clear academic work framing. Preserve the prompt's requirements, rubric constraints, and target grade level. Favor step-by-step explanations, study guidance, and citation awareness without completing work dishonestly.",
 		),
 	];
 }

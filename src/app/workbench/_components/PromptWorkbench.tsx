@@ -54,7 +54,6 @@ export default function PromptWorkbench() {
 		ensureProject,
 		loadProject,
 		deleteProject,
-		deleteAllProjects,
 	} = useProjectManager(tabManager, presets, applyPreset, showInfo);
 
 	useEffect(() => {
@@ -277,7 +276,6 @@ export default function PromptWorkbench() {
 					setPresetPickerForNewTab(false);
 				}}
 				onDeleteProject={deleteProject}
-				onDeleteAllProjects={deleteAllProjects}
 				presets={presets}
 				savedProjects={recentProjects}
 				title={

@@ -41,7 +41,7 @@ pnpm start
 
 ### Default presets
 
-`Daily Helper` • `Quick Summary` • `Code Helper` • `Bug Hunter` • `Email Draft` • `Research Assistant` • `Deep Analyst` • `Social Post` • `Image Creator` • `Video Creator`
+`Daily Helper` • `Quick Summary` • `Code Helper` • `Bug Hunter` • `Research Assistant` • `Deep Analyst` • `School Work` • `Social Post` • `Image Creator` • `Video Creator`
 
 ### Keyboard shortcuts
 
