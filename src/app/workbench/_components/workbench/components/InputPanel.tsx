@@ -151,7 +151,6 @@ export function InputPanel({
 						>
 							<Icon name="layout" style={{ width: 12, height: 12 }} />
 							History
-							<span>v{versions.length}</span>
 						</button>
 					)}
 				</div>
