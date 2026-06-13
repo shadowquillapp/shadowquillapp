@@ -1,3 +1,10 @@
+## [0.12.4](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.3...v0.12.4) (2026-06-13)
+
+
+### Bug Fixes
+
+* UI improvements ([ffbd7d2](https://github.com/shadowquillapp/shadowquillapp/commit/ffbd7d256204ed766d17b3fcfb1a8dcd944fe4d8))
+
 ## [0.12.3](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.2...v0.12.3) (2026-06-12)
 
 
