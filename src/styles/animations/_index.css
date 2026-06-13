@@ -73,14 +73,25 @@
 	}
 }
 
-@keyframes settings-panel-enter {
+@keyframes settings-panel-enter-down {
 	from {
 		opacity: 0;
-		transform: translateX(6px);
+		transform: translateY(6px);
 	}
 	to {
 		opacity: 1;
-		transform: translateX(0);
+		transform: translateY(0);
+	}
+}
+
+@keyframes settings-panel-enter-up {
+	from {
+		opacity: 0;
+		transform: translateY(-6px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
 	}
 }
 
@@ -339,7 +350,8 @@ button.data-table__row:not(:disabled):active,
 	.modal-container .modal-backdrop-blur,
 	.modal-container .modal-content,
 	.page-animate,
-	.settings-panel--enter,
+	.settings-panel--enter-down,
+	.settings-panel--enter-up,
 	.studio-editor--enter,
 	.studio-editor--exit,
 	.studio-sidebar-backdrop,

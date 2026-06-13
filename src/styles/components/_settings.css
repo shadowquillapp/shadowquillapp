@@ -33,8 +33,13 @@
 	outline-offset: -2px;
 }
 
-.settings-panel--enter {
-	animation: settings-panel-enter var(--duration-normal) var(--ease-ios-out)
+.settings-panel--enter-down {
+	animation: settings-panel-enter-down var(--duration-normal)
+		var(--ease-ios-out) both;
+}
+
+.settings-panel--enter-up {
+	animation: settings-panel-enter-up var(--duration-normal) var(--ease-ios-out)
 		both;
 }
 
