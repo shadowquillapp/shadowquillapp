@@ -113,11 +113,6 @@ export function RefinementContextPanel({
 												</span>
 											</div>
 											<div className="refine-timeline__actions">
-												{isCurrentVersion && (
-													<span className="refine-timeline__current-badge">
-														Current
-													</span>
-												)}
 												<button
 													type="button"
 													onClick={(e) => {
