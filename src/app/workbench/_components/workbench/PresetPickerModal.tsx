@@ -6,6 +6,8 @@ import { getTaskTypeIcon } from "@/lib/task-type-icon";
 import type { PromptPresetSummary } from "./types";
 
 const PAGE_SIZE = 10;
+const MODAL_TITLE = "Workbench Tab Manager";
+const DEFAULT_SECTION = "saved" as const;
 
 function paginate<T>(items: T[], page: number, pageSize: number) {
 	const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
@@ -41,7 +43,6 @@ interface PresetPickerModalProps {
 	onDeleteProject?: (projectId: string) => Promise<void>;
 	presets: PromptPresetSummary[];
 	savedProjects?: SavedProject[];
-	title?: string;
 }
 
 interface SavedProject {
@@ -114,12 +115,11 @@ export function PresetPickerModal({
 	onDeleteProject,
 	presets,
 	savedProjects = [],
-	title = "Select a Preset",
 }: PresetPickerModalProps) {
 	const { confirm } = useDialog();
 	const [searchQuery, setSearchQuery] = useState("");
 	const [activeSection, setActiveSection] = useState<"presets" | "saved">(
-		title === "Open Saved Workbench" ? "saved" : "presets",
+		DEFAULT_SECTION,
 	);
 	const [deletingProjectId, setDeletingProjectId] = useState<string | null>(
 		null,
@@ -193,14 +193,14 @@ export function PresetPickerModal({
 	useEffect(() => {
 		if (!open) {
 			setSearchQuery("");
-			setActiveSection(title === "Open Saved Workbench" ? "saved" : "presets");
+			setActiveSection(DEFAULT_SECTION);
 			setSavedPage(1);
 			setPresetsPage(1);
 			try {
 				lastActiveEl.current?.focus();
 			} catch {}
 		}
-	}, [open, title]);
+	}, [open]);
 
 	useEffect(() => {
 		if (!open) return;
@@ -377,7 +377,7 @@ export function PresetPickerModal({
 						id="preset-picker-title"
 						style={{ fontWeight: 700 }}
 					>
-						{title}
+						{MODAL_TITLE}
 					</div>
 					<button
 						type="button"
@@ -610,7 +610,7 @@ export function PresetPickerModal({
 										<span className="data-table__cell data-table__cell--grow">
 											Name
 										</span>
-										<span className="data-table__cell">Modified</span>
+										<span className="data-table__cell"> </span>
 										{onDeleteProject && (
 											<span className="data-table__cell data-table__cell--actions" />
 										)}

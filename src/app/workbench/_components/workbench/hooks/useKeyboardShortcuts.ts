@@ -8,7 +8,6 @@ function isModKey(e: KeyboardEvent): boolean {
 export function useKeyboardShortcuts(
 	tabManager: ReturnType<typeof useTabManager>,
 	setShowPresetPicker: (show: boolean) => void,
-	setPresetPickerForNewTab: (forNewTab: boolean) => void,
 	closeActiveTab: () => void,
 	send: () => Promise<void>,
 ) {
@@ -18,7 +17,6 @@ export function useKeyboardShortcuts(
 				e.preventDefault();
 				if (tabManager.canCreateTab) {
 					setShowPresetPicker(true);
-					setPresetPickerForNewTab(true);
 				}
 			}
 			if (isModKey(e) && e.key === "w") {
@@ -44,11 +42,5 @@ export function useKeyboardShortcuts(
 		};
 		document.addEventListener("keydown", onKeyDown);
 		return () => document.removeEventListener("keydown", onKeyDown);
-	}, [
-		tabManager,
-		setShowPresetPicker,
-		setPresetPickerForNewTab,
-		closeActiveTab,
-		send,
-	]);
+	}, [tabManager, setShowPresetPicker, closeActiveTab, send]);
 }
