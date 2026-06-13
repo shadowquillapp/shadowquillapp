@@ -794,6 +794,11 @@
 	flex-shrink: 0;
 }
 
+.picker-modal__delete-btn:hover:not([disabled]),
+.picker-modal__delete-btn:focus-visible:not([disabled]) {
+	color: var(--color-destructive);
+}
+
 .data-table__cell--stacked {
 	display: flex;
 	flex-direction: column;
