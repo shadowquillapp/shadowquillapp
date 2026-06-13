@@ -16,8 +16,8 @@ export default function OllamaSetupContent() {
 		<OllamaSetupPanel
 			setup={setup}
 			variant="settings"
-			eyebrow="Local inference (Gemma 4 / 3)"
-			title="Secure Ollama bridge"
+			eyebrow="Local Inference"
+			title="Secure Ollama Bridge"
 			subtitle="Run ShadowQuill fully offline by pointing to your local Ollama instance."
 			onSubmit={(e) => {
 				e.preventDefault();
