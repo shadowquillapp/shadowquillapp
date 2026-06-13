@@ -147,12 +147,11 @@
 
 .workbench-tab--dragging {
 	opacity: 0.4;
-	cursor: grabbing;
 	z-index: 1000;
 }
 
 .workbench-tab[draggable="true"]:active {
-	cursor: grabbing;
+	cursor: pointer;
 }
 
 .workbench-tab__trigger {
@@ -217,6 +216,9 @@
 	cursor: pointer;
 	flex-shrink: 0;
 	color: var(--color-on-surface-variant);
+	font-size: 10px;
+	font-weight: 500;
+	line-height: 1;
 	opacity: 0;
 	transition:
 		opacity var(--duration-fast) var(--ease-ios),
@@ -264,17 +266,13 @@
 }
 
 .workbench-tab-new__icon {
-	width: 12px;
-	height: 12px;
+	width: 20px;
+	height: 20px;
 	flex-shrink: 0;
 	opacity: 0.7;
 	transition:
 		opacity var(--duration-fast) var(--ease-ios),
 		transform var(--duration-fast) var(--ease-ios-spring);
-}
-
-.workbench-tab-new:not(:disabled):active .workbench-tab-new__icon {
-	animation: tab-icon-pop var(--duration-fast) var(--ease-ios-spring);
 }
 
 .workbench-tab-new:hover:not(:disabled) .workbench-tab-new__icon {

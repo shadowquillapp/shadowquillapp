@@ -200,7 +200,7 @@ export function TabBar({
 								className={`workbench-tab sq-pressable ${shouldEnter ? "workbench-tab--enter" : ""} ${isActive ? "workbench-tab--active" : ""} ${isDragging ? "workbench-tab--dragging" : ""}`}
 								style={{
 									...tabWidthStyle,
-									cursor: onReorderTabs ? "grab" : "pointer",
+									cursor: "pointer",
 								}}
 								draggable={!!onReorderTabs}
 								onDragStart={(e) => {
@@ -292,7 +292,7 @@ export function TabBar({
 									title="Close tab"
 									aria-label={`Close ${tab.label}`}
 								>
-									<Icon name="close" style={{ width: 10, height: 10 }} />
+									<span aria-hidden="true">x</span>
 								</button>
 							</div>
 						</Fragment>
@@ -335,7 +335,11 @@ export function TabBar({
 					aria-label="New tab"
 					title={canAddTab ? "New tab" : `Maximum ${maxTabs} tabs reached`}
 				>
-					<Icon name="plus" className="workbench-tab-new__icon" />
+					<Icon
+						name="plus"
+						className="workbench-tab-new__icon"
+						variant="Linear"
+					/>
 				</button>
 			</div>
 
