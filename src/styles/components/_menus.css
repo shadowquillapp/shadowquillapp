@@ -26,6 +26,10 @@
 	min-width: 192px;
 }
 
+.menu-panel--attached {
+	padding-block: 0;
+}
+
 .menu-panel--attached:not(.menu-panel--attached-up) {
 	border-top: none;
 	border-top-left-radius: 0;

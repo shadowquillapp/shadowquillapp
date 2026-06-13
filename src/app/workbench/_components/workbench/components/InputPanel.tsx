@@ -213,7 +213,11 @@ export function InputPanel({
 						className={`run-button-container md-btn md-btn--label disabled:cursor-not-allowed disabled:opacity-50 ${
 							activeTab?.sending ? "md-btn--destructive" : "md-btn--primary"
 						}`}
-						title={activeTab?.sending ? "Stop Generation" : "Run Prompt"}
+						title={
+							activeTab?.sending
+								? "Stop Generation"
+								: "Run Prompt (Ctrl/Cmd+Enter)"
+						}
 						aria-label={activeTab?.sending ? "Stop generation" : "Run prompt"}
 					>
 						{activeTab?.sending ? (

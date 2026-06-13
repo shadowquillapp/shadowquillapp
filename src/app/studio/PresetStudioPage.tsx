@@ -11,8 +11,7 @@ import type { PresetLite } from "@/types";
 
 export default function PresetStudioPage() {
 	const { confirm, showInfo } = useDialog();
-	const { presets, loadPresets, savePreset, deletePreset, duplicatePreset } =
-		usePresetManager();
+	const { presets, loadPresets, savePreset, deletePreset } = usePresetManager();
 
 	const [selectedPresetId, setSelectedPresetId] = useState<string | null>(null);
 
@@ -131,21 +130,30 @@ export default function PresetStudioPage() {
 		}
 	}, [editingPreset, savePreset, loadPresets, showInfo]);
 
-	const handleDuplicate = useCallback(
-		async (presetId: string) => {
-			const duplicated = await duplicatePreset(presetId);
-			if (duplicated) {
-				await loadPresets();
-				handleSelectPreset(duplicated.id || "");
-			} else {
-				await showInfo({
-					title: "Duplicate Failed",
-					message: "Unable to duplicate this preset.",
-				});
-			}
-		},
-		[duplicatePreset, loadPresets, handleSelectPreset, showInfo],
-	);
+	const handleRevert = useCallback(() => {
+		if (!editingPreset) return;
+
+		const savedPreset = presets.find(
+			(p: PresetLite) =>
+				p.id === selectedPresetId || p.name === selectedPresetId,
+		);
+		if (savedPreset) {
+			setEditingPreset({ ...savedPreset });
+		} else {
+			setEditingPreset({
+				...editingPreset,
+				name: "Untitled Preset",
+				taskType: "intent",
+				options: {
+					tone: "neutral",
+					detail: "normal",
+					format: "markdown",
+					language: "English",
+				},
+			});
+		}
+		setIsDirty(false);
+	}, [editingPreset, presets, selectedPresetId]);
 
 	const handleDelete = useCallback(
 		async (presetId: string) => {
@@ -261,7 +269,7 @@ export default function PresetStudioPage() {
 						isDirty={isDirty}
 						onFieldChange={handleFieldChange}
 						onSave={handleSave}
-						onDuplicate={handleDuplicate}
+						onRevert={handleRevert}
 						onDelete={(id) => handleDelete(id)}
 						className="flex h-full flex-1 flex-col overflow-hidden"
 					/>
