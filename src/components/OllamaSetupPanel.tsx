@@ -132,7 +132,7 @@ export function OllamaSetupPanel({
 				<div className="shadowquill-panel__body">
 					<div className="shadowquill-field">
 						<label className="shadowquill-label" htmlFor={portInputId}>
-							Ollama localhost Port
+							Ollama localhost port
 						</label>
 						<div className="shadowquill-input-row">
 							<input
