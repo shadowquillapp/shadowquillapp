@@ -33,11 +33,17 @@ export default function SettingsDialog({
 	initialTab = "version",
 }: Props) {
 	const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
+	const [tabDirection, setTabDirection] = useState<"up" | "down">("down");
 	const dialogRef = useRef<HTMLDivElement | null>(null);
 
 	const handleTabChange = useCallback(
 		(newTab: SettingsTab) => {
 			if (newTab === activeTab) return;
+			const currentIndex = SETTINGS_TABS.findIndex(
+				(item) => item.tab === activeTab,
+			);
+			const newIndex = SETTINGS_TABS.findIndex((item) => item.tab === newTab);
+			setTabDirection(newIndex > currentIndex ? "down" : "up");
 			setActiveTab(newTab);
 		},
 		[activeTab],
@@ -65,7 +71,7 @@ export default function SettingsDialog({
 		const focusTab = (index: number) => {
 			const target = SETTINGS_TABS[index];
 			if (!target) return;
-			setActiveTab(target.tab);
+			handleTabChange(target.tab);
 			requestAnimationFrame(() => {
 				document.getElementById(`settings-tab-${target.tab}`)?.focus();
 			});
@@ -102,8 +108,6 @@ export default function SettingsDialog({
 	};
 
 	if (!open) return null;
-	const activeTabConfig = SETTINGS_TABS.find((item) => item.tab === activeTab);
-	const ActiveContent = activeTabConfig?.Content ?? AppVersionContent;
 
 	const handleDialogKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
 		e.stopPropagation();
@@ -199,17 +203,31 @@ export default function SettingsDialog({
 								flex: 1,
 								minWidth: 0,
 								padding: 16,
+								display: "grid",
 							}}
 						>
-							<div
-								key={activeTab}
-								id={`settings-panel-${activeTab}`}
-								role="tabpanel"
-								aria-labelledby={`settings-tab-${activeTab}`}
-								className="settings-panel--enter"
-							>
-								<ActiveContent />
-							</div>
+							{SETTINGS_TABS.map((item) => {
+								const isActive = activeTab === item.tab;
+								return (
+									<div
+										key={item.tab}
+										id={`settings-panel-${item.tab}`}
+										role="tabpanel"
+										aria-labelledby={`settings-tab-${item.tab}`}
+										className={
+											isActive ? `settings-panel--enter-${tabDirection}` : ""
+										}
+										style={{
+											gridArea: "1 / 1",
+											visibility: isActive ? "visible" : "hidden",
+											pointerEvents: isActive ? "auto" : "none",
+											opacity: isActive ? 1 : 0,
+										}}
+									>
+										<item.Content />
+									</div>
+								);
+							})}
 						</div>
 					</div>
 				</div>
