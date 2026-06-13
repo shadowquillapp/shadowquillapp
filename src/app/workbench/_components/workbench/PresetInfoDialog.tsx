@@ -149,7 +149,7 @@ export function PresetInfoDialog({
 			>
 				<div className="modal-header">
 					<div className="modal-title flex items-center gap-2">
-						<Icon name="info" className="text-primary" />
+						<Icon name="sliders" className="text-primary" />
 						<span id="preset-info-title">Preset Details</span>
 					</div>
 					<button
