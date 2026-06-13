@@ -118,12 +118,15 @@ function resolveSize(style?: React.CSSProperties): number | string {
 	return 24;
 }
 
+type IconVariant = "Bulk" | "Bold" | "Linear" | "Outline" | "TwoTone";
+
 export const Icon: React.FC<{
 	name: IconName;
 	className?: string;
 	title?: string;
 	style?: React.CSSProperties;
-}> = ({ name, className, title, style }) => {
+	variant?: IconVariant;
+}> = ({ name, className, title, style, variant = "Bulk" }) => {
 	const IconComponent = icons[name];
 	if (!IconComponent) {
 		console.error(`Icon "${name}" not found in icons object`);
@@ -131,7 +134,7 @@ export const Icon: React.FC<{
 	}
 	return (
 		<IconComponent
-			variant="Bulk"
+			variant={variant}
 			color="currentColor"
 			size={resolveSize(style)}
 			{...(className !== undefined && { className })}

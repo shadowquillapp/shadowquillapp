@@ -2,11 +2,15 @@ import {
 	type LocalModelConfig,
 	readLocalModelConfig,
 	validateOllamaBaseUrl,
-	writeLocalModelConfig,
 } from "./domain/model-config";
 
 export type { LocalModelConfig } from "./domain/model-config";
-export { readLocalModelConfig, validateOllamaBaseUrl, writeLocalModelConfig };
+export {
+	DEFAULT_OLLAMA_PORT,
+	readLocalModelConfig,
+	validateOllamaBaseUrl,
+	writeLocalModelConfig,
+} from "./domain/model-config";
 
 interface OllamaTagsResponse {
 	models?: Array<{ name?: string; id?: string; size?: number }>;
@@ -112,10 +116,16 @@ export async function listAvailableModels(
 	baseUrl: string,
 ): Promise<Array<{ name: string; size: number }>> {
 	const validBaseUrl = validateOllamaBaseUrl(baseUrl);
-	if (!validBaseUrl) return [];
+	if (!validBaseUrl) {
+		throw new Error("invalid-base-url");
+	}
 
 	const result = await fetchOllamaTags(validBaseUrl);
-	if (!result.ok) return [];
+	if (!result.ok) {
+		throw new Error(
+			result.error === "timeout" ? "Connection timed out" : "Connection failed",
+		);
+	}
 
 	const models = Array.isArray(result.data?.models) ? result.data.models : [];
 	const uniq = new Map<string, { name: string; size: number }>();

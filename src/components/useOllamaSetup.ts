@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
+	DEFAULT_OLLAMA_PORT,
 	isSupportedOllamaModelName,
 	isValidOllamaPort,
 	listAvailableModels,
@@ -28,7 +29,9 @@ export type OllamaSaveResult =
 	| { ok: false; error?: string };
 
 export function useOllamaSetup() {
-	const [localPort, setLocalPort] = useState("11434");
+	const [localPort, setLocalPort] = useState(DEFAULT_OLLAMA_PORT);
+	const localPortRef = useRef(localPort);
+	localPortRef.current = localPort;
 	const [model, setModel] = useState("");
 	const [saving, setSaving] = useState(false);
 	const [validating, setValidating] = useState(false);
@@ -42,7 +45,9 @@ export function useOllamaSetup() {
 
 	const testLocalConnection = useCallback(
 		async (baseUrlParam?: string, configuredModel?: string) => {
-			const url = normalizeOllamaBaseUrlInput(baseUrlParam ?? localPort);
+			const url = normalizeOllamaBaseUrlInput(
+				baseUrlParam ?? localPortRef.current,
+			);
 			if (!url) return;
 			setTestingLocal(true);
 			setLocalTestResult(null);
@@ -82,7 +87,7 @@ export function useOllamaSetup() {
 				setTestingLocal(false);
 			}
 		},
-		[localPort],
+		[],
 	);
 
 	const checkOllamaInstalled = useCallback(async () => {
@@ -107,9 +112,11 @@ export function useOllamaSetup() {
 			await checkOllamaInstalled();
 			const cfg = readLocalModelConfig();
 			if (cfg?.provider !== "ollama") return null;
-			const base = String(cfg.baseUrl || "http://localhost:11434");
+			const base = String(
+				cfg.baseUrl || `http://localhost:${DEFAULT_OLLAMA_PORT}`,
+			);
 			const portMatch = base.match(/:(\d{1,5})/);
-			setLocalPort(portMatch?.[1] ?? "11434");
+			setLocalPort(portMatch?.[1] ?? DEFAULT_OLLAMA_PORT);
 			await testLocalConnection(cfg.baseUrl, cfg.model);
 			return cfg;
 		} catch (err) {
