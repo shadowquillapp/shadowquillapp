@@ -3,10 +3,10 @@ const { BrowserWindow, shell, Menu } = require("electron");
 const { openExternalUrl } = require("./external-url.cjs");
 const { addAllowedAppOrigin, isAllowedAppUrl } = require("./ipc-security.cjs");
 const { loadWindowState, saveWindowState } = require("./window-state.cjs");
+const { applyZoom, MIN_ZOOM, MAX_ZOOM, ZOOM_STEP } = require("./zoom.cjs");
 
 function setZoom(win, factor) {
-	win.webContents.setZoomFactor(factor);
-	win.webContents.send("shadowquill:zoom:changed", factor);
+	applyZoom(win.webContents, factor);
 }
 
 function createWindow(isDev) {
@@ -116,10 +116,10 @@ function createWindow(isDev) {
 			(input.shift && input.key === "=")
 		) {
 			event.preventDefault();
-			setZoom(win, Math.min(1.5, current + 0.1));
+			setZoom(win, Math.min(MAX_ZOOM, current + ZOOM_STEP));
 		} else if (input.key === "-" || input.key === "Subtract") {
 			event.preventDefault();
-			setZoom(win, Math.max(0.8, current - 0.1));
+			setZoom(win, Math.max(MIN_ZOOM, current - ZOOM_STEP));
 		} else if (input.key === "0") {
 			event.preventDefault();
 			setZoom(win, 1.0);

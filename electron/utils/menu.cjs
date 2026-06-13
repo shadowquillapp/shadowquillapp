@@ -1,4 +1,5 @@
 const { app, Menu, BrowserWindow } = require("electron");
+const { applyZoom, MIN_ZOOM, MAX_ZOOM, ZOOM_STEP } = require("./zoom.cjs");
 
 function sendToFocused(channel, ...args) {
 	const win = BrowserWindow.getFocusedWindow();
@@ -8,9 +9,7 @@ function sendToFocused(channel, ...args) {
 function zoomFocused(compute) {
 	const win = BrowserWindow.getFocusedWindow();
 	if (!win) return;
-	const factor = compute(win.webContents.getZoomFactor());
-	win.webContents.setZoomFactor(factor);
-	win.webContents.send("shadowquill:zoom:changed", factor);
+	applyZoom(win.webContents, compute(win.webContents.getZoomFactor()));
 }
 
 function createApplicationMenu() {
@@ -84,12 +83,14 @@ function createApplicationMenu() {
 				{
 					label: "Zoom In",
 					accelerator: "CmdOrCtrl+=",
-					click: () => zoomFocused((current) => Math.min(1.5, current + 0.1)),
+					click: () =>
+						zoomFocused((current) => Math.min(MAX_ZOOM, current + ZOOM_STEP)),
 				},
 				{
 					label: "Zoom Out",
 					accelerator: "CmdOrCtrl+-",
-					click: () => zoomFocused((current) => Math.max(0.8, current - 0.1)),
+					click: () =>
+						zoomFocused((current) => Math.max(MIN_ZOOM, current - ZOOM_STEP)),
 				},
 				{ type: "separator" },
 				{ role: "togglefullscreen" },

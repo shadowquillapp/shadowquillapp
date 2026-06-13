@@ -29,22 +29,3 @@ export interface VersionGraph {
 	tailId: string;
 	activeId: string;
 }
-
-export interface PromptTabState {
-	id: string;
-	title: string;
-	preset: PromptPresetSummary;
-	projectId: string | null;
-	messages: MessageItem[];
-	versionGraph: VersionGraph;
-	draft: string;
-	createdAt: number;
-	updatedAt: number;
-	sending: boolean;
-	error: string | null;
-}
-
-export interface PromptWorkspaceState {
-	tabs: PromptTabState[];
-	activeTabId: string | null;
-}

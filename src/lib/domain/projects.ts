@@ -214,7 +214,3 @@ export async function deleteProject(projectId: string): Promise<void> {
 	}
 	writeProjectsAndMessages(projects, messages);
 }
-
-export async function deleteProjects(ids: string[]): Promise<void> {
-	for (const id of ids) await deleteProject(id);
-}

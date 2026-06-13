@@ -53,30 +53,6 @@ export class LRUCache<K, V> {
 			timestamp: Date.now(),
 		});
 	}
-
-	has(key: K): boolean {
-		const entry = this.cache.get(key);
-		if (!entry) return false;
-
-		if (this.ttlMs > 0 && Date.now() - entry.timestamp > this.ttlMs) {
-			this.cache.delete(key);
-			return false;
-		}
-
-		return true;
-	}
-
-	delete(key: K): boolean {
-		return this.cache.delete(key);
-	}
-
-	clear(): void {
-		this.cache.clear();
-	}
-
-	get size(): number {
-		return this.cache.size;
-	}
 }
 
 export function hashString(str: string): string {
@@ -165,11 +141,4 @@ function getSessionCacheData(): SessionCacheData {
 	} catch {
 		return { entries: [] };
 	}
-}
-
-export function clearSessionCache(): void {
-	if (typeof window === "undefined") return;
-	try {
-		sessionStorage.removeItem(SESSION_CACHE_KEY);
-	} catch {}
 }

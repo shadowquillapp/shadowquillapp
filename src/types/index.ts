@@ -28,8 +28,6 @@ export interface GenerationOptions {
 	styleGuidelines?: string;
 }
 
-export type PresetOptions = GenerationOptions;
-
 export interface PresetLite {
 	id?: string;
 	name: string;
