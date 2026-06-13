@@ -50,9 +50,6 @@ export default function LocalDataManagementContent() {
 							View storage locations and manage your local application data.
 						</p>
 					</div>
-					<span className="shadowquill-status-chip shadowquill-status-chip--idle">
-						{loading ? "Loading…" : "Local"}
-					</span>
 				</header>
 
 				<div className="shadowquill-panel__body">
