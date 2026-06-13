@@ -728,3 +728,149 @@
 	background: color-mix(in srgb, var(--color-accent) 16%, transparent);
 	border-color: var(--color-accent);
 }
+
+/* ========================================
+ * PICKER MODAL
+ * ======================================== */
+
+.picker-modal__toolbar {
+	position: sticky;
+	top: 0;
+	z-index: 5;
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-3);
+	margin-bottom: var(--space-4);
+	padding-bottom: var(--space-3);
+	background: var(--color-surface);
+	border-bottom: 1px solid var(--color-outline);
+}
+
+.picker-modal__tabs {
+	display: flex;
+	gap: 4px;
+	padding: 4px;
+	background: var(--color-surface);
+	border-radius: var(--radius-sm);
+	border: 1px solid var(--color-outline);
+}
+
+.picker-modal__tabs button {
+	flex: 1;
+	padding: 6px 12px;
+	font-size: var(--text-sm);
+	font-weight: 600;
+	letter-spacing: var(--label-tracking);
+	text-transform: uppercase;
+	border: none;
+	border-radius: var(--radius-sm);
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	transition:
+		background-color var(--duration-fast) var(--ease-ios),
+		color var(--duration-fast) var(--ease-ios),
+		box-shadow var(--duration-fast) var(--ease-ios),
+		transform var(--duration-fast) var(--ease-ios-spring);
+	background: transparent;
+	box-shadow: none;
+	color: var(--color-on-surface-variant);
+}
+
+.picker-modal__tabs button:hover:not([aria-selected="true"]) {
+	background: var(--color-surface-variant);
+	color: var(--color-on-surface);
+}
+
+.picker-modal__tabs button[aria-selected="true"] {
+	background: color-mix(in srgb, var(--color-accent) 16%, transparent);
+	box-shadow: inset 0 0 0 1px var(--color-accent);
+	color: var(--color-on-surface);
+}
+
+.picker-modal__toolbar-actions {
+	width: 100%;
+	display: flex;
+	align-items: center;
+	gap: var(--space-4);
+}
+
+.picker-modal__search {
+	flex: 1;
+	position: relative;
+}
+
+.picker-modal__search-input {
+	width: 100%;
+	padding-left: 36px;
+	padding-right: 36px;
+	height: 36px;
+}
+
+.picker-modal__search-icon {
+	position: absolute;
+	left: 10px;
+	top: 50%;
+	transform: translateY(-50%);
+	opacity: 0.5;
+	width: 16px;
+	height: 16px;
+}
+
+.picker-modal__search-clear {
+	position: absolute;
+	right: 6px;
+	top: 50%;
+	transform: translateY(-50%);
+}
+
+.data-table__cell--actions {
+	width: 32px;
+	display: flex;
+	align-items: center;
+	justify-content: flex-end;
+	flex-shrink: 0;
+}
+
+.data-table__cell--stacked {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 2px;
+}
+
+.picker-modal__panel--enter {
+	animation: settings-panel-enter var(--duration-normal) var(--ease-ios-out)
+		both;
+}
+
+.picker-modal__pagination {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--space-3);
+	margin-top: var(--space-3);
+	padding: 0 var(--space-1);
+}
+
+.picker-modal__pagination-info {
+	font-size: var(--text-xs);
+	color: var(--color-on-surface-variant);
+	font-family: var(--font-mono);
+}
+
+.picker-modal__pagination-controls {
+	display: flex;
+	align-items: center;
+	gap: var(--space-2);
+}
+
+.picker-modal__pagination-page {
+	min-width: 48px;
+	text-align: center;
+	font-size: var(--text-xs);
+	font-family: var(--font-mono);
+	color: var(--color-on-surface-variant);
+}
