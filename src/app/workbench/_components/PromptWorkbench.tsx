@@ -45,7 +45,6 @@ export default function PromptWorkbench() {
 	const textareaContainerRef = useRef<HTMLDivElement | null>(null);
 	const tabManager = useTabManager();
 	const [showPresetPicker, setShowPresetPicker] = useState(false);
-	const [presetPickerForNewTab, setPresetPickerForNewTab] = useState(false);
 	const { presets, applyPreset } = usePresetManager(tabManager);
 
 	const {
@@ -126,13 +125,7 @@ export default function PromptWorkbench() {
 		if (tabManager.activeTabId) tabManager.closeTab(tabManager.activeTabId);
 	}, [tabManager]);
 
-	useKeyboardShortcuts(
-		tabManager,
-		setShowPresetPicker,
-		setPresetPickerForNewTab,
-		closeActiveTab,
-		send,
-	);
+	useKeyboardShortcuts(tabManager, setShowPresetPicker, closeActiveTab, send);
 
 	const { handleResizeStart } = usePanelResize(
 		leftPanelWidth,
@@ -189,10 +182,7 @@ export default function PromptWorkbench() {
 						onSwitchTab={tabManager.switchTab}
 						onCloseTab={tabManager.closeTab}
 						onReorderTabs={tabManager.reorderTabs}
-						onNewTab={() => {
-							setShowPresetPicker(true);
-							setPresetPickerForNewTab(true);
-						}}
+						onNewTab={() => setShowPresetPicker(true)}
 					/>
 				</header>
 
@@ -259,29 +249,19 @@ export default function PromptWorkbench() {
 
 			<PresetPickerModal
 				open={showPresetPicker}
-				onClose={() => {
-					setShowPresetPicker(false);
-					setPresetPickerForNewTab(false);
-				}}
+				onClose={() => setShowPresetPicker(false)}
 				onSelectPreset={(preset) => {
-					if (presetPickerForNewTab) {
-						applyPreset(preset);
-						tabManager.createTab(preset);
-					}
+					applyPreset(preset);
+					tabManager.createTab(preset);
 					setShowPresetPicker(false);
-					setPresetPickerForNewTab(false);
 				}}
 				onSelectProject={async (projectId) => {
 					await loadProject(projectId);
 					setShowPresetPicker(false);
-					setPresetPickerForNewTab(false);
 				}}
 				onDeleteProject={deleteProject}
 				presets={presets}
 				savedProjects={recentProjects}
-				title={
-					presetPickerForNewTab ? "Open Saved Workbench" : "Select a Preset"
-				}
 			/>
 		</>
 	);
