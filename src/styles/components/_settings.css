@@ -2,6 +2,10 @@
  * Settings dialog tab rail + panel transitions.
  */
 
+.settings-dialog .shadowquill-panel {
+	border: none;
+}
+
 .settings-tab-btn {
 	width: 100%;
 	text-align: left;
