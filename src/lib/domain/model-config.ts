@@ -8,7 +8,8 @@ export interface LocalModelConfig {
 	model: string;
 }
 
-export const DEFAULT_OLLAMA_BASE_URL = "http://localhost:11434";
+export const DEFAULT_OLLAMA_PORT = "11434";
+export const DEFAULT_OLLAMA_BASE_URL = `http://localhost:${DEFAULT_OLLAMA_PORT}`;
 
 export function resolveOllamaBaseUrl(
 	config: LocalModelConfig | null | undefined,

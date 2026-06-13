@@ -91,13 +91,15 @@ export default function AppVersionContent() {
 								type="button"
 								onClick={handleCheckForUpdates}
 								disabled={isChecking}
-								className="md-icon-btn disabled:cursor-wait disabled:opacity-60"
+								className="inline-flex border-none bg-transparent p-0 text-current disabled:cursor-wait disabled:opacity-60"
 								title={isChecking ? "Checking..." : "Check for Updates"}
 								aria-label={isChecking ? "Checking..." : "Check for Updates"}
 							>
 								<Icon
 									name="refresh"
-									className={`h-5 w-5 ${isChecking ? "md-spin" : ""}`}
+									variant="Linear"
+									style={{ width: 20, height: 20 }}
+									{...(isChecking && { className: "md-spin" })}
 								/>
 							</button>
 						</div>
