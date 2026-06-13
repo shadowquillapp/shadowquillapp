@@ -11,8 +11,9 @@ interface ComputeMenuPositionOptions {
 	padding?: number;
 	maxHeightCap?: number;
 	gap?: number;
-	align?: "start" | "end";
+	align?: "start" | "end" | "viewport-end";
 	menuWidth?: number;
+	verticalAnchorRect?: DOMRect;
 }
 
 export function computeMenuPosition(
@@ -25,15 +26,17 @@ export function computeMenuPosition(
 		gap = 4,
 		align = "start",
 		menuWidth,
+		verticalAnchorRect,
 	}: ComputeMenuPositionOptions = {},
 ): MenuPosition {
 	const viewportHeight = window.innerHeight;
 	const viewportWidth = window.innerWidth;
+	const anchorRect = verticalAnchorRect ?? triggerRect;
 
 	const estimatedDropdownHeight = itemCount * rowHeight + padding;
 
-	const spaceBelow = viewportHeight - triggerRect.bottom - 8;
-	const spaceAbove = triggerRect.top - 8;
+	const spaceBelow = viewportHeight - anchorRect.bottom - 8;
+	const spaceAbove = anchorRect.top - 8;
 
 	const openUpward =
 		spaceBelow < estimatedDropdownHeight && spaceAbove > spaceBelow;
@@ -48,14 +51,19 @@ export function computeMenuPosition(
 	const minLeft = 8;
 	const maxLeft = Math.max(minLeft, viewportWidth - dropdownWidth - 8);
 	const left =
-		align === "end"
-			? Math.max(minLeft, Math.min(triggerRect.right - dropdownWidth, maxLeft))
-			: Math.max(minLeft, Math.min(triggerRect.left, maxLeft));
+		align === "viewport-end"
+			? viewportWidth - dropdownWidth
+			: align === "end"
+				? Math.max(
+						minLeft,
+						Math.min(triggerRect.right - dropdownWidth, maxLeft),
+					)
+				: Math.max(minLeft, Math.min(triggerRect.left, maxLeft));
 
 	return {
 		top: openUpward
-			? triggerRect.top - maxHeight - gap
-			: triggerRect.bottom + gap,
+			? anchorRect.top - maxHeight - gap
+			: anchorRect.bottom + gap,
 		left,
 		width: dropdownWidth,
 		maxHeight,

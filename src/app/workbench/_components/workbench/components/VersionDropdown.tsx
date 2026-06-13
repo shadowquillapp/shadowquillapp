@@ -31,6 +31,8 @@ export function VersionDropdown({
 		activeTab && versions.length > 0
 			? versions.findIndex((v) => v.id === activeTab.versionGraph.activeId) + 1
 			: 0;
+	const activeVersionId = activeTab?.versionGraph.activeId;
+	const hasVersions = versions.length > 0;
 
 	const menuRef = useRef<HTMLDivElement | null>(null);
 
@@ -45,9 +47,11 @@ export function VersionDropdown({
 		triggerRef: versionDropdownRef,
 		menuRef,
 		itemCount: versions.length,
-		rowHeight: 24,
-		align: "end",
-		menuWidth: Math.max(40, `${versions.length}`.length * 8 + 24),
+		rowHeight: 32,
+		align: "viewport-end",
+		menuWidth: 120,
+		gap: 0,
+		verticalAnchorSelector: ".panel__head",
 	});
 
 	const handleMenuKeyDown = useMenuKeyboard({
@@ -57,13 +61,8 @@ export function VersionDropdown({
 		triggerRef: versionDropdownRef,
 	});
 
-	const toggleMenu = () => {
-		if (versions.length === 0) return;
-		setShowVersionDropdown(!showVersionDropdown);
-	};
-
 	return (
-		<div style={{ position: "relative" }}>
+		<>
 			<button
 				ref={versionDropdownRef}
 				type="button"
@@ -71,23 +70,25 @@ export function VersionDropdown({
 				aria-haspopup="menu"
 				aria-expanded={showVersionDropdown}
 				aria-label={
-					versions.length > 0 && activeTab
+					hasVersions && activeTab
 						? `Switch version, currently version ${currentVersionIndex}`
 						: "No versions available"
 				}
-				disabled={versions.length === 0}
-				onClick={toggleMenu}
+				disabled={!hasVersions}
+				onClick={() => {
+					if (hasVersions) setShowVersionDropdown(!showVersionDropdown);
+				}}
 				title={
-					versions.length > 0 && activeTab
+					hasVersions && activeTab
 						? `Version ${currentVersionIndex} - Click to switch versions`
 						: "No versions"
 				}
 			>
 				<Icon name="git-compare" style={{ width: 11, height: 11 }} />
-				<span>v{currentVersionIndex}</span>
+				<span>V{currentVersionIndex}</span>
 			</button>
 			{showVersionDropdown &&
-				versions.length > 0 &&
+				hasVersions &&
 				dropdownPos &&
 				typeof document !== "undefined" &&
 				createPortal(
@@ -95,8 +96,10 @@ export function VersionDropdown({
 						ref={menuRef}
 						role="menu"
 						onKeyDown={handleMenuKeyDown}
-						className={`version-dropdown-menu fixed z-[10001] overflow-y-auto ${
-							dropdownPos.openUpward ? "fade-in-up" : "fade-in-down"
+						className={`menu-panel menu-panel--attached fixed z-[10001] overflow-y-auto ${
+							dropdownPos.openUpward
+								? "menu-panel--attached-up fade-in-up"
+								: "fade-in-down"
 						}`}
 						style={{
 							top: dropdownPos.top,
@@ -106,10 +109,7 @@ export function VersionDropdown({
 						}}
 					>
 						{versions.map((version, index) => {
-							const versionNum = index + 1;
-							const isCurrentVersion = Boolean(
-								activeTab && version.id === activeTab.versionGraph.activeId,
-							);
+							const isCurrentVersion = version.id === activeVersionId;
 
 							return (
 								<button
@@ -117,22 +117,24 @@ export function VersionDropdown({
 									type="button"
 									onClick={(e) => {
 										e.stopPropagation();
-										if (!isCurrentVersion && activeTab) {
-											jumpToVersion(version.id);
-										}
+										if (!isCurrentVersion) jumpToVersion(version.id);
 									}}
-									className="version-dropdown-item"
+									className="menu-item"
 									role="menuitem"
 									aria-current={isCurrentVersion ? "true" : undefined}
+									data-selected={isCurrentVersion}
 									disabled={isCurrentVersion}
 								>
-									v{versionNum}
+									<span className="flex items-center gap-2">
+										<Icon name="git-compare" className="h-4 w-4" />
+										Version {index + 1}
+									</span>
 								</button>
 							);
 						})}
 					</div>,
 					document.body,
 				)}
-		</div>
+		</>
 	);
 }
