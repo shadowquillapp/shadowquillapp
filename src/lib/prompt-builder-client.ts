@@ -11,10 +11,7 @@ import {
 	saveToSessionCache,
 } from "./cache";
 import { ValidationError } from "./errors";
-import {
-	DEFAULT_BUILD_PROMPT,
-	ensureSystemPromptBuild,
-} from "./system-prompts";
+import { ensureSystemPromptBuild } from "./system-prompts";
 
 export interface BuildPromptInput {
 	input: string;
@@ -34,8 +31,7 @@ export async function buildUnifiedPrompt({
 	const validationError = validateBuilderInput(rawUserInput, taskType);
 	if (validationError) throw new ValidationError(validationError);
 
-	const storedPrompt = ensureSystemPromptBuild();
-	const systemPrompt = storedPrompt?.trim() || DEFAULT_BUILD_PROMPT;
+	const systemPrompt = ensureSystemPromptBuild();
 	const cacheOptions: Record<string, unknown> = {
 		...(options ?? {}),
 		systemPrompt,
@@ -69,19 +65,6 @@ export async function buildUnifiedPrompt({
 	return generatedPrompt;
 }
 
-export async function buildPromptPreview({
-	input,
-	taskType,
-	options,
-}: Omit<BuildPromptInput, "skipCache">): Promise<string> {
-	return buildUnifiedPrompt({
-		input,
-		taskType,
-		skipCache: true,
-		...(options && { options }),
-	});
-}
-
 export interface BuildRefinementPromptInput {
 	previousOutput: string;
 	refinementRequest: string;
@@ -110,5 +93,3 @@ export async function buildRefinementPrompt({
 		...(options && { options }),
 	});
 }
-
-export { validateBuilderInput } from "@/lib/prompt-builder-core";

@@ -1,6 +1,7 @@
 // IPC handlers for window and view controls
 const { ipcMain, BrowserWindow, app } = require("electron");
 const { requireValidIpcSender } = require("../utils/ipc-security.cjs");
+const { applyZoom, DEFAULT_ZOOM } = require("../utils/zoom.cjs");
 
 ipcMain.handle("shadowquill:window:minimize", (e) => {
 	requireValidIpcSender(e);
@@ -37,12 +38,7 @@ ipcMain.handle("shadowquill:view:setZoomFactor", (e, factor) => {
 	try {
 		const w = BrowserWindow.fromWebContents(e.sender);
 		if (!w) return { ok: false, error: "No window" };
-		let f = Number(factor);
-		if (!Number.isFinite(f)) f = 1;
-		f = Math.max(0.8, Math.min(1.5, f));
-		w.webContents.setZoomFactor(f);
-		w.webContents.send("shadowquill:zoom:changed", f);
-		return { ok: true, zoomFactor: f };
+		return { ok: true, zoomFactor: applyZoom(w.webContents, factor) };
 	} catch (err) {
 		return { ok: false, error: err?.message || "Failed to set zoom" };
 	}
@@ -53,9 +49,7 @@ ipcMain.handle("shadowquill:view:resetZoom", (e) => {
 	try {
 		const w = BrowserWindow.fromWebContents(e.sender);
 		if (!w) return { ok: false, error: "No window" };
-		w.webContents.setZoomFactor(1.0);
-		w.webContents.send("shadowquill:zoom:changed", 1.0);
-		return { ok: true, zoomFactor: 1.0 };
+		return { ok: true, zoomFactor: applyZoom(w.webContents, DEFAULT_ZOOM) };
 	} catch (err) {
 		return { ok: false, error: err?.message || "Failed to reset zoom" };
 	}

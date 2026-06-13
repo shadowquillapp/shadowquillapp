@@ -3,7 +3,6 @@
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
-import SettingsDialog, { type SettingsTab } from "@/components/SettingsDialog";
 import { getJSON } from "@/lib/local-storage";
 import { setLastSelectedPresetKey } from "@/lib/preset-store";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
@@ -43,9 +42,6 @@ export default function PromptWorkbench() {
 	const panelsRef = useRef<HTMLDivElement | null>(null);
 	const { copyMessage, copiedMessageId } = useCopyMessage();
 	const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-	const [settingsOpen, setSettingsOpen] = useState(false);
-	const [settingsInitialTab, setSettingsInitialTab] =
-		useState<SettingsTab>("version");
 	const textareaContainerRef = useRef<HTMLDivElement | null>(null);
 	const tabManager = useTabManager();
 	const [showPresetPicker, setShowPresetPicker] = useState(false);
@@ -63,19 +59,6 @@ export default function PromptWorkbench() {
 
 	useEffect(() => {
 		setLeftPanelWidth(getJSON<number>(STORAGE_KEYS.PANEL_WIDTH.key, 50));
-	}, []);
-
-	useEffect(() => {
-		const handler = (e: Event) => {
-			try {
-				const ce = e as CustomEvent<{ tab?: "system" | "ollama" | "data" }>;
-				const tab = ce?.detail?.tab;
-				if (tab) setSettingsInitialTab(tab);
-			} catch {}
-			setSettingsOpen(true);
-		};
-		window.addEventListener("open-app-settings", handler);
-		return () => window.removeEventListener("open-app-settings", handler);
 	}, []);
 
 	const { send, stopGenerating } = useGeneration(
@@ -194,24 +177,13 @@ export default function PromptWorkbench() {
 
 	return (
 		<>
-			<style jsx global>{`
-				@media (max-width: 640px) {
-					.hidden-mobile {
-						display: none !important;
-					}
-				}
-			`}</style>
 			<div
 				className={`simple-workbench page-animate ${isGenerating ? "workbench--generating" : ""}`}
 			>
 				<header className="simple-workbench__header simple-workbench__header--tabs">
 					<TabBar
 						embedded
-						tabs={tabManager.tabs.map((tab) => ({
-							id: tab.id,
-							label: tab.label,
-							preset: tab.preset,
-						}))}
+						tabs={tabManager.tabs}
 						activeTabId={tabManager.activeTabId}
 						maxTabs={tabManager.maxTabs}
 						onSwitchTab={tabManager.switchTab}
@@ -276,14 +248,6 @@ export default function PromptWorkbench() {
 					</div>
 				</div>
 			</div>
-
-			{settingsOpen && (
-				<SettingsDialog
-					open={settingsOpen}
-					onClose={() => setSettingsOpen(false)}
-					initialTab={settingsInitialTab}
-				/>
-			)}
 
 			{activeTab?.preset && (
 				<PresetInfoDialog
