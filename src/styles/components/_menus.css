@@ -26,6 +26,19 @@
 	min-width: 192px;
 }
 
+.menu-panel--attached:not(.menu-panel--attached-up) {
+	border-top: none;
+	border-top-left-radius: 0;
+	border-top-right-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
+.menu-panel--attached-up {
+	border-bottom: none;
+	border-bottom-left-radius: 0;
+	border-bottom-right-radius: 0;
+}
+
 /* ========================================
  * MENU ITEM (.menu-item)
  * Individual menu option
