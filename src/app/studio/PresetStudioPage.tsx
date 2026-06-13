@@ -20,12 +20,7 @@ export default function PresetStudioPage() {
 	const [isDirty, setIsDirty] = useState(false);
 
 	const [sidebarOpen, setSidebarOpen] = useState(false);
-	const [isSmallScreen, setIsSmallScreen] = useState(() => {
-		if (typeof window !== "undefined") {
-			return window.innerWidth < 1280;
-		}
-		return false;
-	});
+	const [isSmallScreen, setIsSmallScreen] = useState(false);
 
 	useEffect(() => {
 		loadPresets();
@@ -212,6 +207,7 @@ export default function PresetStudioPage() {
 			});
 		};
 
+		checkScreenSize();
 		window.addEventListener("resize", checkScreenSize);
 		return () => {
 			window.removeEventListener("resize", checkScreenSize);
