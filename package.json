@@ -40,7 +40,7 @@
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {
-		"@tailwindcss/postcss": "^4.3.0",
+		"@tailwindcss/postcss": "^4.3.1",
 		"cross-env": "^10.1.0",
 		"iconsax-reactjs": "^0.0.8",
 		"next": "^16.2.9",
@@ -49,11 +49,11 @@
 		"react-markdown": "^10.1.0",
 		"remark-gfm": "^4.0.1",
 		"shadowquillapp": "link:",
-		"tailwindcss": "^4.3.0",
+		"tailwindcss": "^4.3.1",
 		"tmp": "^0.2.7"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.4.16",
+		"@biomejs/biome": "^2.5.0",
 		"@electron-forge/cli": "^7.11.2",
 		"@semantic-release/changelog": "^6.0.3",
 		"@semantic-release/commit-analyzer": "^13.0.1",
@@ -73,7 +73,7 @@
 		"@vitest/coverage-v8": "^4.1.8",
 		"conventional-changelog-conventionalcommits": "^9.3.1",
 		"electron": "^39.8.10",
-		"electron-builder": "^26.15.2",
+		"electron-builder": "^26.15.3",
 		"jsdom": "^27.4.0",
 		"semantic-release": "^25.0.5",
 		"tsx": "^4.22.4",
