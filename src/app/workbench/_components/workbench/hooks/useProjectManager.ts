@@ -220,13 +220,6 @@ export function useProjectManager(
 		[refreshProjectList, tabManager],
 	);
 
-	const deleteAllProjects = useCallback(async () => {
-		const ids = recentProjects.map((c) => c.id);
-		try {
-			await Promise.allSettled(ids.map((id) => deleteProject(id)));
-		} catch {}
-	}, [recentProjects, deleteProject]);
-
 	const activeTab = tabManager.activeTab;
 	useEffect(() => {
 		if (!activeTab?.projectId || !activeTab?.versionGraph) return;
@@ -245,6 +238,5 @@ export function useProjectManager(
 		ensureProject,
 		loadProject,
 		deleteProject,
-		deleteAllProjects,
 	};
 }
