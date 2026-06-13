@@ -3,7 +3,6 @@ import {
 	formatOllamaModelName,
 	isSupportedOllamaModelName,
 	readLocalModelConfig as readLocalModelConfigClient,
-	SUPPORTED_OLLAMA_MODELS,
 	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
 
@@ -26,10 +25,8 @@ export function ModelSelector({
 }: ModelSelectorProps) {
 	const modelIds = Array.from(
 		new Set(
-			(availableModels.length > 0
-				? availableModels.map((model) => model.name)
-				: SUPPORTED_OLLAMA_MODELS
-			)
+			availableModels
+				.map((model) => model.name)
 				.filter(isSupportedOllamaModelName)
 				.map((id) => id.toLowerCase()),
 		),
@@ -41,9 +38,13 @@ export function ModelSelector({
 			displayName: formatOllamaModelName(id),
 			label:
 				id.startsWith("gemma3:") && tag
-					? `3 ${tag.toUpperCase()}`
-					: tag === "latest"
-						? "Latest"
+					? tag === "latest"
+						? "3 Latest"
+						: `3 ${tag.toUpperCase()}`
+					: id.startsWith("gemma4:") && tag
+						? tag === "latest"
+							? "4 Latest"
+							: `4 ${tag.toUpperCase()}`
 						: tag.toUpperCase(),
 		};
 	});
@@ -84,64 +85,76 @@ export function ModelSelector({
 				</button>
 			)}
 			<div
-				className="flex items-center overflow-x-auto"
+				className="flex min-w-0 items-center overflow-x-auto"
 				style={{ gap: "var(--space-1)" }}
 			>
-				{models.map((model) => {
-					const isInstalled = availableModels.some(
-						(m) => m.name.toLowerCase() === model.id,
-					);
-					const isActive = currentModelId?.toLowerCase() === model.id;
-					return (
-						<button
-							key={model.id}
-							type="button"
-							disabled={!isInstalled}
-							onClick={() => {
-								if (!isInstalled) return;
-								const cfg = readLocalModelConfigClient();
-								writeLocalModelConfigClient({
-									provider: "ollama",
-									baseUrl: resolveOllamaBaseUrl(cfg),
-									model: model.id,
-								});
-								setCurrentModelId(model.id);
-								try {
-									window.dispatchEvent(
-										new CustomEvent("sq-model-changed", {
-											detail: { modelId: model.id },
-										}),
-									);
-								} catch {}
-							}}
-							className={`model-selector__pill flex h-[22px] items-center justify-center px-2 font-mono font-semibold text-[length:var(--text-xs)] ${
-								!isInstalled ? "cursor-not-allowed opacity-40" : ""
-							}`}
-							title={
-								isInstalled
-									? `Switch to ${model.displayName}`
-									: `${model.displayName} is not installed`
-							}
-							aria-pressed={isActive}
-							style={{
-								lineHeight: 1,
-								whiteSpace: "nowrap",
-								borderRadius: "var(--radius-sm)",
-								color: isActive
-									? "var(--color-on-surface)"
-									: "var(--color-on-surface-variant)",
-								background: isActive
-									? "color-mix(in srgb, var(--color-accent) 16%, transparent)"
-									: "transparent",
-								border: isActive
-									? "1px solid var(--color-accent)"
-									: "1px solid var(--color-outline)",
-							}}
-						>
-							{model.label}
-						</button>
-					);
-				})}
+				{modelLoadError ? (
+					<span
+						className="font-sans text-[length:var(--text-2xs)]"
+						style={{
+							color: "var(--color-error)",
+							whiteSpace: "nowrap",
+						}}
+					>
+						No Ollama connection found
+					</span>
+				) : (
+					models.map((model) => {
+						const isInstalled = availableModels.some(
+							(m) => m.name.toLowerCase() === model.id,
+						);
+						const isActive = currentModelId?.toLowerCase() === model.id;
+						return (
+							<button
+								key={model.id}
+								type="button"
+								disabled={!isInstalled}
+								onClick={() => {
+									if (!isInstalled) return;
+									const cfg = readLocalModelConfigClient();
+									writeLocalModelConfigClient({
+										provider: "ollama",
+										baseUrl: resolveOllamaBaseUrl(cfg),
+										model: model.id,
+									});
+									setCurrentModelId(model.id);
+									try {
+										window.dispatchEvent(
+											new CustomEvent("sq-model-changed", {
+												detail: { modelId: model.id },
+											}),
+										);
+									} catch {}
+								}}
+								className={`model-selector__pill flex h-[22px] items-center justify-center px-2 font-mono font-semibold text-[length:var(--text-xs)] ${
+									!isInstalled ? "cursor-not-allowed opacity-40" : ""
+								}`}
+								title={
+									isInstalled
+										? `Switch to ${model.displayName}`
+										: `${model.displayName} is not installed`
+								}
+								aria-pressed={isActive}
+								style={{
+									lineHeight: 1,
+									whiteSpace: "nowrap",
+									borderRadius: "var(--radius-sm)",
+									color: isActive
+										? "var(--color-on-surface)"
+										: "var(--color-on-surface-variant)",
+									background: isActive
+										? "color-mix(in srgb, var(--color-accent) 16%, transparent)"
+										: "transparent",
+									border: isActive
+										? "1px solid var(--color-accent)"
+										: "1px solid var(--color-outline)",
+								}}
+							>
+								{model.label}
+							</button>
+						);
+					})
+				)}
 			</div>
 		</div>
 	);

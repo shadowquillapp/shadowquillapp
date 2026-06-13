@@ -27,6 +27,7 @@ export const SUPPORTED_OLLAMA_MODELS = [
 	"gemma4:12b",
 	"gemma4:26b",
 	"gemma4:31b",
+	"gemma3:latest",
 	"gemma3:4b",
 	"gemma3:12b",
 	"gemma3:27b",

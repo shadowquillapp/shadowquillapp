@@ -18,8 +18,8 @@ ShadowQuill turns rough ideas into structured prompts you can actually use. It t
 
 ```bash
 # Pull a Gemma model
-ollama pull gemma4:e4b  # Gemma 4
-ollama pull gemma3:4b   # Gemma 3
+ollama pull gemma4:latest   # Gemma 4
+ollama pull gemma3:latest   # Gemma 3
 
 # Clone, install, run
 git clone https://github.com/shadowquillapp/shadowquillapp.git
