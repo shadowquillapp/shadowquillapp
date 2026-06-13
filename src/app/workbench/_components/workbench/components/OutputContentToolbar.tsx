@@ -33,15 +33,6 @@ export function OutputContentToolbar({
 					className="md-icon-btn disabled:cursor-not-allowed disabled:opacity-40"
 					title="Copy response"
 					aria-label="Copy response"
-					style={
-						copied
-							? {
-									background: "var(--color-save)",
-									borderColor: "var(--color-save)",
-									color: "var(--color-on-save)",
-								}
-							: undefined
-					}
 				>
 					<Icon
 						name={copied ? "check" : "copy"}

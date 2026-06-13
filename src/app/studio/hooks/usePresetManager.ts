@@ -46,30 +46,10 @@ export function usePresetManager() {
 		}
 	}, []);
 
-	const duplicatePreset = useCallback(async (presetId: string) => {
-		try {
-			const original = getPresets().find((p) => p.id === presetId);
-			if (!original) return null;
-
-			const { id: _removed, createdAt: _c, updatedAt: _u, ...rest } = original;
-			const duplicated = savePreset({
-				...rest,
-				name: `${original.name} Copy`,
-			} as Preset);
-
-			setPresets(getPresets());
-			return duplicated;
-		} catch (error) {
-			console.error("Failed to duplicate preset:", error);
-			return null;
-		}
-	}, []);
-
 	return {
 		presets,
 		loadPresets,
 		savePreset: savePresetHandler,
 		deletePreset,
-		duplicatePreset,
 	};
 }

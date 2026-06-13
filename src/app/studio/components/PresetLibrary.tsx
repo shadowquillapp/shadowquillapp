@@ -69,12 +69,12 @@ export default function PresetLibrary({
 							<button
 								type="button"
 								onClick={onCreateNew}
-								className="md-btn md-btn--primary md-btn--label"
+								className="md-icon-btn"
 								aria-label="Create new preset"
 								title="Create new preset"
+								style={{ color: "var(--color-accent)" }}
 							>
-								<Icon name="plus" className="h-3.5 w-3.5" />
-								New
+								<Icon name="plus" className="h-6 w-6" />
 							</button>
 						)}
 					</div>

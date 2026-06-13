@@ -1,6 +1,7 @@
 "use client";
 
 import { CustomSelect } from "@/components/CustomSelect";
+import { getTaskTypeIcon } from "@/lib/task-type-icon";
 import type { PresetLite } from "@/types";
 import SettingRow from "./SettingRow";
 
@@ -43,13 +44,41 @@ export default function BasicSettings({
 					value={preset.taskType}
 					onChange={(v) => onFieldChange("taskType", v)}
 					options={[
-						{ value: "intent", label: "Intent", icon: "bullseye" },
-						{ value: "engineering", label: "Engineering", icon: "terminal" },
-						{ value: "visual", label: "Visual", icon: "image" },
-						{ value: "motion", label: "Motion", icon: "video" },
-						{ value: "analysis", label: "Analysis", icon: "flask" },
-						{ value: "narrative", label: "Narrative", icon: "edit" },
-						{ value: "persuasion", label: "Persuasion", icon: "bullhorn" },
+						{
+							value: "intent",
+							label: "Intent",
+							icon: getTaskTypeIcon("intent"),
+						},
+						{
+							value: "engineering",
+							label: "Engineering",
+							icon: getTaskTypeIcon("engineering"),
+						},
+						{
+							value: "visual",
+							label: "Visual",
+							icon: getTaskTypeIcon("visual"),
+						},
+						{
+							value: "motion",
+							label: "Motion",
+							icon: getTaskTypeIcon("motion"),
+						},
+						{
+							value: "analysis",
+							label: "Analysis",
+							icon: getTaskTypeIcon("analysis"),
+						},
+						{
+							value: "narrative",
+							label: "Narrative",
+							icon: getTaskTypeIcon("narrative"),
+						},
+						{
+							value: "persuasion",
+							label: "Persuasion",
+							icon: getTaskTypeIcon("persuasion"),
+						},
 					]}
 				/>
 			</SettingRow>

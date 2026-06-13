@@ -13,7 +13,7 @@ interface PresetEditorProps {
 	isDirty: boolean;
 	onFieldChange: (field: string, value: unknown) => void;
 	onSave: () => void;
-	onDuplicate: (presetId: string) => void;
+	onRevert: () => void;
 	onDelete: (presetId: string) => void;
 	className?: string;
 }
@@ -23,7 +23,7 @@ export default function PresetEditor({
 	isDirty,
 	onFieldChange,
 	onSave,
-	onDuplicate,
+	onRevert,
 	onDelete,
 	className = "",
 }: PresetEditorProps) {
@@ -79,8 +79,6 @@ export default function PresetEditor({
 	if (!visiblePreset) return null;
 
 	const editorPreset = visiblePreset;
-	const statusTone = isDirty ? "error" : !editorPreset.id ? "idle" : "success";
-	const statusLabel = isDirty ? "Unsaved" : !editorPreset.id ? "New" : "Saved";
 
 	return (
 		<section className={`${className} bg-surface`} aria-label="Preset Editor">
@@ -94,11 +92,6 @@ export default function PresetEditor({
 								Configure how this preset compiles prompts.
 							</p>
 						</div>
-						<span
-							className={`shadowquill-status-chip shadowquill-status-chip--${statusTone}`}
-						>
-							{statusLabel}
-						</span>
 					</header>
 
 					<div className="mx-auto max-w-3xl px-6 py-6">
@@ -140,42 +133,56 @@ export default function PresetEditor({
 						<button
 							type="button"
 							onClick={() => editorPreset.id && onDelete(editorPreset.id)}
-							className="md-btn md-btn--destructive md-btn--label"
+							className="md-icon-btn"
 							disabled={!editorPreset.id || editorPreset.name === "Default"}
+							aria-label="Delete preset"
 							title={
 								editorPreset.name === "Default"
 									? "Default preset cannot be deleted"
 									: "Delete preset"
 							}
+							style={{ color: "var(--color-destructive)" }}
 						>
-							Delete
+							<Icon name="trash" className="h-6 w-6" />
 						</button>
 
-						<div className="flex gap-2">
-							<button
-								type="button"
-								onClick={() => editorPreset.id && onDuplicate(editorPreset.id)}
-								className="md-btn md-btn--label"
-								disabled={!editorPreset.id}
-								title={
-									editorPreset.id
-										? "Duplicate preset"
-										: "Save this preset before duplicating"
-								}
+						{isDirty && (
+							<span
+								className="flex items-center gap-1 font-normal text-[length:var(--text-xs)]"
+								style={{
+									color:
+										"color-mix(in srgb, var(--color-on-surface-variant) 70%, var(--color-on-surface))",
+									fontStyle: "oblique 14deg",
+								}}
 							>
-								Duplicate
-							</button>
+								<button
+									type="button"
+									onClick={onRevert}
+									className="md-icon-btn"
+									aria-label="Revert unsaved changes"
+									title="Revert unsaved changes"
+								>
+									<Icon name="back" className="h-5 w-5" />
+								</button>
+								Unsaved changes
+							</span>
+						)}
 
-							<button
-								type="button"
-								onClick={onSave}
-								disabled={!isDirty}
-								className="md-btn md-btn--save md-btn--label flex items-center gap-2"
-							>
-								<Icon name="save" className="h-3.5 w-3.5" />
-								Save
-							</button>
-						</div>
+						<button
+							type="button"
+							onClick={onSave}
+							disabled={!isDirty}
+							className="md-icon-btn"
+							aria-label="Save preset"
+							title="Save preset"
+							style={{
+								color: isDirty
+									? "var(--color-success)"
+									: "var(--color-on-surface-variant)",
+							}}
+						>
+							<Icon name="save" className="h-6 w-6" />
+						</button>
 					</div>
 				</div>
 			</div>

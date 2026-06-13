@@ -130,8 +130,13 @@
 }
 
 .md-close-btn {
-	width: 28px;
-	height: 28px;
+	width: 36px;
+	height: 36px;
+}
+
+.md-close-btn svg {
+	width: 1.25rem;
+	height: 1.25rem;
 }
 
 .md-icon-btn:hover,

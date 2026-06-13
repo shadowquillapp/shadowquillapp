@@ -89,6 +89,37 @@
 	animation: none;
 }
 
+.app-version-github {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+}
+
+.app-version-github__button.md-icon-btn {
+	width: 42px;
+	height: 42px;
+	color: var(--color-on-surface);
+}
+
+.app-version-github__logo {
+	width: 28px;
+	height: 28px;
+}
+
+.app-version-github__text {
+	padding: 0;
+	border: none;
+	background: transparent;
+	color: var(--color-on-surface-variant);
+	cursor: pointer;
+	text-align: left;
+}
+
+.app-version-github__text:hover,
+.app-version-github__text:focus-visible {
+	color: var(--color-on-surface);
+}
+
 /* ========================================
  * STATUS CHIPS
  * ======================================== */

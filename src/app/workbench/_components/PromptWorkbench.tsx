@@ -131,6 +131,7 @@ export default function PromptWorkbench() {
 		setShowPresetPicker,
 		setPresetPickerForNewTab,
 		closeActiveTab,
+		send,
 	);
 
 	const { handleResizeStart } = usePanelResize(
