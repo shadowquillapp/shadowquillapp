@@ -1,7 +1,11 @@
 "use client";
 
 import type { FormEvent } from "react";
-import { formatOllamaModelName, isValidOllamaPort } from "@/lib/local-config";
+import {
+	DEFAULT_OLLAMA_PORT,
+	formatOllamaModelName,
+	isValidOllamaPort,
+} from "@/lib/local-config";
 import { Icon } from "./Icon";
 import type { OllamaSetupState } from "./useOllamaSetup";
 
@@ -34,16 +38,12 @@ const STATUS_ICONS = {
 
 function statusDetails(
 	tone: OllamaSetupState["statusTone"],
-	connectionError: string | null,
 	localTestResult: OllamaSetupState["localTestResult"],
 ) {
 	if (tone === "error") {
 		return {
 			title: "Connection failed",
-			body:
-				connectionError ||
-				localTestResult?.error ||
-				"Could not reach the Ollama runtime. Make sure it is running locally.",
+			body: "No compatible Gemma models detected yet. Make sure you have Ollama installed and running with a compatible Gemma model.",
 		};
 	}
 	if (tone === "loading") {
@@ -53,9 +53,17 @@ function statusDetails(
 		};
 	}
 	if (tone === "success") {
+		const hasGemmaModels =
+			localTestResult?.models != null && localTestResult.models.length > 0;
+		if (hasGemmaModels) {
+			return {
+				title: "Gemma connection successful",
+				body: "Found compatible Gemma models ready for use.",
+			};
+		}
 		return {
-			title: "Gemma connection successful",
-			body: "Found compatible Gemma models ready for use.",
+			title: "Ollama connected",
+			body: "No compatible Gemma models found. Pull one to get started.",
 		};
 	}
 	return { title: "", body: "" };
@@ -102,11 +110,10 @@ export function OllamaSetupPanel({
 		portInvalid,
 		normalizedBaseUrl,
 		canSave,
-		hasModels,
 		availableModels,
 	} = setup;
 
-	const details = statusDetails(statusTone, connectionError, localTestResult);
+	const details = statusDetails(statusTone, localTestResult);
 	const showStatusCard = variant === "settings" || localTestResult !== null;
 	const statusLabel =
 		variant === "gate"
@@ -150,31 +157,47 @@ export function OllamaSetupPanel({
 									setLocalTestResult(null);
 								}}
 								required
-								className="md-input"
-								placeholder="11434"
+								className="md-input shadowquill-port-input"
+								placeholder={DEFAULT_OLLAMA_PORT}
 								autoComplete="off"
 							/>
 							<button
 								type="button"
 								onClick={() => testLocalConnection()}
 								disabled={testingLocal || !isValidOllamaPort(localPort)}
-								className="md-icon-btn shadowquill-field__action disabled:cursor-wait disabled:opacity-60"
+								className="md-icon-btn shadowquill-port-check disabled:cursor-wait disabled:opacity-60"
 								title="Check for available Ollama models"
 								aria-label="Check for available Ollama models"
 							>
 								<Icon
 									name="refresh"
+									variant="Linear"
+									style={{ width: 16, height: 16 }}
 									{...(testingLocal && {
 										className: "shadowquill-refresh-spin",
 									})}
 								/>
 							</button>
 						</div>
-						<p className="shadowquill-field-hint" aria-live="polite">
-							{portInvalid
-								? "Enter a valid port (2-5 digits)."
-								: normalizedBaseUrl || "Waiting for a port value."}
-						</p>
+						<div className="shadowquill-field-meta">
+							<p className="shadowquill-field-hint" aria-live="polite">
+								{portInvalid
+									? "Enter a valid port (2-5 digits)."
+									: normalizedBaseUrl || "Waiting for a port value."}
+							</p>
+							{localPort !== DEFAULT_OLLAMA_PORT && (
+								<button
+									type="button"
+									className="md-btn shadowquill-port-reset"
+									onClick={() => {
+										setLocalPort(DEFAULT_OLLAMA_PORT);
+										setLocalTestResult(null);
+									}}
+								>
+									Reset to {DEFAULT_OLLAMA_PORT}
+								</button>
+							)}
+						</div>
 					</div>
 
 					{showStatusCard && (
@@ -185,6 +208,7 @@ export function OllamaSetupPanel({
 							<div className="shadowquill-status-card__icon">
 								<Icon
 									name={STATUS_ICONS[statusTone]}
+									variant="Linear"
 									{...(statusTone === "loading" && { className: "md-spin" })}
 								/>
 							</div>
@@ -221,13 +245,6 @@ export function OllamaSetupPanel({
 											})}
 										</div>
 									)}
-								{statusTone === "success" &&
-									localTestResult?.models &&
-									localTestResult.models.length === 0 && (
-										<p className="shadowquill-empty-note">
-											Connected, but Gemma models have not been pulled yet.
-										</p>
-									)}
 								{statusTone === "error" && (
 									<div className="shadowquill-status-card__actions">
 										<button
@@ -261,19 +278,6 @@ export function OllamaSetupPanel({
 									<p className="shadowquill-error-inline">{openOllamaError}</p>
 								)}
 							</div>
-						</div>
-					)}
-
-					{((variant === "gate" &&
-						!localTestResult &&
-						availableModels.length === 0) ||
-						(variant === "settings" &&
-							!hasModels &&
-							statusTone === "success")) && (
-						<div className="shadowquill-availability" aria-live="polite">
-							No compatible Gemma models detected yet. After installing Ollama,
-							run <code>ollama pull gemma4</code> (or your preferred tag) and
-							retest.
 						</div>
 					)}
 
