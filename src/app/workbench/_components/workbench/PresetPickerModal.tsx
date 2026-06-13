@@ -688,15 +688,9 @@ export function PresetPickerModal({
 															disabled={isDeleting}
 															title="Delete workbench"
 															aria-label="Delete workbench"
-															className="md-icon-btn"
+															className="md-icon-btn picker-modal__delete-btn"
 														>
-															<Icon
-																name="trash"
-																className="h-4 w-4"
-																style={{
-																	color: "var(--color-on-destructive)",
-																}}
-															/>
+															<Icon name="trash" className="h-4 w-4" />
 														</button>
 													</div>
 												)}
