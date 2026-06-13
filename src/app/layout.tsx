@@ -2,6 +2,7 @@ import "@/styles/index.css";
 
 import type { Metadata } from "next";
 
+import AppSettingsHost from "@/components/AppSettingsHost";
 import ConsoleNav from "@/components/ConsoleNav";
 import { DialogProvider } from "@/components/DialogProvider";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -32,6 +33,7 @@ export default function RootLayout({
 						</div>
 					</div>
 					<StatusBar />
+					<AppSettingsHost />
 					<OllamaConnectionMonitor />
 					<FindBar />
 					<GlobalZoomControl />

@@ -19,9 +19,7 @@ function getHttpServer() {
 function getStorageFilePath() {
 	try {
 		const storageDir = path.join(app.getPath("userData"), "storage");
-		if (!fs.existsSync(storageDir)) {
-			fs.mkdirSync(storageDir, { recursive: true });
-		}
+		fs.mkdirSync(storageDir, { recursive: true });
 		return path.join(storageDir, "app-data.json");
 	} catch (e) {
 		console.error("[Storage] Failed to get storage file path:", e);
@@ -164,52 +162,27 @@ function registerDataIPCHandlers() {
 	});
 
 	secureHandle("shadowquill:storage:getItem", (_, key) => {
-		try {
-			return loadStorageData()[key] ?? null;
-		} catch (e) {
-			console.error("[Storage] getItem failed:", e);
-			return null;
-		}
+		return loadStorageData()[key] ?? null;
 	});
 
 	secureHandle("shadowquill:storage:setItem", (_, key, value) => {
-		try {
-			const data = loadStorageData();
-			data[key] = value;
-			return saveStorageData(data);
-		} catch (e) {
-			console.error("[Storage] setItem failed:", e);
-			return false;
-		}
+		const data = loadStorageData();
+		data[key] = value;
+		return saveStorageData(data);
 	});
 
 	secureHandle("shadowquill:storage:removeItem", (_, key) => {
-		try {
-			const data = loadStorageData();
-			delete data[key];
-			return saveStorageData(data);
-		} catch (e) {
-			console.error("[Storage] removeItem failed:", e);
-			return false;
-		}
+		const data = loadStorageData();
+		delete data[key];
+		return saveStorageData(data);
 	});
 
 	secureHandle("shadowquill:storage:clear", () => {
-		try {
-			return saveStorageData({});
-		} catch (e) {
-			console.error("[Storage] clear failed:", e);
-			return false;
-		}
+		return saveStorageData({});
 	});
 
 	secureHandle("shadowquill:storage:getAll", () => {
-		try {
-			return loadStorageData();
-		} catch (e) {
-			console.error("[Storage] getAll failed:", e);
-			return {};
-		}
+		return loadStorageData();
 	});
 }
 

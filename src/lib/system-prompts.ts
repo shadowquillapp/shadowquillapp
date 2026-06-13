@@ -65,29 +65,9 @@ function normalize(prompt: string | null | undefined): string {
 	return String(prompt ?? "").trim();
 }
 
-export function getSystemPromptBuild(): string {
-	const stored = normalize(readRawPrompt());
-	return stored || DEFAULT_BUILD_PROMPT;
-}
-
 export function ensureSystemPromptBuild(): string {
 	const stored = normalize(readRawPrompt());
 	if (stored) return stored;
-	writeRawPrompt(DEFAULT_BUILD_PROMPT);
-	return DEFAULT_BUILD_PROMPT;
-}
-
-export function setSystemPromptBuild(prompt: string): string {
-	const normalized = normalize(prompt);
-	if (!normalized) {
-		writeRawPrompt(DEFAULT_BUILD_PROMPT);
-		return DEFAULT_BUILD_PROMPT;
-	}
-	writeRawPrompt(normalized);
-	return normalized;
-}
-
-export function resetSystemPromptBuild(): string {
 	writeRawPrompt(DEFAULT_BUILD_PROMPT);
 	return DEFAULT_BUILD_PROMPT;
 }
