@@ -1,3 +1,11 @@
+## [0.12.6](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.5...v0.12.6) (2026-06-14)
+
+
+### Bug Fixes
+
+* anchor workbench tab manager ([1c4fea0](https://github.com/shadowquillapp/shadowquillapp/commit/1c4fea0f55386fecf0a269e32dd782c157567b0b))
+* UI stability ([a9d7160](https://github.com/shadowquillapp/shadowquillapp/commit/a9d7160e99114bd4a95455544c8e32ad05aa9b6c))
+
 ## [0.12.5](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.4...v0.12.5) (2026-06-13)
 
 
