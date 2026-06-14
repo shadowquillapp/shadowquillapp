@@ -1,3 +1,11 @@
+## [0.12.8](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.7...v0.12.8) (2026-06-14)
+
+
+### Bug Fixes
+
+* UI prompt studio stablization ([16ef631](https://github.com/shadowquillapp/shadowquillapp/commit/16ef6317203518cde60b36aecdb6798a0fdac4dd))
+* UI responsivness in preset studio ([9652f72](https://github.com/shadowquillapp/shadowquillapp/commit/9652f72778963b31482fc50d668b19bdfda71570))
+
 ## [0.12.7](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.6...v0.12.7) (2026-06-14)
 
 
