@@ -86,7 +86,7 @@ export default function PresetEditor({
 			<div className={`${animClass} flex h-full flex-col`}>
 				<div className="flex-1 overflow-y-auto">
 					<header className="shadowquill-panel__head border-[var(--color-outline)] border-b bg-surface py-4">
-						<div className="mx-auto flex w-full max-w-3xl items-start justify-between gap-4 px-6">
+						<div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-6">
 							<div className="min-w-0">
 								<h3 style={{ color: "var(--color-primary)" }}>
 									{editorPreset.name || "Untitled Preset"}
@@ -173,7 +173,11 @@ export default function PresetEditor({
 							type="button"
 							onClick={onSave}
 							disabled={!isDirty}
-							className={`md-icon-btn studio-editor__save-btn${isDirty ? "studio-editor__save-btn--dirty" : ""}`}
+							className={
+								isDirty
+									? "md-icon-btn studio-editor__save-btn studio-editor__save-btn--dirty"
+									: "md-icon-btn studio-editor__save-btn"
+							}
 							aria-label="Save preset"
 							title="Save preset"
 						>
