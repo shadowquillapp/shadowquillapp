@@ -56,6 +56,14 @@
 	background: transparent;
 }
 
+.modal-container--top-anchored {
+	align-items: flex-start;
+	justify-content: center;
+	padding-top: max(var(--space-4), 7.5vh);
+	padding-bottom: max(var(--space-4), 7.5vh);
+	overflow-y: auto;
+}
+
 /* ========================================
  * CONTENT (.modal-content)
  * Modal dialog box with size variants
