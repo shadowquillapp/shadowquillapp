@@ -7,6 +7,7 @@ import { Icon } from "@/components/Icon";
 import type { PresetLite } from "@/types";
 
 const STUDIO_EDITOR_EXIT_MS = 180;
+const UNSAVED_STATUS_COLOR = "#d8efff";
 
 interface PresetEditorProps {
 	preset: PresetLite | null;
@@ -85,13 +86,37 @@ export default function PresetEditor({
 			<div className={`${animClass} flex h-full flex-col`}>
 				<div className="flex-1 overflow-y-auto">
 					<header className="shadowquill-panel__head border-[var(--color-outline)] border-b bg-surface py-4">
-						<div className="mx-auto w-full max-w-3xl px-6">
-							<h3 style={{ color: "var(--color-primary)" }}>
-								{editorPreset.name || "Untitled Preset"}
-							</h3>
-							<p className="shadowquill-panel__subtitle">
-								<i>Configure how this preset compiles prompts.</i>
-							</p>
+						<div className="mx-auto flex w-full max-w-3xl items-start justify-between gap-4 px-6">
+							<div className="min-w-0">
+								<h3 style={{ color: "var(--color-primary)" }}>
+									{editorPreset.name || "Untitled Preset"}
+								</h3>
+								<p className="shadowquill-panel__subtitle">
+									<i>Configure how this preset compiles prompts.</i>
+								</p>
+							</div>
+
+							{isDirty && (
+								<span
+									className="flex shrink-0 items-center gap-1 font-normal text-[length:var(--text-xs)]"
+									style={{
+										color: UNSAVED_STATUS_COLOR,
+										fontStyle: "oblique 14deg",
+									}}
+								>
+									<button
+										type="button"
+										onClick={onRevert}
+										className="md-icon-btn"
+										aria-label="Revert unsaved changes"
+										title="Revert unsaved changes"
+										style={{ color: "inherit" }}
+									>
+										<Icon name="back" className="h-5 w-5" />
+									</button>
+									Unsaved changes
+								</span>
+							)}
 						</div>
 					</header>
 
@@ -143,28 +168,6 @@ export default function PresetEditor({
 						>
 							<Icon name="trash" className="h-6 w-6" />
 						</button>
-
-						{isDirty && (
-							<span
-								className="flex items-center gap-1 font-normal text-[length:var(--text-xs)]"
-								style={{
-									color:
-										"color-mix(in srgb, var(--color-on-surface-variant) 70%, var(--color-on-surface))",
-									fontStyle: "oblique 14deg",
-								}}
-							>
-								<button
-									type="button"
-									onClick={onRevert}
-									className="md-icon-btn"
-									aria-label="Revert unsaved changes"
-									title="Revert unsaved changes"
-								>
-									<Icon name="back" className="h-5 w-5" />
-								</button>
-								Unsaved changes
-							</span>
-						)}
 
 						<button
 							type="button"
