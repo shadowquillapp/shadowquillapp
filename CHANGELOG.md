@@ -1,3 +1,10 @@
+## [0.12.7](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.6...v0.12.7) (2026-06-14)
+
+
+### Bug Fixes
+
+* stablize workbench tab manager ([f001fd7](https://github.com/shadowquillapp/shadowquillapp/commit/f001fd7708763b8f13335b731564d0c531e1e873))
+
 ## [0.12.6](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.5...v0.12.6) (2026-06-14)
 
 
