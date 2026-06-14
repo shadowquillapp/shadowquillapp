@@ -44,7 +44,10 @@ export default function PresetCard({
 			>
 				{preset.name}
 			</span>
-			<span className="data-table__cell data-table__cell--mono uppercase">
+			<span
+				className="data-table__cell data-table__cell--mono"
+				style={{ fontSize: 10, opacity: 0.7 }}
+			>
 				{taskType}
 			</span>
 		</button>

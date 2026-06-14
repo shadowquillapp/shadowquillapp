@@ -554,7 +554,10 @@ export function PresetPickerModal({
 												>
 													{preset.name}
 												</span>
-												<span className="data-table__cell data-table__cell--mono uppercase">
+												<span
+													className="data-table__cell data-table__cell--mono"
+													style={{ fontSize: 10, opacity: 0.7 }}
+												>
 													{preset.taskType}
 												</span>
 											</button>
