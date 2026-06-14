@@ -7,7 +7,7 @@ import type { PromptPresetSummary } from "./types";
 
 const PAGE_SIZE = 10;
 const MODAL_TITLE = "Workbench Tab Manager";
-const DEFAULT_SECTION = "saved" as const;
+const DEFAULT_SECTION = "presets" as const;
 
 function paginate<T>(items: T[], page: number, pageSize: number) {
 	const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
@@ -398,7 +398,7 @@ export function PresetPickerModal({
 										? `, showing ${presetsPagination.rangeStart} to ${presetsPagination.rangeEnd}`
 										: ""
 								}`
-							: `${filteredProjects.length} saved workbenches found${
+							: `${filteredProjects.length} workbench history entries found${
 									savedPagination.totalPages > 1
 										? `, showing ${savedPagination.rangeStart} to ${savedPagination.rangeEnd}`
 										: ""
@@ -437,7 +437,7 @@ export function PresetPickerModal({
 								aria-selected={activeSection === "saved"}
 							>
 								<Icon name="folder-open" style={{ width: 14, height: 14 }} />
-								Saved Workbenches
+								Workbench History
 								<span
 									className="flex h-5 min-w-[20px] items-center justify-center rounded-[var(--radius-sm)] border border-[var(--color-outline)] px-1.5 font-mono text-[length:var(--text-2xs)]"
 									style={{
@@ -460,14 +460,14 @@ export function PresetPickerModal({
 									placeholder={
 										activeSection === "presets"
 											? "Search presets..."
-											: "Search saved workbenches..."
+											: "Search workbench history..."
 									}
 									value={searchQuery}
 									onChange={(e) => handleSearchChange(e.target.value)}
 									aria-label={
 										activeSection === "presets"
 											? "Search presets"
-											: "Search saved workbenches"
+											: "Search workbench history"
 									}
 								/>
 								<Icon name="search" className="picker-modal__search-icon" />
@@ -580,7 +580,7 @@ export function PresetPickerModal({
 								{savedProjects.length === 0 ? (
 									<>
 										<p className="empty-state__title">
-											No saved workbenches yet
+											No workbench history yet
 										</p>
 										<p className="empty-state__hint">
 											Run a prompt to create your first workbench.
@@ -708,7 +708,7 @@ export function PresetPickerModal({
 									rangeEnd={savedPagination.rangeEnd}
 									totalItems={savedPagination.totalItems}
 									onPageChange={setSavedPage}
-									label="Saved workbenches pagination"
+									label="Workbench history pagination"
 								/>
 							</>
 						)}
