@@ -84,19 +84,19 @@ export default function PresetEditor({
 		<section className={`${className} bg-surface`} aria-label="Preset Editor">
 			<div className={`${animClass} flex h-full flex-col`}>
 				<div className="flex-1 overflow-y-auto">
-					<header className="shadowquill-panel__head border-[var(--color-outline)] border-b bg-surface px-6 py-4">
-						<div>
-							<p className="shadowquill-panel__eyebrow">Preset Configuration</p>
-							<h3>{editorPreset.name || "Untitled Preset"}</h3>
+					<header className="shadowquill-panel__head border-[var(--color-outline)] border-b bg-surface py-4">
+						<div className="mx-auto w-full max-w-3xl px-6">
+							<h3 style={{ color: "var(--color-primary)" }}>
+								{editorPreset.name || "Untitled Preset"}
+							</h3>
 							<p className="shadowquill-panel__subtitle">
-								Configure how this preset compiles prompts.
+								<i>Configure how this preset compiles prompts.</i>
 							</p>
 						</div>
 					</header>
 
 					<div className="mx-auto max-w-3xl px-6 py-6">
 						<section className="studio-editor__section settings-category">
-							<h3 className="settings-category__title">Basics</h3>
 							<BasicSettings
 								preset={editorPreset}
 								onFieldChange={onFieldChange}
@@ -104,7 +104,6 @@ export default function PresetEditor({
 						</section>
 
 						<section className="studio-editor__section settings-category mt-8">
-							<h3 className="settings-category__title">Context</h3>
 							<div className="flex flex-col">
 								<SettingRow
 									label="Additional Context"
@@ -133,7 +132,7 @@ export default function PresetEditor({
 						<button
 							type="button"
 							onClick={() => editorPreset.id && onDelete(editorPreset.id)}
-							className="md-icon-btn"
+							className="md-icon-btn studio-editor__delete-btn"
 							disabled={!editorPreset.id || editorPreset.name === "Default"}
 							aria-label="Delete preset"
 							title={
@@ -141,7 +140,6 @@ export default function PresetEditor({
 									? "Default preset cannot be deleted"
 									: "Delete preset"
 							}
-							style={{ color: "var(--color-destructive)" }}
 						>
 							<Icon name="trash" className="h-6 w-6" />
 						</button>
@@ -172,14 +170,9 @@ export default function PresetEditor({
 							type="button"
 							onClick={onSave}
 							disabled={!isDirty}
-							className="md-icon-btn"
+							className={`md-icon-btn studio-editor__save-btn${isDirty ? "studio-editor__save-btn--dirty" : ""}`}
 							aria-label="Save preset"
 							title="Save preset"
-							style={{
-								color: isDirty
-									? "var(--color-success)"
-									: "var(--color-on-surface-variant)",
-							}}
 						>
 							<Icon name="save" className="h-6 w-6" />
 						</button>

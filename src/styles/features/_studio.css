@@ -44,3 +44,23 @@
 button.data-table__row--selected {
 	animation: preset-row-select var(--duration-fast) var(--ease-ios-spring) both;
 }
+
+.studio-editor__delete-btn {
+	color: var(--color-destructive);
+}
+
+.studio-editor__delete-btn:not(:disabled):hover {
+	color: var(--color-destructive-variant);
+}
+
+.studio-editor__save-btn--dirty {
+	color: var(--color-success);
+}
+
+.studio-editor__save-btn--dirty:not(:disabled):hover {
+	color: color-mix(
+		in srgb,
+		var(--color-success) 78%,
+		var(--color-on-surface-variant)
+	);
+}
