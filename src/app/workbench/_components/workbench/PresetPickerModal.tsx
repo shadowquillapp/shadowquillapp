@@ -345,7 +345,7 @@ export function PresetPickerModal({
 	return (
 		<dialog
 			open
-			className="modal-container"
+			className="modal-container modal-container--top-anchored"
 			aria-modal="true"
 			aria-labelledby="preset-picker-title"
 			onKeyDown={(e) => {
