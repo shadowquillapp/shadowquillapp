@@ -1,10 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import {
-	formatOllamaModelName,
-	readLocalModelConfig,
-} from "@/lib/local-config";
+import { readLocalModelConfig } from "@/lib/domain/model-config";
+import { formatOllamaModelName } from "@/lib/local-config";
 
 type ConnectionState = "unknown" | "connected" | "offline";
 
@@ -21,7 +19,9 @@ export default function StatusBar() {
 					setModelId(cfg.model);
 					return true;
 				}
-			} catch {}
+			} catch (e) {
+				console.debug("[StatusBar] read model config failed:", e);
+			}
 			return false;
 		};
 
@@ -38,21 +38,27 @@ export default function StatusBar() {
 				} else {
 					syncModel();
 				}
-			} catch {}
+			} catch (e) {
+				console.debug("[StatusBar] model-changed event failed:", e);
+			}
 		};
 		const onConnectionStatus = (e: Event) => {
 			try {
 				const ok = (e as CustomEvent<{ ok?: boolean }>)?.detail?.ok;
 				if (typeof ok === "boolean")
 					setConnection(ok ? "connected" : "offline");
-			} catch {}
+			} catch (e) {
+				console.debug("[StatusBar] connection-status event failed:", e);
+			}
 		};
 		const onGenerationStatus = (e: Event) => {
 			try {
 				const generating = (e as CustomEvent<{ generating?: boolean }>)?.detail
 					?.generating;
 				if (typeof generating === "boolean") setIsGenerating(generating);
-			} catch {}
+			} catch (e) {
+				console.debug("[StatusBar] generation-status event failed:", e);
+			}
 		};
 
 		window.addEventListener("sq-model-changed", onModelChanged);

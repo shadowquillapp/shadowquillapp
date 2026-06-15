@@ -1,28 +1,10 @@
 import type { PresetLite } from "@/types";
 import { getRaw, setJSON } from "./local-storage";
-import { getPresets, type Preset } from "./presets";
 import { isArrayOf, isString, safeParse } from "./schema";
 import { STORAGE_KEYS } from "./storage-keys";
 
-export type PresetSummary = PresetLite;
-
-export const presetKey = (preset: Pick<PresetSummary, "id" | "name">) =>
+export const presetKey = (preset: Pick<PresetLite, "id" | "name">) =>
 	preset.id ?? preset.name;
-
-export function mapPresetToSummary(preset: PresetSummary): PresetSummary {
-	return {
-		...(preset.id && { id: preset.id }),
-		name: preset.name,
-		taskType: preset.taskType,
-		...(preset.options && { options: preset.options }),
-	};
-}
-
-export function mapPresetList(
-	presets: Preset[] = getPresets(),
-): PresetSummary[] {
-	return presets.map(mapPresetToSummary);
-}
 
 export function getRecentPresetKeys(): string[] {
 	return safeParse(
@@ -36,12 +18,12 @@ export function setRecentPresetKeys(keys: string[]): void {
 	setJSON(STORAGE_KEYS.RECENT_PRESETS.key, keys.slice(0, 3));
 }
 
-export function trackRecentPreset(preset: PresetSummary): void {
+export function trackRecentPreset(preset: PresetLite): void {
 	const key = presetKey(preset);
 	setRecentPresetKeys([key, ...getRecentPresetKeys().filter((k) => k !== key)]);
 }
 
-export function pruneRecentPresets(presets: PresetSummary[]): void {
+export function pruneRecentPresets(presets: PresetLite[]): void {
 	const valid = new Set(presets.map(presetKey));
 	setRecentPresetKeys(getRecentPresetKeys().filter((key) => valid.has(key)));
 }

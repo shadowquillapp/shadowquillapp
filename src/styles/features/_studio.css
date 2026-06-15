@@ -38,8 +38,7 @@
 }
 
 .studio-sidebar-backdrop {
-	animation: modal-backdrop-enter var(--duration-modal) var(--ease-ios-out)
-		both;
+	animation: modal-backdrop-enter var(--duration-modal) var(--ease-ios-out) both;
 }
 
 button.data-table__row--selected {

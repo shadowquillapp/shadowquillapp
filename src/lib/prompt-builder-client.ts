@@ -4,12 +4,6 @@ import {
 	validateBuilderInput,
 } from "@/lib/prompt-builder-core";
 import type { GenerationOptions, TaskType } from "@/types";
-import {
-	createPromptCacheKey,
-	getFromSessionCache,
-	getPromptCache,
-	saveToSessionCache,
-} from "./cache";
 import { ValidationError } from "./errors";
 import {
 	DEFAULT_BUILD_PROMPT,
@@ -20,15 +14,13 @@ export interface BuildPromptInput {
 	input: string;
 	taskType: TaskType;
 	options?: GenerationOptions;
-	skipCache?: boolean;
 }
 
-export async function buildUnifiedPrompt({
+export function buildUnifiedPrompt({
 	input,
 	taskType,
 	options,
-	skipCache = false,
-}: BuildPromptInput): Promise<string> {
+}: BuildPromptInput): string {
 	const rawUserInput = input.trim();
 
 	const validationError = validateBuilderInput(rawUserInput, taskType);
@@ -36,48 +28,11 @@ export async function buildUnifiedPrompt({
 
 	const storedPrompt = ensureSystemPromptBuild();
 	const systemPrompt = storedPrompt?.trim() || DEFAULT_BUILD_PROMPT;
-	const cacheOptions: Record<string, unknown> = {
-		...(options ?? {}),
-		systemPrompt,
-	};
 
-	const cacheKey = createPromptCacheKey(rawUserInput, taskType, cacheOptions);
-
-	if (!skipCache) {
-		const memCached = getPromptCache().get(cacheKey);
-		if (memCached) {
-			return memCached;
-		}
-
-		const sessionCached = getFromSessionCache(cacheKey);
-		if (sessionCached) {
-			getPromptCache().set(cacheKey, sessionCached);
-			return sessionCached;
-		}
-	}
-
-	const generatedPrompt = buildUnifiedPromptCore({
+	return buildUnifiedPromptCore({
 		input: rawUserInput,
 		taskType,
 		systemPrompt,
-		...(options && { options }),
-	});
-
-	getPromptCache().set(cacheKey, generatedPrompt);
-	saveToSessionCache(cacheKey, generatedPrompt);
-
-	return generatedPrompt;
-}
-
-export async function buildPromptPreview({
-	input,
-	taskType,
-	options,
-}: Omit<BuildPromptInput, "skipCache">): Promise<string> {
-	return buildUnifiedPrompt({
-		input,
-		taskType,
-		skipCache: true,
 		...(options && { options }),
 	});
 }
@@ -89,12 +44,12 @@ export interface BuildRefinementPromptInput {
 	options?: GenerationOptions;
 }
 
-export async function buildRefinementPrompt({
+export function buildRefinementPrompt({
 	previousOutput,
 	refinementRequest,
 	taskType,
 	options,
-}: BuildRefinementPromptInput): Promise<string> {
+}: BuildRefinementPromptInput): string {
 	const trimmedRequest = refinementRequest.trim();
 
 	if (!trimmedRequest) {

@@ -2,8 +2,9 @@ import type React from "react";
 import { useEffect, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
 import { Icon } from "@/components/Icon";
+import { trapModalTabKey } from "@/components/modal-focus-trap";
 import { getTaskTypeIcon } from "@/lib/task-type-icon";
-import type { PromptPresetSummary } from "./types";
+import type { PresetLite } from "@/types";
 
 const visuallyHidden: React.CSSProperties = {
 	position: "absolute",
@@ -66,11 +67,11 @@ interface SavedProject {
 interface PresetPickerModalProps {
 	open: boolean;
 	onClose: () => void;
-	onSelectPreset: (preset: PromptPresetSummary) => void;
+	onSelectPreset: (preset: PresetLite) => void;
 	onSelectProject?: (projectId: string) => void;
 	onDeleteProject?: (projectId: string) => Promise<void>;
 	onDeleteAllProjects?: () => Promise<void>;
-	presets: PromptPresetSummary[];
+	presets: PresetLite[];
 	savedProjects?: SavedProject[];
 	title?: string;
 }
@@ -147,7 +148,7 @@ export function PresetPickerModal({
 
 	useEffect(() => {
 		if (!open) return;
-		const onEsc = (e: KeyboardEvent) => {
+		const onEscapeKey = (e: KeyboardEvent) => {
 			if (e.key === "Escape") {
 				const active = document.activeElement;
 				if (active === searchInputRef.current && searchQuery) {
@@ -158,8 +159,8 @@ export function PresetPickerModal({
 				onClose();
 			}
 		};
-		document.addEventListener("keydown", onEsc);
-		return () => document.removeEventListener("keydown", onEsc);
+		document.addEventListener("keydown", onEscapeKey);
+		return () => document.removeEventListener("keydown", onEscapeKey);
 	}, [open, onClose, searchQuery]);
 
 	useEffect(() => {
@@ -170,7 +171,9 @@ export function PresetPickerModal({
 			setContentHeight("auto");
 			try {
 				lastActiveEl.current?.focus();
-			} catch {}
+			} catch (e) {
+				console.debug("[PresetPickerModal] focus restore skipped:", e);
+			}
 		}
 	}, [open]);
 
@@ -209,38 +212,6 @@ export function PresetPickerModal({
 			searchInputRef.current?.focus();
 		});
 		return () => window.cancelAnimationFrame(id);
-	}, [open]);
-
-	useEffect(() => {
-		if (!open) return;
-		const handler = (e: KeyboardEvent) => {
-			if (e.key !== "Tab") return;
-			const root = modalContentRef.current;
-			if (!root) return;
-			const focusables = Array.from(
-				root.querySelectorAll<HTMLElement>(
-					'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-				),
-			).filter((el) => !el.hasAttribute("disabled"));
-			if (focusables.length === 0) return;
-			const first = focusables[0];
-			const last = focusables[focusables.length - 1];
-			if (!first || !last) return;
-			const active = document.activeElement as HTMLElement | null;
-			if (e.shiftKey) {
-				if (active === first || !root.contains(active)) {
-					e.preventDefault();
-					last.focus();
-				}
-			} else {
-				if (active === last || !root.contains(active)) {
-					e.preventDefault();
-					first.focus();
-				}
-			}
-		};
-		document.addEventListener("keydown", handler);
-		return () => document.removeEventListener("keydown", handler);
 	}, [open]);
 
 	if (!open) return null;
@@ -339,7 +310,7 @@ export function PresetPickerModal({
 				className="modal-content"
 				ref={modalContentRef}
 				onClick={(e) => e.stopPropagation()}
-				onKeyDown={(e) => e.stopPropagation()}
+				onKeyDown={(e) => trapModalTabKey(e, modalContentRef.current)}
 			>
 				<div className="modal-header">
 					<div
@@ -513,8 +484,7 @@ export function PresetPickerModal({
 							overflow: "hidden",
 							position: "relative",
 							height: contentHeight === "auto" ? "auto" : contentHeight,
-							transition:
-								"height var(--duration-normal) var(--ease-ios-out)",
+							transition: "height var(--duration-normal) var(--ease-ios-out)",
 						}}
 					>
 						<div

@@ -13,7 +13,6 @@ export const STORAGE_KEYS = {
 	LAST_SELECTED_PRESET: { key: "last-selected-preset", scope: "local" },
 	PANEL_WIDTH: { key: "shadowquill:panelWidth", scope: "local" },
 	APPLY_PRESET: { key: "PC_APPLY_PRESET", scope: "session" },
-	PROMPT_CACHE: { key: "SQ_PROMPT_CACHE", scope: "session" },
 } as const satisfies Record<
 	string,
 	{ readonly key: string; readonly scope: StorageScope }

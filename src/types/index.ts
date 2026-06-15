@@ -47,12 +47,59 @@ export interface PromptProject {
 	versionGraph?: unknown;
 }
 
-export interface TestMessage {
+export interface ProjectMessage {
 	id: string;
 	projectId: string;
 	role: "user" | "assistant";
 	content: string;
 	createdAt: Date;
+}
+
+export type MessageItem = Pick<ProjectMessage, "id" | "role" | "content">;
+
+export interface VersionNodeMetadata {
+	taskType?: string;
+	options?: Record<string, unknown>;
+	isRefinement?: boolean;
+	refinedVersionId?: string;
+}
+
+export interface VersionNode {
+	id: string;
+	label: string;
+	content: string;
+	originalInput: string;
+	outputMessageId: string | null;
+	createdAt: number;
+	prevId: string | null;
+	nextId: string | null;
+	metadata?: VersionNodeMetadata;
+}
+
+export interface VersionGraph {
+	nodes: Record<string, VersionNode>;
+	headId: string;
+	tailId: string;
+	activeId: string;
+}
+
+export interface PromptTabState {
+	id: string;
+	title: string;
+	preset: PresetLite;
+	projectId: string | null;
+	messages: MessageItem[];
+	versionGraph: VersionGraph;
+	draft: string;
+	createdAt: number;
+	updatedAt: number;
+	sending: boolean;
+	error: string | null;
+}
+
+export interface PromptWorkspaceState {
+	tabs: PromptTabState[];
+	activeTabId: string | null;
 }
 
 declare global {

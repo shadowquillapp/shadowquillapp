@@ -11,6 +11,7 @@ import {
 	useRef,
 	useState,
 } from "react";
+import { trapModalTabKey } from "@/components/modal-focus-trap";
 
 type DialogTone = "default" | "destructive" | "primary";
 
@@ -72,7 +73,9 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 				} else {
 					(dialog.resolve as (accepted: boolean) => void)(!!result);
 				}
-			} catch {}
+			} catch (e) {
+				console.error("[DialogProvider] dialog resolve failed:", e);
+			}
 			return rest;
 		});
 	}, []);
@@ -127,7 +130,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 	}, [active, closeActive]);
 
 	useEffect(() => {
-		const handler = (evt: Event) => {
+		const onAppInfoEvent = (evt: Event) => {
 			try {
 				const detail = (evt as CustomEvent)?.detail || {};
 				const title =
@@ -138,35 +141,17 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 					message,
 					okText: typeof detail.okText === "string" ? detail.okText : "OK",
 				});
-			} catch {}
+			} catch (e) {
+				console.error("[DialogProvider] app-info event failed:", e);
+			}
 		};
 		try {
-			window.addEventListener("app-info", handler);
-			return () => window.removeEventListener("app-info", handler);
+			window.addEventListener("app-info", onAppInfoEvent);
+			return () => window.removeEventListener("app-info", onAppInfoEvent);
 		} catch {
 			return () => {};
 		}
 	}, [showInfo]);
-
-	const handleDialogKeyDown = (e: React.KeyboardEvent<HTMLDialogElement>) => {
-		e.stopPropagation();
-		if (e.key !== "Tab") return;
-		const focusable = Array.from(
-			dialogRef.current?.querySelectorAll<HTMLElement>(
-				'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-			) ?? [],
-		).filter((item) => item.offsetParent !== null);
-		const first = focusable[0];
-		const last = focusable[focusable.length - 1];
-		if (!first || !last) return;
-		if (e.shiftKey && document.activeElement === first) {
-			e.preventDefault();
-			last.focus();
-		} else if (!e.shiftKey && document.activeElement === last) {
-			e.preventDefault();
-			first.focus();
-		}
-	};
 
 	const value = useMemo<DialogContextValue>(
 		() => ({
@@ -192,7 +177,7 @@ export const DialogProvider: React.FC<{ children: React.ReactNode }> = ({
 						open
 						className="modal-content"
 						onClick={(e) => e.stopPropagation()}
-						onKeyDown={handleDialogKeyDown}
+						onKeyDown={(e) => trapModalTabKey(e, dialogRef.current)}
 						aria-modal="true"
 						aria-labelledby={titleId}
 					>

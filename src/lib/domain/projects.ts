@@ -1,4 +1,4 @@
-import type { PromptProject, TestMessage } from "@/types";
+import type { ProjectMessage, PromptProject } from "@/types";
 import { getRaw, setJSON } from "../local-storage";
 import { isRecord, isString, safeParse } from "../schema";
 import { STORAGE_KEYS } from "../storage-keys";
@@ -6,7 +6,7 @@ import { STORAGE_KEYS } from "../storage-keys";
 const LOCAL_USER_ID = "local-user";
 let nextId = 0;
 
-interface StoredTestMessage {
+interface StoredProjectMessage {
 	id: string;
 	projectId: string;
 	role: "user" | "assistant";
@@ -53,10 +53,10 @@ function writeProjects(map: Record<string, StoredProject>): void {
 	setJSON(STORAGE_KEYS.PROJECTS.key, map);
 }
 
-function readTestMessages(): Record<string, StoredTestMessage> {
+function readProjectMessages(): Record<string, StoredProjectMessage> {
 	return readMap(
 		STORAGE_KEYS.TEST_MESSAGES.key,
-		(v): v is StoredTestMessage =>
+		(v): v is StoredProjectMessage =>
 			isRecord(v) &&
 			isString(v.id) &&
 			isString(v.projectId) &&
@@ -68,7 +68,7 @@ function readTestMessages(): Record<string, StoredTestMessage> {
 
 function writeProjectsAndMessages(
 	projects: Record<string, StoredProject>,
-	messages: Record<string, StoredTestMessage>,
+	messages: Record<string, StoredProjectMessage>,
 ): void {
 	setJSON(STORAGE_KEYS.PROJECTS.key, projects);
 	setJSON(STORAGE_KEYS.TEST_MESSAGES.key, messages);
@@ -92,7 +92,7 @@ export async function listProjectsByUser(
 	const projects = Object.values(readProjects()).filter(
 		(p) => p.userId === userId,
 	);
-	const messages = Object.values(readTestMessages());
+	const messages = Object.values(readProjectMessages());
 	return projects
 		.map((p) => ({
 			...p,
@@ -128,15 +128,15 @@ export async function appendMessagesWithCap(
 	projectId: string,
 	items: Array<{ role: "user" | "assistant"; content: string }>,
 	cap: number,
-): Promise<{ created: TestMessage[]; deletedIds: string[] }> {
+): Promise<{ created: ProjectMessage[]; deletedIds: string[] }> {
 	const now = Date.now();
-	const messagesMap = readTestMessages();
-	const created: TestMessage[] = [];
+	const messagesMap = readProjectMessages();
+	const created: ProjectMessage[] = [];
 	for (let i = 0; i < items.length; i++) {
 		const it = items[i];
 		if (!it) continue;
 		const id = randomId("msg");
-		const m: StoredTestMessage = {
+		const m: StoredProjectMessage = {
 			id,
 			projectId,
 			role: it.role,
@@ -171,13 +171,13 @@ export async function getProject(
 ): Promise<{
 	id: string;
 	title: string | null;
-	messages: TestMessage[];
+	messages: ProjectMessage[];
 	versionGraph?: unknown;
 	presetId?: string;
 }> {
 	const projects = readProjects();
 	const c = projects[projectId];
-	const messages = Object.values(readTestMessages())
+	const messages = Object.values(readProjectMessages())
 		.filter((m) => m.projectId === projectId)
 		.sort((a, b) => a.createdAt - b.createdAt)
 		.slice(-limit)
@@ -208,7 +208,7 @@ export async function updateProjectVersionGraph(
 export async function deleteProject(projectId: string): Promise<void> {
 	const projects = readProjects();
 	delete projects[projectId];
-	const messages = readTestMessages();
+	const messages = readProjectMessages();
 	for (const m of Object.values(messages)) {
 		if (m.projectId === projectId) delete messages[m.id];
 	}

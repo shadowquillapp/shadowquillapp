@@ -4,8 +4,8 @@ import { useCallback, useState } from "react";
 
 interface UseOpenOrInstallOllamaOptions {
 	ollamaInstalled: boolean | null;
-	checkOllamaInstalled: () => Promise<void>;
-	testLocalConnection: () => void | Promise<void>;
+	checkOllamaInstalled: () => Promise<unknown> | undefined;
+	testLocalConnection: () => Promise<void> | undefined;
 }
 
 export function useOpenOrInstallOllama({

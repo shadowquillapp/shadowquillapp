@@ -17,7 +17,7 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 | `electron/` | Main process: `main.cjs`, `preload.cjs`, `start-electron.cjs`, `build-electron.cjs`, `ipc/`, `utils/`. |
 | `public/` | Static assets. |
 | `config/vitest.config.ts` | Test config (jsdom, `@` → `src/`). |
-| `scripts/` | `postinstall.js`, `update-version.js`, `runtime-ui-probe.mjs` (HTTP smoke probe of `/workbench` + `/studio` on `localhost:31415`). |
+| `scripts/` | `postinstall.js`, `runtime-ui-probe.mjs` (HTTP smoke probe of `/workbench` + `/studio` on `localhost:31415`). |
 
 ## Subtree context
 
@@ -34,7 +34,7 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 | Symbol | Why central |
 |---|---|
 | `src/components/Icon.tsx` (22) | Only iconsax import path; used across studio, workbench, components, lib. |
-| `src/types/index.ts` (16) | Shared `TaskType`, `PresetLite`, `GenerationOptions`, `TestMessage`, … |
+| `src/types/index.ts` (16) | Shared `TaskType`, `PresetLite`, `GenerationOptions`, `ProjectMessage`, … |
 | `src/lib/storage-keys.ts` (12) | Sole registry of every localStorage/sessionStorage key + scope. Touching persistence = touching this. |
 | `src/lib/local-storage.ts` (12) | Safe wrapper over `electron-storage` with `window` guards and factory-reset suppression. |
 | `src/components/DialogProvider.tsx` (9) | Imperative `useDialog()` modal API used app-wide. |
@@ -65,9 +65,9 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 - **TypeScript strict** + `noUncheckedIndexedAccess` + `exactOptionalPropertyTypes` + `verbatimModuleSyntax`. `as T` casts mostly forbidden; `as unknown as T` only for Electron-bridge typing.
 - **Path alias**: `@/*` → `src/*`. Always use it from `src/`.
 - **No server-side state.** Next is the bundler/host; the app is a client-rendered SPA inside Electron. No `cookies()`, `headers()`, `unstable_cache`, route handlers, or RSC data fetching. Server components exist only to set `metadata` and hand off to a client component.
-- **No barrel `index.ts` at `src/lib/` root.** The only barrel is `src/lib/presets.ts` (2-line re-export). Import deep paths.
+- **No barrel `index.ts` at `src/lib/` root.** Import deep paths (e.g. `@/lib/domain/presets`).
 - **Persistence = localStorage + sessionStorage + Electron IPC file KV.** No IndexedDB, no Cookies. All keys must be declared in `storage-keys.ts`.
-- **Semantic-intent prompt compiler** — `prompt-builder-core.ts` + `prompt-directives/base.ts` assemble prompts by task type (`intent`, `engineering`, `visual`, `analysis`, `narrative`, `persuasion`, `motion`). No per-task directive files.
+- **Semantic-intent prompt compiler** — `prompt-builder-core.ts` + `prompt-directives/directives.ts` assemble prompts by task type (`intent`, `engineering`, `visual`, `analysis`, `narrative`, `persuasion`, `motion`). No per-task directive files.
 - **Temperature is not user-configurable** — fixed at `0.2` in `model-client.ts` (`MODEL_TEMPERATURE`).
 - **Tailwind v4 CSS-first config.** No `tailwind.config.js`. Single `@import "tailwindcss";` in `src/styles/index.css`. No `@theme` block — design tokens are plain `:root` CSS variables, consumed via `var(--color-*)`. Single fixed dark palette (black, gray, white); no theme switching.
 - **Biome is the only linter/formatter.** Do not introduce ESLint, Prettier, or Husky configs. `biome-ignore` comments are the only suppression mechanism (4 sites in `src/` — see workbench + components `AGENTS.md`).
@@ -80,7 +80,7 @@ AI assistant for building prompts. Desktop app: **Next.js 16 (App Router) + Reac
 
 - ❌ **Do not add a `tailwind.config.js`** — v4 uses CSS-first.
 - ❌ **Do not add a `cookies()`/`headers()`-based state layer** — app is offline + desktop.
-- ❌ **Do not introduce Zustand / Redux / Jotai** — state is module-level singletons (`local-storage.ts`, `electron-storage.ts`, `cache.ts`) + React Context (`DialogProvider`).
+- ❌ **Do not introduce Zustand / Redux / Jotai** — state is module-level singletons (`local-storage.ts`, `electron-storage.ts`) + React Context (`DialogProvider`).
 - ❌ **Do not bypass `STORAGE_KEYS`** — declare a new key in `src/lib/storage-keys.ts` first, then use it.
 - ❌ **Do not let an unhandled Ollama URL out of `domain/model-config.ts`'s `isLoopbackHost` guard** — it's an SSRF defense because Electron main also fetches the URL.
 - ❌ **Do not add `unsafe-eval` to prod CSP** — dev CSP in `electron/utils/security.cjs` allows it for HMR; prod does not.

@@ -1,24 +1,14 @@
 import { renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useModelManager } from "@/app/workbench/_components/workbench/hooks/useModelManager";
-
-const listAvailableModels = vi.fn();
-
-vi.mock("@/lib/local-config", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("@/lib/local-config")>();
-	return {
-		...actual,
-		listAvailableModels: (
-			...args: Parameters<typeof actual.listAvailableModels>
-		) => listAvailableModels(...args),
-	};
-});
+import * as localConfig from "@/lib/local-config";
 
 describe("useModelManager", () => {
 	beforeEach(() => {
 		localStorage.clear();
-		listAvailableModels.mockReset();
-		listAvailableModels.mockResolvedValue([{ name: "gemma3:4b", size: 1 }]);
+		vi.spyOn(localConfig, "listAvailableModels").mockResolvedValue([
+			{ name: "gemma3:4b", size: 1 },
+		]);
 	});
 
 	afterEach(() => {
@@ -33,7 +23,7 @@ describe("useModelManager", () => {
 		renderHook(() => useModelManager());
 
 		await waitFor(() => {
-			expect(listAvailableModels).toHaveBeenCalledWith(
+			expect(localConfig.listAvailableModels).toHaveBeenCalledWith(
 				"http://localhost:11500",
 			);
 		});
@@ -43,13 +33,13 @@ describe("useModelManager", () => {
 		renderHook(() => useModelManager());
 
 		await waitFor(() => {
-			expect(listAvailableModels).toHaveBeenCalledTimes(1);
+			expect(localConfig.listAvailableModels).toHaveBeenCalledTimes(1);
 		});
 
 		window.dispatchEvent(new Event("MODEL_CHANGED"));
 
 		await waitFor(() => {
-			expect(listAvailableModels).toHaveBeenCalledTimes(2);
+			expect(localConfig.listAvailableModels).toHaveBeenCalledTimes(2);
 		});
 	});
 });

@@ -1,67 +1,58 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-	readLocalModelConfig,
-	validateLocalModelConnection,
-} from "@/lib/local-config";
+import { readLocalModelConfig } from "@/lib/domain/model-config";
+import { validateLocalModelConnection } from "@/lib/local-config";
 import { useDialog } from "./DialogProvider";
+import { useOpenOrInstallOllama } from "./useOpenOrInstallOllama";
 
 export default function OllamaConnectionMonitor() {
 	const { confirm } = useDialog();
 	const [isMonitoring, setIsMonitoring] = useState(false);
+	const [ollamaInstalled, setOllamaInstalled] = useState<boolean | null>(null);
 	const lastKnownStatusRef = useRef<boolean | null>(null);
-	const ollamaInstalledRef = useRef<boolean | null>(null);
 
 	const checkOllamaInstalled = useCallback(async (): Promise<
 		boolean | null
 	> => {
 		try {
 			if (!window.shadowquill?.checkOllamaInstalled) {
+				setOllamaInstalled(null);
 				return null;
 			}
 			const result = await window.shadowquill.checkOllamaInstalled();
-			ollamaInstalledRef.current = result.installed;
+			setOllamaInstalled(result.installed);
 			return result.installed;
 		} catch (e) {
 			console.error("Failed to check Ollama installation:", e);
+			setOllamaInstalled(null);
 			return null;
 		}
 	}, []);
-
-	const handleOpenOrInstallOllama = useCallback(
-		async (isInstalled: boolean | null) => {
-			try {
-				if (isInstalled === false) {
-					window.open("https://ollama.com/download", "_blank");
-					return;
-				}
-
-				if (!window.shadowquill?.openOllama) {
-					return;
-				}
-
-				const result = await window.shadowquill.openOllama();
-
-				if (result.ok) {
-					return new Promise<void>((resolve) => {
-						setTimeout(resolve, 3000);
-					});
-				}
-			} catch (e: unknown) {
-				console.error("Failed to open Ollama:", e);
-			}
-		},
-		[],
-	);
 
 	const broadcastStatus = useCallback((ok: boolean) => {
 		try {
 			window.dispatchEvent(
 				new CustomEvent("sq-connection-status", { detail: { ok } }),
 			);
-		} catch {}
+		} catch (e) {
+			console.debug("[OllamaConnectionMonitor] status broadcast failed:", e);
+		}
 	}, []);
+
+	const testLocalConnection = useCallback(async () => {
+		const config = readLocalModelConfig();
+		if (!config) return;
+		const result = await validateLocalModelConnection(config);
+		lastKnownStatusRef.current = result.ok;
+		broadcastStatus(result.ok);
+	}, [broadcastStatus]);
+
+	const { handleOpenOrInstallOllama } = useOpenOrInstallOllama({
+		ollamaInstalled,
+		checkOllamaInstalled,
+		testLocalConnection,
+	});
 
 	const checkConnection = useCallback(async () => {
 		const config = readLocalModelConfig();
@@ -76,7 +67,7 @@ export default function OllamaConnectionMonitor() {
 		broadcastStatus(result.ok);
 
 		if (lastKnownStatusRef.current === true && !result.ok) {
-			let isInstalled = ollamaInstalledRef.current;
+			let isInstalled = ollamaInstalled;
 			if (isInstalled === null) {
 				isInstalled = await checkOllamaInstalled();
 			}
@@ -93,23 +84,19 @@ export default function OllamaConnectionMonitor() {
 			});
 
 			if (shouldOpen) {
-				await handleOpenOrInstallOllama(isInstalled);
-				const recheckConfig = readLocalModelConfig();
-				if (recheckConfig) {
-					const recheckResult =
-						await validateLocalModelConnection(recheckConfig);
-					lastKnownStatusRef.current = recheckResult.ok;
-					broadcastStatus(recheckResult.ok);
-				}
+				await handleOpenOrInstallOllama();
+				await testLocalConnection();
 				return;
 			}
 		}
 		lastKnownStatusRef.current = result.ok;
 	}, [
-		confirm,
-		checkOllamaInstalled,
-		handleOpenOrInstallOllama,
 		broadcastStatus,
+		checkOllamaInstalled,
+		confirm,
+		handleOpenOrInstallOllama,
+		ollamaInstalled,
+		testLocalConnection,
 	]);
 
 	useEffect(() => {
@@ -130,12 +117,12 @@ export default function OllamaConnectionMonitor() {
 	}, [isMonitoring, checkConnection]);
 
 	useEffect(() => {
-		const handler = () => {
+		const onModelChanged = () => {
 			void checkConnection();
 		};
 
-		window.addEventListener("MODEL_CHANGED", handler);
-		return () => window.removeEventListener("MODEL_CHANGED", handler);
+		window.addEventListener("MODEL_CHANGED", onModelChanged);
+		return () => window.removeEventListener("MODEL_CHANGED", onModelChanged);
 	}, [checkConnection]);
 
 	return null;

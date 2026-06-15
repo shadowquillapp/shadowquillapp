@@ -3,8 +3,8 @@
 import { useState } from "react";
 import FeatherLoader from "@/components/FeatherLoader";
 import { Icon } from "@/components/Icon";
+import type { MessageItem } from "@/types";
 import { MessageRenderer } from "../MessageRenderer";
-import type { MessageItem } from "../types";
 import type { useTabManager } from "../useTabManager";
 import { getOutputMessageId } from "../version-graph";
 import { TextStats } from "./TextStats";

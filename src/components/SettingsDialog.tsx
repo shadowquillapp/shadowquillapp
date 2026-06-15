@@ -1,6 +1,7 @@
 "use client";
 import type React from "react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { trapModalTabKey } from "@/components/modal-focus-trap";
 import { Icon } from "./Icon";
 import AppVersionContent from "./settings/AppVersionContent";
 import LocalDataManagementContent from "./settings/LocalDataManagementContent";
@@ -105,26 +106,6 @@ export default function SettingsDialog({
 	const activeTabConfig = SETTINGS_TABS.find((item) => item.tab === activeTab);
 	const ActiveContent = activeTabConfig?.Content ?? AppVersionContent;
 
-	const handleDialogKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
-		e.stopPropagation();
-		if (e.key !== "Tab") return;
-		const focusable = Array.from(
-			dialogRef.current?.querySelectorAll<HTMLElement>(
-				'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-			) ?? [],
-		).filter((item) => item.offsetParent !== null);
-		const first = focusable[0];
-		const last = focusable[focusable.length - 1];
-		if (!first || !last) return;
-		if (e.shiftKey && document.activeElement === first) {
-			e.preventDefault();
-			last.focus();
-		} else if (!e.shiftKey && document.activeElement === last) {
-			e.preventDefault();
-			first.focus();
-		}
-	};
-
 	return (
 		<div className="modal-container">
 			<button
@@ -137,7 +118,7 @@ export default function SettingsDialog({
 				ref={dialogRef}
 				className="modal-content modal-content--large settings-dialog"
 				onClick={(e) => e.stopPropagation()}
-				onKeyDown={handleDialogKeyDown}
+				onKeyDown={(e) => trapModalTabKey(e, dialogRef.current)}
 				style={{
 					overflow: "auto",
 					width: "min(920px, 95vw)",

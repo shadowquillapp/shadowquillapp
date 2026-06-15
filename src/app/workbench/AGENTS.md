@@ -15,12 +15,11 @@ workbench/
         ├── PresetInfoDialog.tsx
         ├── PresetPickerModal.tsx
         ├── TabBar.tsx
-        ├── types.ts                  # MessageItem, PromptPresetSummary, VersionGraph
         ├── useTabManager.ts          # ⚠ lives here, NOT in hooks/ (inconsistent on purpose)
         ├── version-graph.ts          # createVersionGraph, appendVersion, undoVersion, redoVersion, migrateVersionGraph
         ├── components/               # InputPanel, ModelSelector, OutputPanel, RefinementContextPanel, TextStats, VersionDropdown
         ├── hooks/                    # 9 hooks (see below)
-        └── utils/                    # copyMessage, presetUtils
+        └── utils/                    # copyMessage, markdown-fence
 ```
 
 ## Hooks (`_components/workbench/hooks/`)
@@ -28,7 +27,6 @@ workbench/
 | Hook | Role |
 |---|---|
 | `useGeneration.ts` | Send prompts, stop generation; calls `callLocalModelClient` + `prompt-builder-client`; appends versions. |
-| `useCopyMessage.ts` | Clipboard copy + 2s `copied` state. |
 | `useKeyboardShortcuts.ts` | Cmd/Ctrl+T for new tab, etc. |
 | `useModelManager.ts` | List local models, current model id, menu state. |
 | `usePanelResize.ts` | Mouse-drag resize; persists width via `local-storage`. |

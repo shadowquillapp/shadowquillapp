@@ -1,6 +1,6 @@
 import type { GenerationOptions, TaskType } from "@/types";
+import { readLocalModelConfig } from "./domain/model-config";
 import { ModelError, NetworkError } from "./errors";
-import { readLocalModelConfig } from "./local-config";
 
 /** Fixed sampling temperature for all Ollama requests. Not user-configurable. */
 const MODEL_TEMPERATURE = 0.2;
@@ -42,13 +42,11 @@ export async function callLocalModelClient(
 ): Promise<string> {
 	const cfg = readLocalModelConfig();
 	if (!cfg) {
-		throw new ModelError("Model not configured", {
-			details: { reason: "no_config" },
-		});
+		throw new ModelError("Model not configured");
 	}
 	if (cfg.provider !== "ollama") {
 		throw new ModelError(`Unsupported provider: ${cfg.provider}`, {
-			details: { provider: cfg.provider },
+			modelId: cfg.model,
 		});
 	}
 	const controller = new AbortController();

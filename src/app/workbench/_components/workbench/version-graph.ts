@@ -1,4 +1,4 @@
-import type { VersionGraph, VersionNode, VersionNodeMetadata } from "./types";
+import type { VersionGraph, VersionNode, VersionNodeMetadata } from "@/types";
 
 const makeId = () => {
 	if (

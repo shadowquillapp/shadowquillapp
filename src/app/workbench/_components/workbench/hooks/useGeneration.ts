@@ -6,8 +6,7 @@ import {
 	buildRefinementPrompt,
 	buildUnifiedPrompt,
 } from "@/lib/prompt-builder-client";
-import type { GenerationOptions } from "@/types";
-import type { MessageItem } from "../types";
+import type { GenerationOptions, MessageItem } from "@/types";
 import type { useTabManager } from "../useTabManager";
 import { appendVersion, versionList } from "../version-graph";
 
@@ -83,7 +82,9 @@ export function useGeneration(
 				const createdUserId = result?.created?.[0]?.id;
 				if (createdUserId)
 					tabManager.updateMessageForTab(tabId, user.id, { id: createdUserId });
-			} catch {}
+			} catch (e) {
+				console.error("[useGeneration] persist user message failed:", e);
+			}
 
 			const tabPreset = activeTab.preset;
 			const tabTaskType = tabPreset.taskType;
@@ -127,21 +128,21 @@ export function useGeneration(
 				);
 
 				if (lastOutputMessage?.content) {
-					built = await buildRefinementPrompt({
+					built = buildRefinementPrompt({
 						previousOutput: lastOutputMessage.content,
 						refinementRequest: text,
 						taskType: tabTaskType,
 						options,
 					});
 				} else {
-					built = await buildUnifiedPrompt({
+					built = buildUnifiedPrompt({
 						input: text,
 						taskType: tabTaskType,
 						options,
 					});
 				}
 			} else {
-				built = await buildUnifiedPrompt({
+				built = buildUnifiedPrompt({
 					input: text,
 					taskType: tabTaskType,
 					options,
@@ -176,7 +177,9 @@ export function useGeneration(
 					finalAssistantId = createdAssistantId;
 				}
 				await refreshProjectList();
-			} catch {}
+			} catch (e) {
+				console.error("[useGeneration] persist assistant message failed:", e);
+			}
 
 			const latestTab =
 				tabManager.getTabs().find((tab) => tab.id === tabId) ?? activeTab;
@@ -280,7 +283,9 @@ export function useGeneration(
 	const stopGenerating = useCallback(() => {
 		try {
 			abortGenerating(true);
-		} catch {}
+		} catch (e) {
+			console.error("[useGeneration] abort failed:", e);
+		}
 	}, [abortGenerating]);
 
 	return { send, stopGenerating };

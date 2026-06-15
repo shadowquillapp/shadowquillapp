@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useReducer, useRef, useState } from "react";
 import { clearTabState, readTabState, writeTabState } from "@/lib/domain/tabs";
 import { isFactoryResetInProgress } from "@/lib/local-storage";
-import type { MessageItem, PromptPresetSummary, VersionGraph } from "./types";
+import type { MessageItem, PresetLite, VersionGraph } from "@/types";
 import { createVersionGraph } from "./version-graph";
 
 const MAX_TABS = 8;
@@ -9,7 +9,7 @@ const MAX_TABS = 8;
 export interface Tab {
 	id: string;
 	label: string;
-	preset: PromptPresetSummary;
+	preset: PresetLite;
 	projectId: string | null;
 	draft: string;
 	messages: MessageItem[];
@@ -26,7 +26,7 @@ interface TabManagerState {
 type TabAction =
 	| {
 			type: "CREATE_TAB";
-			payload: { preset: PromptPresetSummary; tabId: string };
+			payload: { preset: PresetLite; tabId: string };
 	  }
 	| { type: "CLOSE_TAB"; payload: { tabId: string } }
 	| { type: "SWITCH_TAB"; payload: { tabId: string } }
@@ -60,7 +60,7 @@ type TabAction =
 	  }
 	| {
 			type: "SET_TAB_PRESET";
-			payload: { tabId: string; preset: PromptPresetSummary };
+			payload: { tabId: string; preset: PresetLite };
 	  }
 	| {
 			type: "RESTORE_TABS";
@@ -73,10 +73,7 @@ const initialState: TabManagerState = {
 	activeTabId: null,
 };
 
-function generateTabLabel(
-	preset: PromptPresetSummary,
-	existingTabs: Tab[],
-): string {
+function generateTabLabel(preset: PresetLite, existingTabs: Tab[]): string {
 	const baseName = preset.name;
 	const existingLabels = existingTabs.map((t) => t.label);
 
@@ -347,13 +344,15 @@ export function useTabManager() {
 			console.error("Failed to restore tabs:", error);
 			try {
 				clearTabState();
-			} catch {}
+			} catch (e) {
+				console.error("[useTabManager] clear tab state failed:", e);
+			}
 		} finally {
 			setIsInitialized(true);
 		}
 	}, []);
 
-	const createTab = useCallback((preset: PromptPresetSummary): string => {
+	const createTab = useCallback((preset: PresetLite): string => {
 		const tabId = `tab-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 		dispatch({ type: "CREATE_TAB", payload: { preset, tabId } });
 		return tabId;
@@ -470,7 +469,7 @@ export function useTabManager() {
 	);
 
 	const setPreset = useCallback(
-		(preset: PromptPresetSummary) => {
+		(preset: PresetLite) => {
 			if (!activeTabId) return;
 			dispatch({
 				type: "SET_TAB_PRESET",
@@ -541,7 +540,7 @@ export function useTabManager() {
 	);
 
 	const setPresetForTab = useCallback(
-		(tabId: string, preset: PromptPresetSummary) =>
+		(tabId: string, preset: PresetLite) =>
 			dispatch({ type: "SET_TAB_PRESET", payload: { tabId, preset } }),
 		[],
 	);

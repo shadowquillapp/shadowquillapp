@@ -53,7 +53,9 @@ export default function Titlebar() {
 			onClick={() => {
 				try {
 					action();
-				} catch {}
+				} catch (e) {
+					console.error("[Titlebar] window action failed:", e);
+				}
 			}}
 		/>
 	);

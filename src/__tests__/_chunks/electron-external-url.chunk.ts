@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 
 const require = createRequire(import.meta.url);
 const { openExternalUrl, parseAllowedExternalUrl } =
-	require("../../electron/utils/external-url.cjs") as {
+	require("../../../electron/utils/external-url.cjs") as {
 		openExternalUrl: (
 			shell: { openExternal: (url: string) => Promise<void> },
 			value: unknown,

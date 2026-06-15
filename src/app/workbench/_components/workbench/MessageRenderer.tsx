@@ -232,7 +232,9 @@ export function MessageRenderer({
 						"i",
 					);
 					cleanedCode = cleanedCode.replace(duplicateMarkerPattern, "");
-				} catch {}
+				} catch (e) {
+					console.debug("[MessageRenderer] strip duplicate fence failed:", e);
+				}
 			}
 
 			pushFenceBlock("code-unclosed", languageLabel, lang, cleanedCode);

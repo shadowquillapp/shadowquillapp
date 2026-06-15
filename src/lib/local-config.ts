@@ -2,11 +2,7 @@ import {
 	type LocalModelConfig,
 	readLocalModelConfig,
 	validateOllamaBaseUrl,
-	writeLocalModelConfig,
 } from "./domain/model-config";
-
-export type { LocalModelConfig } from "./domain/model-config";
-export { readLocalModelConfig, validateOllamaBaseUrl, writeLocalModelConfig };
 
 interface OllamaTagsResponse {
 	models?: Array<{ name?: string; id?: string; size?: number }>;

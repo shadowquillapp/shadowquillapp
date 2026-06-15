@@ -4,7 +4,7 @@ import { createPortal } from "react-dom";
 import { Icon } from "@/components/Icon";
 import { useMenuKeyboard } from "@/components/useMenuKeyboard";
 import { usePortalMenuAnchor } from "@/components/usePortalMenuAnchor";
-import type { VersionGraph } from "../types";
+import type { VersionGraph } from "@/types";
 
 interface VersionDropdownProps {
 	versionDropdownRef: React.RefObject<HTMLButtonElement | null>;

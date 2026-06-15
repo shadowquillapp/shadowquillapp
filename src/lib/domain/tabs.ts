@@ -1,8 +1,4 @@
-import type {
-	MessageItem,
-	PromptPresetSummary,
-	VersionGraph,
-} from "@/app/workbench/_components/workbench/types";
+import type { MessageItem, PresetLite, VersionGraph } from "@/types";
 import { getRaw, remove, setJSON } from "../local-storage";
 import { isArrayOf, isRecord, isString, safeParse } from "../schema";
 import { STORAGE_KEYS } from "../storage-keys";
@@ -10,7 +6,7 @@ import { STORAGE_KEYS } from "../storage-keys";
 export interface StoredTab {
 	id: string;
 	label: string;
-	preset: PromptPresetSummary;
+	preset: PresetLite;
 	projectId?: string | null;
 	draft?: string;
 	messages?: MessageItem[];

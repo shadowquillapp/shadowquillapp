@@ -3,7 +3,7 @@ import {
 	buildBaseDirectives,
 	buildDirectives,
 	buildFormatDirectives,
-} from "@/lib/prompt-directives/base";
+} from "@/lib/prompt-directives/directives";
 import type { Detail, Tone } from "@/types";
 
 describe("buildDirectives", () => {

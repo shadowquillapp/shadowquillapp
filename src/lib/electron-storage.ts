@@ -4,10 +4,6 @@ export interface ElectronDataPaths {
 	localStorageLevelDb?: string;
 }
 
-export type ElectronDataPathsResult =
-	| { ok: true; paths: ElectronDataPaths }
-	| { ok: false; error: string };
-
 interface ElectronDataPathsResponse {
 	ok: boolean;
 	error?: string;
@@ -16,10 +12,16 @@ interface ElectronDataPathsResponse {
 	localStorageLevelDb?: string;
 }
 
-export async function getElectronDataPaths(): Promise<ElectronDataPathsResult> {
+export async function getElectronDataPaths(): Promise<{
+	paths: ElectronDataPaths | null;
+	error: string | null;
+}> {
 	const api = window.shadowquill;
 	if (!api?.getDataPaths) {
-		return { ok: false, error: "Not available outside the desktop app" };
+		return {
+			paths: null,
+			error: "Not available outside the desktop app",
+		};
 	}
 	try {
 		const res = await (api.getDataPaths() as Promise<
@@ -27,7 +29,6 @@ export async function getElectronDataPaths(): Promise<ElectronDataPathsResult> {
 		>);
 		if (res?.ok) {
 			return {
-				ok: true,
 				paths: {
 					...(res.userData && { userData: res.userData }),
 					...(res.localStorageDir && {
@@ -37,20 +38,27 @@ export async function getElectronDataPaths(): Promise<ElectronDataPathsResult> {
 						localStorageLevelDb: res.localStorageLevelDb,
 					}),
 				},
+				error: null,
 			};
 		}
-		return { ok: false, error: res?.error || "Failed to load data paths" };
+		return {
+			paths: null,
+			error: res?.error || "Failed to load data paths",
+		};
 	} catch (e: unknown) {
 		const err = e as Error;
 		const msg = String(err?.message || "");
 		if (msg.includes("No handler registered")) {
 			return {
-				ok: false,
+				paths: null,
 				error:
 					"Main process not updated yet. Please fully quit and relaunch the app.",
 			};
 		}
-		return { ok: false, error: err?.message || "Failed to load data paths" };
+		return {
+			paths: null,
+			error: err?.message || "Failed to load data paths",
+		};
 	}
 }
 
@@ -195,13 +203,17 @@ function syncWrite(
 	if (!isElectronStorageAvailable()) {
 		try {
 			local();
-		} catch {}
+		} catch (e) {
+			console.error("[ElectronStorage] sync local write failed:", e);
+		}
 		return;
 	}
 	cached();
 	try {
 		local();
-	} catch {}
+	} catch (e) {
+		console.error("[ElectronStorage] sync local write failed:", e);
+	}
 	void queued();
 }
 
@@ -224,9 +236,9 @@ export const storage = {
 				electronStorage.setCached(key, localValue);
 				return localValue;
 			}
-		} catch {}
-
-		void electronStorage.getItem(key);
+		} catch (e) {
+			console.error("[ElectronStorage] localStorage read failed:", e);
+		}
 		return null;
 	},
 

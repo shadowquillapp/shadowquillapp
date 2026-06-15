@@ -23,11 +23,11 @@ export default function LocalDataManagementContent() {
 			setLoading(true);
 			setError(null);
 			try {
-				const result = await getElectronDataPaths();
-				if (result.ok) {
-					setPaths(result.paths);
+				const { paths, error: pathsError } = await getElectronDataPaths();
+				if (paths) {
+					setPaths(paths);
 				} else {
-					setError(result.error);
+					setError(pathsError);
 				}
 			} catch (e: unknown) {
 				const err = e as Error;

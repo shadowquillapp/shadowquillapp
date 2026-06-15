@@ -5,7 +5,7 @@ import {
 	getPresets,
 	type Preset,
 	savePreset,
-} from "@/lib/presets";
+} from "@/lib/domain/presets";
 import type { PresetLite } from "@/types";
 
 export function usePresetManager() {

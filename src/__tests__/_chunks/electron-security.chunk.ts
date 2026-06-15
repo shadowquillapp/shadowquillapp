@@ -3,7 +3,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 
 const require = createRequire(import.meta.url);
 const { buildCspPolicy, setupSecurityForSessions } =
-	require("../../electron/utils/security.cjs") as {
+	require("../../../electron/utils/security.cjs") as {
 		buildCspPolicy: (isDev: boolean) => string;
 		setupSecurityForSessions: (
 			isDev: boolean,
@@ -41,7 +41,7 @@ const {
 	addAllowedAppOrigin,
 	isAllowedAppUrl,
 	validateIpcSender,
-} = require("../../electron/utils/ipc-security.cjs") as {
+} = require("../../../electron/utils/ipc-security.cjs") as {
 	_resetAllowedAppOriginsForTests: () => void;
 	addAllowedAppOrigin: (value: string) => void;
 	isAllowedAppUrl: (value: unknown) => boolean;

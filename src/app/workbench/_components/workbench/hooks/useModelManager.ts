@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useCloseOnEscape } from "@/components/useCloseOnEscape";
-import { resolveOllamaBaseUrl } from "@/lib/domain/model-config";
 import {
-	listAvailableModels,
-	readLocalModelConfig as readLocalModelConfigClient,
-} from "@/lib/local-config";
+	readLocalModelConfig,
+	resolveOllamaBaseUrl,
+} from "@/lib/domain/model-config";
+import { listAvailableModels } from "@/lib/local-config";
 
 export function useModelManager() {
 	const [availableModels, setAvailableModels] = useState<
@@ -20,7 +20,7 @@ export function useModelManager() {
 	const refreshModels = useCallback(async () => {
 		try {
 			setModelLoadError(null);
-			const cfg = readLocalModelConfigClient();
+			const cfg = readLocalModelConfig();
 			const models = await listAvailableModels(resolveOllamaBaseUrl(cfg));
 			setAvailableModels(models);
 			if (cfg && cfg.provider === "ollama" && typeof cfg.model === "string") {

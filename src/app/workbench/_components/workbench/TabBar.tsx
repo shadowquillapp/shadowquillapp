@@ -4,12 +4,12 @@ import type { CSSProperties } from "react";
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { getTaskTypeIcon } from "@/lib/task-type-icon";
-import type { PromptPresetSummary } from "./types";
+import type { PresetLite } from "@/types";
 
 export interface TabInfo {
 	id: string;
 	label: string;
-	preset: PromptPresetSummary;
+	preset: PresetLite;
 }
 
 interface TabBarProps {

@@ -1,9 +1,9 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type React from "react";
 import { useEffect, useRef } from "react";
 import { Icon } from "@/components/Icon";
+import { trapModalTabKey } from "@/components/modal-focus-trap";
 import { useCloseOnEscape } from "@/components/useCloseOnEscape";
 import { setLastSelectedPresetKey } from "@/lib/preset-store";
 import { getTaskTypeIcon } from "@/lib/task-type-icon";
@@ -61,26 +61,6 @@ export function PresetInfoDialog({
 				?.focus();
 		});
 	}, [open]);
-
-	const handleDialogKeyDown = (e: React.KeyboardEvent<HTMLDialogElement>) => {
-		e.stopPropagation();
-		if (e.key !== "Tab") return;
-		const focusable = Array.from(
-			dialogRef.current?.querySelectorAll<HTMLElement>(
-				'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
-			) ?? [],
-		).filter((item) => item.offsetParent !== null);
-		const first = focusable[0];
-		const last = focusable[focusable.length - 1];
-		if (!first || !last) return;
-		if (e.shiftKey && document.activeElement === first) {
-			e.preventDefault();
-			last.focus();
-		} else if (!e.shiftKey && document.activeElement === last) {
-			e.preventDefault();
-			first.focus();
-		}
-	};
 
 	if (!open) return null;
 
@@ -145,7 +125,7 @@ export function PresetInfoDialog({
 				open
 				className="modal-content modal-content--medium"
 				onClick={(e) => e.stopPropagation()}
-				onKeyDown={handleDialogKeyDown}
+				onKeyDown={(e) => trapModalTabKey(e, dialogRef.current)}
 			>
 				<div className="modal-header">
 					<div className="modal-title flex items-center gap-2">

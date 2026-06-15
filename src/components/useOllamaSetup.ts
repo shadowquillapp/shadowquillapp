@@ -2,13 +2,15 @@
 
 import { useCallback, useState } from "react";
 import {
+	readLocalModelConfig,
+	writeLocalModelConfig,
+} from "@/lib/domain/model-config";
+import {
 	isSupportedOllamaModelName,
 	isValidOllamaPort,
 	listAvailableModels,
 	normalizeOllamaBaseUrlInput,
-	readLocalModelConfig,
 	validateLocalModelConnection,
-	writeLocalModelConfig,
 } from "@/lib/local-config";
 import { useOpenOrInstallOllama } from "./useOpenOrInstallOllama";
 
@@ -140,8 +142,9 @@ export function useOllamaSetup() {
 							}),
 						);
 						window.dispatchEvent(new Event("MODEL_CHANGED"));
-					} catch {}
-					return { ok: true, payload };
+					} catch (e) {
+						console.debug("[useOllamaSetup] model-changed dispatch failed:", e);
+					}
 				}
 				const errorMsg = vjson.error || "Connection failed";
 				if (errorMsg === "model-not-found") {

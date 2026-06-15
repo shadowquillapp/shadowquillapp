@@ -1,30 +1,26 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import * as modelConfig from "@/lib/domain/model-config";
 import { ModelError, NetworkError } from "@/lib/errors";
-
-// Mock the local-config module
-vi.mock("@/lib/local-config", () => ({
-	readLocalModelConfig: vi.fn(),
-}));
-
-import { readLocalModelConfig } from "@/lib/local-config";
-// Import after mocking
 import { callLocalModelClient } from "@/lib/model-client";
-
-const mockReadLocalModelConfig = vi.mocked(readLocalModelConfig);
 
 describe("callLocalModelClient", () => {
 	beforeEach(() => {
+		vi.spyOn(modelConfig, "readLocalModelConfig");
 		vi.clearAllMocks();
 		vi.useFakeTimers();
 	});
 
 	afterEach(() => {
+		vi.restoreAllMocks();
 		vi.useRealTimers();
 	});
 
+	const mockReadLocalModelConfig = () =>
+		vi.mocked(modelConfig.readLocalModelConfig);
+
 	describe("configuration validation", () => {
 		it("should throw ModelError when no config exists", async () => {
-			mockReadLocalModelConfig.mockReturnValue(null);
+			mockReadLocalModelConfig().mockReturnValue(null);
 
 			await expect(callLocalModelClient("test prompt")).rejects.toThrow(
 				ModelError,
@@ -35,7 +31,7 @@ describe("callLocalModelClient", () => {
 		});
 
 		it("should throw ModelError for unsupported provider", async () => {
-			mockReadLocalModelConfig.mockReturnValue({
+			mockReadLocalModelConfig().mockReturnValue({
 				// @ts-expect-error Testing unsupported provider
 				provider: "openai",
 				baseUrl: "http://localhost",
@@ -53,7 +49,7 @@ describe("callLocalModelClient", () => {
 
 	describe("successful API calls", () => {
 		beforeEach(() => {
-			mockReadLocalModelConfig.mockReturnValue({
+			mockReadLocalModelConfig().mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://localhost:11434",
 				model: "gemma3:4b",
@@ -98,7 +94,7 @@ describe("callLocalModelClient", () => {
 		});
 
 		it("should handle trailing slash in baseUrl", async () => {
-			mockReadLocalModelConfig.mockReturnValue({
+			mockReadLocalModelConfig().mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://localhost:11434/",
 				model: "gemma3:4b",
@@ -120,7 +116,7 @@ describe("callLocalModelClient", () => {
 
 	describe("error handling", () => {
 		beforeEach(() => {
-			mockReadLocalModelConfig.mockReturnValue({
+			mockReadLocalModelConfig().mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://localhost:11434",
 				model: "gemma3:4b",
@@ -182,7 +178,7 @@ describe("callLocalModelClient", () => {
 
 	describe("output format processing", () => {
 		beforeEach(() => {
-			mockReadLocalModelConfig.mockReturnValue({
+			mockReadLocalModelConfig().mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://localhost:11434",
 				model: "gemma3:4b",
@@ -277,7 +273,7 @@ describe("callLocalModelClient", () => {
 
 	describe("meta word count stripping", () => {
 		beforeEach(() => {
-			mockReadLocalModelConfig.mockReturnValue({
+			mockReadLocalModelConfig().mockReturnValue({
 				provider: "ollama",
 				baseUrl: "http://localhost:11434",
 				model: "gemma3:4b",

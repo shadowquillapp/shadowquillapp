@@ -30,16 +30,10 @@
 				"npmPublish": false
 			}
 		],
-		"./scripts/update-version.js",
 		[
 			"@semantic-release/git",
 			{
-				"assets": [
-					"package.json",
-					"pnpm-lock.yaml",
-					"src/lib/version.ts",
-					"CHANGELOG.md"
-				],
+				"assets": ["package.json", "pnpm-lock.yaml", "CHANGELOG.md"],
 				"message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
 			}
 		],

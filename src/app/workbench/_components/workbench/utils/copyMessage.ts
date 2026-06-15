@@ -16,18 +16,3 @@ export function extractCodeFenceContent(content: string): string {
 	}
 	return textToCopy;
 }
-
-export async function copyToClipboard(content: string): Promise<void> {
-	const textToCopy = extractCodeFenceContent(content);
-	try {
-		await navigator.clipboard.writeText(textToCopy);
-	} catch {
-		// Fallback for older browsers
-		const textArea = document.createElement("textarea");
-		textArea.value = textToCopy;
-		document.body.appendChild(textArea);
-		textArea.select();
-		document.execCommand("copy");
-		document.body.removeChild(textArea);
-	}
-}

@@ -1,9 +1,9 @@
 import type { GenerationOptions, TaskType } from "@/types";
 import {
 	buildDirectives,
-	DETAIL_WORD_LIMIT_LABELS,
+	detailWordLimitLabel,
 	isNonEnglishLanguage,
-} from "./prompt-directives/base";
+} from "./prompt-directives/directives";
 
 export const VALIDATION_PIPELINE = `Validation pipeline (apply in order):
 1. User Goal Preservation
@@ -143,7 +143,7 @@ export function buildUnifiedPromptCore(params: {
 	let finalInstruction = `Compile the user input into stable ${taskType} execution framing. Output ONLY the compiled prompt text — no preamble or meta-commentary.`;
 
 	if (options?.detail) {
-		const limit = DETAIL_WORD_LIMIT_LABELS[options.detail];
+		const limit = detailWordLimitLabel(options.detail);
 		if (limit) {
 			finalInstruction += ` Your compiled output must be ${limit}. Do NOT include word count constraints in the compiled prompt itself.`;
 		}
@@ -207,7 +207,7 @@ export function buildRefinementPromptCore(params: {
 		"Apply the refinement request to the existing compiled prompt. Output ONLY the refined prompt text — no preamble or meta-commentary.";
 
 	if (options?.detail) {
-		const limit = DETAIL_WORD_LIMIT_LABELS[options.detail];
+		const limit = detailWordLimitLabel(options.detail);
 		if (limit) {
 			finalInstruction += ` Your refined output must be ${limit}.`;
 		}

@@ -11,7 +11,7 @@ studio/
 ├── PresetStudioPage.tsx              # client; page-level state + composition
 ├── components/                       # 5 files (see below)
 └── hooks/
-    └── usePresetManager.ts           # load/save/delete/duplicate via @/lib/presets
+    └── usePresetManager.ts           # load/save/delete/duplicate via @/lib/domain/presets
 ```
 
 ## Components
@@ -28,12 +28,12 @@ studio/
 
 - **`PresetStudioPage` is the page-level state owner** — selected preset, editing preset, dirty flag, sidebar open, small-screen flag. Pull everything through `usePresetManager()`.
 - **Auto-selects last-used preset on mount**; warns on `beforeunload` if dirty.
-- **Persistence via `@/lib/presets` barrel** through the studio's `usePresetManager` (not direct `@/lib/domain/presets` imports in components).
+- **Persistence via `@/lib/domain/presets`** through the studio's `usePresetManager`.
 - **`usePresetManager` is the only preset-authoring API** — load, save, delete, duplicate only.
 
 ## Anti-patterns (delta from root)
 
-- ❌ **Do not import from `@/lib/domain/presets.ts` directly in components** — go through the studio's `usePresetManager` or `@/lib/presets` barrel.
+- ❌ **Do not import from `@/lib/domain/presets.ts` directly in components** — go through the studio's `usePresetManager`.
 - ❌ **Do not create a parallel editor form** — `PresetEditor` composes `BasicSettings` + inline context fields.
 - ❌ **Do not move `PresetStudioPage.tsx` inside `components/`** — sibling-of-`page.tsx` is the convention here.
 - ❌ **Do not introduce a different state library** — page-level state stays in `PresetStudioPage`.

@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
-	listAvailableModels,
 	readLocalModelConfig,
-	validateLocalModelConnection,
 	writeLocalModelConfig,
+} from "@/lib/domain/model-config";
+import {
+	listAvailableModels,
+	validateLocalModelConnection,
 } from "@/lib/local-config";
 
 describe("local-config", () => {

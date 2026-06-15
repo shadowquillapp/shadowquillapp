@@ -1,10 +1,12 @@
-import { resolveOllamaBaseUrl } from "@/lib/domain/model-config";
+import {
+	readLocalModelConfig,
+	resolveOllamaBaseUrl,
+	writeLocalModelConfig,
+} from "@/lib/domain/model-config";
 import {
 	formatOllamaModelName,
 	isSupportedOllamaModelName,
-	readLocalModelConfig as readLocalModelConfigClient,
 	SUPPORTED_OLLAMA_MODELS,
-	writeLocalModelConfig as writeLocalModelConfigClient,
 } from "@/lib/local-config";
 
 interface ModelSelectorProps {
@@ -99,8 +101,8 @@ export function ModelSelector({
 							disabled={!isInstalled}
 							onClick={() => {
 								if (!isInstalled) return;
-								const cfg = readLocalModelConfigClient();
-								writeLocalModelConfigClient({
+								const cfg = readLocalModelConfig();
+								writeLocalModelConfig({
 									provider: "ollama",
 									baseUrl: resolveOllamaBaseUrl(cfg),
 									model: model.id,
@@ -112,7 +114,12 @@ export function ModelSelector({
 											detail: { modelId: model.id },
 										}),
 									);
-								} catch {}
+								} catch (e) {
+									console.debug(
+										"[ModelSelector] model-changed dispatch failed:",
+										e,
+									);
+								}
 							}}
 							className={`model-selector__pill flex h-[22px] items-center justify-center px-2 font-mono font-semibold text-[length:var(--text-xs)] ${
 								!isInstalled ? "cursor-not-allowed opacity-40" : ""

@@ -9,7 +9,6 @@ import { setLastSelectedPresetKey } from "@/lib/preset-store";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { InputPanel } from "./workbench/components/InputPanel";
 import { OutputPanel } from "./workbench/components/OutputPanel";
-import { useCopyMessage } from "./workbench/hooks/useCopyMessage";
 import { useGeneration } from "./workbench/hooks/useGeneration";
 import { useKeyboardShortcuts } from "./workbench/hooks/useKeyboardShortcuts";
 import { useModelManager } from "./workbench/hooks/useModelManager";
@@ -22,6 +21,7 @@ import { PresetInfoDialog } from "./workbench/PresetInfoDialog";
 import { PresetPickerModal } from "./workbench/PresetPickerModal";
 import { TabBar } from "./workbench/TabBar";
 import { useTabManager } from "./workbench/useTabManager";
+import { extractCodeFenceContent } from "./workbench/utils/copyMessage";
 import { versionList } from "./workbench/version-graph";
 
 export default function PromptWorkbench() {
@@ -41,7 +41,19 @@ export default function PromptWorkbench() {
 	const [leftPanelWidth, setLeftPanelWidth] = useState(50);
 	const [isResizing, setIsResizing] = useState(false);
 	const panelsRef = useRef<HTMLDivElement | null>(null);
-	const { copyMessage, copiedMessageId } = useCopyMessage();
+	const [copiedMessageId, setCopiedMessageId] = useState<string | null>(null);
+	const copyMessage = useCallback(
+		async (messageId: string, content: string) => {
+			try {
+				await navigator.clipboard.writeText(extractCodeFenceContent(content));
+				setCopiedMessageId(messageId);
+				setTimeout(() => setCopiedMessageId(null), 2000);
+			} catch (e) {
+				console.error("[PromptWorkbench] copy failed:", e);
+			}
+		},
+		[],
+	);
 	const scrollContainerRef = useRef<HTMLDivElement | null>(null);
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [settingsInitialTab, setSettingsInitialTab] =
@@ -66,16 +78,19 @@ export default function PromptWorkbench() {
 	}, []);
 
 	useEffect(() => {
-		const handler = (e: Event) => {
+		const onOpenAppSettings = (e: Event) => {
 			try {
 				const ce = e as CustomEvent<{ tab?: "system" | "ollama" | "data" }>;
 				const tab = ce?.detail?.tab;
 				if (tab) setSettingsInitialTab(tab);
-			} catch {}
+			} catch (e) {
+				console.error("[PromptWorkbench] open-app-settings event failed:", e);
+			}
 			setSettingsOpen(true);
 		};
-		window.addEventListener("open-app-settings", handler);
-		return () => window.removeEventListener("open-app-settings", handler);
+		window.addEventListener("open-app-settings", onOpenAppSettings);
+		return () =>
+			window.removeEventListener("open-app-settings", onOpenAppSettings);
 	}, []);
 
 	const { send, stopGenerating } = useGeneration(

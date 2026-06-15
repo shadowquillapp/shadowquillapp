@@ -8,12 +8,11 @@ export const DETAIL_WORD_LIMIT_DESCRIPTIONS: Record<
 	detailed: { min: 200, max: 250, description: "Detailed (200-250 words)" },
 };
 
-export const DETAIL_WORD_LIMIT_LABELS = Object.fromEntries(
-	Object.entries(DETAIL_WORD_LIMIT_DESCRIPTIONS).map(([key, limit]) => [
-		key,
-		`${limit.min}-${limit.max} words (DO NOT EXCEED ${limit.max})`,
-	]),
-) as Record<string, string>;
+export function detailWordLimitLabel(detail: string): string | undefined {
+	const limit = DETAIL_WORD_LIMIT_DESCRIPTIONS[detail];
+	if (!limit) return undefined;
+	return `${limit.min}-${limit.max} words (DO NOT EXCEED ${limit.max})`;
+}
 
 export function isNonEnglishLanguage(language?: string): language is string {
 	return !!language && language.toLowerCase() !== "english";

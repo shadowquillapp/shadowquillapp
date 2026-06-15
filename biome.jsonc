@@ -14,7 +14,8 @@
 			"!**/.omo",
 			"!**/dist",
 			"!**/build",
-			"!**/out"
+			"!**/out",
+			"!next-env.d.ts"
 		]
 	},
 	"formatter": { "enabled": true },

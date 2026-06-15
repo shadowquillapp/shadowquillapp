@@ -6,11 +6,11 @@ export function useCloseOnEscape(open: boolean, onClose: () => void): void {
 	useEffect(() => {
 		if (!open) return;
 
-		const onEsc = (e: KeyboardEvent) => {
+		const onEscapeKey = (e: KeyboardEvent) => {
 			if (e.key === "Escape") onClose();
 		};
 
-		document.addEventListener("keydown", onEsc);
-		return () => document.removeEventListener("keydown", onEsc);
+		document.addEventListener("keydown", onEscapeKey);
+		return () => document.removeEventListener("keydown", onEscapeKey);
 	}, [open, onClose]);
 }

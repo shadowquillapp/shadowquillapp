@@ -20,16 +20,19 @@ export default function StudioHeader({
 		useState<SettingsTab>("version");
 
 	useEffect(() => {
-		const handler = (e: Event) => {
+		const onOpenAppSettings = (e: Event) => {
 			try {
 				const ce = e as CustomEvent;
 				const tab = ce?.detail?.tab as "system" | "ollama" | "data" | undefined;
 				if (tab) setSettingsInitialTab(tab);
-			} catch {}
+			} catch (e) {
+				console.error("[StudioHeader] open-app-settings event failed:", e);
+			}
 			setSettingsOpen(true);
 		};
-		window.addEventListener("open-app-settings", handler);
-		return () => window.removeEventListener("open-app-settings", handler);
+		window.addEventListener("open-app-settings", onOpenAppSettings);
+		return () =>
+			window.removeEventListener("open-app-settings", onOpenAppSettings);
 	}, []);
 
 	return (

@@ -1,5 +1,5 @@
 import { Icon } from "@/components/Icon";
-import type { VersionGraph } from "../types";
+import type { VersionGraph } from "@/types";
 import type { useTabManager } from "../useTabManager";
 
 interface RefinementContextPanelProps {

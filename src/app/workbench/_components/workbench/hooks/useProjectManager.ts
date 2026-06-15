@@ -7,7 +7,7 @@ import {
 	listProjectsByUser as localListProjects,
 	updateProjectVersionGraph,
 } from "@/lib/domain/projects";
-import type { MessageItem, PromptPresetSummary, VersionGraph } from "../types";
+import type { MessageItem, PresetLite, VersionGraph } from "@/types";
 import type { useTabManager } from "../useTabManager";
 import {
 	appendVersion,
@@ -17,16 +17,8 @@ import {
 
 export function useProjectManager(
 	tabManager: ReturnType<typeof useTabManager>,
-	presets: Array<{
-		id?: string;
-		name: string;
-		taskType: string;
-		options?: unknown;
-	}>,
-	applyPreset: (
-		preset: PromptPresetSummary,
-		opts?: { trackRecent?: boolean },
-	) => void,
+	presets: PresetLite[],
+	applyPreset: (preset: PresetLite, opts?: { trackRecent?: boolean }) => void,
 	showInfo: ReturnType<typeof useDialog>["showInfo"],
 ) {
 	const [projectList, setProjectList] = useState<
@@ -118,17 +110,17 @@ export function useProjectManager(
 					}),
 				);
 
-				let projectPreset: PromptPresetSummary | null = null;
+				let projectPreset: PresetLite | null = null;
 				if (data.presetId) {
 					const preset = presets.find((p) => p.id === data.presetId);
 					if (preset) {
-						projectPreset = preset as PromptPresetSummary;
+						projectPreset = preset;
 					}
 				}
 
 				if (!projectPreset) {
 					if (presets.length > 0) {
-						projectPreset = presets[0] as PromptPresetSummary;
+						projectPreset = presets[0] ?? null;
 					}
 				}
 
@@ -209,7 +201,9 @@ export function useProjectManager(
 			try {
 				await localDeleteProject(id);
 				await refreshProjectList();
-			} catch {}
+			} catch (e) {
+				console.error("[useProjectManager] delete project failed:", e);
+			}
 
 			for (const tab of tabManager.getTabs()) {
 				if (tab.projectId === id) {
@@ -224,7 +218,9 @@ export function useProjectManager(
 		const ids = recentProjects.map((c) => c.id);
 		try {
 			await Promise.allSettled(ids.map((id) => deleteProject(id)));
-		} catch {}
+		} catch (e) {
+			console.error("[useProjectManager] delete all projects failed:", e);
+		}
 	}, [recentProjects, deleteProject]);
 
 	const activeTab = tabManager.activeTab;
