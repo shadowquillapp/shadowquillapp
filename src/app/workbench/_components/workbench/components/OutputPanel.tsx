@@ -145,7 +145,17 @@ export function OutputPanel({
 						minHeight: 0,
 					}}
 				>
-					{!hasMessages ? (
+					{activeTab?.sending ? (
+						<div
+							className="flex h-full min-h-[200px] flex-col items-center justify-center gap-3 text-on-surface-variant"
+							style={{
+								filter: "none",
+								opacity: 1,
+							}}
+						>
+							<FeatherLoader />
+						</div>
+					) : !hasMessages ? (
 						<div className="workbench-empty">
 							<Icon name="terminal" className="workbench-empty__icon" />
 							<p className="workbench-empty__title">Ready to generate</p>
@@ -154,49 +164,32 @@ export function OutputPanel({
 							</p>
 						</div>
 					) : (
-						(() => {
-							return (
-								<div
-									key={outputAnimateKey}
-									className="output-animate-in flex flex-col"
-									style={{ gap: "var(--space-6)" }}
-								>
-									{activeTab?.sending ? (
-										<div
-											className="flex h-full min-h-[200px] flex-col items-center justify-center gap-3 text-on-surface-variant"
-											style={{
-												filter: "none",
-												opacity: 1,
-											}}
-										>
-											<FeatherLoader />
-										</div>
-									) : activeOutput ? (
-										<ActiveOutputView
-											key={`${activeOutput.id}-${outputAnimateKey}`}
-											output={activeOutput}
-											copyMessage={copyMessage}
-											copiedMessageId={copiedMessageId}
-										/>
-									) : (
-										<div className="workbench-empty">
-											<Icon
-												name="file-text"
-												className="workbench-empty__icon"
-											/>
-											<p className="workbench-empty__title">
-												No Output for This Version
-											</p>
-											<p className="workbench-empty__hint">
-												This version is a manual save. Run the prompt to
-												generate output.
-											</p>
-										</div>
-									)}
-									<div ref={endRef} />
+						<div
+							key={outputAnimateKey}
+							className="output-animate-in flex flex-col"
+							style={{ gap: "var(--space-6)" }}
+						>
+							{activeOutput ? (
+								<ActiveOutputView
+									key={`${activeOutput.id}-${outputAnimateKey}`}
+									output={activeOutput}
+									copyMessage={copyMessage}
+									copiedMessageId={copiedMessageId}
+								/>
+							) : (
+								<div className="workbench-empty">
+									<Icon name="file-text" className="workbench-empty__icon" />
+									<p className="workbench-empty__title">
+										No Output for This Version
+									</p>
+									<p className="workbench-empty__hint">
+										This version is a manual save. Run the prompt to generate
+										output.
+									</p>
 								</div>
-							);
-						})()
+							)}
+							<div ref={endRef} />
+						</div>
 					)}
 				</div>
 			</div>

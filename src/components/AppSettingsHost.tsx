@@ -6,12 +6,12 @@ import SettingsDialog, { type SettingsTab } from "./SettingsDialog";
 export default function AppSettingsHost() {
 	const [settingsOpen, setSettingsOpen] = useState(false);
 	const [settingsInitialTab, setSettingsInitialTab] =
-		useState<SettingsTab>("version");
+		useState<SettingsTab>("ollama");
 
 	useEffect(() => {
 		const handler = (e: Event) => {
 			try {
-				const ce = e as CustomEvent<{ tab?: "system" | "ollama" | "data" }>;
+				const ce = e as CustomEvent<{ tab?: SettingsTab }>;
 				const tab = ce?.detail?.tab;
 				if (tab) setSettingsInitialTab(tab);
 			} catch {}

@@ -15,6 +15,21 @@ interface ModelSelectorProps {
 	isGenerating: boolean;
 }
 
+const COMPACT_BTN_STYLE = {
+	height: 22,
+	padding: "0 var(--space-2)",
+	fontSize: "var(--text-2xs)",
+} as const;
+
+function formatModelLabel(id: string, tag: string): string {
+	for (const gen of ["3", "4"] as const) {
+		if (id.startsWith(`gemma${gen}:`) && tag) {
+			return tag === "latest" ? `${gen} Latest` : `${gen} ${tag.toUpperCase()}`;
+		}
+	}
+	return tag.toUpperCase();
+}
+
 export function ModelSelector({
 	availableModels,
 	modelLoadError,
@@ -31,21 +46,15 @@ export function ModelSelector({
 				.map((id) => id.toLowerCase()),
 		),
 	);
+	const installedIds = new Set(
+		availableModels.map((m) => m.name.toLowerCase()),
+	);
 	const models = modelIds.map((id) => {
 		const tag = id.split(":")[1] || id;
 		return {
 			id,
 			displayName: formatOllamaModelName(id),
-			label:
-				id.startsWith("gemma3:") && tag
-					? tag === "latest"
-						? "3 Latest"
-						: `3 ${tag.toUpperCase()}`
-					: id.startsWith("gemma4:") && tag
-						? tag === "latest"
-							? "4 Latest"
-							: `4 ${tag.toUpperCase()}`
-						: tag.toUpperCase(),
+			label: formatModelLabel(id, tag),
 		};
 	});
 	return (
@@ -75,11 +84,7 @@ export function ModelSelector({
 					onClick={() => void refreshModels()}
 					title={modelLoadError}
 					aria-label={`Retry loading models: ${modelLoadError}`}
-					style={{
-						height: 22,
-						padding: "0 var(--space-2)",
-						fontSize: "var(--text-2xs)",
-					}}
+					style={COMPACT_BTN_STYLE}
 				>
 					Retry
 				</button>
@@ -89,20 +94,34 @@ export function ModelSelector({
 				style={{ gap: "var(--space-1)" }}
 			>
 				{modelLoadError ? (
-					<span
-						className="font-sans text-[length:var(--text-2xs)]"
-						style={{
-							color: "var(--color-error)",
-							whiteSpace: "nowrap",
-						}}
-					>
-						No Ollama connection found
-					</span>
+					<>
+						<span
+							className="font-sans text-[length:var(--text-2xs)]"
+							style={{
+								color: "var(--color-error)",
+								whiteSpace: "nowrap",
+							}}
+						>
+							No Ollama connection found
+						</span>
+						<button
+							type="button"
+							className="md-btn"
+							onClick={() => {
+								window.dispatchEvent(
+									new CustomEvent("open-app-settings", {
+										detail: { tab: "ollama" },
+									}),
+								);
+							}}
+							style={COMPACT_BTN_STYLE}
+						>
+							Set up
+						</button>
+					</>
 				) : (
 					models.map((model) => {
-						const isInstalled = availableModels.some(
-							(m) => m.name.toLowerCase() === model.id,
-						);
+						const isInstalled = installedIds.has(model.id);
 						const isActive = currentModelId?.toLowerCase() === model.id;
 						return (
 							<button
@@ -132,7 +151,7 @@ export function ModelSelector({
 								title={
 									isInstalled
 										? `Switch to ${model.displayName}`
-										: `${model.displayName} is not installed`
+										: `${model.displayName} is not installed - run: ollama pull ${model.id}`
 								}
 								aria-pressed={isActive}
 								style={{

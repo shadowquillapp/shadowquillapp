@@ -3,8 +3,9 @@
 import type React from "react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
+import { Icon } from "@/components/Icon";
 import { getJSON } from "@/lib/local-storage";
-import { setLastSelectedPresetKey } from "@/lib/preset-store";
+import { presetKey, setLastSelectedPresetKey } from "@/lib/preset-store";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import { InputPanel } from "./workbench/components/InputPanel";
 import { OutputPanel } from "./workbench/components/OutputPanel";
@@ -42,7 +43,6 @@ export default function PromptWorkbench() {
 	const panelsRef = useRef<HTMLDivElement | null>(null);
 	const { copyMessage, copiedMessageId } = useCopyMessage();
 	const scrollContainerRef = useRef<HTMLDivElement | null>(null);
-	const textareaContainerRef = useRef<HTMLDivElement | null>(null);
 	const tabManager = useTabManager();
 	const [showPresetPicker, setShowPresetPicker] = useState(false);
 	const { presets, applyPreset } = usePresetManager(tabManager);
@@ -103,20 +103,18 @@ export default function PromptWorkbench() {
 	const activeVersion = activeVersionId
 		? activeTab?.versionGraph.nodes[activeVersionId]
 		: null;
-	const outputToRefine = activeVersion?.outputMessageId
-		? activeMessages.find(
-				(m) => m.id === activeVersion.outputMessageId && m.role === "assistant",
-			)?.content
-		: null;
-
-	const { wordCount, charCount } = useTextStats(activeTab?.draft);
-
 	const activeVersionOutput = useMemo(() => {
 		if (!activeVersion?.outputMessageId) return null;
-		return activeMessages.find(
-			(m) => m.id === activeVersion.outputMessageId && m.role === "assistant",
+		return (
+			activeMessages.find(
+				(m) => m.id === activeVersion.outputMessageId && m.role === "assistant",
+			) ?? null
 		);
 	}, [activeVersion?.outputMessageId, activeMessages]);
+
+	const outputToRefine = activeVersionOutput?.content ?? null;
+
+	const { wordCount, charCount } = useTextStats(activeTab?.draft);
 
 	const { wordCount: outputWordCount, charCount: outputCharCount } =
 		useTextStats(activeVersionOutput?.content);
@@ -125,7 +123,9 @@ export default function PromptWorkbench() {
 		if (tabManager.activeTabId) tabManager.closeTab(tabManager.activeTabId);
 	}, [tabManager]);
 
-	useKeyboardShortcuts(tabManager, setShowPresetPicker, closeActiveTab, send);
+	const openPresetPicker = useCallback(() => setShowPresetPicker(true), []);
+
+	useKeyboardShortcuts(tabManager, openPresetPicker, closeActiveTab, send);
 
 	const { handleResizeStart } = usePanelResize(
 		leftPanelWidth,
@@ -140,7 +140,7 @@ export default function PromptWorkbench() {
 	// Keep Studio's "last selected preset" in sync with the active tab,
 	// since cross-route navigation now happens through the console rail.
 	const activePresetKey = activeTab?.preset
-		? (activeTab.preset.id ?? activeTab.preset.name)
+		? presetKey(activeTab.preset)
 		: null;
 	useEffect(() => {
 		if (activePresetKey) setLastSelectedPresetKey(activePresetKey);
@@ -182,11 +182,32 @@ export default function PromptWorkbench() {
 						onSwitchTab={tabManager.switchTab}
 						onCloseTab={tabManager.closeTab}
 						onReorderTabs={tabManager.reorderTabs}
-						onNewTab={() => setShowPresetPicker(true)}
+						onNewTab={openPresetPicker}
 					/>
 				</header>
 
 				<div ref={panelsRef} className="simple-workbench__panels">
+					{tabManager.tabs.length === 0 && (
+						<div className="workbench-welcome">
+							<Icon name="brush" className="workbench-welcome__icon" />
+							<h2 className="workbench-welcome__title">
+								Welcome to ShadowQuill
+							</h2>
+							<p className="workbench-welcome__hint">
+								Describe what you want and ShadowQuill turns it into a polished
+								prompt you can paste into any AI. Pick a starting point to
+								begin.
+							</p>
+							<button
+								type="button"
+								className="md-btn md-btn--primary md-btn--label"
+								onClick={openPresetPicker}
+							>
+								<Icon name="plus" style={{ width: 14, height: 14 }} />
+								Pick a starting point
+							</button>
+						</div>
+					)}
 					<div className="workbench-split panel">
 						<InputPanel
 							leftPanelWidth={leftPanelWidth}
@@ -204,7 +225,6 @@ export default function PromptWorkbench() {
 							versions={versions}
 							activeVersionId={activeVersionId}
 							outputToRefine={outputToRefine}
-							textareaContainerRef={textareaContainerRef}
 							activeTab={activeTab}
 							isGenerating={isGenerating}
 							availableModels={availableModels}

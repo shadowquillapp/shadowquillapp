@@ -9,17 +9,21 @@ import SystemPromptEditorContent from "./settings/SystemPromptEditorContent";
 import { useCloseOnEscape } from "./useCloseOnEscape";
 
 const SETTINGS_TABS = [
+	{ tab: "ollama", label: "Ollama Setup", Content: OllamaSetupContent },
 	{ tab: "version", label: "App Version", Content: AppVersionContent },
 	{
 		tab: "data",
 		label: "Data Management",
 		Content: LocalDataManagementContent,
 	},
-	{ tab: "ollama", label: "Ollama Setup", Content: OllamaSetupContent },
 	{ tab: "system", label: "System Prompt", Content: SystemPromptEditorContent },
 ] as const;
 
 export type SettingsTab = (typeof SETTINGS_TABS)[number]["tab"];
+
+const TAB_INDEX = Object.fromEntries(
+	SETTINGS_TABS.map((item, index) => [item.tab, index]),
+) as Record<SettingsTab, number>;
 
 interface Props {
 	open: boolean;
@@ -30,7 +34,7 @@ interface Props {
 export default function SettingsDialog({
 	open,
 	onClose,
-	initialTab = "version",
+	initialTab = "ollama",
 }: Props) {
 	const [activeTab, setActiveTab] = useState<SettingsTab>(initialTab);
 	const [tabDirection, setTabDirection] = useState<"up" | "down">("down");
@@ -39,11 +43,7 @@ export default function SettingsDialog({
 	const handleTabChange = useCallback(
 		(newTab: SettingsTab) => {
 			if (newTab === activeTab) return;
-			const currentIndex = SETTINGS_TABS.findIndex(
-				(item) => item.tab === activeTab,
-			);
-			const newIndex = SETTINGS_TABS.findIndex((item) => item.tab === newTab);
-			setTabDirection(newIndex > currentIndex ? "down" : "up");
+			setTabDirection(TAB_INDEX[newTab] > TAB_INDEX[activeTab] ? "down" : "up");
 			setActiveTab(newTab);
 		},
 		[activeTab],
@@ -67,7 +67,7 @@ export default function SettingsDialog({
 		label,
 	}) => {
 		const isActive = activeTab === tab;
-		const tabIndex = SETTINGS_TABS.findIndex((item) => item.tab === tab);
+		const tabIndex = TAB_INDEX[tab];
 		const focusTab = (index: number) => {
 			const target = SETTINGS_TABS[index];
 			if (!target) return;

@@ -158,3 +158,25 @@
 .console-status-bar__item--alert {
 	color: var(--color-on-surface);
 }
+
+.console-status-bar__item--action {
+	background: transparent;
+	border: none;
+	padding: 0;
+	font: inherit;
+	color: inherit;
+	cursor: pointer;
+	border-radius: var(--radius-sm);
+	transition: color var(--duration-fast) var(--ease-ios);
+}
+
+.console-status-bar__item--action:hover {
+	color: var(--color-on-surface);
+	text-decoration: underline;
+	text-underline-offset: 2px;
+}
+
+.console-status-bar__item--action:focus-visible {
+	outline: 1px solid var(--color-outline);
+	outline-offset: 2px;
+}

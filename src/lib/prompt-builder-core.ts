@@ -67,6 +67,28 @@ function delimit(text: string): string {
 	return `---\n${text}\n---`;
 }
 
+function pushDirectives(
+	sections: string[],
+	options: GenerationOptions | undefined,
+): void {
+	const directives = buildDirectives(options);
+	if (directives.length > 0) {
+		sections.push(`Directives:\n${directives.map((d) => `- ${d}`).join("\n")}`);
+	}
+}
+
+function detailLimitSuffix(
+	options: GenerationOptions | undefined,
+	mode: "unified" | "refinement",
+): string {
+	if (!options?.detail) return "";
+	const limit = DETAIL_WORD_LIMIT_LABELS[options.detail];
+	if (!limit) return "";
+	return mode === "unified"
+		? ` Your compiled output must be ${limit}. Do NOT include word count constraints in the compiled prompt itself.`
+		: ` Your refined output must be ${limit}.`;
+}
+
 const INJECTION_PATTERNS = [
 	/ignore\s+all\s+previous\s+instructions/i,
 	/forget\s+everything\s+above/i,
@@ -114,15 +136,8 @@ export function buildUnifiedPromptCore(params: {
 	sections.push(CORE_GUIDELINES);
 	sections.push(VALIDATION_PIPELINE);
 
-	const domainMap = DOMAIN_VALIDATION_MAPS[taskType];
-	if (domainMap) {
-		sections.push(domainMap);
-	}
-
-	const directives = buildDirectives(options);
-	if (directives.length > 0) {
-		sections.push(`Directives:\n${directives.map((d) => `- ${d}`).join("\n")}`);
-	}
+	sections.push(DOMAIN_VALIDATION_MAPS[taskType]);
+	pushDirectives(sections, options);
 
 	const constraints: string[] = [];
 	if (options?.tone) constraints.push(`tone=${options.tone}`);
@@ -142,13 +157,7 @@ export function buildUnifiedPromptCore(params: {
 
 	let finalInstruction = `Compile the user input into stable ${taskType} execution framing. Output ONLY the compiled prompt text — no preamble or meta-commentary.`;
 
-	if (options?.detail) {
-		const limit = DETAIL_WORD_LIMIT_LABELS[options.detail];
-		if (limit) {
-			finalInstruction += ` Your compiled output must be ${limit}. Do NOT include word count constraints in the compiled prompt itself.`;
-		}
-	}
-
+	finalInstruction += detailLimitSuffix(options, "unified");
 	finalInstruction += languageFinalSuffix(language);
 
 	sections.push(finalInstruction);
@@ -195,24 +204,20 @@ export function buildRefinementPromptCore(params: {
 	sections.push(`Task Type: ${taskType}`);
 	sections.push(VALIDATION_PIPELINE);
 
-	const domainMap = DOMAIN_VALIDATION_MAPS[taskType];
-	if (domainMap) {
-		sections.push(domainMap);
-	}
+	sections.push(DOMAIN_VALIDATION_MAPS[taskType]);
+	pushDirectives(sections, options);
 
 	sections.push(`Existing Compiled Prompt:\n${delimit(trimmedPrevious)}`);
 	sections.push(`Refinement Request:\n${delimit(trimmedRequest)}`);
 
+	if (options?.additionalContext?.trim()) {
+		sections.push(`Additional Context:\n${options.additionalContext}`);
+	}
+
 	let finalInstruction =
 		"Apply the refinement request to the existing compiled prompt. Output ONLY the refined prompt text — no preamble or meta-commentary.";
 
-	if (options?.detail) {
-		const limit = DETAIL_WORD_LIMIT_LABELS[options.detail];
-		if (limit) {
-			finalInstruction += ` Your refined output must be ${limit}.`;
-		}
-	}
-
+	finalInstruction += detailLimitSuffix(options, "refinement");
 	finalInstruction += languageFinalSuffix(language);
 
 	sections.push(finalInstruction);
