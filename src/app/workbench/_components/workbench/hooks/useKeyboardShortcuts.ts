@@ -7,16 +7,16 @@ function isModKey(e: KeyboardEvent): boolean {
 
 export function useKeyboardShortcuts(
 	tabManager: ReturnType<typeof useTabManager>,
-	setShowPresetPicker: (show: boolean) => void,
+	openPresetPicker: () => void,
 	closeActiveTab: () => void,
-	send: () => Promise<void>,
+	send: (overrideText?: string) => Promise<void>,
 ) {
 	useEffect(() => {
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (isModKey(e) && e.key === "t") {
 				e.preventDefault();
 				if (tabManager.canCreateTab) {
-					setShowPresetPicker(true);
+					openPresetPicker();
 				}
 			}
 			if (isModKey(e) && e.key === "w") {
@@ -42,5 +42,5 @@ export function useKeyboardShortcuts(
 		};
 		document.addEventListener("keydown", onKeyDown);
 		return () => document.removeEventListener("keydown", onKeyDown);
-	}, [tabManager, setShowPresetPicker, closeActiveTab, send]);
+	}, [tabManager, openPresetPicker, closeActiveTab, send]);
 }

@@ -9,7 +9,7 @@ import {
 	setLastSelectedPresetKey,
 	trackRecentPreset,
 } from "@/lib/preset-store";
-import { getPresets, type Preset } from "@/lib/presets";
+import { ensureDefaultPreset, getPresets, type Preset } from "@/lib/presets";
 import { STORAGE_KEYS } from "@/lib/storage-keys";
 import type { useTabManager } from "../useTabManager";
 
@@ -54,6 +54,9 @@ export function usePresetManager(tabManager: ReturnType<typeof useTabManager>) {
 		const load = async () => {
 			setLoadingPresets(true);
 			try {
+				try {
+					ensureDefaultPreset();
+				} catch {}
 				const list = mapPresetList(getPresets());
 				setPresets(list);
 				try {

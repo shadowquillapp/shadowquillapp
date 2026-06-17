@@ -22,22 +22,6 @@ const STRING_OPTION_KEYS = [
 	"styleGuidelines",
 ] as const satisfies readonly (keyof GenerationOptions)[];
 
-const ALLOWED_OPTION_KEYS = [
-	"tone",
-	"detail",
-	"format",
-	...STRING_OPTION_KEYS,
-] as const satisfies readonly (keyof GenerationOptions)[];
-
-const ALLOWED_PRESET_KEYS = [
-	"id",
-	"name",
-	"taskType",
-	"options",
-	"createdAt",
-	"updatedAt",
-] as const;
-
 const TASK_TYPES: readonly TaskType[] = [
 	"intent",
 	"engineering",
@@ -62,19 +46,12 @@ function sanitizePresetOptions(options: GenerationOptions): GenerationOptions {
 	const raw = options as Record<string, unknown>;
 	const sanitized: GenerationOptions = {};
 
-	for (const key of ALLOWED_OPTION_KEYS) {
+	if (isOneOf(raw.tone, TONE_LEVELS)) sanitized.tone = raw.tone;
+	if (isOneOf(raw.detail, DETAIL_LEVELS)) sanitized.detail = raw.detail;
+	if (isOneOf(raw.format, FORMAT_LEVELS)) sanitized.format = raw.format;
+	for (const key of STRING_OPTION_KEYS) {
 		const value = raw[key];
-		if (value === undefined) continue;
-
-		if (key === "tone" && isOneOf(value, TONE_LEVELS)) {
-			sanitized.tone = value;
-		} else if (key === "detail" && isOneOf(value, DETAIL_LEVELS)) {
-			sanitized.detail = value;
-		} else if (key === "format" && isOneOf(value, FORMAT_LEVELS)) {
-			sanitized.format = value;
-		} else if (isString(value) && isOneOf(key, STRING_OPTION_KEYS)) {
-			sanitized[key] = value;
-		}
+		if (isString(value)) sanitized[key] = value;
 	}
 
 	return sanitized;
@@ -87,22 +64,12 @@ function sanitizePreset(preset: Preset): Preset {
 		taskType: preset.taskType,
 	};
 
-	for (const key of ALLOWED_PRESET_KEYS) {
-		if (key === "name" || key === "taskType") continue;
-		const value = raw[key];
-		if (value === undefined) continue;
-
-		if (key === "options" && isRecord(value)) {
-			sanitized.options = sanitizePresetOptions(value as GenerationOptions);
-		} else if (key === "id" && isString(value)) {
-			sanitized.id = value;
-		} else if (
-			(key === "createdAt" || key === "updatedAt") &&
-			typeof value === "number"
-		) {
-			sanitized[key] = value;
-		}
+	if (isString(raw.id)) sanitized.id = raw.id;
+	if (isRecord(raw.options)) {
+		sanitized.options = sanitizePresetOptions(raw.options as GenerationOptions);
 	}
+	if (typeof raw.createdAt === "number") sanitized.createdAt = raw.createdAt;
+	if (typeof raw.updatedAt === "number") sanitized.updatedAt = raw.updatedAt;
 
 	return sanitized;
 }
@@ -126,111 +93,151 @@ export function getPresetById(id: string): Preset | undefined {
 	return getPresets().find((p) => p.id === id);
 }
 
-function seedPreset(
-	id: string,
-	name: string,
-	taskType: TaskType,
-	tone: Tone,
-	format: Format,
-	additionalContext: string,
-): Preset {
+interface PresetSeed {
+	id: string;
+	name: string;
+	taskType: TaskType;
+	tone: Tone;
+	additionalContext: string;
+	audience: string;
+	styleGuidelines: string;
+	format?: Format;
+}
+
+const DEFAULT_PRESET_SEEDS: readonly PresetSeed[] = [
+	{
+		id: "daily-assistant",
+		name: "Daily Helper",
+		taskType: "intent",
+		tone: "friendly",
+		additionalContext:
+			"Compile general everyday intent into brief, actionable execution framing. Preserve the user's goal and voice. Favor scannable structure without over-structuring.",
+		audience: "A general everyday user who wants quick, practical help.",
+		styleGuidelines:
+			"Keep it warm, clear, and concise. Avoid jargon. Use short sentences and plain language.",
+	},
+	{
+		id: "quick-summarizer",
+		name: "Quick Summary",
+		taskType: "intent",
+		tone: "neutral",
+		additionalContext:
+			"Compress source intent into concise summary framing. Extract key points and main ideas. Prioritize scannability and minimal unnecessary detail.",
+		audience: "A busy reader who needs the gist fast.",
+		styleGuidelines:
+			"Lead with the main point. Prefer bullet points over paragraphs. Cut filler and repetition.",
+	},
+	{
+		id: "code-helper",
+		name: "Code Helper",
+		taskType: "engineering",
+		tone: "technical",
+		additionalContext:
+			"Prioritize goal preservation and architectural consistency. Validate interaction contracts (inputs, outputs, side effects). Enforce design-system alignment with stated conventions. Surface gaps as actionable prompt clauses — do not invent technologies.",
+		audience: "A software developer comfortable with technical detail.",
+		styleGuidelines:
+			"Be precise and unambiguous. Reference inputs, outputs, and edge cases. Prefer code blocks and exact terminology over prose.",
+	},
+	{
+		id: "research-assistant",
+		name: "Research Assistant",
+		taskType: "analysis",
+		tone: "neutral",
+		additionalContext:
+			"Define evidence boundaries and scope limits clearly. Require citation framing and balanced perspective. Extract implicit constraints and risk concerns from the user's request.",
+		audience: "A curious reader who wants balanced, well-sourced information.",
+		styleGuidelines:
+			"Stay neutral and evidence-based. Note assumptions and uncertainty. Ask for sources where claims need support.",
+	},
+	{
+		id: "deep-analyst",
+		name: "Deep Analyst",
+		taskType: "analysis",
+		tone: "formal",
+		additionalContext:
+			"Extract tradeoffs, counterarguments, and risk assessment requirements. Compile rigorous analysis framing with executive summary, evidence scope, and recommendation boundaries. Do not over-structure unless detail level requires it.",
+		audience:
+			"A decision-maker who needs rigorous analysis and clear recommendations.",
+		styleGuidelines:
+			"Open with an executive summary. Weigh tradeoffs and counterarguments explicitly. Be formal, structured, and decisive.",
+	},
+	{
+		id: "social-post",
+		name: "Social Post",
+		taskType: "persuasion",
+		tone: "friendly",
+		additionalContext:
+			"Preserve audience intent and message core. Compile hook, content, and CTA framing without drift. Align channel conventions to user-stated context.",
+		audience: "Social media followers scrolling a busy feed.",
+		styleGuidelines:
+			"Start with a strong hook. Keep it punchy and conversational. End with a clear call to action. Use line breaks for readability.",
+	},
+	{
+		id: "image-creator",
+		name: "Image Creator",
+		taskType: "visual",
+		tone: "neutral",
+		additionalContext:
+			"Compress visual intent into model-parseable descriptors. Lock subject, mood, and composition. Surface spec gaps as concrete visual clauses — do not invent values not stated by the user.",
+		audience:
+			"An AI image generator (e.g. Midjourney, DALL·E, Stable Diffusion).",
+		styleGuidelines:
+			"Be vivid and specific about subject, style, lighting, mood, and composition. Use descriptive comma-separated phrases. Avoid vague adjectives.",
+	},
+	{
+		id: "video-creator",
+		name: "Video Creator",
+		taskType: "motion",
+		tone: "neutral",
+		additionalContext:
+			"Compile temporal visual intent with scene, action, and camera semantics. Validate interaction flow across frames. Surface temporal spec gaps as concrete clauses — do not invent values not stated by the user.",
+		audience: "An AI video generator (e.g. Sora, Runway, Veo).",
+		styleGuidelines:
+			"Describe motion, camera movement, pacing, and scene transitions. Be concrete about what changes over time. Keep shots clear and sequential.",
+	},
+	{
+		id: "school-work",
+		name: "School Work",
+		taskType: "analysis",
+		tone: "friendly",
+		additionalContext:
+			"Help students turn assignments, notes, and study goals into clear academic work framing. Preserve the prompt's requirements, rubric constraints, and target grade level. Favor step-by-step explanations, study guidance, and citation awareness without completing work dishonestly.",
+		audience: "A student trying to learn and understand the material.",
+		styleGuidelines:
+			"Explain step by step in approachable language. Encourage understanding over shortcuts. Note where citations or original work are expected.",
+	},
+	{
+		id: "story-writer",
+		name: "Story Writer",
+		taskType: "narrative",
+		tone: "friendly",
+		additionalContext:
+			"Compile creative writing intent with character, setting, conflict, and pacing semantics. Preserve the writer's voice, genre, and point of view. Surface narrative gaps as concrete prompt clauses — do not invent plot details the user did not state.",
+		audience: "Readers of the intended genre and age group.",
+		styleGuidelines:
+			"Show, don't tell. Preserve the writer's voice and point of view. Keep pacing and tone consistent with the genre.",
+	},
+];
+
+function seedPreset(seed: PresetSeed): Preset {
 	return {
-		id,
-		name,
-		taskType,
+		id: seed.id,
+		name: seed.name,
+		taskType: seed.taskType,
 		options: {
-			tone,
+			tone: seed.tone,
 			detail: "normal",
-			format,
+			format: seed.format ?? "markdown",
 			language: "English",
-			additionalContext,
+			audience: seed.audience,
+			styleGuidelines: seed.styleGuidelines,
+			additionalContext: seed.additionalContext,
 		},
 	};
 }
 
 export function getDefaultPresets(): Preset[] {
-	return [
-		seedPreset(
-			"daily-assistant",
-			"Daily Helper",
-			"intent",
-			"friendly",
-			"markdown",
-			"Compile general everyday intent into brief, actionable execution framing. Preserve the user's goal and voice. Favor scannable structure without over-structuring.",
-		),
-		seedPreset(
-			"quick-summarizer",
-			"Quick Summary",
-			"intent",
-			"neutral",
-			"markdown",
-			"Compress source intent into concise summary framing. Extract key points and main ideas. Prioritize scannability and minimal unnecessary detail.",
-		),
-		seedPreset(
-			"code-helper",
-			"Code Helper",
-			"engineering",
-			"technical",
-			"markdown",
-			"Prioritize goal preservation and architectural consistency. Validate interaction contracts (inputs, outputs, side effects). Enforce design-system alignment with stated conventions. Surface gaps as actionable prompt clauses — do not invent technologies.",
-		),
-		seedPreset(
-			"bug-hunter",
-			"Bug Hunter",
-			"engineering",
-			"technical",
-			"markdown",
-			"Compile diagnostic intent with root-cause focus. Require reproduction steps, failure boundaries, and regression prevention in the output framing. Do not assume stack or environment not stated by the user.",
-		),
-		seedPreset(
-			"research-assistant",
-			"Research Assistant",
-			"analysis",
-			"neutral",
-			"markdown",
-			"Define evidence boundaries and scope limits clearly. Require citation framing and balanced perspective. Extract implicit constraints and risk concerns from the user's request.",
-		),
-		seedPreset(
-			"deep-analyst",
-			"Deep Analyst",
-			"analysis",
-			"formal",
-			"markdown",
-			"Extract tradeoffs, counterarguments, and risk assessment requirements. Compile rigorous analysis framing with executive summary, evidence scope, and recommendation boundaries. Do not over-structure unless detail level requires it.",
-		),
-		seedPreset(
-			"social-post",
-			"Social Post",
-			"persuasion",
-			"friendly",
-			"markdown",
-			"Preserve audience intent and message core. Compile hook, content, and CTA framing without drift. Align channel conventions to user-stated context.",
-		),
-		seedPreset(
-			"image-creator",
-			"Image Creator",
-			"visual",
-			"neutral",
-			"markdown",
-			"Compress visual intent into model-parseable descriptors. Lock subject, mood, and composition. Surface spec gaps as concrete visual clauses — do not invent values not stated by the user.",
-		),
-		seedPreset(
-			"video-creator",
-			"Video Creator",
-			"motion",
-			"neutral",
-			"markdown",
-			"Compile temporal visual intent with scene, action, and camera semantics. Validate interaction flow across frames. Surface temporal spec gaps as concrete clauses — do not invent values not stated by the user.",
-		),
-		seedPreset(
-			"school-work",
-			"School Work",
-			"analysis",
-			"friendly",
-			"markdown",
-			"Help students turn assignments, notes, and study goals into clear academic work framing. Preserve the prompt's requirements, rubric constraints, and target grade level. Favor step-by-step explanations, study guidance, and citation awareness without completing work dishonestly.",
-		),
-	];
+	return DEFAULT_PRESET_SEEDS.map(seedPreset);
 }
 
 export function ensureDefaultPreset(): void {

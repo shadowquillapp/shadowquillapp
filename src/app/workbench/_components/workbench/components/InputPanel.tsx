@@ -1,9 +1,22 @@
 import type React from "react";
+import { useEffect, useRef } from "react";
 import { Icon } from "@/components/Icon";
+import { getTaskTypeExamples } from "@/lib/task-type-meta";
 import type { useTabManager } from "../useTabManager";
 import { ModelSelector } from "./ModelSelector";
 import { RefinementContextPanel } from "./RefinementContextPanel";
 import { TextStats } from "./TextStats";
+
+const REFINEMENT_CHIPS: readonly { label: string; request: string }[] = [
+	{ label: "Shorter", request: "Make it shorter and more concise." },
+	{ label: "More detail", request: "Add more detail and specifics." },
+	{ label: "Friendlier", request: "Make the tone warmer and friendlier." },
+	{
+		label: "More structured",
+		request: "Organize it with clear structure and headings.",
+	},
+	{ label: "Add examples", request: "Add concrete examples." },
+];
 
 interface InputPanelProps {
 	leftPanelWidth: number;
@@ -28,7 +41,6 @@ interface InputPanelProps {
 	}>;
 	activeVersionId: string | undefined;
 	outputToRefine: string | null | undefined;
-	textareaContainerRef: React.RefObject<HTMLDivElement | null>;
 	activeTab: ReturnType<typeof useTabManager>["activeTab"];
 	isGenerating: boolean;
 	availableModels: Array<{ name: string; size: number }>;
@@ -36,7 +48,7 @@ interface InputPanelProps {
 	refreshModels: () => Promise<void>;
 	currentModelId: string | null;
 	setCurrentModelId: (id: string) => void;
-	send: () => Promise<void>;
+	send: (overrideText?: string) => Promise<void>;
 	stopGenerating: () => void;
 	setShowPresetInfo: (show: boolean) => void;
 }
@@ -57,7 +69,6 @@ export function InputPanel({
 	versions,
 	activeVersionId,
 	outputToRefine,
-	textareaContainerRef,
 	activeTab,
 	isGenerating,
 	availableModels,
@@ -69,6 +80,45 @@ export function InputPanel({
 	stopGenerating,
 	setShowPresetInfo,
 }: InputPanelProps) {
+	const inputRef = useRef<HTMLTextAreaElement | null>(null);
+	const draft = activeTab?.draft ?? "";
+	const showRefinementUi = isRefinementMode && !!outputToRefine;
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: re-measure when draft or mode changes
+	useEffect(() => {
+		const el = inputRef.current;
+		if (!el) return;
+		el.style.height = "auto";
+		el.style.height = `${el.scrollHeight}px`;
+	}, [draft, isRefinementMode]);
+
+	const runButton = (
+		<button
+			type="button"
+			onClick={() => (activeTab?.sending ? stopGenerating() : void send())}
+			disabled={!activeTab || (!activeTab.sending && !activeTab.draft.trim())}
+			className={`run-button-container md-btn md-btn--label disabled:cursor-not-allowed disabled:opacity-50 ${
+				activeTab?.sending ? "md-btn--destructive" : "md-btn--primary"
+			}`}
+			title={
+				activeTab?.sending ? "Stop Generation" : "Run Prompt (Ctrl/Cmd+Enter)"
+			}
+			aria-label={activeTab?.sending ? "Stop generation" : "Run prompt"}
+		>
+			{activeTab?.sending ? (
+				<>
+					<Icon name="stop" style={{ width: 14, height: 14 }} />
+					Stop
+				</>
+			) : (
+				<>
+					<Icon name="chevron-right" style={{ width: 14, height: 14 }} />
+					Run
+				</>
+			)}
+		</button>
+	);
+
 	return (
 		<section
 			className={`prompt-input-pane flex h-full flex-col overflow-hidden bg-surface ${isResizing ? "prompt-input-pane--resizing" : ""}`}
@@ -133,7 +183,7 @@ export function InputPanel({
 					<TextStats wordCount={wordCount} charCount={charCount} />
 					<span className="panel__head-spacer" />
 
-					{isRefinementMode && outputToRefine && (
+					{showRefinementUi && (
 						<button
 							type="button"
 							className={`panel__head-action ${
@@ -153,7 +203,7 @@ export function InputPanel({
 					)}
 				</div>
 
-				{isRefinementMode && outputToRefine && (
+				{showRefinementUi && (
 					<RefinementContextPanel
 						showRefinementContext={showRefinementContext}
 						versions={versions}
@@ -165,13 +215,56 @@ export function InputPanel({
 					/>
 				)}
 
-				<div
-					ref={textareaContainerRef}
-					className="relative min-h-0 w-full flex-1"
-				>
+				{activeTab &&
+					!isGenerating &&
+					(showRefinementUi ? (
+						<div className="workbench-suggestions">
+							<span className="workbench-suggestions__label">
+								Quick changes
+							</span>
+							<div className="workbench-suggestions__row">
+								{REFINEMENT_CHIPS.map((chip) => (
+									<button
+										key={chip.label}
+										type="button"
+										className="md-chip workbench-suggestions__chip"
+										onClick={() => tabManager.updateDraft(chip.request)}
+										title={chip.request}
+									>
+										{chip.label}
+									</button>
+								))}
+							</div>
+						</div>
+					) : !isRefinementMode && !activeTab.draft.trim() ? (
+						<div className="workbench-suggestions">
+							<span className="workbench-suggestions__label">
+								Try an example
+							</span>
+							<div className="workbench-suggestions__row">
+								{getTaskTypeExamples(activeTab.preset.taskType).map(
+									(example) => (
+										<button
+											key={example}
+											type="button"
+											className="md-chip workbench-suggestions__chip workbench-suggestions__chip--example"
+											onClick={() => tabManager.updateDraft(example)}
+											title={example}
+										>
+											{example}
+										</button>
+									),
+								)}
+							</div>
+						</div>
+					) : null)}
+
+				<div className="custom-scrollbar relative flex min-h-0 w-full flex-1 flex-col overflow-y-auto">
 					<textarea
+						ref={inputRef}
+						rows={1}
 						aria-label={isRefinementMode ? "Refinement prompt" : "Prompt input"}
-						className="absolute inset-0 h-full w-full resize-none border-none p-3 font-sans text-[length:var(--text-sm)] text-on-surface leading-[24px] shadow-none placeholder:text-on-surface-variant/50 focus:outline-none md:p-4 md:text-[length:var(--text-md)] md:leading-[28px]"
+						className="w-full resize-none overflow-hidden border-none p-3 font-sans text-[length:var(--text-sm)] text-on-surface leading-[24px] shadow-none placeholder:text-on-surface-variant/50 focus:outline-none md:p-4 md:text-[length:var(--text-md)] md:leading-[28px]"
 						style={{
 							backgroundColor: "var(--color-surface)",
 							caretColor: "var(--color-accent)",
@@ -181,13 +274,19 @@ export function InputPanel({
 						onChange={(e) => tabManager.updateDraft(e.target.value)}
 						placeholder={
 							!activeTab
-								? "Create or open a tab to get started..."
+								? "Pick a starting point to get started..."
 								: isRefinementMode
-									? 'Enter refinement (e.g., "more minimal", "add details about X", "change aesthetic to minimalist")...'
-									: "Describe your prompt & intent..."
+									? 'Ask for a change (e.g., "make it shorter", "more friendly", "add an example")...'
+									: "Describe what you want help with, in plain words..."
 						}
 						disabled={!activeTab || isGenerating}
 					/>
+
+					{activeTab && (
+						<div className="prompt-input__run px-3 pb-3 md:px-4">
+							{runButton}
+						</div>
+					)}
 				</div>
 
 				<div className="panel__foot">
@@ -199,39 +298,6 @@ export function InputPanel({
 						setCurrentModelId={setCurrentModelId}
 						isGenerating={isGenerating}
 					/>
-
-					<span className="panel__head-spacer" />
-
-					<button
-						type="button"
-						onClick={() =>
-							activeTab?.sending ? stopGenerating() : void send()
-						}
-						disabled={
-							!activeTab || (!activeTab.sending && !activeTab.draft.trim())
-						}
-						className={`run-button-container md-btn md-btn--label disabled:cursor-not-allowed disabled:opacity-50 ${
-							activeTab?.sending ? "md-btn--destructive" : "md-btn--primary"
-						}`}
-						title={
-							activeTab?.sending
-								? "Stop Generation"
-								: "Run Prompt (Ctrl/Cmd+Enter)"
-						}
-						aria-label={activeTab?.sending ? "Stop generation" : "Run prompt"}
-					>
-						{activeTab?.sending ? (
-							<>
-								<Icon name="stop" style={{ width: 14, height: 14 }} />
-								Stop
-							</>
-						) : (
-							<>
-								<Icon name="chevron-right" style={{ width: 14, height: 14 }} />
-								Run
-							</>
-						)}
-					</button>
 				</div>
 			</div>
 		</section>

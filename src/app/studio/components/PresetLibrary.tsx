@@ -1,9 +1,11 @@
 "use client";
 
-import type React from "react";
+import type { CSSProperties } from "react";
 import { useState } from "react";
 import PresetCard from "@/app/studio/components/PresetCard";
 import { Icon } from "@/components/Icon";
+import { presetKey } from "@/lib/preset-store";
+import { getTaskTypeLabel } from "@/lib/task-type-meta";
 import type { PresetLite } from "@/types";
 
 interface PresetLibraryProps {
@@ -12,7 +14,7 @@ interface PresetLibraryProps {
 	onSelectPreset: (id: string) => void | Promise<void>;
 	onCreateNew?: () => void | Promise<void>;
 	className?: string;
-	style?: React.CSSProperties;
+	style?: CSSProperties;
 }
 
 export default function PresetLibrary({
@@ -30,7 +32,8 @@ export default function PresetLibrary({
 			const query = searchQuery.toLowerCase();
 			return (
 				preset.name.toLowerCase().includes(query) ||
-				preset.taskType.toLowerCase().includes(query)
+				preset.taskType.toLowerCase().includes(query) ||
+				getTaskTypeLabel(preset.taskType).toLowerCase().includes(query)
 			);
 		})
 		.sort((a, b) => a.name.localeCompare(b.name));
@@ -112,13 +115,13 @@ export default function PresetLibrary({
 							</div>
 							{filteredPresets.map((preset) => (
 								<PresetCard
-									key={preset.id || preset.name}
+									key={presetKey(preset)}
 									preset={preset}
 									isSelected={
-										selectedPresetId === (preset.id || preset.name) ||
+										selectedPresetId === presetKey(preset) ||
 										selectedPresetId === preset.name
 									}
-									onSelect={() => void onSelectPreset(preset.id || preset.name)}
+									onSelect={() => void onSelectPreset(presetKey(preset))}
 								/>
 							))}
 						</div>

@@ -1,6 +1,7 @@
 "use client";
 
 import type { FormEvent } from "react";
+import { useState } from "react";
 import {
 	DEFAULT_OLLAMA_PORT,
 	formatOllamaModelName,
@@ -69,6 +70,77 @@ function statusDetails(
 	return { title: "", body: "" };
 }
 
+function getChecklistSteps(setup: OllamaSetupState) {
+	const {
+		ollamaInstalled,
+		localTestResult,
+		availableModels,
+		statusTone,
+		model,
+	} = setup;
+
+	const step1Done = ollamaInstalled === true;
+	const step2Done = localTestResult?.success === true;
+	const step3Done = availableModels.length > 0;
+	const step4Done = statusTone === "success" && model.trim() !== "";
+
+	const steps = [
+		{ id: 1, label: "Install Ollama", done: step1Done },
+		{ id: 2, label: "Start Ollama", done: step2Done },
+		{ id: 3, label: "Pull a compatible model", done: step3Done },
+		{ id: 4, label: "Select a model and save", done: step4Done },
+	];
+
+	let firstActiveFound = false;
+	return steps.map((s) => {
+		if (s.done) return { ...s, state: "done" as const };
+		if (!firstActiveFound) {
+			firstActiveFound = true;
+			return { ...s, state: "active" as const };
+		}
+		return { ...s, state: "pending" as const };
+	});
+}
+
+function CopyableCommand({ command }: { command: string }) {
+	const [copied, setCopied] = useState(false);
+	return (
+		<div style={{ position: "relative" }}>
+			<code
+				className="shadowquill-pull-guidance__cmd"
+				style={{ paddingRight: "36px" }}
+			>
+				{command}
+			</code>
+			<button
+				type="button"
+				onClick={() => {
+					void navigator.clipboard.writeText(command);
+					setCopied(true);
+					setTimeout(() => setCopied(false), 2000);
+				}}
+				className="md-icon-btn"
+				title="Copy command"
+				aria-label="Copy command"
+				style={{
+					position: "absolute",
+					right: "4px",
+					top: "50%",
+					transform: "translateY(-50%)",
+					width: "28px",
+					height: "28px",
+				}}
+			>
+				<Icon
+					name={copied ? "check" : "copy"}
+					variant="Linear"
+					style={{ width: 14, height: 14 }}
+				/>
+			</button>
+		</div>
+	);
+}
+
 export type OllamaSetupPanelProps = {
 	setup: OllamaSetupState;
 	variant: "gate" | "settings";
@@ -113,12 +185,15 @@ export function OllamaSetupPanel({
 		availableModels,
 	} = setup;
 
+	const isGate = variant === "gate";
+	const isSettings = variant === "settings";
+	const clearTestResult = () => setLocalTestResult(null);
+
 	const details = statusDetails(statusTone, localTestResult);
-	const showStatusCard = variant === "settings" || localTestResult !== null;
-	const statusLabel =
-		variant === "gate"
-			? gateStatusLabel(testingLocal, localTestResult, connectionError)
-			: SETTINGS_STATUS_LABELS[statusTone];
+	const showStatusCard = isSettings || localTestResult !== null;
+	const statusLabel = isGate
+		? gateStatusLabel(testingLocal, localTestResult, connectionError)
+		: SETTINGS_STATUS_LABELS[statusTone];
 
 	return (
 		<form className="shadowquill-setup" onSubmit={onSubmit}>
@@ -137,6 +212,30 @@ export function OllamaSetupPanel({
 				</header>
 
 				<div className="shadowquill-panel__body">
+					{isSettings && (
+						<div className="shadowquill-checklist">
+							{getChecklistSteps(setup).map((step) => (
+								<div
+									key={step.id}
+									className={`shadowquill-checklist-item shadowquill-checklist-item--${step.state}`}
+								>
+									<div className="shadowquill-checklist-icon">
+										{step.state === "done" ? (
+											<Icon name="check" />
+										) : step.state === "active" ? (
+											<Icon name="info" />
+										) : (
+											<div className="shadowquill-checklist-dot" />
+										)}
+									</div>
+									<span className="shadowquill-checklist-label">
+										{step.label}
+									</span>
+								</div>
+							))}
+						</div>
+					)}
+
 					<div className="shadowquill-field">
 						<label className="shadowquill-label" htmlFor={portInputId}>
 							Ollama localhost port
@@ -154,7 +253,7 @@ export function OllamaSetupPanel({
 										.replace(/\D/g, "")
 										.slice(0, 5);
 									setLocalPort(raw);
-									setLocalTestResult(null);
+									clearTestResult();
 								}}
 								required
 								className="md-input shadowquill-port-input"
@@ -191,7 +290,7 @@ export function OllamaSetupPanel({
 									className="md-btn shadowquill-port-reset"
 									onClick={() => {
 										setLocalPort(DEFAULT_OLLAMA_PORT);
-										setLocalTestResult(null);
+										clearTestResult();
 									}}
 								>
 									Reset to {DEFAULT_OLLAMA_PORT}
@@ -274,6 +373,20 @@ export function OllamaSetupPanel({
 										</button>
 									</div>
 								)}
+								{(statusTone === "error" ||
+									(statusTone === "success" &&
+										(localTestResult?.models?.length ?? 0) === 0)) && (
+									<div className="shadowquill-pull-guidance">
+										<p className="shadowquill-pull-guidance__title">
+											No compatible model yet? Pull one from your terminal:
+										</p>
+										<CopyableCommand command="ollama pull gemma3:4b" />
+										<p className="shadowquill-pull-guidance__hint">
+											Gemma 3 4B is a small, fast starting point. Once it
+											finishes downloading, click "Retry check" above.
+										</p>
+									</div>
+								)}
 								{openOllamaError && (
 									<p className="shadowquill-error-inline">{openOllamaError}</p>
 								)}
@@ -289,25 +402,25 @@ export function OllamaSetupPanel({
 						</div>
 					)}
 
-					{error && (
-						<div className="shadowquill-error-banner" role="alert">
-							{error}
-						</div>
-					)}
-					{connectionError && (
-						<div className="shadowquill-error-banner" role="alert">
-							{connectionError}
-						</div>
-					)}
+					{(
+						[
+							["error", error],
+							["connection", connectionError],
+						] as const
+					)
+						.filter(([, message]) => message)
+						.map(([key, message]) => (
+							<div key={key} className="shadowquill-error-banner" role="alert">
+								{message}
+							</div>
+						))}
 				</div>
 
 				<footer
 					className="shadowquill-panel__footer"
-					style={
-						variant === "gate" ? { justifyContent: "flex-start" } : undefined
-					}
+					style={isGate ? { justifyContent: "flex-start" } : undefined}
 				>
-					{variant === "settings" && (
+					{isSettings && (
 						<span>
 							{saving || validating
 								? "Validating secure connection…"
@@ -319,14 +432,14 @@ export function OllamaSetupPanel({
 						disabled={!canSave}
 						className="md-btn md-btn--primary"
 						style={
-							variant === "gate"
+							isGate
 								? { display: "flex", alignItems: "center", gap: "8px" }
 								: undefined
 						}
 					>
 						{saving || validating ? (
 							"Validating…"
-						) : variant === "gate" ? (
+						) : isGate ? (
 							<>
 								<Icon name="brush" className="shadowquill-cta-logo" />
 								Get Started

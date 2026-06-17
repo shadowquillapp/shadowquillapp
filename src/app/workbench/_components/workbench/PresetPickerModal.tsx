@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useDialog } from "@/components/DialogProvider";
 import { Icon } from "@/components/Icon";
 import { getTaskTypeIcon } from "@/lib/task-type-icon";
+import { getTaskTypeLabel, getTaskTypeMeta } from "@/lib/task-type-meta";
 import type { PromptPresetSummary } from "./types";
 
 const PAGE_SIZE = 10;
@@ -128,7 +129,6 @@ export function PresetPickerModal({
 	const [presetsPage, setPresetsPage] = useState(1);
 	const itemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
 	const searchInputRef = useRef<HTMLInputElement | null>(null);
-	const gridRef = useRef<HTMLDivElement | null>(null);
 	const modalContentRef = useRef<HTMLDivElement | null>(null);
 	const lastActiveEl = useRef<HTMLElement | null>(null);
 
@@ -250,7 +250,8 @@ export function PresetPickerModal({
 				const q = searchQuery.toLowerCase();
 				return (
 					preset.name.toLowerCase().includes(q) ||
-					preset.taskType.toLowerCase().includes(q)
+					preset.taskType.toLowerCase().includes(q) ||
+					getTaskTypeLabel(preset.taskType).toLowerCase().includes(q)
 				);
 			}),
 		[presets, searchQuery],
@@ -511,7 +512,7 @@ export function PresetPickerModal({
 								</div>
 							) : (
 								<>
-									<div ref={gridRef} className="data-table">
+									<div className="data-table">
 										<div className="data-table__head-row">
 											<span className="data-table__cell data-table__cell--grow">
 												Name
@@ -527,8 +528,8 @@ export function PresetPickerModal({
 													onSelectPreset(preset);
 													onClose();
 												}}
-												title={preset.name}
-												aria-label={`${preset.name} preset (${preset.taskType})`}
+												title={getTaskTypeMeta(preset.taskType).description}
+												aria-label={`${preset.name} (${getTaskTypeLabel(preset.taskType)}) — ${getTaskTypeMeta(preset.taskType).description}`}
 												ref={(el) => {
 													itemRefs.current[preset.id ?? preset.name] = el;
 												}}
@@ -545,20 +546,33 @@ export function PresetPickerModal({
 														color: "var(--color-on-surface-variant)",
 													}}
 												/>
-												<span
-													className="data-table__cell data-table__cell--grow"
-													style={{
-														fontWeight: 600,
-														color: "var(--color-on-surface)",
-													}}
-												>
-													{preset.name}
+												<span className="data-table__cell data-table__cell--grow">
+													<span
+														style={{
+															display: "block",
+															fontWeight: 600,
+															color: "var(--color-on-surface)",
+														}}
+													>
+														{preset.name}
+													</span>
+													<span
+														style={{
+															display: "block",
+															fontSize: 11,
+															opacity: 0.7,
+															color: "var(--color-on-surface-variant)",
+															whiteSpace: "normal",
+														}}
+													>
+														{getTaskTypeMeta(preset.taskType).description}
+													</span>
 												</span>
 												<span
-													className="data-table__cell data-table__cell--mono"
-													style={{ fontSize: 10, opacity: 0.7 }}
+													className="data-table__cell"
+													style={{ fontSize: 11, opacity: 0.8 }}
 												>
-													{preset.taskType}
+													{getTaskTypeLabel(preset.taskType)}
 												</span>
 											</button>
 										))}

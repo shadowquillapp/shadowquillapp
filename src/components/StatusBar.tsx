@@ -8,6 +8,12 @@ import {
 
 type ConnectionState = "unknown" | "connected" | "offline";
 
+const CONNECTION_LABELS: Record<ConnectionState, string> = {
+	connected: "Ollama: connected",
+	offline: "Ollama: offline",
+	unknown: "Ollama: —",
+};
+
 export default function StatusBar() {
 	const [connection, setConnection] = useState<ConnectionState>("unknown");
 	const [modelId, setModelId] = useState<string | null>(null);
@@ -70,27 +76,40 @@ export default function StatusBar() {
 		};
 	}, []);
 
-	const connectionLabel =
-		connection === "connected"
-			? "Ollama: connected"
-			: connection === "offline"
-				? "Ollama: offline"
-				: "Ollama: —";
+	const connectionLabel = CONNECTION_LABELS[connection];
+
+	const openOllamaSetup = () => {
+		window.dispatchEvent(
+			new CustomEvent("open-app-settings", { detail: { tab: "ollama" } }),
+		);
+	};
 
 	return (
 		<footer className="console-status-bar" role="status" aria-live="polite">
-			<span
-				className={`console-status-bar__item ${connection === "offline" ? "console-status-bar__item--alert" : ""}`}
-				title={connectionLabel}
+			<button
+				type="button"
+				className={`console-status-bar__item console-status-bar__item--action ${connection === "offline" ? "console-status-bar__item--alert" : ""}`}
+				title={
+					connection === "connected"
+						? connectionLabel
+						: "Open Ollama setup to fix the connection"
+				}
+				onClick={openOllamaSetup}
 			>
 				{connectionLabel}
-			</span>
-			<span
-				className="console-status-bar__item"
-				title={modelId ? `Active model: ${modelId}` : "No model configured"}
+			</button>
+			<button
+				type="button"
+				className="console-status-bar__item console-status-bar__item--action"
+				title={
+					modelId
+						? `Active model: ${modelId}`
+						: "No model configured — click to set one up"
+				}
+				onClick={openOllamaSetup}
 			>
 				Model: {modelId ? formatOllamaModelName(modelId) : "not set"}
-			</span>
+			</button>
 			{isGenerating && (
 				<span className="console-status-bar__item">Generating…</span>
 			)}
