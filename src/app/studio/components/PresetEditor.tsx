@@ -9,6 +9,34 @@ import type { PresetLite } from "@/types";
 const STUDIO_EDITOR_EXIT_MS = 180;
 const UNSAVED_STATUS_COLOR = "#d8efff";
 
+const GUIDANCE_FIELDS = [
+	{
+		id: "audience",
+		field: "audience",
+		label: "Target Audience",
+		description:
+			"Who the final prompt is written for (e.g. beginners, executives, kids).",
+		placeholder: "e.g. complete beginners",
+	},
+	{
+		id: "style-guidelines",
+		field: "styleGuidelines",
+		label: "Style Guidelines",
+		description: "Voice, do's and don'ts, or phrasing rules to follow.",
+		placeholder:
+			"e.g. Keep it warm and concise. Avoid jargon. Use short sentences.",
+	},
+	{
+		id: "additional-context",
+		field: "additionalContext",
+		label: "Additional Context",
+		description:
+			"Background info, definitions, constraints to include in the prompt.",
+		placeholder:
+			"Background info, definitions, constraints to include in the prompt.",
+	},
+] as const;
+
 interface PresetEditorProps {
 	preset: PresetLite | null;
 	isDirty: boolean;
@@ -79,8 +107,6 @@ export default function PresetEditor({
 
 	if (!visiblePreset) return null;
 
-	const editorPreset = visiblePreset;
-
 	return (
 		<section className={`${className} bg-surface`} aria-label="Preset Editor">
 			<div className={`${animClass} flex h-full flex-col`}>
@@ -89,7 +115,7 @@ export default function PresetEditor({
 						<div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-6">
 							<div className="min-w-0">
 								<h3 style={{ color: "var(--color-primary)" }}>
-									{editorPreset.name || "Untitled Preset"}
+									{visiblePreset.name || "Untitled Preset"}
 								</h3>
 								<p className="shadowquill-panel__subtitle">
 									<i>Configure how this preset compiles prompts.</i>
@@ -123,30 +149,34 @@ export default function PresetEditor({
 					<div className="mx-auto max-w-3xl px-6 py-6">
 						<section className="studio-editor__section settings-category">
 							<BasicSettings
-								preset={editorPreset}
+								preset={visiblePreset}
 								onFieldChange={onFieldChange}
 							/>
 						</section>
 
-						<section className="studio-editor__section settings-category mt-8">
+						<section className="studio-editor__section settings-category mt-8 border-[var(--color-outline)] border-t pt-8">
+							<h4 className="settings-category__title mb-4">
+								Audience & Guidance
+							</h4>
 							<div className="flex flex-col">
-								<SettingRow
-									label="Additional Context"
-									description="Background info, definitions, constraints to include in the prompt."
-									htmlFor="additional-context"
-									stacked={true}
-								>
-									<textarea
-										id="additional-context"
-										value={editorPreset.options?.additionalContext || ""}
-										onChange={(e) =>
-											onFieldChange("additionalContext", e.target.value)
-										}
-										placeholder="Background info, definitions, constraints to include in the prompt."
-										className="md-input w-full resize-none text-sm"
-										rows={4}
-									/>
-								</SettingRow>
+								{GUIDANCE_FIELDS.map((f) => (
+									<SettingRow
+										key={f.id}
+										label={f.label}
+										description={f.description}
+										htmlFor={f.id}
+										stacked={true}
+									>
+										<textarea
+											id={f.id}
+											value={visiblePreset.options?.[f.field] || ""}
+											onChange={(e) => onFieldChange(f.field, e.target.value)}
+											placeholder={f.placeholder}
+											className="md-input w-full resize-none text-sm"
+											rows={3}
+										/>
+									</SettingRow>
+								))}
 							</div>
 						</section>
 					</div>
@@ -156,12 +186,12 @@ export default function PresetEditor({
 					<div className="mx-auto flex max-w-3xl items-center justify-between">
 						<button
 							type="button"
-							onClick={() => editorPreset.id && onDelete(editorPreset.id)}
+							onClick={() => visiblePreset.id && onDelete(visiblePreset.id)}
 							className="md-icon-btn studio-editor__delete-btn"
-							disabled={!editorPreset.id || editorPreset.name === "Default"}
+							disabled={!visiblePreset.id || visiblePreset.name === "Default"}
 							aria-label="Delete preset"
 							title={
-								editorPreset.name === "Default"
+								visiblePreset.name === "Default"
 									? "Default preset cannot be deleted"
 									: "Delete preset"
 							}

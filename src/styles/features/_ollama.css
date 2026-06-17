@@ -12,8 +12,106 @@
 }
 
 /* ========================================
+ * MODEL PULL GUIDANCE
+ * ======================================== */
+
+.shadowquill-pull-guidance {
+	display: flex;
+	flex-direction: column;
+	gap: var(--space-2);
+	margin-top: var(--space-2);
+	padding: var(--space-3);
+	border: 1px solid var(--color-outline);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface);
+}
+
+.shadowquill-pull-guidance__title {
+	font-size: var(--text-xs);
+	font-weight: 600;
+	color: var(--color-on-surface);
+}
+
+.shadowquill-pull-guidance__cmd {
+	display: block;
+	padding: var(--space-2) var(--space-3);
+	border-radius: var(--radius-sm);
+	background: var(--color-surface-variant);
+	border: 1px solid var(--color-outline);
+	font-family: var(--font-mono, monospace);
+	font-size: var(--text-xs);
+	color: var(--color-on-surface);
+	user-select: all;
+}
+
+.shadowquill-pull-guidance__hint {
+	font-size: var(--text-2xs);
+	color: var(--color-on-surface-variant);
+	opacity: 0.85;
+}
+
+/* ========================================
  * OLLAMA PANEL
  * ======================================== */
+
+.shadowquill-checklist {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	padding: 12px 16px;
+	background: var(--color-surface-variant);
+	border: 1px solid var(--color-outline);
+	border-radius: var(--radius-sm);
+	margin-bottom: 4px;
+}
+
+.shadowquill-checklist-item {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+.shadowquill-checklist-icon {
+	width: 20px;
+	height: 20px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	color: var(--color-on-surface-variant);
+}
+
+.shadowquill-checklist-item--done .shadowquill-checklist-icon {
+	color: var(--color-success);
+}
+
+.shadowquill-checklist-item--active .shadowquill-checklist-icon {
+	color: var(--color-on-surface);
+}
+
+.shadowquill-checklist-dot {
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: currentColor;
+	opacity: 0.5;
+}
+
+.shadowquill-checklist-label {
+	font-size: var(--text-sm);
+	color: var(--color-on-surface-variant);
+	font-weight: 500;
+}
+
+.shadowquill-checklist-item--done .shadowquill-checklist-label {
+	color: var(--color-on-surface-variant);
+	text-decoration: line-through;
+	opacity: 0.7;
+}
+
+.shadowquill-checklist-item--active .shadowquill-checklist-label {
+	color: var(--color-on-surface);
+}
 
 .shadowquill-panel {
 	background: var(--color-surface);

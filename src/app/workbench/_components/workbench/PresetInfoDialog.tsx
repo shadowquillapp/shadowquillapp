@@ -7,6 +7,7 @@ import { Icon } from "@/components/Icon";
 import { useCloseOnEscape } from "@/components/useCloseOnEscape";
 import { setLastSelectedPresetKey } from "@/lib/preset-store";
 import { getTaskTypeIcon } from "@/lib/task-type-icon";
+import { getTaskTypeLabel } from "@/lib/task-type-meta";
 import type { PresetLite } from "@/types";
 
 interface PresetInfoDialogProps {
@@ -189,7 +190,7 @@ export function PresetInfoDialog({
 							<div className="panel__body flex flex-wrap items-center gap-1.5 py-2">
 								<span className="workbench-meta-pill workbench-meta-pill--accent inline-flex items-center gap-1">
 									<Icon name={getTaskTypeIcon(taskType)} className="h-3 w-3" />
-									{taskType}
+									{getTaskTypeLabel(taskType)}
 								</span>
 								{metaPills.map((item) => (
 									<span key={item} className="workbench-meta-pill" title={item}>

@@ -2,6 +2,7 @@
 
 import { CustomSelect } from "@/components/CustomSelect";
 import { getTaskTypeIcon } from "@/lib/task-type-icon";
+import { getTaskTypeLabel, getTaskTypeMeta } from "@/lib/task-type-meta";
 import type { PresetLite } from "@/types";
 import SettingRow from "./SettingRow";
 
@@ -9,6 +10,26 @@ interface BasicSettingsProps {
 	preset: PresetLite;
 	onFieldChange: (field: string, value: unknown) => void;
 }
+
+const TASK_TYPE_ORDER = [
+	"intent",
+	"engineering",
+	"visual",
+	"motion",
+	"analysis",
+	"narrative",
+	"persuasion",
+] as const;
+
+const LANGUAGE_OPTIONS = [
+	"English",
+	"Dutch",
+	"German",
+	"French",
+	"Spanish",
+	"Arabic",
+	"Mandarin",
+] as const;
 
 export default function BasicSettings({
 	preset,
@@ -35,51 +56,19 @@ export default function BasicSettings({
 			</SettingRow>
 
 			<SettingRow
-				label="Task Type"
-				description="Prompt compilation strategy and domain directives"
+				label="What is this for?"
+				description={getTaskTypeMeta(preset.taskType).description}
 				htmlFor="task-type"
 			>
 				<CustomSelect
 					id="task-type"
 					value={preset.taskType}
 					onChange={(v) => onFieldChange("taskType", v)}
-					options={[
-						{
-							value: "intent",
-							label: "Intent",
-							icon: getTaskTypeIcon("intent"),
-						},
-						{
-							value: "engineering",
-							label: "Engineering",
-							icon: getTaskTypeIcon("engineering"),
-						},
-						{
-							value: "visual",
-							label: "Visual",
-							icon: getTaskTypeIcon("visual"),
-						},
-						{
-							value: "motion",
-							label: "Motion",
-							icon: getTaskTypeIcon("motion"),
-						},
-						{
-							value: "analysis",
-							label: "Analysis",
-							icon: getTaskTypeIcon("analysis"),
-						},
-						{
-							value: "narrative",
-							label: "Narrative",
-							icon: getTaskTypeIcon("narrative"),
-						},
-						{
-							value: "persuasion",
-							label: "Persuasion",
-							icon: getTaskTypeIcon("persuasion"),
-						},
-					]}
+					options={TASK_TYPE_ORDER.map((value) => ({
+						value,
+						label: getTaskTypeLabel(value),
+						icon: getTaskTypeIcon(value),
+					}))}
 				/>
 			</SettingRow>
 
@@ -149,15 +138,7 @@ export default function BasicSettings({
 					id="output-language"
 					value={options.language || "English"}
 					onChange={(v) => onFieldChange("language", v)}
-					options={[
-						{ value: "English", label: "English" },
-						{ value: "Dutch", label: "Dutch" },
-						{ value: "German", label: "German" },
-						{ value: "French", label: "French" },
-						{ value: "Spanish", label: "Spanish" },
-						{ value: "Arabic", label: "Arabic" },
-						{ value: "Mandarin", label: "Mandarin" },
-					]}
+					options={LANGUAGE_OPTIONS.map((value) => ({ value, label: value }))}
 				/>
 			</SettingRow>
 		</div>
