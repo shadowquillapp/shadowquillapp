@@ -1,3 +1,10 @@
+# [0.13.0](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.8...v0.13.0) (2026-06-17)
+
+
+### Features
+
+* surface friendly task-type labels and examples across workbench and studio ([6e1920d](https://github.com/shadowquillapp/shadowquillapp/commit/6e1920d6b6e4922cbe257fce718b59a7e3394280))
+
 ## [0.12.8](https://github.com/shadowquillapp/shadowquillapp/compare/v0.12.7...v0.12.8) (2026-06-14)
 
 
